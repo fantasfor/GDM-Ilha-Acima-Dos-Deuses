@@ -599,6 +599,7 @@ function draw(){
  if(window.onlineDrawables)onlineDrawables(L);
  L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
  if(window.desenharLoot)desenharLoot(); // itens e moedas caídos dos monstros (js/loot.js)
+ if(window.desenharConj)desenharConj(); // barra de conjuração (js/combat.js)
  proj.forEach(q=>{ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)});
  fxs.forEach((f,i)=>{const q=Math.max(0,Math.min(1,f.t/f.d)),fade=1-q,r=f.r*(.35+q),style=f.style||'ring';ctx.globalAlpha=fade;
   if(style=='fire'||style=='holy')circ(f.x,f.y,r*(style=='holy'?.8:1),f.c);
@@ -619,7 +620,9 @@ function draw(){
 const restored=loadGame();
 {// Personagem novo começa com o kit inicial; as ferramentas de teste da Engine podem dar outros itens.
  const has=id=>I.some(s=>s&&s.id==id)||Object.values(EQ).some(s=>s&&s.id==id);
- if(!restored){
+ // personagem novo: recebe o kit da classe (Engine › Classes › Kit inicial); sem kit configurado, o kit antigo
+ window.personagemNovo=!restored;
+ if(!restored&&!darKit(p.cls,{salvar:false})){
   if(ITEMS.sw&&!has('sw'))EQ.sw={id:'sw',n:1,q:rollQ()};
   for(const [id,n] of [['hp',3],['mp',2]])if(ITEMS[id]&&!has(id))addItem(id,undefined,n);
  }

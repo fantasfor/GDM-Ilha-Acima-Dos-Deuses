@@ -41,7 +41,7 @@ const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u
 let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
 SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Selecionar habilidade do slot '+s.k.toUpperCase()+'">↑</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();cast(s)};const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
-const skTip=s=>'<b>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+(s.w?'<div class=tw>Habilidade da arma</div>':'')+'<div>'+s.d()+'</div><div class=tm>Mana: '+s.mana+' • Recarga: '+s.cd+'s</div>'+(s.wt&&s.wt.length?'<div class=tm>Exige uma tag de arma: '+s.wt.join(', ')+'</div>':'')+(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe dona</div>':'');
+const skTip=s=>'<b>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+(s.w?'<div class=tw>Habilidade da arma</div>':'')+'<div>'+s.d()+'</div><div class=tm>Mana: '+s.mana+' • Recarga: '+s.cd+'s · '+(s.castTime>0?'Conjuração: '+tempoConj(s).toFixed(1)+'s':'Instantânea')+'</div>'+(s.wt&&s.wt.length?'<div class=tm>Exige uma tag de arma: '+s.wt.join(', ')+'</div>':'')+(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe dona</div>':'');
 const skillPanel=$('skillPanel');
 function renderSkillMenu(){
  if(!skillPanel)return;
@@ -187,7 +187,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{}},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -208,6 +208,8 @@ function loadGame(){
   p.basicMode=BASIC_MODES.includes(d.p.basicMode)?d.p.basicMode:'sw';p.basicNext=d.p.basicNext=='sh'?'sh':'sw';
   lootMode=Object.prototype.hasOwnProperty.call(LOOT_MODES,d.lootMode)?d.lootMode:'manual';
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
+  // kits iniciais já recebidos; saves de antes dos kits contam as classes que o jogador já tinha
+  p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=true}else for(const c in p.classProgress)p.kits[c]=true;
   BESTIARIO.k={};BESTIARIO.d={};const best=d.bestiario||{};
   if(best.k&&typeof best.k=='object')for(const ty in best.k)if(Number.isFinite(best.k[ty])&&best.k[ty]>0)BESTIARIO.k[ty]=Math.floor(best.k[ty]);
   if(best.d&&typeof best.d=='object')for(const ty in best.d)if(best.d[ty]&&typeof best.d[ty]=='object')for(const id in best.d[ty])if(ITEMS[id])(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1;

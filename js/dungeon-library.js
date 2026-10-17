@@ -45,7 +45,7 @@
   const rec=+c.recLevel||(lvls.length?Math.round(lvls.reduce((a,b)=>a+b,0)/lvls.length):Math.max(5,p.lvl+1));
   const drops=new Set();
   for(const ch of c.chests||[])for(const it of ch.loot?.items||[])if(ITEMS[it.id])drops.add(it.id);
-  for(const id of MONSTER_TYPES[boss.type]?.drops||[])if(ITEMS[id])drops.add(id);
+  for(const d of MONSTER_TYPES[boss.type]?.drops||[]){const id=d&&d.id||d;if(ITEMS[id])drops.add(id)}
   const tiers={};for(const ch of c.chests||[]){const k=ch.randomTier?'random':ch.tier||'blue';tiers[k]=(tiers[k]||0)+1}
   const waves=spawns.reduce((n,s)=>n+(s.respawnMode==='once'?1:+s.waves||0),0);
   return{c,boss,bossName,rec,minLevel:+c.minLevel||0,drops:[...drops].slice(0,10),tiers,mobs:mobs.length,spawns:spawns.length,waves};

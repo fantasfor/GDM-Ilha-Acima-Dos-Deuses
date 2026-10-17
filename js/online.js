@@ -101,9 +101,10 @@
     do tipo dela) vai num evento só, "k;...", e os outros jogadores reproduzem o visual, sem dano */
  const hex=c=>/^#[0-9a-fA-F]{3,8}$/.test(c||'')?c.slice(1):'';
  const nomeLimpo=t=>String(t||'').replace(/[^a-z]/gi,'').slice(0,12);
- if(nuvem&&typeof cast==='function'){
-  const cast0=cast;
-  cast=function(s){
+ // lancar (combat.js) é o momento em que a habilidade sai: na hora, ou no fim do tempo de conjuração
+ if(nuvem&&typeof lancar==='function'){
+  const cast0=lancar;
+  lancar=function(s){
    const t0=s.t,px=p.x,py=p.y,nf=fxs.length,np=proj.length,nm=mets.length;
    const r=cast0.apply(this,arguments);
    if(s&&s.t>t0&&!window.inTaverna){

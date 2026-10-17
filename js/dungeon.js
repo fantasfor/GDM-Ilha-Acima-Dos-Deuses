@@ -1801,6 +1801,7 @@
 
   // itens e moedas caídos dos monstros (js/loot.js)
   if(window.desenharLoot) desenharLoot();
+  if(window.desenharConj) desenharConj();
 
   // Efeitos visuais e feitiços (fxs e proj)
   proj.forEach(q => {

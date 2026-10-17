@@ -311,7 +311,9 @@
     if(!await reservarNome(nome.value)){ok.disabled=false;msg.classList.add('erro');msg.textContent=nomeValido(nome.value)?'Esse nome já está em uso. Escolha outro.':'Use de 3 a 18 letras ou números.';conferir();return}
     // aplica classe e sexo ao herói e salva
     p.sex=sex;p.classProgress=p.classProgress||{};if(!p.classProgress[cls])p.classProgress[cls]={rank:1,xp:0};
-    p.cls=cls;p.hp=mhp();p.mp=mmp();if(window.applySkills)applySkills();if(window.setPortrait)setPortrait();if(window.renderSkillMenu)renderSkillMenu();
+    // personagem novo: troca o kit dado na abertura do jogo pelo kit da classe escolhida
+    if(window.personagemNovo&&window.darKit&&CL[cls].kit&&CL[cls].kit.length){I.fill(null);for(const k in EQ)EQ[k]=null;p.kits={}}
+    p.cls=cls;if(window.darKit)darKit(cls,{salvar:false});p.hp=mhp();p.mp=mmp();if(window.applySkills)applySkills();if(window.setPortrait)setPortrait();if(window.renderSkillMenu)renderSkillMenu();
     if(window.saveGame)saveGame();enviarProgresso(true);
     pronto();
    };

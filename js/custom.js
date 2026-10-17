@@ -30,7 +30,7 @@ function makeSkill(s){
   const perform=f;f=(w,t)=>{perform(w,t);for(const enemy of en)if(enemy.hp>0&&dist(enemy,p)<r*areaMultiplier(p))hurtE(enemy,{physical:Math.max(0,n(s.actionStats.physicalDmg)),magic:Math.max(0,n(s.actionStats.magicDmg))},false,fx&&fx())};
  }
  const sprite=pixelArt(s.sprite),dd=d,dmgTag=()=>skillMagic(s)?'mágico':'físico';d=()=>dd().replace(/ de dano/g,' de dano '+(split?'':dmgTag()))+fxText(s.effects)+(attributeText(s.actionStats)?' Ação: '+attributeText(s.actionStats)+'.':'')+(attributeText(s.bonuses)?' Bônus: '+attributeText(s.bonuses)+'.':'');
- return{id:s.id,category:s.category||'ability',n:s.name||s.id,effect:s.effect,radius:r,mana:n(s.mana),cd:Math.max(.3,n(s.cd,3)),actionStats:s.actionStats,bonuses:s.bonuses,bonusDuration:n(s.bonusDuration,5),ic:sprite?sprite.toDataURL():SKI(s.icon||'orb',s.c1||'#4a6a96',s.c2||'#fff'),f,d:s.desc?()=>s.desc+' ('+d()+')':d,wt:lc(s.weaponTypes).map(weaponTag),tags:tags(s.tags),cross:!!s.cross,vfx:s.vfx||'arcane',vfxColor:col}}
+ return{id:s.id,category:s.category||'ability',n:s.name||s.id,effect:s.effect,radius:r,mana:n(s.mana),cd:Math.max(.3,n(s.cd,3)),castTime:Math.max(0,n(s.castTime)),actionStats:s.actionStats,bonuses:s.bonuses,bonusDuration:n(s.bonusDuration,5),ic:sprite?sprite.toDataURL():SKI(s.icon||'orb',s.c1||'#4a6a96',s.c2||'#fff'),f,d:s.desc?()=>s.desc+' ('+d()+')':d,wt:lc(s.weaponTypes).map(weaponTag),tags:tags(s.tags),cross:!!s.cross,vfx:s.vfx||'arcane',vfxColor:col}}
 L('skills').forEach(s=>{const o=makeSkill(s);if(o)SDEF[s.id]=o});
 
 /* ---------- itens ---------- */
@@ -100,7 +100,8 @@ L('classes').forEach(c=>{
   get pDmg(){return pc(ps.dmg)+pc(sum('dmg'))},get pMp(){return pc(ps.mp)+pc(sum('mp'))},get passiveHp(){return pc(ps.hp)+pc(sum('hp'))},get pSpd(){return pc(ps.spd)+pc(sum('spd'))},
   get pArm(){return pc(ps.arm)+pc(sum('arm'))},get pMagicArm(){return pc(ps.magicArm)+pc(sum('magicArm'))},get pAttackSpeed(){return pc(ps.attackSpeed)+pc(sum('attackSpeed'))},get pMoveSpeed(){return pc(ps.moveSpeed)+pc(sum('moveSpeed'))},
   statBonus:k=>(!['F','A','I'].includes(k)?attributeValue(a,k)+attributeValue(g,k)*(p.lvl-1):0)+attributeValue(ps.stats,k)+pl.reduce((total,r)=>total+(p.lvl>=r.lv?attributeValue(r.d.stats,k):0),0),
-  pa:k=>sum(k),plist:pl,passive:{n:ps.name||'',d:ps.desc||''},base,sprite:pixelArt(c.sprite)};
+  pa:k=>sum(k),plist:pl,passive:{n:ps.name||'',d:ps.desc||''},base,sprite:pixelArt(c.sprite),
+  kit:(Array.isArray(c.kit)?c.kit:[]).filter(r=>r&&ITEMS[r.id]).map(r=>({id:r.id,n:Math.max(1,Math.floor(n(r.n,1)))}))};
  const createdSkills=(Array.isArray(c.skills)?c.skills:[]).slice(0,6).map(r=>({d:SDEF[r.id],rank:Math.max(1,Math.min(10,n(r.rank,n(r.lv,1))))})).filter(r=>r.d).sort((x,y)=>x.rank-y.rank).map(r=>({...r.d,rank:r.rank,owner:c.id}));
  SKS[c.id]=createdSkills.length?createdSkills:previousSkills;
  HS[c.id]=HS[base];
@@ -111,6 +112,17 @@ if(port)port._tip=()=>{const c=CL[p.cls],ps=c.passive;return'<b>'+c.n+'</b>'+(ps
  +(c.plist||[]).map(r=>'<div class=tw'+(p.lvl<r.lv?' style="opacity:.5"':'')+'>Passiva: '+r.d.n+(p.lvl<r.lv?' (nível '+r.lv+')':'')+'</div><div>'+r.d.t+'</div>').join('')};
 
 /* ---------- monstros ---------- */
+/* Drops: [{id, chance}] com chance em % (cada item é sorteado sozinho). O formato antigo (lista de ids
+   dividindo a chance base + drops garantidos) vira o mesmo resultado em %. Não existe mais tabela padrão. */
+function normDrops(m){
+ const out={},put=(id,c)=>{if(ITEMS[id])out[id]=Math.max(out[id]||0,Math.max(0,Math.min(100,+c||0)))};
+ const lista=Array.isArray(m.drops)?m.drops:[],g=Array.isArray(m.guaranteedDrops)?m.guaranteedDrops:[];
+ const velhos=lista.filter(x=>typeof x=='string'&&!g.includes(x)),bn=m.bossType=='grandboss'?.4:m.bossType=='boss'?.2:0;
+ velhos.forEach(id=>put(id,CALC.dropChance*(1+bn)/velhos.length*100));
+ g.forEach(id=>put(id,100));
+ lista.forEach(x=>{if(x&&typeof x=='object')put(x.id,x.chance)});
+ return Object.entries(out).filter(([,c])=>c>0).map(([id,chance])=>({id,chance}));
+}
 const CM={};
 L('monsters').forEach(m=>{
  if(!m.id)return;
@@ -119,12 +131,12 @@ L('monsters').forEach(m=>{
  const total={},weaponRanges=[];equipment.forEach(it=>{const stats={...it.stats},range=it.kind==='weapon'&&weaponDamageRange(it);if(range){stats.dmg=(range.min+range.max)/2;weaponRanges.push(range)}Object.keys(stats).forEach(k=>{total[k]=(total[k]||0)+n(stats[k])})});
  const weapon=equipment.find(it=>it.kind=='weapon')||null,createdSkills=(Array.isArray(m.skills)?m.skills:[]).map(id=>D.skills.find(k=>k.id==id)).filter(k=>k&&(!k.category||k.category=='ability')&&skillWeaponAllowed({wt:k.weaponTypes},weapon)).map(k=>({
   id:k.id,name:k.name||'Habilidade',cost:n(k.mana),cd:Math.max(.3,n(k.cd,3)),range:n(k.monRange)||(k.effect=='nova'?n(k.radius,30):weapon&&weapon.basic?n(weapon.basic.rng,30):30),damageModel:k.damageModel||'legacy',physicalFlat:n(k.physicalFlat),physicalPercent:n(k.physicalPercent),magicFlat:n(k.magicFlat),magicPercent:n(k.magicPercent),
-  actionStats:k.actionStats,bonuses:k.bonuses,bonusDuration:n(k.bonusDuration,5),effect:k.effect,windup:.5,damage:n(k.base),per:n(k.per),charPercent:n(k.charPercent),effects:Array.isArray(k.effects)?k.effects:[],magic:k.damageType=='magic'||k.damageType!='physical'&&!!(weapon&&weapon.damageType=='magic'),radius:n(k.radius),flatDamage:true,scaleStat:k.scaleStat||'none',scalePercent:n(k.scalePercent,k.scaleStat&&k.scaleStat!='none'?100:0),vfx:k.vfx||'arcane',vfxColor:k.color||k.c2||'#9bd4ff'
+  actionStats:k.actionStats,bonuses:k.bonuses,bonusDuration:n(k.bonusDuration,5),effect:k.effect,windup:n(k.castTime)>0?n(k.castTime):.5,damage:n(k.base),per:n(k.per),charPercent:n(k.charPercent),effects:Array.isArray(k.effects)?k.effects:[],magic:k.damageType=='magic'||k.damageType!='physical'&&!!(weapon&&weapon.damageType=='magic'),radius:n(k.radius),flatDamage:true,scaleStat:k.scaleStat||'none',scalePercent:n(k.scalePercent,k.scaleStat&&k.scaleStat!='none'?100:0),vfx:k.vfx||'arcane',vfxColor:k.color||k.c2||'#9bd4ff'
  }));
  const sprite=pixelArt(m.sprite),sp=sprite?{d:sprite,u:sprite,s:sprite,ds:sprite,us:sprite,w:null}:null;
  MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,tags:lc(m.tags),custom:true,classId,sprite,sp,animation:m.animation,size:n(m.size,100),attackSpeed:n(m.attackSpeed),moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
   bossType:['boss','grandboss'].includes(m.bossType)?m.bossType:'normal',equipment:{stats:total,weaponRanges,weapon:weapon?{damageType:weapon.damageType=='magic'?'magic':'physical',basic:weapon.basic||{},effects:Array.isArray(weapon.effects)?weapon.effects:[]}:null},
-  drops:Array.isArray(m.drops)?m.drops.filter(id=>ITEMS[id]):[],guaranteedDrops:Array.isArray(m.guaranteedDrops)?m.guaranteedDrops.filter(id=>ITEMS[id]):[],skills:createdSkills};
+  drops:normDrops(m),skills:createdSkills};
  const f=n(s.F,5),pow=weapon&&weapon.damageType=='magic'?n(s.I,3)*5:f*3;
  MB[m.id]={max:40+f*5,dmg:pow+n(total.dmg),spd:28+n(s.A,3)*.45,xp:n(m.xp,15),g:n(m.gold,5),aggro:n(m.aggro,65),wu:.4,ac:Math.max(.3,n(m.attackSpeed)||CL[classId].attackSpeed||1),base};
  if(m.id!='boss')CM[m.id]={min:n(m.minLevel,1),max:n(m.maxLevel,999),w:Math.max(.1,n(m.weight,1))}});

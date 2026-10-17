@@ -9,22 +9,15 @@ const cb=E('button','','Enciclopédia');cb.id='codexBtn';cb.title='Enciclopédia
 const box=E('section');box.id='codex';document.body.appendChild(box);
 let tab='mon',q='';
 /* ---- dados ---- */
-const DEF=[['sw',.05],['bo',.05],['sh',.05]],RND=.18;
 function mons(){const be=en.find(e=>e.boss);return Object.keys(MONSTER_TYPES).map(id=>{const t=MONSTER_TYPES[id],B=id=='boss'&&be?{max:be.max,dmg:be.dmg,spd:be.spd,xp:be.xp,g:be.g,aggro:be.aggro,base:'sk'}:(MB[id]||{max:0,dmg:0,spd:0,xp:0,g:0,aggro:0,base:'sl'});
- const own=t.drops&&t.drops.length?t.drops:null,bn=t.bossType=='grandboss'?.4:t.bossType=='boss'?.2:0;
- return{id,t,B,img:t.sprite||(SP[B.base]||SP.sl).d,sk:(t.skills&&t.skills[0])||t.skill,bt:t.bossType||'normal',size:t.size||100,sp:window.SPAWNINFO&&SPAWNINFO[id],own,drops:own?own.map(d=>[d,CALC.dropChance*(1+bn)/own.length]):null}})}
-const gear=()=>GEARIDS.filter(id=>!ITEMS[id].use),defCh=id=>(DEF.find(d=>d[0]==id)||[0,0])[1]+(gear().includes(id)?RND/gear().length:0);
+ return{id,t,B,img:t.sprite||(SP[B.base]||SP.sl).d,sk:(t.skills&&t.skills[0])||t.skill,bt:t.bossType||'normal',size:t.size||100,sp:window.SPAWNINFO&&SPAWNINFO[id]}})}
 /* ---- bestiário: só aparece o que o jogador já descobriu (js/state.js BESTIARIO) ---- */
 const MAIS_INFO=100,abertos=new Set(),sombras=new Map();
 const mortes=id=>(window.BESTIARIO&&BESTIARIO.k[id])||0,jaCaiu=(ty,id)=>!!(window.BESTIARIO&&BESTIARIO.d[ty]&&BESTIARIO.d[ty][id]);
 // silhueta preta do sprite para monstros ainda não derrotados
 function sombra(m){if(!sombras.has(m.id)){const c=document.createElement('canvas');c.width=m.img.width;c.height=m.img.height;const x=c.getContext('2d');x.drawImage(m.img,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#4a4236';x.fillRect(0,0,c.width,c.height);sombras.set(m.id,c.toDataURL())}return sombras.get(m.id)}
 // chance real de cada item cair deste monstro (mesma regra de killMonster em combat.js)
-function chances(m){const t=m.t,g=t.guaranteedDrops||[],own=(t.drops||[]).filter(id=>!g.includes(id)),bn=t.bossType=='grandboss'?.4:t.bossType=='boss'?.2:0,out={};
- g.forEach(id=>out[id]=1);
- if(own.length)own.forEach(id=>out[id]=(out[id]||0)+CALC.dropChance*(1+bn)/own.length);
- else if(!g.length)gear().forEach(id=>{const c=defCh(id);if(c>0)out[id]=c});
- return out}
+function chances(m){const out={};for(const d of m.t.drops||[])if(d&&d.id)out[d.id]=d.chance/100;return out}
 /* ---- abas ---- */
 function tMon(){const g=E('div','cx-grid');mons().sort((a,b)=>(a.bt!='normal')-(b.bt!='normal')||(a.sp?a.sp.min:99)-(b.sp?b.sp.min:99)).forEach(m=>{const c=E('div','cx-card'),B=m.B,sk=m.sk,n=mortes(m.id);
  const badge=m.bt=='grandboss'?'<span class="cx-badge gb">Grande chefe</span>':m.bt=='boss'?'<span class="cx-badge boss">Chefe</span>':'<span class="cx-badge">Normal</span>';

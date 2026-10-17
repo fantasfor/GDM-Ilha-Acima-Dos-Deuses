@@ -1,5 +1,5 @@
 /* constantes de cálculo (editáveis pelo GM na Enciclopédia > Cálculos) */
-const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,dropChance:.22,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10};
+const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,dropChance:.22,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10};
 const CALC_DEF={...CALC};
 const ITEM_STATS={
  dmg:{label:'Dano',text:'dano'},
@@ -14,6 +14,7 @@ const ITEM_STATS={
  spd:{label:'Velocidade de movimento (%) — legado',text:'velocidade',percent:true},
  moveSpeed:{label:'Velocidade de movimento (%)',text:'movimento',percent:true},
  attackSpeed:{label:'Velocidade de ataque (%)',text:'velocidade de ataque',percent:true},
+ castSpeed:{label:'Velocidade de conjuração (%)',text:'velocidade de conjuração',percent:true},
  area:{label:'Aumento de área (%)',text:'área',percent:true},
  cooldownReduction:{label:'Redução de recarga (%)',text:'redução de recarga',percent:true},
  critChance:{label:'Chance crítica (%)',text:'chance crítica',percent:true},
@@ -24,7 +25,7 @@ const ITEM_STATS={
  A:{label:'Agilidade',text:'A'},
  I:{label:'Inteligência',text:'I'}
 };
-const ATTRIBUTE_KEYS=['physicalDmg','magicDmg','arm','magicArm','hp','mp','regenHp','regenMp','F','A','I','moveSpeed','attackSpeed','area','cooldownReduction','critChance','critDamage','lifeSteal','magicLifeSteal'];
+const ATTRIBUTE_KEYS=['physicalDmg','magicDmg','arm','magicArm','hp','mp','regenHp','regenMp','F','A','I','moveSpeed','attackSpeed','castSpeed','area','cooldownReduction','critChance','critDamage','lifeSteal','magicLifeSteal'];
 const attributeValue=(stats,key)=>{const value=Number(stats&&stats[key])||0;return ITEM_STATS[key]?.percent?value/100:value};
 const attributeText=stats=>ATTRIBUTE_KEYS.filter(k=>Number(stats?.[k])).map(k=>(stats[k]>0?'+':'')+stats[k]+(ITEM_STATS[k].percent?'%':'')+' '+ITEM_STATS[k].text).join(', ');
 const itemStatValue=(k,v)=>{const s=ITEM_STATS[k];return Number((s.percent?v*100:v).toFixed(s.percent||s.fractional?2:0))+(s.percent?'%':'')};
