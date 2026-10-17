@@ -50,6 +50,20 @@ window.PROJETO={
       "id": "war_wall",
       "rank": 6
      }
+    ],
+    "kit": [
+     {
+      "id": "kit_espada_treino",
+      "n": 1
+     },
+     {
+      "id": "kit_gibao",
+      "n": 1
+     },
+     {
+      "id": "hp",
+      "n": 3
+     }
     ]
    },
    {
@@ -98,6 +112,20 @@ window.PROJETO={
       "id": "mag_shield",
       "rank": 6
      }
+    ],
+    "kit": [
+     {
+      "id": "kit_cajado_aprendiz",
+      "n": 1
+     },
+     {
+      "id": "kit_tunica_aprendiz",
+      "n": 1
+     },
+     {
+      "id": "mp",
+      "n": 3
+     }
     ]
    },
    {
@@ -145,6 +173,24 @@ window.PROJETO={
      {
       "id": "hea_shield",
       "rank": 6
+     }
+    ],
+    "kit": [
+     {
+      "id": "kit_bastao_novico",
+      "n": 1
+     },
+     {
+      "id": "kit_manto_novico",
+      "n": 1
+     },
+     {
+      "id": "hp",
+      "n": 2
+     },
+     {
+      "id": "mp",
+      "n": 2
      }
     ]
    }
@@ -1275,6 +1321,171 @@ window.PROJETO={
       "pixels": "-----------------------------------------------------------------------------00000000------------------------02222220------------------------02222220------------------------02222220------------------------02222220------------------------02222220------------------------02222220------------------------00011000--------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0110----------------------------0000-------------"
      }
     }
+   },
+   {
+    "id": "kit_espada_treino",
+    "kind": "weapon",
+    "name": "Espada de Treino",
+    "twoHanded": false,
+    "skills": [],
+    "effects": [],
+    "tags": [
+     "inicial"
+    ],
+    "drop": false,
+    "wtype": "espada",
+    "style": 0,
+    "c1": "#9aa1a8",
+    "c2": "#8a5a30",
+    "damageType": "physical",
+    "damageMin": 3,
+    "damageMax": 5,
+    "stats": {
+     "dmg": 4
+    },
+    "basic": {
+     "name": "Golpe de treino",
+     "ranged": false,
+     "rng": 22,
+     "proj": "#ffffff",
+     "damageType": "",
+     "base": 0,
+     "per": 0,
+     "charPercent": 100,
+     "scaleStat": "none",
+     "scalePercent": 0,
+     "icon": "blade",
+     "desc": "Golpe simples de espada."
+    }
+   },
+   {
+    "id": "kit_cajado_aprendiz",
+    "kind": "weapon",
+    "name": "Cajado de Aprendiz",
+    "twoHanded": true,
+    "skills": [],
+    "effects": [],
+    "tags": [
+     "inicial"
+    ],
+    "drop": false,
+    "wtype": "cajado",
+    "style": 2,
+    "c1": "#6a4a2a",
+    "c2": "#9bd4ff",
+    "damageType": "magic",
+    "damageMin": 2,
+    "damageMax": 4,
+    "stats": {
+     "dmg": 3,
+     "mp": 10
+    },
+    "basic": {
+     "name": "Faísca",
+     "ranged": true,
+     "rng": 80,
+     "proj": "#9bd4ff",
+     "damageType": "magic",
+     "base": 0,
+     "per": 0,
+     "charPercent": 100,
+     "scaleStat": "none",
+     "scalePercent": 0,
+     "icon": "orb",
+     "desc": "Dispara uma faísca mágica."
+    }
+   },
+   {
+    "id": "kit_bastao_novico",
+    "kind": "weapon",
+    "name": "Bastão de Noviço",
+    "twoHanded": true,
+    "skills": [],
+    "effects": [],
+    "tags": [
+     "inicial"
+    ],
+    "drop": false,
+    "wtype": "cajado",
+    "style": 1,
+    "c1": "#8a6a3a",
+    "c2": "#f0e08a",
+    "damageType": "magic",
+    "damageMin": 2,
+    "damageMax": 4,
+    "stats": {
+     "dmg": 3,
+     "hp": 10
+    },
+    "basic": {
+     "name": "Luz",
+     "ranged": true,
+     "rng": 70,
+     "proj": "#f0e08a",
+     "damageType": "magic",
+     "base": 0,
+     "per": 0,
+     "charPercent": 100,
+     "scaleStat": "none",
+     "scalePercent": 0,
+     "icon": "cross",
+     "desc": "Dispara um feixe de luz."
+    }
+   },
+   {
+    "id": "kit_gibao",
+    "kind": "armor",
+    "name": "Gibão Acolchoado",
+    "slot": "ch",
+    "style": 0,
+    "effects": [],
+    "tags": [
+     "inicial"
+    ],
+    "drop": false,
+    "c1": "#7a6a4a",
+    "c2": "#b8a070",
+    "stats": {
+     "arm": 2,
+     "hp": 10
+    }
+   },
+   {
+    "id": "kit_tunica_aprendiz",
+    "kind": "armor",
+    "name": "Túnica de Aprendiz",
+    "slot": "ch",
+    "style": 2,
+    "effects": [],
+    "tags": [
+     "inicial"
+    ],
+    "drop": false,
+    "c1": "#3a4a8a",
+    "c2": "#9bd4ff",
+    "stats": {
+     "arm": 1,
+     "mp": 10
+    }
+   },
+   {
+    "id": "kit_manto_novico",
+    "kind": "armor",
+    "name": "Manto de Noviço",
+    "slot": "ch",
+    "style": 2,
+    "effects": [],
+    "tags": [
+     "inicial"
+    ],
+    "drop": false,
+    "c1": "#d8d0b8",
+    "c2": "#e0c060",
+    "stats": {
+     "arm": 1,
+     "hp": 5,
+     "mp": 5
+    }
    }
   ],
   "skills": [
@@ -2076,7 +2287,10 @@ window.PROJETO={
      "sw"
     ],
     "drops": [
-     "he1"
+     {
+      "id": "he1",
+      "chance": 22
+     }
     ],
     "skills": [
      "skill_acid"
@@ -2138,8 +2352,14 @@ window.PROJETO={
      "he1"
     ],
     "drops": [
-     "sw2",
-     "le2"
+     {
+      "id": "sw2",
+      "chance": 11
+     },
+     {
+      "id": "le2",
+      "chance": 11
+     }
     ],
     "skills": [
      "skill_crush"
@@ -2190,12 +2410,14 @@ window.PROJETO={
     "aggro": 65,
     "equipment": [],
     "drops": [
-     "wood",
-     "magicWood"
-    ],
-    "guaranteedDrops": [
-     "wood",
-     "magicWood"
+     {
+      "id": "wood",
+      "chance": 100
+     },
+     {
+      "id": "magicWood",
+      "chance": 100
+     }
     ],
     "skills": []
    },
@@ -2225,8 +2447,14 @@ window.PROJETO={
      "he2"
     ],
     "drops": [
-     "sw3",
-     "ri3"
+     {
+      "id": "sw3",
+      "chance": 13.2
+     },
+     {
+      "id": "ri3",
+      "chance": 13.2
+     }
     ],
     "skills": [
      "skill_roar"
@@ -2465,7 +2693,10 @@ window.PROJETO={
     "aggro": 65,
     "equipment": [],
     "drops": [
-     "cajado_arcano_copia"
+     {
+      "id": "cajado_arcano_copia",
+      "chance": 22
+     }
     ],
     "skills": [],
     "attackSpeed": 1,
@@ -4019,7 +4250,7 @@ window.PROJETO={
        "x": 340,
        "y": 140,
        "w": 180,
-       "h": 150
+       "h": 152
       },
       {
        "id": 3,
@@ -4043,9 +4274,9 @@ window.PROJETO={
        "id": 11,
        "from": 1,
        "to": 2,
-       "x": 240,
-       "y": 180,
-       "w": 100,
+       "x": 234,
+       "y": 183,
+       "w": 129,
        "h": 60,
        "dir": "h"
       },
@@ -4056,16 +4287,16 @@ window.PROJETO={
        "x": 400,
        "y": 290,
        "w": 60,
-       "h": 100,
+       "h": 103,
        "dir": "v"
       },
       {
        "id": 13,
        "from": 3,
        "to": 4,
-       "x": 530,
+       "x": 524,
        "y": 450,
-       "w": 100,
+       "w": 111,
        "h": 60,
        "dir": "h"
       }
@@ -4196,49 +4427,50 @@ window.PROJETO={
        "type": "goblin",
        "x": 410,
        "y": 170,
-       "lvl": 4
+       "lvl": 30
       },
       {
        "id": 102,
        "type": "goblin",
        "x": 455,
        "y": 220,
-       "lvl": 4
+       "lvl": 30
       },
       {
        "id": 103,
        "type": "gob",
        "x": 430,
        "y": 340,
-       "lvl": 4
+       "lvl": 30
       },
       {
        "id": 104,
        "type": "gob",
        "x": 408,
        "y": 456,
-       "lvl": 5
+       "lvl": 30
       },
       {
        "id": 105,
        "type": "gob",
        "x": 445,
        "y": 500,
-       "lvl": 5
+       "lvl": 30
       },
       {
        "id": 106,
        "type": "goblin",
        "x": 470,
        "y": 510,
-       "lvl": 4
+       "lvl": 30,
+       "isBoss": true
       },
       {
        "id": 107,
        "type": "goblinBoss",
        "x": 780,
        "y": 480,
-       "lvl": 7,
+       "lvl": 50,
        "isBoss": true
       }
      ],
