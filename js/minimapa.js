@@ -42,7 +42,7 @@
    else if(e.elite)diamond(mm,cl(x),cl(y),'#f0a52e',3);
    else dot(mm,x,y,p.tgt===e?'#ffffff':'#e8443a',3)});
   // alvo de missão
-  en.forEach(t=>{if(t.hp<=0||!questMonsterRequested(t.ty))return;const [tx,ty]=at(t.x,t.y),x=cl(tx),y=cl(ty),r=5+Math.sin(time*6)*1.3;
+  en.forEach(t=>{if(t.hp<=0||!questMonsterRequested(t.ty)||!canSee(t.x,t.y))return;const [tx,ty]=at(t.x,t.y),x=cl(tx),y=cl(ty),r=5+Math.sin(time*6)*1.3;
    mm.strokeStyle='#0a0806';mm.lineWidth=3;mm.beginPath();mm.arc(x,y,r,0,7);mm.stroke();mm.strokeStyle='#ffe26a';mm.lineWidth=1.5;mm.beginPath();mm.arc(x,y,r,0,7);mm.stroke();
    mm.fillStyle='#ffd84a';mm.font='bold 9px monospace';mm.textAlign='center';mm.textBaseline='middle';mm.fillText('!',x,y)});
   if(window.onlineMinimap)onlineMinimap(mm,ox,oy,k,SZ);

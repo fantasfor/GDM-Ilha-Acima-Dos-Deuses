@@ -96,8 +96,12 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .eqslot{position:relative;width:40px;height:40px;padding:0;border:2px solid #0a0806;outline:1px solid var(--line);outline-offset:-3px;background:linear-gradient(145deg,#1c1915,#0b0b0b);box-shadow:inset 0 0 8px #000;cursor:pointer}
 .eqslot img{width:30px;height:30px;image-rendering:pixelated}
 .eqslot img.ghost{opacity:.22;filter:grayscale(1)}
-.eqslot .eqName{position:absolute;left:0;right:0;bottom:-1px;font:7px monospace;color:#8f846c;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden}
-.eqslot:not(.empty) .eqName{display:none}
+.eqslot .eqName{position:absolute;left:0;right:0;bottom:0;font:7px/9px monospace;color:#8f846c;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden}
+/* com item equipado o nome do espaço continua, numa faixa escura por cima do ícone */
+.eqslot:not(.empty) .eqName{background:#0a0806cc;color:#d8c9a4}
+/* em combate: armas travadas */
+.emCombate .eqslot[data-slot="sw"],.emCombate .eqslot[data-slot="sh"]{outline-color:#d44!important;box-shadow:0 0 8px #d4444466,inset 0 0 8px #000}
+.emCombate .eqslot[data-slot="sw"] .eqName,.emCombate .eqslot[data-slot="sh"] .eqName{color:#f0a090}
 .eqslot.sel{outline:2px solid #f0cf7a;box-shadow:0 0 10px #f0cf7a66,inset 0 0 8px #000}
 .eqslot.q0,.eqslot.q1,.eqslot.q2,.eqslot.q3,.eqslot.q4,.eqslot.q5,.islot.q0,.islot.q1,.islot.q2,.islot.q3,.islot.q4,.islot.q5{border-color:#0a0806!important;outline-width:2px}
 .eqslot.q0,.islot.q0{outline-color:#7a7a7a}.eqslot.q1,.islot.q1{outline-color:#e8e8e8}.eqslot.q2,.islot.q2{outline-color:#3fbf4f}.eqslot.q3,.islot.q3{outline-color:#3f8ae8}.eqslot.q4,.islot.q4{outline-color:#b04fe8}.eqslot.q5,.islot.q5{outline-color:#ffb020}

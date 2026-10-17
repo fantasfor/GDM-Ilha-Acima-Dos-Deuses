@@ -10,6 +10,15 @@
  const MESAS=[{x:OX+112,y:OY+150},{x:OX+212,y:OY+196},{x:OX+316,y:OY+150},{x:OX+104,y:OY+236},{x:OX+322,y:OY+238}];
  const BARRIS=[{x:OX+398,y:OY+96},{x:OX+398,y:OY+116},{x:OX+386,y:OY+106},{x:OX+30,y:OY+250}];
  const LAREIRA={x:OX+328,y:OY+44};
+ /* mestres de classe: um por classe do projeto; aprender uma classe nova custa PRECO_CLASSE de ouro
+    (voltar para uma classe que o jogador já aprendeu é grátis) */
+ const PRECO_CLASSE=2000;
+ const LUGARES_MESTRE=[[40,120],[40,170],[388,160],[388,206],[170,110],[262,110],[40,214],[388,250],[214,258]];
+ let MESTRES=[];
+ function montarMestres(){
+  const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n);
+  MESTRES=ids.slice(0,LUGARES_MESTRE.length).map((cls,i)=>({cls,x:OX+LUGARES_MESTRE[i][0],y:OY+LUGARES_MESTRE[i][1],fx:0,fy:1,nm:'Mestre '+CL[cls].n}));
+ }
  let ilhaPos=null,enGuardado=null,fundo=null;
  window.inTaverna=false;
 
@@ -20,6 +29,7 @@
   if(x>OX+292&&x<OX+364&&y<OY+66)return false;             // lareira
   for(const m of MESAS)if(Math.hypot(x-m.x,(y-m.y)*1.3)<15)return false;
   for(const b of BARRIS)if(Math.hypot(x-b.x,y-b.y)<8)return false;
+  for(const m of MESTRES)if(Math.hypot(x-m.x,(y-m.y)*1.4)<6)return false;
   return true;
  };
  window.posicaoParaSalvar=()=>window.inTaverna&&ilhaPos?ilhaPos:p;
@@ -108,6 +118,16 @@
    ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(BARKEEP.nm,BARKEEP.x+.5,BARKEEP.y-21.5);ctx.fillStyle='#ffe28a';ctx.fillText(BARKEEP.nm,BARKEEP.x,BARKEEP.y-22);
    ctx.fillStyle='#ffd84a';ctx.fillText('!',BARKEEP.x,BARKEEP.y-28+Math.round(Math.sin(time*4)*1.5));
   }]);
+  // mestres de classe
+  for(const m of MESTRES)L.push([m.y,()=>{
+   const f=face(m),c=CL[m.cls];if(!c)return;
+   const spr=c.sprite||(HS[c.base||m.cls]||HS.war)[f.d];
+   if(mestreSob===m)circ(m.x,m.y,12,'#ff5');
+   dr(spr,m.x,m.y,f.fl,1,anim(m,0));
+   ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+   ctx.fillStyle='#000';ctx.fillText(m.nm,m.x+.4,m.y-21.6);ctx.fillStyle='#ffe28a';ctx.fillText(m.nm,m.x,m.y-22);
+   if(m.cls!==p.cls){ctx.fillStyle='#ffd84a';ctx.font='6px monospace';ctx.fillText('!',m.x,m.y-28+Math.round(Math.sin(time*4+m.x)*1.5))}
+  }]);
   // o balcão fica na frente da taverneira
   L.push([OY+91,()=>ctx.drawImage(fundo,8,66,186,26,OX+8,OY+66,186,26)]);
   if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
@@ -143,7 +163,7 @@
   if(window.inDungeon){ft(p.x,p.y-24,'Saia da masmorra antes de ir à taverna.','#f87171');return}
   if(p.dead>0)return;
   if(window.MP&&MP.antesDeSair)MP.antesDeSair();
-  ilhaPos={x:p.x,y:p.y};enGuardado=en.splice(0,en.length);
+  ilhaPos={x:p.x,y:p.y};enGuardado=en.splice(0,en.length);montarMestres();
   clearMovementInput();window.inTaverna=true;
   p.x=ENTRADA.x;p.y=ENTRADA.y;p.fx=0;p.fy=-1;proj.length=0;
   ft(p.x,p.y-30,'Taverna do Javali Dourado','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);
@@ -165,10 +185,34 @@
 
  /* ---- cliques: porta e taverneira ---- */
  window.tavernaClick=(w,mode)=>{
+  mestreAlvo=null;
   if(Math.hypot(w.x-DOOR.x,w.y-(DOOR.y-4))<16){if(dist(p,DOOR)<34)sair();else setDest(DOOR.x,DOOR.y-12);return true}
   if(Math.hypot(w.x-BARKEEP.x,w.y-(BARKEEP.y-8))<16&&mode!=2){if(dist(p,BARKEEP)<44)falarTaverneira();else setDest(BARKEEP.x,OY+100);return true}
+  const m=mestreEm(w);
+  if(m&&mode!=2){if(dist(p,m)<34)falarMestre(m);else{mestreAlvo=m;setDest(m.x,m.y+12)}return true}
   return false;
  };
+ let mestreSob=null,mestreAlvo=null;
+ const mestreEm=w=>MESTRES.find(m=>Math.hypot(w.x-m.x,w.y-(m.y-8))<14)||null;
+ function falarMestre(m){
+  mestreAlvo=null;
+  const c=CL[m.cls];if(!c)return;
+  const box=$('dialogue');box.classList.remove('dgModal');
+  const atual=p.cls===m.cls,aprendida=!!(p.classProgress&&p.classProgress[m.cls]),preco=aprendida?0:PRECO_CLASSE;
+  const ps=c.passive&&c.passive.n?'<p>Passiva: <b>'+c.passive.n+'</b>'+(c.passive.d?' – '+c.passive.d:'')+'</p>':'';
+  box.innerHTML='<b>'+m.nm+'</b>'+
+   (atual?'<p>Você já é '+c.n+'. Continue treinando!</p>'
+    :'<p>Quer seguir o caminho de '+c.n+'?'+(aprendida?' Você já aprendeu esta classe: trocar é grátis.':' Aprender custa <b>'+PRECO_CLASSE.toLocaleString('pt-BR')+' de ouro</b>.')+'</p>'+ps+
+     '<p>Você tem '+p.gold.toLocaleString('pt-BR')+' de ouro.</p><button type="button" data-tav-classe>'+(aprendida?'Trocar para '+c.n:'Aprender '+c.n+' ('+PRECO_CLASSE.toLocaleString('pt-BR')+' de ouro)')+'</button>')+
+   '<button type="button" data-close-dialog>Até mais</button>';
+  box.classList.add('open');
+  const b=box.querySelector('[data-tav-classe]');
+  if(b)b.onclick=()=>{
+   if(p.gold<preco){ft(p.x,p.y-24,'Ouro insuficiente: precisa de '+preco.toLocaleString('pt-BR'),'#f87171');return}
+   p.gold-=preco;box.classList.remove('open');
+   setClass(m.cls);if(preco&&window.playGameSound)playGameSound('coin');
+  };
+ }
  function falarTaverneira(){
   const box=$('dialogue');box.classList.remove('dgModal');
   box.innerHTML='<b>Taverneira Bete</b><p>Bem-vindo ao Javali Dourado! Aqui todo mundo se encontra.</p>'+
@@ -182,6 +226,9 @@
  const upd0=upd;upd=function(dt){upd0(dt);
   if(!window.inTaverna)return;
   BARKEEP.fx=p.x-BARKEEP.x;BARKEEP.fy=p.y-BARKEEP.y;if(dist(p,BARKEEP)>110){BARKEEP.fx=0;BARKEEP.fy=1}
+  for(const m of MESTRES){if(dist(p,m)<70){m.fx=p.x-m.x;m.fy=p.y-m.y}else{m.fx=0;m.fy=1}}
+  mestreSob=mestreEm(wpos());if(mestreSob)cv.style.cursor='pointer';
+  if(mestreAlvo&&dist(p,mestreAlvo)<34){p.dest=null;p.path=[];falarMestre(mestreAlvo)}
   if(p.y>OY+TH-12&&Math.abs(p.x-DOOR.x)<10)sair();
  };
 

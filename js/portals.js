@@ -13,7 +13,17 @@ const DEFAULT_PORTAL_DEFS=[
  {id:'portal_coast',name:'Costa Sul',minLevel:11,targetLevel:14,countMin:3,countMax:5,eliteChance:.1,frequency:1,monsters:[{id:'crab',chance:50},{id:'ghost',chance:30},{id:'sk',chance:20}]},
  {id:'portal_guardian_sanctum',name:'Santuário do Guardião',minLevel:15,targetLevel:18,countMin:2,countMax:3,eliteChance:.12,frequency:.7,monsters:[{id:'ghost',chance:50},{id:'sk',chance:40},{id:'boss',chance:10}]}
 ];
-const clonePortalDefs=list=>list.map((q,i)=>({id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),countMin:Math.max(1,Math.floor(+q.countMin||2)),countMax:Math.max(1,Math.floor(+q.countMax||2)),eliteChance:Math.max(0,Math.min(1,+q.eliteChance||0)),frequency:Math.max(.01,+q.frequency||1),monsters:(Array.isArray(q.monsters)?q.monsters:[]).filter(m=>m&&MONSTER_TYPES[m.id]).map(m=>({id:m.id,chance:Math.max(0,+m.chance||0)}))}));
+/* Cada monstro do portal tem chance de vir (%), quantidade mín/máx e chance de elite (%).
+   Portais antigos (quantidade e elite no portal) dividem a quantidade pela chance de cada monstro. */
+const clonePortalDefs=list=>list.map((q,i)=>{
+ const rows=(Array.isArray(q.monsters)?q.monsters:[]).filter(m=>m&&MONSTER_TYPES[m.id]);
+ const cMin=Math.max(1,Math.floor(+q.countMin||2)),cMax=Math.max(cMin,Math.floor(+q.countMax||cMin)),elite0=Math.max(0,+q.eliteChance||0)*100;
+ const total=rows.reduce((n,m)=>n+Math.max(0,+m.chance||0),0)||1;
+ const monsters=rows.map(m=>{const chance=Math.max(0,Math.min(100,+m.chance||0)),parte=Math.max(0,+m.chance||0)/total;
+  const min=m.min!==undefined?Math.max(0,Math.floor(+m.min||0)):Math.max(1,Math.round(cMin*parte));
+  const max=Math.max(min,m.max!==undefined?Math.floor(+m.max||0):Math.round(cMax*parte));
+  return{id:m.id,chance,min,max,elite:Math.max(0,Math.min(100,m.elite!==undefined?+m.elite||0:elite0))/100}});
+ return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),monsters}});
 const portalDefs=clonePortalDefs(Array.isArray(PROJ.portalDefs)?PROJ.portalDefs:DEFAULT_PORTAL_DEFS);
 window.PORTAL_DEFS=portalDefs;
 function spawnAt(x,y,type,level=monsterLevel()){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
@@ -38,10 +48,20 @@ function resumeSawQuest(){
 }
 window.startSawQuest=startSawQuest;
 window.resumeSawQuest=resumeSawQuest;
-const eligibleMonsters=def=>def.monsters.filter(m=>m.chance>0&&MONSTER_TYPES[m.id]&&!(m.id=='gob'&&(!sawQuestActive||sawObtained||wallBuilt||drops.some(d=>d.questReward))));
-function chooseMonster(def){
- const choices=eligibleMonsters(def),total=choices.reduce((n,m)=>n+m.chance,0);if(!total)return null;
- let r=Math.random()*total;for(const m of choices){r-=m.chance;if(r<=0)return m.id}return choices[choices.length-1].id
+const eligibleMonsters=def=>def.monsters.filter(m=>m.chance>0&&m.max>0&&MONSTER_TYPES[m.id]&&!(m.id=='gob'&&(!sawQuestActive||sawObtained||wallBuilt||drops.some(d=>d.questReward))));
+const qtd=m=>m.min+Math.floor(Math.random()*(m.max-m.min+1));
+// menor matilha possível: o monstro garantido com a menor quantidade mínima
+const minPack=def=>Math.max(1,Math.min(...eligibleMonsters(def).map(m=>m.min)));
+/* Monta a matilha: cada monstro vem com a sua chance; se nenhum vier, um deles vem (sorteado pela chance). */
+function planPack(def,available){
+ const choices=eligibleMonsters(def);if(!choices.length)return[];
+ const plan=[],add=(m,n)=>{for(let k=0;k<n;k++)plan.push({type:m.id,elite:Math.random()<m.elite})};
+ for(const m of choices)if(Math.random()*100<m.chance)add(m,qtd(m));
+ if(!plan.length){const total=choices.reduce((n,m)=>n+m.chance,0);let r=Math.random()*total,m=choices[choices.length-1];
+  for(const c of choices){r-=c.chance;if(r<=0){m=c;break}}add(m,Math.max(1,qtd(m)))}
+ // embaralha para o corte pelo limite da área não favorecer o primeiro da lista
+ for(let i=plan.length;i-->1;){const j=Math.floor(Math.random()*(i+1));[plan[i],plan[j]]=[plan[j],plan[i]]}
+ return plan.slice(0,available)
 }
 const portalIsActive=id=>portals.some(q=>q.siteId==id);
 const portalWeight=def=>def.frequency*(1+Math.max(0,CALC.portalLevelBonus||0)*Math.max(0,1-Math.abs(p.lvl-def.targetLevel)/Math.max(1,CALC.portalLevelRange||1)));
@@ -55,13 +75,12 @@ function openPortal(){
   const a=areaOf(x,y),available=availableByArea[a];
   if(available>0&&walk(x,y)&&V(x/T|0,y/T|0)<=25&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
  }
- const candidates=portalOptions.filter(def=>positions.some(pos=>pos.available>=def.countMin));
+ const candidates=portalOptions.filter(def=>positions.some(pos=>pos.available>=minPack(def)));
  if(!candidates.length)return;
  const total=candidates.reduce((n,def)=>n+portalWeight(def),0);let roll=Math.random()*total,site=candidates[candidates.length-1];
  for(const def of candidates){roll-=portalWeight(def);if(roll<=0){site=def;break}}
- const validPositions=positions.filter(pos=>pos.available>=site.countMin),position=validPositions[Math.floor(Math.random()*validPositions.length)];
- const a=position.a,available=position.available,min=Math.max(1,site.countMin),max=Math.max(min,site.countMax),n=Math.min(min+Math.floor(Math.random()*(max-min+1)),available);
- const plan=Array.from({length:n},()=>{const type=chooseMonster(site);return type?{type,elite:Math.random()<site.eliteChance}:null}).filter(Boolean);
+ const validPositions=positions.filter(pos=>pos.available>=minPack(site)),position=validPositions[Math.floor(Math.random()*validPositions.length)];
+ const a=position.a,plan=planPack(site,position.available);
  if(!plan.length)return;
  portals.push({x:position.x,y:position.y,t:0,a,n0:plan.length,left:plan.length,plan,next:PORTAL_FIRST_SPAWN,interval:(PORTAL_LAST_SPAWN-PORTAL_FIRST_SPAWN)/Math.max(1,plan.length-1),fin:0,id:++pid,siteId:site.id,ang:Math.atan2(CY-position.y,CX-position.x)+rnd(-.8,.8)});
 }

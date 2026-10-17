@@ -52,9 +52,12 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   if(window.REDE)box.append(caixa('Mostrar ping e FPS no canto da tela',()=>REDE.mostrar,v=>{REDE.mostrar=v}));
   // som: volume, saída (alto-falante/fone) e, com conta, a voz
   if(window.SOM){
-   const rv=$$('div','mrow','<span>Volume do jogo</span><input type=range min=0 max=100 step=5><b></b>');
-   bind(rv,()=>SOM.volume,v=>SOM.definirVolume(v),v=>Math.round(v)+'%');rv.querySelector('input').addEventListener('change',()=>SOM.testar());
-   box.append(rv);
+   box.append($$('h3','teclasGrupo','Som'));
+   for(const [canal,rotulo] of SOM.canais){
+    const rv=$$('div','mrow','<span>'+rotulo+'</span><input type=range min=0 max=100 step=5><b></b>');
+    bind(rv,()=>SOM[canal],v=>SOM.definirVolume(canal,v),v=>Math.round(v)+'%');rv.querySelector('input').addEventListener('change',()=>SOM.testar(canal));
+    box.append(rv);
+   }
    if(SOM.suportaSaida()){
     const rs=$$('label','mrow','<span>Saída de som</span>'),sel=$$('select');sel.append(new Option('Padrão do sistema',''));rs.append(sel);box.append(rs);
     SOM.dispositivos('audiooutput').then(lista=>{lista.filter(d=>d.deviceId!=='default').forEach((d,i)=>sel.append(new Option(d.label||'Saída '+(i+1),d.deviceId)));sel.value=SOM.saida;if(sel.value!==SOM.saida)sel.value=''});
@@ -71,13 +74,21 @@ window.atualizarMenu=()=>{if(menu.classList.contains('open'))show()};
 const P=[],RG=[];let pt=0,pm=[];const R=(a,b)=>a+Math.random()*(b-a);
 const part=(x,y,vx,vy,l,c,s=2,g=0)=>P.push({x,y,vx,vy,l,m:l,c,s,g}),ringFx=(x,y,r0,r1,l,c)=>RG.push({x,y,r0,r1,l,m:l,c});
 const burst=(x,y,c,n=8,sp=40,l=.45)=>{for(let i=0;i<n;i++){const a=Math.random()*6.283,v=sp*R(.4,1);part(x,y,Math.cos(a)*v,Math.sin(a)*v,l*R(.6,1.2),c,R(1.5,3))}};
-const cast0=cast;cast=function(s){const t0=s.t,px=p.x,py=p.y;cast0(s);if(!(s.t>t0))return;const c=s.vfxColor||'#9bd4ff',r=s.radius||40,x=p.x,y=p.y-6;
+const cast0=cast;cast=function(s){const t0=s.t,px=p.x,py=p.y;cast0(s);if(!(s.t>t0))return;efeito(s.effect,s.vfxColor||'#9bd4ff',s.radius||40,p.x,p.y,px,py)};
+/* partículas de cada tipo de habilidade; (x,y) = quem usou depois do efeito, (px,py) = antes (teleporte).
+   Também usado para mostrar as habilidades de outros jogadores (js/online.js). */
+function efeito(effect,c,r,x0,y0,px,py){const x=x0,y=y0-6;const s={effect};
  if(s.effect=='nova'){burst(x,y,c,34,r*1.8,.6);ringFx(x,y,6,r,.5,c);ringFx(x,y,2,r*.7,.4,'#fff')}
  else if(s.effect=='heal'){for(let i=0;i<22;i++)part(x+R(-12,12),y+R(-4,8),R(-4,4),-R(14,36),R(.7,1.2),i%3?'#8fff8f':'#fff6b0',R(1.5,2.5));ringFx(x,y+6,4,26,.6,'#7f7')}
  else if(s.effect=='blink'){for(let i=0;i<26;i++){const k=i/25;part(px+(x-px)*k,py-6+(y+6-py)*k,R(-6,6),R(-6,6),R(.3,.6),i%2?c:'#fff',R(1.5,3))}burst(x,y,c,10,50,.4)}
  else if(s.effect=='guard'||s.effect=='buff'){for(let i=0;i<24;i++){const a=i/24*6.283;part(x+Math.cos(a)*14,y+Math.sin(a)*10,Math.cos(a)*10,-R(10,30),R(.6,1),c,2)}ringFx(x,y+6,6,34,.6,c)}
  else if(s.effect=='projectile'){burst(x,y,c,12,60,.3);ringFx(x,y,2,12,.25,c)}
- else burst(x,y,c,14,50,.4)};
+ else burst(x,y,c,14,50,.4)}
+window.efeitoVisualHabilidade=efeito;
+/* projéteis e meteoros de outros jogadores: só visuais (não causam dano aqui) */
+const vproj=[],vmets=[];
+window.projetilVisual=(x,y,tx,ty,c)=>{const d=Math.hypot(tx-x,ty-y)||1;vproj.push({x,y,vx:(tx-x)/d*190,vy:(ty-y)/d*190,t:Math.min(1.6,d/190),c})};
+window.meteoroVisual=(x,y)=>vmets.push({x,y,t:.9});
 if(typeof hurtE=='function'){const h0=hurtE;hurtE=function(e,d,m){const r=h0.apply(this,arguments);if(e)burst(e.x,e.y-8,m?'#9bd4ff':'#ffd9a0',7,45,.35);return r}}
 if(typeof hurtP=='function'){const h1=hurtP;hurtP=function(d,m){const r=h1.apply(this,arguments);burst(p.x,p.y-8,'#ff6b6b',7,45,.35);return r}}
 const draw0=draw;draw=function(){draw0();const dt=Math.min(.05,Math.max(0,time-pt));pt=time;
@@ -87,7 +98,11 @@ const draw0=draw;draw=function(){draw0();const dt=Math.min(.05,Math.max(0,time-p
  // rastro de projéteis e meteoros
  proj.forEach(q=>part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3)));
  const cur=mets.slice();pm.forEach(m=>{if(!cur.includes(m)){burst(m.x,m.y,'#ff8a2a',40,95,.7);burst(m.x,m.y,'#ffe08a',18,60,.5);ringFx(m.x,m.y,4,40,.5,'#f93');ringFx(m.x,m.y,2,26,.4,'#fff')}});pm=cur;
- cur.forEach(m=>{const k=Math.max(0,m.t/.9),x=m.x+k*70,y=m.y-k*230;ctx.fillStyle='#ff5a1a';ctx.fillRect(Math.round(x-4),Math.round(y-4),8,8);ctx.fillStyle='#ffe08a';ctx.fillRect(Math.round(x-2),Math.round(y-2),4,4);part(x,y,R(-12,12),R(-12,12),.45,Math.random()<.5?'#ff8a2a':'#ffd36b',R(2,4))});
+ // projéteis e meteoros que só existem na tela (habilidades de outros jogadores)
+ for(let i=vproj.length;i--;){const q=vproj[i];q.t-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.t<=0){ringFx(q.x,q.y,2,12,.25,q.c||'#f93');vproj.splice(i,1);continue}
+  part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3));ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)}
+ for(let i=vmets.length;i--;){const m=vmets[i];m.t-=dt;if(m.t<=0){burst(m.x,m.y,'#ff8a2a',40,95,.7);burst(m.x,m.y,'#ffe08a',18,60,.5);ringFx(m.x,m.y,4,40,.5,'#f93');ringFx(m.x,m.y,2,26,.4,'#fff');vmets.splice(i,1);continue}}
+ cur.concat(vmets).forEach(m=>{const k=Math.max(0,m.t/.9),x=m.x+k*70,y=m.y-k*230;ctx.fillStyle='#ff5a1a';ctx.fillRect(Math.round(x-4),Math.round(y-4),8,8);ctx.fillStyle='#ffe08a';ctx.fillRect(Math.round(x-2),Math.round(y-2),4,4);part(x,y,R(-12,12),R(-12,12),.45,Math.random()<.5?'#ff8a2a':'#ffd36b',R(2,4))});
  for(let i=P.length;i--;){const q=P[i];q.l-=dt;if(q.l<=0){P.splice(i,1);continue}q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=q.g*dt;ctx.globalAlpha=Math.min(1,q.l/q.m*1.4);ctx.fillStyle=q.c;ctx.fillRect(Math.round(q.x),Math.round(q.y),q.s,q.s)}
  for(let i=RG.length;i--;){const q=RG[i];q.l-=dt;if(q.l<=0){RG.splice(i,1);continue}const k=1-q.l/q.m,r=q.r0+(q.r1-q.r0)*Math.sin(k*Math.PI/2);ctx.globalAlpha=q.l/q.m;ctx.strokeStyle=q.c;ctx.lineWidth=1.6;ctx.beginPath();ctx.ellipse(q.x,q.y,r,r*.75,0,0,7);ctx.stroke()}
  ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0)};

@@ -75,6 +75,8 @@
 /* barra de efeitos e passivas sobre o painel de habilidades */
 #fxbar{position:absolute;left:470px;bottom:calc(100% + 4px);display:flex;flex-wrap:wrap-reverse;gap:4px;align-items:flex-end;pointer-events:auto}
 .fxsep{width:8px;height:34px}
+#monfx{position:fixed;left:50%;transform:translateX(-50%);z-index:6;display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:min(360px,calc(100vw - 32px));pointer-events:auto}
+#monfx[hidden]{display:none}
 .fxi{position:relative;width:34px;height:34px;box-sizing:border-box;background:#0d0b09;border:2px solid #888;overflow:hidden;cursor:help}
 .fxi.good{border-color:#4cc864;box-shadow:0 0 6px #4cc86466}.fxi.bad{border-color:#d44;box-shadow:0 0 6px #d4444466}
 .fxi.pas{border-color:#d9b24a;box-shadow:0 0 6px #d9b24a55}.fxi.lock{opacity:.4}

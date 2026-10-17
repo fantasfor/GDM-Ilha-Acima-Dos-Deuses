@@ -587,7 +587,7 @@ function draw(){
  ctx.fillStyle=e.boss||e.elite?'#f0a52e':'#ed354e';ctx.fillRect(barX,barY,barW*hpRatio,1);
  for(let segment=1;segment<hpSegments;segment++){const x=barX+Math.round(barW*100/maxHp*segment);ctx.fillStyle='#3a3a3a';ctx.fillRect(x,barY,t,1)}
  ctx.fillStyle='#10203a';ctx.fillRect(barX,barY+1+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(barX,barY+1+t,barW*mpRatio,1);
- ctx.font='5px monospace';ctx.textBaseline='middle';ctx.fillStyle='#fff2d7';ctx.fillText(String(e.lvl),barX+barW+3,barY+1.5);statusDots(e,barX,barY+4);
+ ctx.font='5px monospace';ctx.textBaseline='middle';ctx.fillStyle='#fff2d7';ctx.fillText(String(e.lvl),barX+barW+3,barY+1.5); // efeitos do monstro: ícones abaixo da caixa do alvo (js/effects.js)
  ctx.textBaseline='alphabetic'}])});
  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;(f=>{const an=anim(p,.25);dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an)})(face(p));ctx.globalAlpha=1;
   const barW=28,t=1/S,barX=Math.round(p.x-barW/2),barY=Math.round(p.y-25),maxHp=mhp(),maxMp=mmp(),hpRatio=Math.max(0,Math.min(1,p.hp/maxHp)),mpRatio=Math.max(0,Math.min(1,p.mp/maxMp)),hpSegments=Math.ceil(maxHp/100);
@@ -598,6 +598,7 @@ function draw(){
  }]);
  if(window.onlineDrawables)onlineDrawables(L);
  L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
+ if(window.desenharLoot)desenharLoot(); // itens e moedas caídos dos monstros (js/loot.js)
  proj.forEach(q=>{ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)});
  fxs.forEach((f,i)=>{const q=Math.max(0,Math.min(1,f.t/f.d)),fade=1-q,r=f.r*(.35+q),style=f.style||'ring';ctx.globalAlpha=fade;
   if(style=='fire'||style=='holy')circ(f.x,f.y,r*(style=='holy'?.8:1),f.c);
@@ -625,4 +626,14 @@ const restored=loadGame();
  if(!restored){p.hp=mhp();p.mp=mmp()}
  dirtyInv=true}
 let last=performance.now();
-(function loop(t){const dt=Math.min(.05,(t-last)/1000);last=t;if(!MODO.motor){time+=dt;upd(dt);draw();hud()}requestAnimationFrame(loop)})(last);
+// um erro num quadro não pode parar o jogo: o próximo quadro já fica agendado antes, e o erro é registrado
+let errosQuadro=0,ultimoErro='';
+(function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;if(MODO.motor)return;time+=dt;
+ for(const [nome,fn] of [['upd',()=>upd(dt)],['draw',draw],['hud',hud]]){
+  try{fn()}catch(e){
+   const msg=nome+': '+(e&&e.message||e);
+   if(msg!==ultimoErro||errosQuadro%300===0){console.error('Erro no quadro ('+nome+'):',e);if(errosQuadro<3&&window.onlineSystem)onlineSystem('Erro no jogo ('+msg.slice(0,90)+'). O jogo continua; se repetir, avise o desenvolvedor.')}
+   ultimoErro=msg;errosQuadro++;
+  }
+ }
+})(last);

@@ -52,15 +52,15 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    exitDungeon(false);
    ft(CX,CY-30,'VOCÊ FOI DERROTADO E EXPULSO DA MASMORRA!','#ff4444');
   }
-  p.dead-=dt;if(p.dead<=0){p.x=CX;p.y=CY+34;p.hp=mhp();p.mp=mmp();saveGame()}
+  p.dead-=dt;if(p.dead<=0){p.x=CX;p.y=CY+34;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');saveGame()}
  }
  else{
   tickAttributeBuffs(p,dt);SK.forEach(s=>s.t=Math.max(0,s.t-dt));p.guard=Math.max(0,(p.guard||0)-dt);p.acd-=dt;tickStatus(p,dt);const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
   if(p.aw>0){p.aw-=dt;p.dest=null;if(p.aw<=0){const t=p.wt,b=p.attackBasic||basicForDistance(t?dist(p,t):Infinity),landed=!!(t&&t.hp>0&&dist(p,t)-targetReach(t)<b.rng+8);if(landed){const {damage,bfx}=withWeaponDamageRoll(()=>({damage:basicAttackDamage(b),bfx:resolveFx(b.effects,charDamage(b.damageType))}));if(b.proj){const a=Math.atan2(t.y-8-p.y,t.x-p.x);proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:damage,magic:b.damageType=='magic',c:b.proj,tg:t,fx:bfx})}else{hurtE(t,damage,b.damageType=='magic',bfx);ring(t.x,t.y-8,10,'#fff',.15)}if(p.basicMode=='alternate'&&b.weaponSlot)p.basicNext=b.weaponSlot=='sw'?'sh':'sw'}p.wt=null;p.attackBasic=null}}
-  else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d);if(d>b.rng)approach(p,p.tgt,Math.max(8,b.rng-3)+reach);else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.playEntitySound&&b.formula){playEntitySound('skills',b.formula.id,'cast');if(window.somDoJogador)somDoJogador('b.'+b.formula.id)}}}}
-  if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Guardião Esqueleto primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
-  if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';toggleCampGate()}
-  if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';showDungeonMenu()}
+  else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d);if(d>b.rng)approach(p,p.tgt,Math.max(8,b.rng-3)+reach);else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}}}}
+  if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(window.MP&&MP.soDono&&MP.soDono()){}else if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Guardião Esqueleto primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
+  if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))toggleCampGate()}
+  if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))showDungeonMenu()}
   const kx=(held.has('mover_direita')?1:0)-(held.has('mover_esquerda')?1:0)+p.joy.x;
   const ky=(held.has('mover_baixo')?1:0)-(held.has('mover_cima')?1:0)+p.joy.y,kl=Math.hypot(kx,ky);
   if(kl>.08){p.dest=null;p.path=[];p.pathKey='';p.tgt=null;p.npcT=null;p.gateT=false;p.portalT=false;move(p,{x:p.x+kx/kl*40,y:p.y+ky/kl*40},CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt)}
@@ -99,7 +99,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
     else if(d<(e.weaponBasic?e.weaponBasic.rng:30)){const extra=k=>attributeValue(e.attributeStats,k)+statusAttributeBonus(e,k),damage=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:attackDamage+extra('magicDmg')+statusAttributeBonus(e,'I')*CALC.magPerI}:{physical:attackDamage+extra('physicalDmg')+statusAttributeBonus(e,'F')*CALC.physPerF,magic:monsterAttribute(e,'magicDmg')};hitTarget(a,damage,!!e.attackMagic,resolveFx(e.weaponFx,attackDamage,monsterCtx(e,weaponDelta)),null,e)}
    }
   }
-  else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
+  else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;if(a===p)marcarCombate();e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
    const hasSkill=e.skill&&e.skill.cost<999999,attackRange=hasSkill?e.skill.range*(e.skill.radius?areaMultiplier(e):1):(e.weaponBasic?e.weaponBasic.rng:20);
    if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);
    else if(hasSkill&&d<=attackRange&&e.mp>=e.skill.cost&&e.skillCd<=0){e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;e.aw=e.skill.windup;e.noAtk=0;e.skillWindup=true;e.mp-=e.skill.cost;applyActionAttributes(e,e.skill);e.skillCd=e.skill.cd*cooldownMultiplier(e);if(!(window.playEntitySound&&playEntitySound('skills',e.skill.id,'cast'))&&window.playEntitySound)playEntitySound('monsters',e.ty,'skill');ft(e.x,e.y-24,e.skill.name,'#f9c')}

@@ -113,7 +113,8 @@ Os arquivos vão marcados com a versão, então os jogadores recebem a atualiza�
 | **Amigos** | **Jogadores** › **Adicionar amigo**. Depois que o outro aceita, ele aparece em **Amigos**, online ou offline. **Visitar** leva direto para a ilha dele, sem convite. Com o amigo online, dá para **Convidar p/ grupo** e **Convidar p/ ilha** direto da lista. **Sussurrar** abre uma mensagem privada. |
 | **Sussurro** | No chat: `/s Nome mensagem`. Para responder o último sussurro: `/r mensagem`. Os sussurros recebidos enquanto você estava offline aparecem quando você entra. |
 | **Grupo de DG (até 5)** | **Jogadores** › **Convidar p/ grupo**. O líder entra numa DG pelo portal do acampamento e o grupo recebe o aviso **Entrar**. Os inimigos ficam mais fortes a cada jogador extra: +60% de vida e +15% de dano. Se o líder sair, o grupo volta. |
-| **Taverna** | Botão **Taverna** no canto de cima. É o ponto de encontro de todos, sem monstros. As habilidades interagem entre os jogadores: curas curam quem está perto (ou o jogador mirado), bênçãos e proteções fortalecem e ataques só empurram, sem dano. A taverneira vende uma bebida que enche a vida e a mana. |
+| **Taverna** | Botão **Taverna** no canto de cima. É o ponto de encontro de todos, sem monstros. As habilidades interagem entre os jogadores: curas curam quem está perto (ou o jogador mirado), bênçãos e proteções fortalecem e ataques só empurram, sem dano. A taverneira vende uma bebida que enche a vida e a mana. Os **mestres de classe** ficam na taverna: aprender uma classe nova custa **2.000 de ouro**, e voltar para uma classe já aprendida é grátis. |
+| **Visitar uma ilha** | A ilha aparece como o dono a deixou: paliçada, portal, carpinteiro e ferreiro. Só o dono mexe no portão, no portal e nos NPCs. O seu progresso não muda enquanto visita e volta quando você retorna para casa. |
 | **Chat** | Aba **Local**: só quem está no mesmo lugar (ilha, DG ou taverna); aparece em balão sobre o personagem. Aba **Global**: todos online. |
 | **Voz** | Botão **Voz** na barra do chat: conversa com quem está no mesmo lugar e também ligou a voz. O **microfone** ao lado mostra o nível do som enquanto transmite: verde é transmitindo, cinza é esperando e riscado é mudo. Clique nele para ficar mudo. A **engrenagem** permite escolher entre **Sempre ligado** e **Apertar para falar** (tecla V, ou segurar o botão **Falar**), além do microfone, do volume dos outros e de um teste de nível. Um ícone aparece sobre quem está falando. |
 | **Criação de personagem** | No primeiro login, o jogador escolhe o **nome**, a **classe** e o **sexo**, com uma prévia do sprite. O nome é único: maiúsculas, acentos e símbolos não contam, então "Ána" e "ana" são o mesmo nome. O comando `/nome` no chat respeita a mesma regra. |
@@ -150,7 +151,14 @@ Na engrenagem da voz, cada pessoa aparece com o estado **conectado**, **conectan
 
 ## Som
 
-- **Volume do jogo e saída de som:** ficam em Menu › Opções. A saída pode ser o alto-falante ou o fone e vale para os sons do jogo e para a voz.
+- **Volumes:** em Menu › Opções há quatro controles: geral, música, ambiente e efeitos.
+- **Saída de som:** também fica em Menu › Opções. Pode ser o alto-falante ou o fone e vale para os sons do jogo e para a voz.
+- **Música e ambiente:** cada lugar tem os seus, gerados pelo próprio jogo:
+  - **ilha:** mar, vento e pássaros;
+  - **masmorra:** goteiras e ecos;
+  - **taverna:** lareira, conversa e canecas.
+- **Sons substituíveis:** um arquivo em Engine › Sons substitui o som gerado. Isso inclui morte, renascer, nível, rank, missão, item caindo e pegar item de cada raridade.
+- **Itens dos monstros:** caem no chão, brilhando na cor da raridade, e depois voam até o personagem. O som de pegar o item fica mais caprichado quanto maior a raridade.
 - **Entrada (microfone) e saída:** também podem ser escolhidas na engrenagem da voz.
 - **Ataques dos outros jogadores:** os golpes e as habilidades de quem está no mesmo lugar tocam para você, mais baixos quanto mais longe.
 

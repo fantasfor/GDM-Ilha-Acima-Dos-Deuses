@@ -48,7 +48,7 @@ const campB=()=>insideCamp(p.x,p.y)?CALC.camp:0,regenHp=()=>attributes().F*CALC.
 const dmgP=()=>Math.round((bonus('dmg')+weaponPower())*(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0)));
 function gainPlayerXp(value){
  p.xp+=Math.max(0,value);
- while(p.lvl<CALC.maxLevel&&p.xp>=p.lvl*CALC.xpPerLevel){p.xp-=p.lvl*CALC.xpPerLevel;p.lvl++;applySkills();p.hp=mhp();p.mp=mmp();ring(p.x,p.y,50,'#ffd84a',.8);ft(p.x,p.y-24,'NÍVEL '+p.lvl+'!','#ffd84a')}
+ while(p.lvl<CALC.maxLevel&&p.xp>=p.lvl*CALC.xpPerLevel){p.xp-=p.lvl*CALC.xpPerLevel;p.lvl++;applySkills();p.hp=mhp();p.mp=mmp();ring(p.x,p.y,50,'#ffd84a',.8);if(window.playGameSound)playGameSound('levelUp');ft(p.x,p.y-24,'NÍVEL '+p.lvl+'!','#ffd84a')}
  if(p.lvl>=CALC.maxLevel)p.xp=0
 }
 const FX_INFO={poison:{n:'Veneno',c:'#7d3',kind:'dot',tick:1,dtype:'true'},burn:{n:'Queimadura',c:'#f83',kind:'dot',tick:1,dtype:'true'},bleed:{n:'Sangramento',c:'#d33',kind:'dot',tick:1,dtype:'true'},slow:{n:'Lentidão',c:'#6bf',kind:'slow'},stun:{n:'Atordoado',c:'#fd4',kind:'stun'}};
@@ -93,6 +93,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;const di=dot&
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
  if(!dot&&window.somDoJogador)somDoJogador('h.'+e.ty+'.'+(magic?1:0)); // os outros jogadores da sala ouvem o golpe
+ if(window.marcarCombate)marcarCombate();
  if(e.mpProxy){e.hp=Math.max(1,e.hp-d);if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx)applyFx(e,fx.filter(f=>f.self));if(window.MP)MP.golpe(e,d,fx&&fx.filter(f=>!f.self));return}
  e.hp-=d;if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx&&e.hp>0)applyFx(e,fx);
  if(e.hp<=0)killMonster(e)}
@@ -108,26 +109,29 @@ function killMonster(e){
   if(parte<=0){if(p.tgt==e)p.tgt=null;return}
   const xp=Math.max(1,Math.round(e.xp*parte)),gold=Math.round(e.g*parte);
   gainPlayerXp(xp);p.gold+=gold;gainClassXp(xp);ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
-  if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GUARDIÃO ESQUELETO DERROTADO!','#ffd84a');saveGame()}
-  if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');offerDrop('saw',true)}
+  if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GUARDIÃO ESQUELETO DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
+  // os itens caem no chão onde o monstro morreu e depois voam até o jogador (js/loot.js)
+  const largar=(id,quest=false)=>window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest}):offerDrop(id,quest);
+  if(gold>0&&window.soltarMoedas)soltarMoedas(e.x,e.y,gold);
+  if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar('saw',true)}
   const guaranteed=MONSTER_TYPES[e.ty].guaranteedDrops||[];
-  guaranteed.forEach(id=>offerDrop(id));
+  guaranteed.forEach(id=>largar(id));
   const chance=CALC.dropChance*(1+(e.dropBonus||0)),r=Math.random(),drops=(e.dropIds||[]).filter(id=>!guaranteed.includes(id));
   if(guaranteed.length&&!drops.length)return;
-  const id=drops.length?(r<chance?drops[Math.floor(Math.random()*drops.length)]:null):r<.3?'hp':r<.45?'mp':r<.5?'sw':r<.55?'bo':r<.6?'sh':r<.78?GEARIDS[Math.floor(Math.random()*GEARIDS.length)]:null;if(id&&ITEMS[id]&&!ITEMS[id].use)offerDrop(id);
+  const id=drops.length?(r<chance?drops[Math.floor(Math.random()*drops.length)]:null):r<.3?'hp':r<.45?'mp':r<.5?'sw':r<.55?'bo':r<.6?'sh':r<.78?GEARIDS[Math.floor(Math.random()*GEARIDS.length)]:null;if(id&&ITEMS[id]&&!ITEMS[id].use)largar(id);
  }}
-function hurtP(d,magic=false,fx=null,dot=null,attacker=null){const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
+function hurtP(d,magic=false,fx=null,dot=null,attacker=null){if(window.marcarCombate)marcarCombate();const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  let magicShare=mg?1:0;
  if(d&&typeof d=='object'){const phys=+d.physical||0,mag=+d.magic||0,pp=phys>0?Math.max(1,phys-armor()):0,mp=mag>0?Math.max(1,mag-magicArmor()):0;magicShare=mp/((pp+mp)||1);d=pp+mp;d=Math.round(d*vulnMult(p)*Math.max(.2,1-stSum(p,'guard')/100))}
  else d=tr?Math.max(1,Math.round(d)):Math.max(1,Math.round((d-(mg?magicArmor():armor()))*(dot?1:vulnMult(p)*Math.max(.2,1-stSum(p,'guard')/100))));
- if(!dot&&p.guard>0)d=Math.max(1,Math.round(d/2));if(!dot&&attacker){const roll=combatRoll(attacker,d);d=roll.damage;drainLife(attacker,Math.min(p.hp,d),stealRatio(roll,magicShare))}p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ft(p.x,p.y-24,Math.round(d),dot?FX_INFO[dot].c:'#f66');if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){p.st=null;p.attributeBuffs=[];p.dead=4;p.gold=Math.floor(p.gold/2);p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
+ if(!dot&&p.guard>0)d=Math.max(1,Math.round(d/2));if(!dot&&attacker){const roll=combatRoll(attacker,d);d=roll.damage;drainLife(attacker,Math.min(p.hp,d),stealRatio(roll,magicShare))}p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ft(p.x,p.y-24,Math.round(d),dot?FX_INFO[dot].c:'#f66');if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.gold=Math.floor(p.gold/2);p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
 const CL={war:{n:'Guerreiro',F:17,A:7,I:2,perLevel:{F:6,A:3,I:1},attackSpeed:1.25},mag:{n:'Mago',F:2,A:2,I:12,perLevel:{F:1,A:2,I:5},attackSpeed:1},hea:{n:'Curandeiro',F:4,A:4,I:10,perLevel:{F:2,A:2,I:4},attackSpeed:1.1}};
 p.classProgress=p.classProgress||{war:{rank:1,xp:0}};
 function gainClassXp(value){
  p.classProgress=p.classProgress||{};const progress=p.classProgress[p.cls]||(p.classProgress[p.cls]={rank:1,xp:0});
  if(progress.rank>=10)return;progress.xp+=Math.max(0,value);
  while(progress.rank<10&&progress.xp>=progress.rank*CALC.rankXp){progress.xp-=progress.rank*CALC.rankXp;progress.rank++;
-  applySkills();p.hp=Math.min(mhp(),p.hp);p.mp=Math.min(mmp(),p.mp);ring(p.x,p.y,42,'#72d9ff',.65);ft(p.x,p.y-28,'RANK '+progress.rank+'!','#72d9ff')}
+  applySkills();p.hp=Math.min(mhp(),p.hp);p.mp=Math.min(mmp(),p.mp);ring(p.x,p.y,42,'#72d9ff',.65);ft(p.x,p.y-28,'RANK '+progress.rank+'!','#72d9ff');if(window.playGameSound)playGameSound('rankUp')}
  if(progress.rank>=10)progress.xp=0;
  if(window.renderSkillMenu)renderSkillMenu();if(window.saveGame)saveGame()}
 const attributes=()=>{const c=CL[p.cls],growth=c.perLevel||{},x=k=>c.pa?c.pa(k):0;return{F:3+(c.F||0)+(growth.F||0)*(p.lvl-1)+x('F')+bonus('F'),A:3+(c.A||0)+(growth.A||0)*(p.lvl-1)+x('A')+bonus('A'),I:3+(c.I||0)+(growth.I||0)*(p.lvl-1)+x('I')+bonus('I')}};
@@ -315,7 +319,7 @@ document.addEventListener('click',e=>{
  else if(button.hasAttribute('data-build-wall')){
   if(wallBuilt||!sawObtained||!woodQuestActive)return;
   if(!consumeItems('wood',WALL_WOOD_REQUIRED)){ft(p.x,p.y-28,'Precisa de 20 madeiras!','#f66');showCarpenterDialogue();return}
-  wallBuilt=true;CAMP_WALL.gateOpen=true;syncCampWall();showCarpenterDialogue();ft(p.x,p.y-28,'PALIÇADA CONSTRUÍDA!','#ffd84a');ring(campGate.x,campGate.y,42,'#d5a85b',.7);saveGame()
+  wallBuilt=true;CAMP_WALL.gateOpen=true;syncCampWall();showCarpenterDialogue();ft(p.x,p.y-28,'PALIÇADA CONSTRUÍDA!','#ffd84a');if(window.playGameSound)playGameSound('quest');ring(campGate.x,campGate.y,42,'#d5a85b',.7);saveGame()
  }
  else if(button.hasAttribute('data-start-magic-wood-quest')){
   if(!wallBuilt||campPortalBuilt)return;
@@ -324,7 +328,7 @@ document.addEventListener('click',e=>{
  else if(button.hasAttribute('data-build-camp-portal')){
   if(!wallBuilt||!magicWoodQuestActive||campPortalBuilt)return;
   if(!consumeItems('magicWood',PORTAL_WOOD_REQUIRED)){ft(p.x,p.y-28,'Precisa de 10 madeiras mágicas!','#f66');showCarpenterDialogue();return}
-  campPortalBuilt=true;showCarpenterDialogue();ft(campPortal.x,campPortal.y-40,'PORTAL CONSTRUÍDO!','#bb88ff');ring(campPortal.x,campPortal.y,32,'#bb88ff',.7);saveGame()
+  campPortalBuilt=true;showCarpenterDialogue();ft(campPortal.x,campPortal.y-40,'PORTAL CONSTRUÍDO!','#bb88ff');if(window.playGameSound)playGameSound('quest');ring(campPortal.x,campPortal.y,32,'#bb88ff',.7);saveGame()
  }
  else if(button.hasAttribute('data-open-dungeon-menu')){
   $('dialogue').classList.remove('open');
@@ -344,6 +348,7 @@ document.addEventListener('click',e=>{
 /* Menu do portal: as DGs do projeto (js/dungeon-library.js). */
 function showDungeonMenu(){
  if(!campPortalBuilt||p.dead>0)return;
+ if(window.MP&&MP.soDono&&MP.soDono())return; // na ilha de outro jogador o portal é do dono
  clearMovementInput();
  window.showProjectDungeonMenu();
 }
@@ -354,5 +359,5 @@ function setClass(c){if(c==p.cls){ft(p.x,p.y-24,'Você já é '+CL[c].n,'#fff');
 
 const wpos=()=>({x:(mx-cv.width/2)/S+p.x,y:(my-cv.height/2)/S+p.y});
 function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const equipped=EQ[s.weaponSlot||'sw'];if(!skillWeaponAllowed(s,equipped&&ITEMS[equipped.id])){ft(p.x,p.y-24,'Precisa de uma tag: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}if(dist(p,t)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{p.fx=w.x-p.x;p.fy=w.y-p.y}
- const style=s.vfx||'arcane';if(style!='none')fxs.push({x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style});
+ const style=s.vfx||'arcane';if(style!='none'){const f={x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style};fxs.push(f)}
  p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(window.somDoJogador)somDoJogador('c.'+s.id);if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound('magic')}

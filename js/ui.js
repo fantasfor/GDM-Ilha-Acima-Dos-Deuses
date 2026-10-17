@@ -187,6 +187,8 @@ function saveGame(){
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
  const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,gateOpen:CAMP_WALL.gateOpen,lootMode,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
+ const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
 }
 window.saveGame=saveGame;
@@ -267,6 +269,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  const isDungeonBossTarget = window.inDungeon && window.dungeonBoss && (p.tgt === window.dungeonBoss || insp === window.dungeonBoss);
  const info=(p.tgt&&canSee(p.tgt.x,p.tgt.y)?p.tgt:null)||(insp&&canSee(insp.x,insp.y)?insp:null),monster=info&&MONSTER_TYPES[info.ty],mon=$('mon');
  mon.style.display=(monster && !isDungeonBossTarget)?'flex':'none';
+ window.alvoInfo=monster?info:null; // efeitos do alvo aparecem abaixo desta caixa (js/effects.js)
  if(monster){const mc=$('monic').getContext('2d');mc.clearRect(0,0,40,40);mc.imageSmoothingEnabled=false;
   const k=Math.min(36/info.img.width,36/info.img.height),iw=Math.round(info.img.width*k),ih=Math.round(info.img.height*k);
   mc.drawImage(info.img,Math.round((40-iw)/2),Math.round((40-ih)/2),iw,ih);
@@ -297,7 +300,9 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
   :'Madeira mágica: '+itemCount('magicWood')+'/10. Derrote árvores vivas (Brotos Vivos) e aceite o material. Peso de spawn da missão: +20%.';
  else if(!blacksmithSaved)objective='O portal está sintonizado com o Covil dos Goblins! Clique no portal ou abra o menu, entre na DG, derrote o Lorde Goblin Demoníaco e resgate o Ferreiro!';
  else objective='O Ferreiro foi salvo e está na forja do acampamento! Você pode explorar a DG novamente para caçar baús raros e lendários!';
- quest.innerHTML='<b>'+(wallBuilt?'RESGATE DO FERREIRO':'PRIMEIRO OBJETIVO')+'</b>'+objective;
+ // visitando outra ilha: a missão mostrada é a sua, que continua quando voltar para casa
+ if(window.MP&&MP.visitando&&!window.inDungeon&&!window.inTaverna){quest.classList.remove('done');quest.innerHTML='<b>VISITANDO</b>Você está na ilha de '+String(MP.nomeDe(MP.visitando)).replace(/[<>&]/g,'')+'. Sua missão continua quando voltar para a sua ilha.'}
+ else quest.innerHTML='<b>'+(wallBuilt?'RESGATE DO FERREIRO':'PRIMEIRO OBJETIVO')+'</b>'+objective;
  if(dirtyInv)renderInv()}
 const mm=$('mm').getContext('2d');mm.imageSmoothingEnabled=false;
 

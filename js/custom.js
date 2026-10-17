@@ -46,16 +46,29 @@ L('items').forEach(it=>{
   o={n:nm+' ('+[h.hp&&'cura '+h.hp,h.mp&&'+'+h.mp+' mana'].filter(Boolean).join(', ')+')',use:1,heal:h,c:pixelArt(it.sprite)||half(potion(c[0],shade(c[0],1.4),shade(c[0],.55)))}}
  else if(it.kind=='weapon'){
   const wtype=weaponId(it.wtype),twoHanded=!!it.twoHanded||['espada_grande','cajado','machado_2mao','martelo_2mao'].includes(wtype);
-  const range=weaponDamageRange(it);if(range)st.dmg=(range.min+range.max)/2;
+  // um item com dano inválido não pode impedir o jogo de abrir: avisa e usa os valores em ordem
+  let range;try{range=weaponDamageRange(it)}catch(e){const a=Math.max(0,Math.round(+it.damageMin||0)),b=Math.max(0,Math.round(+it.damageMax||0));range={min:Math.min(a,b),max:Math.max(a,b)};console.warn('Arma "'+(it.name||it.id)+'": '+e.message+' Usando '+range.min+' - '+range.max+'.')}
+  if(range)st.dmg=(range.min+range.max)/2;
   o={n:nm+' ('+(range?'dano '+range.min+' - '+range.max+(statTxt({...st,dmg:0})?', '+statTxt({...st,dmg:0}):''):statTxt(st))+')',...st,...(range?{damageMin:range.min,damageMax:range.max}:{}),c:pixelArt(it.sprite)||half(weaponIcon(style,c)),g:1,v:{c,st:style},wt:wtype,th:twoHanded,equippedSprite:pixelArt(it.equippedSprite)};
   gearType[it.id]='sw';
-  const b=it.basic||{},basicSkill=L('skills').find(s=>s.id==b.skillId&&s.category=='basic'),ranged=basicSkill?!!basicSkill.isRanged:!!b.ranged;
-  const damageType=basicSkill&&['physical','magic'].includes(basicSkill.damageType)?basicSkill.damageType:it.damageType=='magic'?'magic':'physical';
-  const basicFx=[...(basicSkill&&basicSkill.effects||[]),...(Array.isArray(it.effects)?it.effects:[])];
-  const hasBasicFormula=n(b.flat)||n(b.pct)||n(b.attrPct);
-  const formula=basicSkill?{...basicSkill,damageType}:hasBasicFormula?{base:n(b.flat),per:0,charPercent:n(b.pct),scaleStat:b.attr||'none',scalePercent:n(b.attrPct),damageType}:null;
-  const basicSprite=basicSkill&&pixelArt(basicSkill.sprite);
-  BASIC[it.id]={n:basicSkill&&basicSkill.name||b.name||'Ataque básico',rng:basicSkill?n(basicSkill.basicRange,22):n(b.rng,22),dm:basicSkill?1:n(b.dm,1),damageType,formula,splitDamage:!!(basicSkill&&(basicSkill.damageModel=='split'||hasSplitDamage(basicSkill))),effects:basicFx,ic:basicSprite?basicSprite.toDataURL():basicSkill?SKI(basicSkill.icon||'orb',basicSkill.c1||c[0],basicSkill.c2||c[1]):SKI(ranged?'orb':style==1?'axe':'blade',c[0],c[1]),t:(basicSkill?basicSkill.desc||'Ataque básico da arma.':b.desc||'Ataque básico da arma.')+' Dano '+(damageType=='magic'?'mágico':'físico')+'.'+fxText(basicFx),...(ranged?{proj:basicSkill?basicSkill.projectileColor||'#fff':b.proj||'#fff'}:{})};
+  /* ataque básico: configurado na própria arma (it.basic). Projetos antigos ligavam uma habilidade da
+     categoria "basic" (basic.skillId); a Engine move esses dados para a arma, mas o jogo ainda lê os dois. */
+  const b0=it.basic||{},basicSkill=b0.skillId?L('skills').find(s=>s.id==b0.skillId&&s.category=='basic'):null;
+  const b=basicSkill?{...basicSkill,ranged:!!basicSkill.isRanged,rng:basicSkill.basicRange,proj:basicSkill.projectileColor}
+   :{...b0,base:b0.base??b0.flat,charPercent:b0.charPercent??b0.pct,scaleStat:b0.scaleStat||b0.attr,scalePercent:b0.scalePercent??b0.attrPct};
+  const ranged=!!b.ranged;
+  const damageType=['physical','magic'].includes(b.damageType)?b.damageType:it.damageType=='magic'?'magic':'physical';
+  const basicFx=[...(Array.isArray(b.effects)?b.effects:[]),...(Array.isArray(it.effects)?it.effects:[])];
+  const splitDamage=b.damageModel=='split'||hasSplitDamage(b);
+  const hasBasicFormula=!!basicSkill||splitDamage||n(b.base)||n(b.per)||n(b.charPercent)||n(b.scalePercent);
+  const formula=hasBasicFormula?{...b,id:basicSkill?basicSkill.id:it.id,base:n(b.base),per:n(b.per),charPercent:n(b.charPercent),scaleStat:b.scaleStat||'none',scalePercent:n(b.scalePercent),damageType}:null;
+  const basicSprite=pixelArt(b.sprite);
+  BASIC[it.id]={n:b.name||'Ataque básico',rng:n(b.rng,22),dm:basicSkill?1:n(b.dm,1),damageType,formula,splitDamage,effects:basicFx,
+   ic:basicSprite?basicSprite.toDataURL():SKI(b.icon||(ranged?'orb':style==1?'axe':'blade'),b.c1||c[0],b.c2||c[1]),
+   t:(b.desc||'Ataque básico da arma.')+' Dano '+(damageType=='magic'?'mágico':'físico')+'.'+fxText(basicFx),
+   // som do golpe: o da arma (Sons › Ataque básico); projetos antigos usam o da habilidade
+   som:basicSkill?['skills',basicSkill.id,'cast']:['items',it.id,'attack'],
+   ...(ranged?{proj:b.proj||'#fff'}:{})};
   WSK[it.id]=tags(it.skills).slice(0,1).map(id=>SDEF[id]).filter(s=>s&&s.category=='ability').map(s=>({...s}))}
  else{
   const slot=['he','ch','le','bo','ca','ne','ri','sh'].includes(it.slot)?it.slot:'ch';

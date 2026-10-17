@@ -34,7 +34,7 @@
  function dragSource(el,get){el.draggable=true;el.addEventListener('dragstart',e=>{dragFrom=get();e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','slot')}catch(err){}el.classList.add('dragging');tipEl.style.display='none'});el.addEventListener('dragend',()=>{dragFrom=null;el.classList.remove('dragging');document.querySelectorAll('.dropOver').forEach(x=>x.classList.remove('dropOver'))})}
  function dropTarget(el,fn){el.addEventListener('dragover',e=>{if(dragFrom==null)return;e.preventDefault();el.classList.add('dropOver')});el.addEventListener('dragleave',()=>el.classList.remove('dropOver'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dropOver');const f=dragFrom;dragFrom=null;if(f!=null)fn(f)})}
  function swapSlots(a,b){
-  if(typeof a=='string'){if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
+  if(typeof a=='string'){if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(window.ehArma&&ehArma(EQ[a])&&armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
   if(a===b)return;[I[a],I[b]]=[I[b],I[a]];dirtyInv=true;saveGame();
  }
 
@@ -93,7 +93,7 @@
   for(let y=0;y<sprite.height;y++)for(let x=0;x<sprite.width;x++)if(px[(y*sprite.width+x)*4+3]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
   if(x1>=x0){const c=mkCanvas(x1-x0+1,y1-y0+1);c.getContext('2d').drawImage(sprite,x0,y0,c.width,c.height,0,0,c.width,c.height);$('dollimg').src=c.toDataURL()}else $('dollimg').src=sprite.toDataURL();
   for(const [col,list] of [[el,['he','ch','le','bo','sw']],[er,['ca','ne','r1','r2','sh']]])for(const id of list){
-   const s=EQ[id],d=E('button','eqslot'+(s?qc(s):' empty')+(invEquipSlot==id?' sel':''));d.type='button';
+   const s=EQ[id],d=E('button','eqslot'+(s?qc(s):' empty')+(invEquipSlot==id?' sel':''));d.type='button';d.dataset.slot=id;
    d.innerHTML=s?'<img src="'+ITEMS[s.id].ic+'" alt="">':'<img class="ghost" src="'+emptyIcon(id)+'" alt="">';
    d.append(E('span','eqName',SLOT_LABEL[id]));
    d._tip=()=>s?itemTip(s.id,s.q,id)+'<div class=tm>Clique: filtrar a bolsa para este espaço · botão direito: desequipar · arraste para a bolsa</div>':'<b>'+SLOT_LABEL[id]+'</b><div class=tm>Vazio. Clique para ver na bolsa o que serve aqui, ou arraste um item para cá.</div>';
@@ -110,6 +110,7 @@
   hint.textContent=invEquipSlot?'Escolha o item para '+SLOT_LABEL[invEquipSlot]+' (clique no espaço de novo para cancelar)':'Arraste para trocar · botão direito: opções';
   dirtyInv=false;
  };
+ dirtyInv=true; // o primeiro quadro do jogo roda antes deste arquivo: desenha a mochila de novo com esta versão
  // equipar com o espaço de destino escolhido volta para "Todos"
  const use0=useSlot;useSlot=function(i,slot){const r=use0.apply(this,arguments);if(slot&&invEquipSlot){invEquipSlot=null;invCategory='all'}return r};
  /* ---------- atualização por quadro ---------- */
@@ -120,6 +121,10 @@
   const sig=I.slice(0,6).map(s=>s?s.id+':'+s.n+':'+s.q:'').join('|');
   if(sig!==qsig){qsig=sig;qslots.forEach((el,i)=>{const s=I[i],img=el.querySelector('img'),b=el.querySelector('b');el.className='qslot'+(s?qc(s):' empty');if(s){img.src=ITEMS[s.id].ic;img.hidden=false;b.textContent=s.n>1?s.n:''}else{img.hidden=true;b.textContent=''}})}
   const low=p.hp>0&&p.hp/mhp()<.3;document.body.classList.toggle('lowHp',low);
+  // em combate as armas ficam travadas (js/state.js): marca os espaços de arma e avisa na mochila
+  const cmb=window.emCombate&&emCombate();document.body.classList.toggle('emCombate',!!cmb);
+  if(cmb&&!invEquipSlot)hint.textContent='Em combate: armas travadas até '+SAIR_COMBATE_S+'s depois de sair do combate ('+Math.ceil(combateRestante())+'s)';
+  else if(!cmb&&/^Em combate/.test(hint.textContent))hint.textContent='Arraste para trocar · botão direito: opções';
   SK.forEach(s=>{const was=ready.get(s);if(was>0&&!(s.t>0)&&s.el){s.el.classList.remove('readyFlash');void s.el.offsetWidth;s.el.classList.add('readyFlash')}ready.set(s,s.t)});
   const loc=window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
   if(loc!==lastLoc){lastLoc=loc;mmLabel.textContent=loc}

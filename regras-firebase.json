@@ -26,7 +26,7 @@
         ".read": "auth != null",
         "$uid": {
           ".write": "auth != null && auth.uid === $uid",
-          ".validate": "newData.isString() && newData.val().length <= 220"
+          ".validate": "newData.isString() && newData.val().length <= 900"
         }
       }
     },
@@ -71,6 +71,10 @@
         "mon": {
           ".write": "auth != null && ($sala === 'ilha:' + auth.uid || $sala.beginsWith('dg:' + auth.uid + ':'))",
           "$id": { ".validate": "newData.isString() && newData.val().length <= 120" }
+        },
+        "estado": {
+          ".write": "auth != null && $sala === 'ilha:' + auth.uid",
+          ".validate": "newData.isString() && newData.val().length <= 400"
         },
         "portas": {
           ".write": "auth != null && $sala.beginsWith('dg:' + auth.uid + ':')",

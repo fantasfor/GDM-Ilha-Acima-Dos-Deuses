@@ -44,7 +44,21 @@ function upd(){const st=p.st||{},ks=Object.keys(st).filter(k=>FX_INFO[k]&&st[k].
   ps.forEach(r=>mk(passIcon(r.raw),'pas'+(p.lvl<r.lv?' lock':''),pasTip(r)))}
  bar.querySelectorAll('.fxi[data-k]').forEach(e=>{const s=st[e.dataset.k];if(!s)return;e.querySelector('b').textContent=Math.ceil(s.t)+(s.n>1?' x'+s.n:'');e.querySelector('i').style.height=(100-Math.max(0,Math.min(1,s.t/(s.d||s.t)))*100)+'%'});
  const fc=$('sks').children[0],dk=$('dock').getBoundingClientRect();if(fc){const r=fc.getBoundingClientRect();bar.style.left=Math.round(r.right-dk.left-3)+'px';bar.style.maxWidth=Math.max(120,Math.round(dk.right-r.right-8))+'px'}}
-const hud2=hud;hud=function(){hud2();upd()};
+/* efeitos do alvo (monstro selecionado): mesmos ícones do jogador, abaixo da caixa de informações do topo */
+const mbar=document.createElement('div');mbar.id='monfx';document.body.appendChild(mbar);let msig='',malvo=null;
+const alvoTip=(t,k)=>()=>{const s=(t.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return'<b style="color:'+f.c+'">'+f.n+'</b> <span class=tm>'+(f.good?'efeito positivo':'efeito negativo')+'</span><div>'+(KD[f.kind]?KD[f.kind](f,s):'')+'</div><div class=tm>Restam '+s.t.toFixed(1)+'s'+(s.n>1?' · '+s.n+' acúmulos':'')+'</div>'};
+function updAlvo(){
+ const t=window.alvoInfo,st=t&&t.hp>0&&t.st||{},ks=Object.keys(st).filter(k=>FX_INFO[k]&&st[k].t>0);
+ const bad=ks.filter(k=>!FX_INFO[k].good).sort(),good=ks.filter(k=>FX_INFO[k].good).sort(),s2=bad.join()+'|'+good.join();
+ if(t!==malvo||s2!==msig){malvo=t;msig=s2;mbar.replaceChildren();
+  for(const [k,cls] of [...bad.map(k=>[k,'bad']),...good.map(k=>[k,'good'])]){const e=document.createElement('div');e.className='fxi '+cls;e.innerHTML='<img src="'+fxIcon(k)+'"><i></i><b></b>';e._tip=alvoTip(t,k);e.dataset.k=k;mbar.appendChild(e)}}
+ mbar.hidden=!ks.length;if(!ks.length)return;
+ mbar.querySelectorAll('.fxi').forEach(e=>{const s=st[e.dataset.k];if(!s)return;e.querySelector('b').textContent=Math.ceil(s.t)+(s.n>1?' x'+s.n:'');e.querySelector('i').style.height=(100-Math.max(0,Math.min(1,s.t/(s.d||s.t)))*100)+'%'});
+ // logo abaixo da caixa do alvo; com a caixa escondida (chefe da DG, barra própria no topo), um pouco mais abaixo
+ const mon=$('mon'),r=mon.getBoundingClientRect(),vis=mon.style.display!=='none'&&r.height>0;
+ mbar.style.top=Math.round(vis?r.bottom+4:64)+'px';
+}
+const hud2=hud;hud=function(){hud2();upd();updAlvo()};
 /* equipamentos: ao ser atingido, chance de ganhar efeitos */
 const hp0=hurtP;hurtP=function(d,m,fx,dot){const r=hp0.apply(this,arguments);if(!dot&&p.hp>0)Object.values(EQ).forEach(s=>{const it=s&&ITEMS[s.id];if(it&&it.fx&&it.fx.length)applyFx(p,resolveFx(it.fx.map(f=>({...f,target:'self'})),0))});return r};
 const tip0=itemTip;itemTip=function(id,q,sl){let h=tip0(id,q,sl);const it=ITEMS[id];if(it&&it.fx&&it.fx.length)h+='<div class=tm style="color:#9fdc9f">Ao ser atingido: '+it.fx.filter(f=>FX_INFO[f.type]).map(f=>(f.chance==null?100:f.chance)+'% de ganhar '+FX_INFO[f.type].n+' por '+(f.dur||3)+'s'+fxExtra(f)).join('; ')+'.</div>';return h};

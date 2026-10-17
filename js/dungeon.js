@@ -868,6 +868,7 @@
      fl.y = fl.startY + (p.y - 16 - fl.startY) * eased;
      if(progress >= 1){
       offerDrop(fl.id, false, fl.q);
+      if(window.somRaridade) somRaridade(fl.q, fl.id);
       flyingLoots.splice(i, 1);
      }
     }
@@ -1798,6 +1799,9 @@
    }
   });
 
+  // itens e moedas caídos dos monstros (js/loot.js)
+  if(window.desenharLoot) desenharLoot();
+
   // Efeitos visuais e feitiços (fxs e proj)
   proj.forEach(q => {
    ctx.fillStyle = q.c || '#ff7a1a';
@@ -1988,14 +1992,14 @@
 
   // Baús no minimapa
   dungeonChests.forEach(ch => {
-   if(ch.opened) return;
+   if(ch.opened || Math.hypot(ch.x - p.x, ch.y - p.y) > VISION_RANGE) return;
    mm.fillStyle = ch.tier === 'gold' ? '#fbbf24' : ch.tier === 'purple' ? '#c084fc' : '#38bdf8';
    mm.fillRect(toMmX(ch.x) - 2, toMmY(ch.y) - 2, 4, 4);
   });
 
-  // Inimigos no minimapa
+  // Inimigos no minimapa: só os que estão no campo de visão
   en.forEach(e => {
-   if(e.hp <= 0) return;
+   if(e.hp <= 0 || Math.hypot(e.x - p.x, e.y - p.y) > VISION_RANGE) return;
    if(e.boss){
     mm.fillStyle = '#ef4444';
     mm.fillRect(toMmX(e.x) - 3, toMmY(e.y) - 3, 7, 7);

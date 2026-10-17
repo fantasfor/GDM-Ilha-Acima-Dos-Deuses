@@ -92,7 +92,7 @@
   const base='salas/'+MP.sala;
   if(!publicando){
    // alguém chegou: manda o estado completo
-   publicando=true;enviadoMon=new Map();portasEnviadas='';
+   publicando=true;enviadoMon=new Map();portasEnviadas='';estadoEnviado='';
    const tudo={};for(const e of en)if(e.mpId&&!e.gone&&e.hp>0){const s=codificar(e);tudo[e.mpId]=s;enviadoMon.set(e.mpId,s)}
    ref(base+'/mon').set(tudo);
   }else{
@@ -101,11 +101,35 @@
    for(const id of [...enviadoMon.keys()])if(!vivos.has(id)){mudou[id]=null;enviadoMon.delete(id)}
    if(Object.keys(mudou).length)ref(base+'/mon').update(mudou);
   }
+  if(MP.sala==='ilha:'+uid){const est=JSON.stringify(lerIlha());if(est!==estadoEnviado){estadoEnviado=est;ref(base+'/estado').set(est).catch(()=>{estadoEnviado=''})}}
   if(window.inDungeon&&window.DUNGEON_DOORS){
    const abertas=DUNGEON_DOORS.map((d,i)=>d.opened?i:-1).filter(i=>i>=0).join(',');
    if(abertas!==portasEnviadas){portasEnviadas=abertas;ref(base+'/portas').set(abertas||'-')}
   }
  }
+ /* ---- progresso da ilha: quem visita vê a ilha como o dono a deixou (paliçada, portal, carpinteiro, ferreiro...) ----
+    O dono publica salas/ilha:{uid}/estado; quem visita guarda o próprio progresso e o devolve ao voltar para casa.
+    Enquanto visita, o salvamento usa o progresso guardado (window.ilhaParaSalvar, em ui.js). */
+ const lerIlha=()=>({questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,gateOpen:CAMP_WALL.gateOpen});
+ function aplicarIlha(v){
+  questDone=!!v.questDone;carpenterHelped=!!v.carpenterHelped;sawQuestActive=!!v.sawQuestActive;sawObtained=!!v.sawObtained;
+  woodQuestActive=!!v.woodQuestActive;wallBuilt=!!v.wallBuilt;magicWoodQuestActive=!!v.magicWoodQuestActive;campPortalBuilt=!!v.campPortalBuilt;
+  campPortalTheme=typeof v.campPortalTheme==='string'?v.campPortalTheme:'normal';blacksmithSaved=!!v.blacksmithSaved;window.blacksmithSaved=blacksmithSaved;
+  CAMP_WALL.gateOpen=v.gateOpen!==false;
+  try{placeCarpenter();placeBlacksmith();syncCampWall()}catch(e){console.warn('Ilha visitada:',e)}
+ }
+ let ilhaPropria=null,estadoEnviado='';
+ window.ilhaParaSalvar=()=>ilhaPropria;
+ function restaurarIlha(){if(ilhaPropria){const v=ilhaPropria;ilhaPropria=null;aplicarIlha(v)}}
+ function receberIlha(s){
+  let v=null;try{v=JSON.parse(s.val()||'null')}catch(e){}
+  if(!v||!MP.visitando)return;
+  if(!ilhaPropria)ilhaPropria=lerIlha();
+  aplicarIlha(v);
+ }
+ // só o dono mexe no carpinteiro, no ferreiro, no portão e no portal da ilha
+ MP.soDono=()=>{if(!MP.visitando||window.inDungeon||window.inTaverna)return false;aviso('Só o dono da ilha pode fazer isso.','#c0ae91');return true};
+
  /* ---- participação e divisão da recompensa ----
     Na ilha, XP e ouro de cada monstro são divididos em partes iguais entre quem participou da batalha:
     quem causou dano ou aplicou efeito nele, e quem usou cura/bênção/proteção nos últimos 15 s.
@@ -233,6 +257,7 @@
    ouvir(ref(base+'/mortes'),'child_added',s=>{const m=s.val();if(m&&(m.t||0)>=entrouEm+(N.offset||0)-3000)receberMorte(m)});
    ouvir(ref(base+'/tg'),'child_added',s=>{const tg=s.val();if(tg)receberTelegrafo(tg)});
    ouvir(ref(base+'/portas'),'value',s=>receberPortas(s.val()));
+   if(nova.startsWith('ilha:'))ouvir(ref(base+'/estado'),'value',receberIlha);
    ouvir(ref(base+'/danos/'+uid),'child_added',s=>{const d=s.val();s.ref.remove().catch(()=>{});if(d)receberDano(d)});
    // na primeira lista completa do dono, somem os monstros locais que ele já não tem
    // (ex.: voltou para a DG depois de morrer e alguns já tinham sido derrotados)
@@ -282,7 +307,7 @@
  }
  function voltarParaCasa(motivo){
   if(!MP.visitando)return;
-  MP.visitando=null;en.length=0;if(enLocal)en.push(...enLocal);enLocal=null;window.mpEspelho=false;
+  MP.visitando=null;en.length=0;if(enLocal)en.push(...enLocal);enLocal=null;window.mpEspelho=false;restaurarIlha();
   p.x=CX;p.y=CY+34;p.dest=null;p.path=[];p.tgt=null;
   aviso(motivo?motivo+' De volta à sua ilha.':'De volta à sua ilha.','#9fe3ff');
   tick();

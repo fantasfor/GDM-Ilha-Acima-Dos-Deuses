@@ -29,7 +29,17 @@ function consumeItems(id,count){
  for(let i=0;i<I.length&&count>0;i++){const s=I[i];if(!s||s.id!=id)continue;const used=Math.min(s.n,count);s.n-=used;count-=used;if(!s.n)I[i]=null}
  dirtyInv=true;return true
 }
-function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;const t=gearType[s.id];let sl=t=='ri'?(preferredSlot=='r1'||preferredSlot=='r2'?preferredSlot:!EQ.r1?'r1':!EQ.r2?'r2':'r1'):t;
+/* combate: a arma só pode ser trocada fora de combate, SAIR_COMBATE_S segundos depois que nenhum monstro
+   persegue o jogador (bater ou levar dano também conta como combate) */
+const SAIR_COMBATE_S=10;let ultimoCombate=-1e9;
+function marcarCombate(){ultimoCombate=performance.now()}
+function combateRestante(){return Math.max(0,SAIR_COMBATE_S-(performance.now()-ultimoCombate)/1000)}
+window.emCombate=()=>combateRestante()>0;window.marcarCombate=marcarCombate;
+function armaTravada(){const r=combateRestante();if(r<=0)return false;ft(p.x,p.y-24,'Em combate: troque de arma '+Math.ceil(r)+'s depois de sair do combate','#f0a090');return true}
+const ehArma=s=>!!(s&&gearType[s.id]=='sw');
+window.armaTravada=armaTravada;window.ehArma=ehArma;
+function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;const t=gearType[s.id];
+ if((t=='sw'||(t=='sh'&&ehArma(EQ.sh)))&&armaTravada())return;let sl=t=='ri'?(preferredSlot=='r1'||preferredSlot=='r2'?preferredSlot:!EQ.r1?'r1':!EQ.r2?'r2':'r1'):t;
  if(t=='sw'&&(preferredSlot=='sw'||preferredSlot=='sh'))sl=preferredSlot;
  if(t=='sw'&&preferredSlot=='sh'&&ITEMS[s.id].th){ft(p.x,p.y-24,'Arma de duas mãos não cabe na Mão 2','#ccc');return}
  if(t=='sw'&&ITEMS[s.id].th)sl='sw';
@@ -39,7 +49,7 @@ function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;c
  if(sl=='sh'&&EQ.sw&&ITEMS[EQ.sw.id].th){ft(p.x,p.y-24,'Arma de duas mãos','#ccc');return}
  EQ[sl]=s;I[i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){const j=I.indexOf(null);if(j>=0){I[j]=EQ.sh;EQ.sh=null}}
  dirtyInv=true;setPortrait();saveGame();if(window.playEntitySound)playEntitySound('items',s.id,'use')}
-function unequip(sl){if(!EQ[sl])return;let i=I.indexOf(null);if(i<0){i=I.length;I.push(null)}I[i]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
+function unequip(sl){if(!EQ[sl])return;if(ehArma(EQ[sl])&&armaTravada())return;let i=I.indexOf(null);if(i<0){i=I.length;I.push(null)}I[i]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
 function useSlot(i,preferredSlot){const s=I[i];if(!s||p.dead>0)return;if(gearType[s.id]){equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
  const h=d.heal||{};if(h.hp){p.hp=Math.min(mhp(),p.hp+h.hp);ft(p.x,p.y-12,'+'+h.hp,'#6f6')}if(h.mp){p.mp=Math.min(mmp(),p.mp+h.mp);ft(p.x,p.y-12,'+'+h.mp,'#6cf')}
  grantAttributeBuff(p,'item:'+s.id,d.bonuses,d.bonusDuration||5);
