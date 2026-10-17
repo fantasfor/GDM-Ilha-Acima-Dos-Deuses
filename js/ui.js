@@ -18,7 +18,7 @@ function drawPortrait(){const W=96,H=80,g=pt.createLinearGradient(0,0,0,H);g.add
  const mv=time-(p.mvAt||-9)<.2,ph=mv?[1,0,2,0][Math.floor(time*8)%4]:0,atk=p.aw>0?Math.min(3,1+Math.floor((1-p.aw/.25)*3)):0,
   br=Math.sin(time*2.5),bob=mv?-(Math.floor(time*8)%2)*2:0,h=Math.round(72+br*1.5),w=Math.round(63-br*.8);
  const hi=heroImg('d',{ph,sw:atk});
- pt.drawImage(hi,11,2,18,16,Math.round((W-w*18/14)/2),H-4-h+bob,Math.round(w*18/14),h)}
+ pt.drawImage(hi,11+(hi.ox||0),2+(hi.oy||0),18,16,Math.round((W-w*18/14)/2),H-4-h+bob,Math.round(w*18/14),h)}
 const INV_CATEGORIES=[['all','Todos'],['consumables','Consumíveis'],['materials','Materiais'],['sw','Armas'],['he','Capacete'],['ch','Peito'],['le','Calça'],['bo','Bota'],['ca','Capa'],['ne','Colar'],['ri','Anel']];
 /* ícones 16×16 dos filtros da mochila: contorno escuro, três tons e um brilho */
 const INV_CATEGORY_ICONS={

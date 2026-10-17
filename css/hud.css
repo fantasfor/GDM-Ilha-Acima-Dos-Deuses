@@ -187,4 +187,15 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .dgm-enter:hover:not(:disabled){background:linear-gradient(#e0701c,#9b3608)!important;outline-color:#ffe08a}
 .dgm-enter:disabled{filter:grayscale(.8);opacity:.6;cursor:not-allowed}
 .dgm-empty{color:var(--muted)}
+/* jogar em grupo (menu do portal) */
+.dgm-grupo{display:flex;flex-direction:column;gap:6px;padding:8px;background:#15110d;border:1px solid var(--line2)}
+.dgm-grupoTopo{display:flex;justify-content:space-between;align-items:baseline}.dgm-grupoTopo .dgm-label{margin:0}
+.dgm-membros{display:flex;flex-wrap:wrap;gap:4px}
+.dgm-membro{padding:2px 7px;font:bold 10px monospace;color:#9fe3ff;border:1px solid #2f5a6a;background:#0d1418}.dgm-membro.lider{color:#ffe699;border-color:#8a6a3a;background:#1a140c}
+.dgm-dif{margin:0!important;font:11px monospace!important;color:#f0a52e}.dgm-dif b{display:inline!important;margin:0!important;font:bold 11px monospace!important;color:#ffcf8a!important}
+.dgm-convidar{display:flex;flex-direction:column;gap:3px;max-height:150px;overflow:auto}
+.dgm-cand{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dotted #3a2e1c;font:11px monospace;color:var(--text)}
+.dgm-cand span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dgm-cand small{color:var(--muted);white-space:nowrap}
+.dgm-convite{flex:none;padding:3px 9px;font:bold 10px monospace;color:#9be7a8;background:linear-gradient(#21301f,#121a10);border:1px solid #4f8a5a;cursor:pointer}
+.dgm-convite:hover:not(:disabled){color:#fff;border-color:#7bd389}.dgm-convite:disabled{color:#8a7a62;border-color:#3a2e1c;cursor:default}
 @media(max-width:620px){.dgm-body{grid-template-columns:1fr}.dgm-list{flex-direction:row;overflow-x:auto}.dgm-item{min-width:180px}.dgm-stats{grid-template-columns:repeat(2,1fr)}}

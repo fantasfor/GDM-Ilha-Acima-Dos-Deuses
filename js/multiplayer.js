@@ -73,14 +73,17 @@
    escalar(e);
   }
  }
+ // aplica a escala do tamanho atual do grupo a partir dos valores originais (pode subir e descer durante a DG)
  function escalar(e){
-  const n=window.inDungeon?MP.tamanhoGrupo:1;if(n<=1||e.mpEscala)return;
-  const kv=1+ESCALA_VIDA*(n-1),kd=1+ESCALA_DANO*(n-1);
-  e.max=Math.round(e.max*kv);e.hp=Math.round(e.hp*kv);e.delayedHp=e.hp;
-  e.dmg=Math.round(e.dmg*kd);e.weaponDamageMultiplier=(e.weaponDamageMultiplier||1)*kd;
-  if(e.weaponDamageBase!=null)e.weaponDamageBase=Math.round(e.weaponDamageBase*kd);
+  const n=window.inDungeon?MP.tamanhoGrupo:1;if((e.mpEscala||1)===n)return;
+  if(!e.mpBase)e.mpBase={max:e.max,dmg:e.dmg,wm:e.weaponDamageMultiplier||1,wb:e.weaponDamageBase};
+  const b=e.mpBase,kv=1+ESCALA_VIDA*(n-1),kd=1+ESCALA_DANO*(n-1),parte=e.max>0?e.hp/e.max:1;
+  e.max=Math.round(b.max*kv);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
+  e.dmg=Math.round(b.dmg*kd);e.weaponDamageMultiplier=b.wm*kd;
+  if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*kd);
   e.mpEscala=n;
  }
+ MP.escalaTexto=n=>n>1?'+'+Math.round(ESCALA_VIDA*100*(n-1))+'% de vida e +'+Math.round(ESCALA_DANO*100*(n-1))+'% de dano':'dificuldade normal';
  const codificar=e=>[e.ty,e.lvl||1,Math.round(e.x),Math.round(e.y),Math.max(0,Math.ceil(e.hp)),Math.round(monsterMaxHp(e)),
   (e.elite?1:0)|(e.boss?2:0)|(e.aw>0?4:0),Math.sign(Math.round(e.fx||0)),e.dungeonRoomId==null?'':e.dungeonRoomId].join('|');
  function publicar(agora){
@@ -283,6 +286,13 @@
   publicar(performance.now());
   // o dono da ilha visitada saiu dela: volta para casa
   if(MP.visitando){const dono=outros().get(MP.visitando);if(!dono||dono.sala!=='ilha:'+MP.visitando){if(!(MP.semDono>0))MP.semDono=performance.now();else if(performance.now()-MP.semDono>4000){MP.semDono=0;voltarParaCasa('O dono saiu da ilha.')}}else MP.semDono=0}
+  // líder na DG: a dificuldade acompanha quantos do grupo estão lá dentro agora
+  if(window.inDungeon&&MP.dgSala&&hostDe(MP.dgSala)===uid){
+   const n=Math.min(MAX_GRUPO,1+MP.remotos.size);
+   if(n!==MP.tamanhoGrupo){MP.tamanhoGrupo=n;en.forEach(e=>{if(!e.mpProxy)escalar(e)});
+    if(MP.grupoLider===uid&&MP.grupo&&MP.grupo.dg)ref('grupos/'+uid+'/dg/n').set(n).catch(()=>{});
+    aviso(n>1?n+' na masmorra: inimigos com '+MP.escalaTexto(n)+'.':'Sozinho na masmorra: dificuldade normal.','#f0a52e')}
+  }
   // o líder saiu da DG: o grupo volta
   if(window.inDungeon&&MP.dgSala&&hostDe(MP.dgSala)!==uid){const g=MP.grupo;if(!g||!g.dg||g.dg.sala!==MP.dgSala){if(!(MP.semLider>0))MP.semLider=performance.now();else if(performance.now()-MP.semLider>3000){MP.semLider=0;aviso('O líder saiu da masmorra.','#f87171');exitDungeon(true)}}else MP.semLider=0}
  }
@@ -327,15 +337,11 @@
    tick();return;
   }
   else{
-   const g=MP.grupo,lider=MP.grupoLider===uid&&g;
-   const membros=lider?Object.keys(g.membros||{}).filter(id=>id!==uid).slice(0,MAX_GRUPO-1):[];
-   MP.tamanhoGrupo=1+membros.length;
-   MP.dgSala=membros.length?'dg:'+uid+':'+Date.now().toString(36):null;
+   // a DG sempre tem sala própria: dá para chamar o grupo depois de entrar. A dificuldade começa normal
+   // e sobe conforme os membros chegam (tick).
+   MP.tamanhoGrupo=1;MP.dgSala='dg:'+uid+':'+Date.now().toString(36);
    window.mpEspelho=false;
-   if(lider&&membros.length){
-    ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'});
-    aviso('Grupo de '+MP.tamanhoGrupo+': inimigos com +'+Math.round(ESCALA_VIDA*100*(MP.tamanhoGrupo-1))+'% de vida e +'+Math.round(ESCALA_DANO*100*(MP.tamanhoGrupo-1))+'% de dano','#f0a52e');
-   }
+   if(MP.grupoLider===uid&&MP.grupo)publicarDgDoGrupo();
   }
   // ids iguais para os monstros fixos da DG (mesma ordem em todos os jogadores)
   en.forEach((e,i)=>{e.mpId='m'+i;escalar(e)});
@@ -346,6 +352,11 @@
   MP.dgSala=null;MP.tamanhoGrupo=1;window.mpEspelho=false;proxies.clear();
   if(eraLider)ref('grupos/'+uid+'/dg').remove().catch(()=>{});
  });
+ // o líder avisa o grupo da DG em que está (os membros recebem o convite para entrar)
+ function publicarDgDoGrupo(){
+  if(!window.inDungeon||!MP.dgSala||hostDe(MP.dgSala)!==uid)return;
+  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'}).catch(()=>{});
+ }
  function entrarDgDoGrupo(){
   const g=MP.grupo;if(!g||!g.dg)return;
   if(window.inDungeon){if(MP.dgSala===g.dg.sala)return;exitDungeon(true)}
@@ -357,6 +368,16 @@
   if(!window.inDungeon){entrandoComoMembro=false;window.mpEspelho=false;MP.dgSala=null}
  }
  MP.entrarDgDoGrupo=entrarDgDoGrupo;
+ /* para o menu do portal (dungeon-library.js): o grupo atual e quem dá para chamar */
+ MP.grupoDg=()=>{
+  const g=MP.grupo,membros=g&&g.membros?Object.entries(g.membros).map(([id,nome])=>({id,nome:typeof nome==='string'?nome:MP.nomeDe(id),lider:id===MP.grupoLider,voce:id===uid})):[{id:uid,nome:N?N.nome():'Você',lider:true,voce:true}];
+  return{membros,max:MAX_GRUPO,podeConvidar:!MP.grupoLider||MP.grupoLider===uid,cheio:membros.length>=MAX_GRUPO};
+ };
+ MP.candidatosDg=()=>{
+  const g=MP.grupo,lista=[];
+  for(const [id,o] of outros()){if(id===uid||o.x==null||!o.sala||(g&&g.membros&&g.membros[id]))continue;lista.push({id,nome:o.name||MP.nomeDe(id),nivel:o.lvl||1,amigo:!!MP.amigos[id],onde:onde(Object.assign({id},o))})}
+  return lista.sort((a,b)=>b.amigo-a.amigo||a.nome.localeCompare(b.nome));
+ };
 
  /* ---------- grupo ---------- */
  let grupoOff=null;
@@ -375,6 +396,8 @@
     seguirGrupo(null);return;
    }
    MP.grupo=g;for(const [id,nome] of Object.entries(g.membros))if(typeof nome==='string')MP.nomes.set(id,nome);
+   // grupo montado com o líder já dentro da DG: anuncia a DG para os membros entrarem
+   if(lider===uid&&!g.dg&&window.inDungeon)publicarDgDoGrupo();
    const dg=g.dg&&g.dg.sala;
    if(lider!==uid&&dg&&dg!==anterior&&!(window.inDungeon&&MP.dgSala===dg))convidarDg(g);
    anterior=dg||null;atualizarPainel();
@@ -423,8 +446,13 @@
  const ROTULO_ACEITAR={ilha:'Ir',amizade:'Aceitar',grupo:'Entrar'};
  const vencido=c=>Date.now()+(N.offset||0)-(c.t||0)>(VALIDADE[c.tipo]||CONVITE_S*1000);
  function recusarConvite(de){const c=pendentes.get(de);if(c&&c.toast)c.toast.remove();pendentes.delete(de);ref('convites/'+uid+'/'+de).remove().catch(()=>{});atualizarCorreio()}
+ // as regras do banco só deixam entrar no grupo / virar amigo enquanto o convite existe: age primeiro, apaga depois
  async function aceitarConvite(de){
-  const c=pendentes.get(de);if(!c)return;recusarConvite(de);
+  const c=pendentes.get(de);if(!c)return;
+  if(c.toast)c.toast.remove();pendentes.delete(de);atualizarCorreio();
+  try{await executarConvite(de,c)}finally{ref('convites/'+uid+'/'+de).remove().catch(()=>{})}
+ }
+ async function executarConvite(de,c){
   if(c.tipo==='ilha')visitar(de);
   else if(c.tipo==='amizade'){
    try{await ref().update({['amigos/'+uid+'/'+de]:c.nome,['amigos/'+de+'/'+uid]:N.nome()});aviso('Agora você e '+c.nome+' são amigos.','#9fe3ff')}

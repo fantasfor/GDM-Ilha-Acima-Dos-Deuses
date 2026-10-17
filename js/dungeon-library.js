@@ -96,11 +96,31 @@
    if(i.drops.length)for(const id of i.drops){const d=E('div','dgm-drop'),im=E('img');im.src=ITEMS[id].ic;im.alt='';d.append(im);d._tip=()=>window.itemTip?itemTip(id,null):ITEMS[id].n;icons.append(d)}
    else icons.append(E('span','dgm-muted','Equipamentos aleatórios conforme a cor dos baús.'));
    dr.append(icons);detail.append(dr);
+   if(window.MP&&MP.grupoDg){const gs=E('div','dgm-grupo');detail.append(gs);renderGrupo(gs)}
    const foot=E('div','dgm-foot');
    foot.append(E('span','dgm-rec',rec?'Concluída '+rec.clears+'×'+(rec.best?' · melhor tempo '+fmtTime(rec.best):''):'Ainda não concluída'));
    const go=E('button','dgm-enter',locked?'Requer nível '+i.minLevel:'Entrar na masmorra');go.type='button';go.disabled=!!locked;go.onclick=()=>enter(entry);
    foot.append(go);detail.append(foot);
   }
+  /* Jogar em grupo (online): convida para o grupo; ao entrar, o grupo é chamado para a mesma DG.
+     Os inimigos ficam mais fortes conforme cada um entra (multiplicador do grupo). */
+  const enviados=new Set();
+  function renderGrupo(gs){
+   const g=MP.grupoDg(),n=g.membros.length;gs.replaceChildren();
+   const topo=E('div','dgm-grupoTopo');topo.append(E('span','dgm-label','Jogar em grupo'),E('small','dgm-muted',n+'/'+g.max));gs.append(topo);
+   const chips=E('div','dgm-membros');for(const m of g.membros)chips.append(E('span','dgm-membro'+(m.lider?' lider':''),(m.lider?'★ ':'')+m.nome+(m.voce?' (você)':'')));gs.append(chips);
+   const dif=E('p','dgm-dif');dif.append(E('b','',n>1?'Dificuldade com '+n+': ':'Sozinho: '),document.createTextNode(n>1?'inimigos com '+MP.escalaTexto(n)+'.':'dificuldade normal. Cada jogador a mais: '+MP.escalaTexto(2)+'.'));gs.append(dif);
+   if(!g.podeConvidar){gs.append(E('p','dgm-muted','Só o líder do grupo convida. Quando o líder entrar, você recebe o chamado.'));return}
+   const cand=MP.candidatosDg().slice(0,8),ul=E('div','dgm-convidar');
+   if(!cand.length)ul.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
+   for(const c of cand){const li=E('div','dgm-cand');li.append(E('span','',c.nome+' · Nv '+c.nivel+(c.amigo?' · amigo':'')),E('small','',c.onde));
+    const b=E('button','dgm-convite',enviados.has(c.id)?'Enviado':'Convidar');b.type='button';b.disabled=g.cheio||enviados.has(c.id);
+    b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';try{await MP.convidar(c.id,'grupo');enviados.add(c.id);b.textContent='Enviado'}catch(e){b.disabled=false;b.textContent='Convidar'}};
+    li.append(b);ul.append(li)}
+   gs.append(ul,E('p','dgm-muted','O convite chega no Correio. Quando você entrar, o grupo é chamado para esta masmorra; a dificuldade sobe a cada um que entra.'));
+  }
+  // atualiza o grupo enquanto o menu está aberto (alguém aceitou, saiu ou ficou online)
+  const vivo=setInterval(()=>{if(!box.classList.contains('open')||!box.contains(root)){clearInterval(vivo);return}const gs=detail.querySelector('.dgm-grupo');if(gs&&!gs.contains(document.activeElement))renderGrupo(gs)},2000);
   renderList();renderDetail();
   root.addEventListener('keydown',e=>{const ids=library.dungeons.map(d=>d.id),k=ids.indexOf(selected);
    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selected=ids[(k+(e.key==='ArrowDown'?1:-1)+ids.length)%ids.length];renderList();renderDetail();list.querySelector('.on')?.focus()}

@@ -121,11 +121,13 @@ function equippedArt(item,dir){return item&&item.equippedSprites&&(item.equipped
 function drawEquipmentLayers(E,slots,dir,cx){
  for(const slot of slots){const sprite=equippedArt(E[slot],dir);if(sprite)cx.drawImage(sprite,0,0,28,32)}
 }
+const MARGEM=48; // folga em volta do quadro do herói para armas grandes (js/sprites.js recortarHeroi)
 function human(cl,dir,ph=0,E={}){
  const equipment=E,visualDir=dir;
  E={...E};
  for(const slot of ['he','ch','le','bo','ca','ne','r1','r2'])if(equippedArt(E[slot],visualDir))E[slot]=null;
- const dg=dir.length>1;dir=dir[0];const c=mkCanvas(80,48,2),cx=c.getContext('2d');cx.translate(26,4);const {R,box}=kit(cx);
+ // tela folgada (MARGEM em volta do quadro 80x48) para armas grandes; no fim recorta só o que foi usado
+ const dg=dir.length>1;dir=dir[0];const c=mkCanvas(80+2*MARGEM,48+2*MARGEM,2),cx=c.getContext('2d');cx.translate(26+MARGEM,4+MARGEM);const {R,box}=kit(cx);
  const P={war:['#9aa7b8','#c0392b','#6b3b1f','#f2c28b','#4a3a2a'],mag:['#5b3fd0','#f5d84a','#e0e0f0','#f2c28b','#2a1f66'],hea:['#f2f2e8','#3fb86a','#e8c84a','#f2c28b','#c9c9b8'],sk:['#d8d8cc','#222222','','#e8e8e0', '#b8b8aa'],sty:['#d94f9a','#ffd84a','#3a1f10','#f2c28b','#7a3a5a']}[cl];
   const N=E.nude,fem=E.sex=='f';
   let [B,A,H,S,L]=P;const robe=(cl=='mag'||cl=='hea'||cl=='sty')&&!N,sd=dir=='s',bk=dir=='u',BT=N?S:'#3a2a1a';
@@ -172,7 +174,17 @@ function human(cl,dir,ph=0,E={}){
  gearHead(E,dir,box,R);
  drawEquipmentLayers(equipment,dir=='u'?['he','ca']:['he'],visualDir,cx);
  if(N)gearWeapon(E,visualDir,E.swing||0,box,R,cx);
- const o=half(c);o.pad=13;o.anchorY=6;return o}
+ return recortarHeroi(c)}
+/* Recorta o sprite do herói: o quadro padrão (80x48, corpo em 26,4) mais o que a arma passar dele.
+   Cresce igual para os dois lados (o desenho continua centrado) e para cima/baixo só o necessário.
+   ox/oy: deslocamento do quadro padrão dentro da imagem final (em pixels já reduzidos). */
+function recortarHeroi(c){
+ const W=c.width,H=c.height,d=c.getContext('2d').getImageData(0,0,W,H).data;let x0=W,y0=H,x1=-1,y1=-1;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>=128){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ const par=v=>v+(v&1);
+ const lado=x1<0?0:par(Math.max(0,MARGEM-x0,x1+1-(MARGEM+80))),cima=x1<0?0:par(Math.max(0,MARGEM-y0)),baixo=x1<0?0:par(Math.max(0,y1+1-(MARGEM+48)));
+ const r=mkCanvas(80+2*lado,48+cima+baixo,2);r.getContext('2d').drawImage(c,MARGEM-lado,MARGEM-cima,r.width,r.height,0,0,r.width,r.height);
+ const o=half(r);o.pad=13+lado/2;o.anchorY=6+baixo/2;o.ox=lado/2;o.oy=cima/2;return o}
 function gearWeapon(E,dir,swing,box,R,cx){
  const visualDir=dir;dir=dir[0];
  if(E.sh&&!E.shWeapon&&equippedArt(E.sh,visualDir))drawEquipmentLayers(E,['sh'],visualDir,cx);
