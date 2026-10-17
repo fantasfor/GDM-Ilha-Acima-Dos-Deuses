@@ -1,0 +1,436 @@
+/* ---------- Multijogador: cada um na sua ilha, visitas, grupo de DG e salas ----------
+   Precisa da conta na nuvem (js/conta.js). Cada jogador está numa "sala":
+    ilha:{uid}     a ilha de alguém; o dono simula os monstros
+    dg:{uid}:{n}   a DG de um grupo (até 5); o líder simula os monstros
+    taverna        ponto de encontro de todos, sem monstros (js/taverna.js)
+   Quem não é o dono da sala fica em "espelho": vê os monstros do dono (salas/{sala}/mon),
+   manda os golpes para ele (golpes) e recebe o dano que os monstros causam (danos/{uid}).
+   O dono escolhe o alvo de cada monstro entre todos os jogadores da sala e avisa as mortes (mortes):
+   cada um ganha a própria XP, ouro e itens. No grupo, os inimigos da DG ficam mais fortes. */
+(function(){
+ if(MODO.teste||MODO.motor||!window.CONTA_ATIVA)return;
+ const MAX_GRUPO=5,PUB_MS=150,CONVITE_S=90;
+ // por jogador extra no grupo: +60% de vida e +15% de dano para os inimigos da DG
+ const ESCALA_VIDA=.6,ESCALA_DANO=.15;
+ const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
+ const btn=(text,fn,cls)=>{const b=el('button',cls||'mpBtn',text);b.type='button';b.onclick=fn;return b};
+ let N=null,db=null,uid=null;
+ const MP=window.MP={
+  sala:null,visitando:null,dgSala:null,tamanhoGrupo:1,
+  grupoLider:null,grupo:null,remotos:new Map(),nomes:new Map(),
+  nomeDe:id=>MP.nomes.get(id)||'Aventureiro'
+ };
+ const ref=path=>db.ref(path);
+ const hostDe=s=>!s||s==='taverna'?null:s.split(':')[1];
+ const souHost=()=>!!uid&&hostDe(MP.sala)===uid;
+ const outros=()=>window.ONLINE_NUVEM?ONLINE_NUVEM.outros:new Map();
+ function aviso(texto,cor){ft(p.x,p.y-30,texto,cor||'#ffd84a');if(window.onlineSystem)onlineSystem(texto)}
+
+ /* ---------- sala atual ---------- */
+ function salaAtual(){
+  if(window.inTaverna)return 'taverna';
+  if(window.inDungeon)return MP.dgSala||('dg:'+uid+':solo');
+  return 'ilha:'+(MP.visitando||uid);
+ }
+ MP.salaAtual=()=>MP.sala||(uid?salaAtual():null);
+ /* jogadores (outros) que estão na mesma sala, com posição e estado */
+ function atualizarRemotos(){
+  const vistos=new Set();
+  for(const [id,o] of outros()){
+   if(o.name)MP.nomes.set(id,o.name);
+   if(id===uid||o.sala!==MP.sala||o.x==null)continue;
+   vistos.add(id);
+   let r=MP.remotos.get(id);if(!r){r={uid:id,remote:true,st:null};MP.remotos.set(id,r)}
+   r.x=o.x;r.y=o.y;r.dead=!!o.dead;r.hp=o.hp;r.name=o.name;r.lvl=o.lvl;
+  }
+  for(const id of [...MP.remotos.keys()])if(!vistos.has(id))MP.remotos.delete(id);
+ }
+ MP.pertoDeAlguem=(x,y,r)=>{for(const o of MP.remotos.values())if(!o.dead&&Math.hypot(o.x-x,o.y-y)<=r)return true;return false};
+
+ /* ---------- alvo dos monstros (só o dono da sala decide) ---------- */
+ MP.alvoDe=e=>{
+  if(!souHost()||!MP.remotos.size)return p;
+  let best=p.dead<=0?p:null,bd=best?dist(e,p):Infinity;
+  for(const r of MP.remotos.values()){if(r.dead)continue;const d=dist(e,r);if(d<bd){bd=d;best=r}}
+  // mantém o alvo atual enquanto ele não ficar bem mais longe que o mais próximo
+  const cur=e.mpAlvo,valido=cur&&(cur===p?p.dead<=0:MP.remotos.get(cur.uid)===cur&&!cur.dead);
+  if(valido&&cur!==best&&dist(e,cur)<bd*1.4+12)best=cur;
+  e.mpAlvo=best||p;return e.mpAlvo;
+ };
+ const limparFx=fx=>Array.isArray(fx)?fx.map(f=>({type:f.type,chance:f.chance,dur:f.dur,pw:Math.round((f.pw||0)*100)/100})):null;
+ MP.ferirRemoto=(alvo,d,magic,fx,dot,atacante)=>{
+  if(!souHost()||!alvo||!alvo.uid)return;
+  const dano=d&&typeof d==='object'?{physical:Math.round(+d.physical||0),magic:Math.round(+d.magic||0)}:Math.round(+d||0);
+  ref('salas/'+MP.sala+'/danos/'+alvo.uid).push({d:dano,m:magic?1:0,fx:limparFx(fx),a:atacante&&atacante.mpId||null});
+ };
+
+ /* ---------- dono da sala: ids, escala do grupo e envio dos monstros ---------- */
+ let seq=0,enviadoMon=new Map(),ultimoPub=0,publicando=false,portasEnviadas='';
+ function prepararMonstros(){
+  for(const e of en){
+   if(e.mpId)continue;
+   e.mpId=(window.inDungeon?'w':'i')+(++seq).toString(36);
+   escalar(e);
+  }
+ }
+ function escalar(e){
+  const n=window.inDungeon?MP.tamanhoGrupo:1;if(n<=1||e.mpEscala)return;
+  const kv=1+ESCALA_VIDA*(n-1),kd=1+ESCALA_DANO*(n-1);
+  e.max=Math.round(e.max*kv);e.hp=Math.round(e.hp*kv);e.delayedHp=e.hp;
+  e.dmg=Math.round(e.dmg*kd);e.weaponDamageMultiplier=(e.weaponDamageMultiplier||1)*kd;
+  if(e.weaponDamageBase!=null)e.weaponDamageBase=Math.round(e.weaponDamageBase*kd);
+  e.mpEscala=n;
+ }
+ const codificar=e=>[e.ty,e.lvl||1,Math.round(e.x),Math.round(e.y),Math.max(0,Math.ceil(e.hp)),Math.round(monsterMaxHp(e)),
+  (e.elite?1:0)|(e.boss?2:0)|(e.aw>0?4:0),Math.sign(Math.round(e.fx||0)),e.dungeonRoomId==null?'':e.dungeonRoomId].join('|');
+ function publicar(agora){
+  if(!souHost()){publicando=false;return}
+  prepararMonstros();
+  const temGente=MP.remotos.size>0;
+  if(!temGente){publicando=false;return}
+  if(agora-ultimoPub<PUB_MS)return;ultimoPub=agora;
+  const base='salas/'+MP.sala;
+  if(!publicando){
+   // alguém chegou: manda o estado completo
+   publicando=true;enviadoMon=new Map();portasEnviadas='';
+   const tudo={};for(const e of en)if(e.mpId&&!e.gone&&e.hp>0){const s=codificar(e);tudo[e.mpId]=s;enviadoMon.set(e.mpId,s)}
+   ref(base+'/mon').set(tudo);
+  }else{
+   const mudou={},vivos=new Set();
+   for(const e of en){if(!e.mpId||e.gone||e.hp<=0)continue;vivos.add(e.mpId);const s=codificar(e);if(enviadoMon.get(e.mpId)!==s){mudou[e.mpId]=s;enviadoMon.set(e.mpId,s)}}
+   for(const id of [...enviadoMon.keys()])if(!vivos.has(id)){mudou[id]=null;enviadoMon.delete(id)}
+   if(Object.keys(mudou).length)ref(base+'/mon').update(mudou);
+  }
+  if(window.inDungeon&&window.DUNGEON_DOORS){
+   const abertas=DUNGEON_DOORS.map((d,i)=>d.opened?i:-1).filter(i=>i>=0).join(',');
+   if(abertas!==portasEnviadas){portasEnviadas=abertas;ref(base+'/portas').set(abertas||'-')}
+  }
+ }
+ MP.morreu=e=>{
+  if(!souHost()||!e.mpId||!MP.remotos.size)return;
+  ref('salas/'+MP.sala+'/mortes').push({id:e.mpId,t:firebase.database.ServerValue.TIMESTAMP});
+ };
+ MP.telegrafo=tg=>{
+  if(!souHost()||!MP.remotos.size)return;
+  ref('salas/'+MP.sala+'/tg').push({type:tg.type,x:Math.round(tg.x),y:Math.round(tg.y),r:tg.r||0,angle:tg.angle||0,w:tg.w||0,length:tg.length||0,atraso:tg.t||0,maxT:tg.maxT,pct:tg.pct||.5,label:tg.label||'',src:tg.source&&tg.source.mpId||null,t:firebase.database.ServerValue.TIMESTAMP});
+ };
+ function receberGolpe(g){
+  const e=en.find(q=>q.mpId===g.id);if(!e||e.hp<=0||!(g.d>0))return;
+  e.hp-=Math.min(g.d,100000);e.hit=.15;ft(e.x,e.y-22,Math.round(g.d),'#9fe3ff');
+  const autor=MP.remotos.get(g.de);if(autor){e.mpAlvo=autor;e.alert=8}
+  if(Array.isArray(g.fx)&&e.hp>0)applyFx(e,g.fx.filter(f=>f&&FX_INFO[f.type]).map(f=>({...f,caster:e,self:false})));
+  if(e.hp<=0)killMonster(e);
+ }
+
+ /* ---------- quem visita: monstros espelhados ---------- */
+ const proxies=new Map();let entrouEm=0;
+ function criarProxy(id,ty,lvl,x,y,flags){
+  let e=en.find(q=>q.mpId===id&&!q.gone&&q.hp>0);
+  if(!e){
+   if(!MONSTER_TYPES[ty])ty='sl';
+   e=spawnAt(x,y,ty,lvl);
+   if(ty==='boss'&&SP.sk){e.img=SP.sk.d;e.sp=SP.sk;e.boss=true}
+   if(flags&1)makeElite(e);
+   if(flags&2)e.boss=true;
+   if(window.inDungeon)e.isDungeonMob=true;
+   e.mpId=id;en.push(e);
+  }
+  e.mpProxy=true;e.dest=null;e.path=[];proxies.set(id,e);return e;
+ }
+ function aplicarMon(id,s){
+  if(typeof s!=='string')return removerProxy(id);
+  const [ty,lvl,x,y,hp,max,flags,fx,room]=s.split('|'),f=+flags||0;
+  let e=proxies.get(id);
+  if(e&&(e.gone||!en.includes(e))){proxies.delete(id);e=null}
+  if(!e)e=criarProxy(id,ty,+lvl||1,+x,+y,f);
+  e.mpTx=+x;e.mpTy=+y;e.max=Math.max(1,+max||1);e.lvl=+lvl||e.lvl;
+  if(+hp>0&&e.hp>0)e.hp=+hp;
+  e.aw=f&4?.2:0;if(+fx)e.fx=+fx;
+  if(room!=='')e.dungeonRoomId=room;
+ }
+ function removerProxy(id){const e=proxies.get(id);if(!e)return;proxies.delete(id);if(e.hp>0){e.hp=0;e.gone=1}}
+ MP.moverProxy=(e,dt)=>{
+  if(e.mpTx==null)return;
+  const dx=e.mpTx-e.x,dy=e.mpTy-e.y,d=Math.hypot(dx,dy);
+  if(d>80){e.x=e.mpTx;e.y=e.mpTy;return}
+  if(d>.3){const k=Math.min(1,dt*10);e.x+=dx*k;e.y+=dy*k;e.fx=dx;e.fy=dy;e.mov=.2}
+  e.hit-=dt;
+ };
+ MP.golpe=(e,d,fx)=>{
+  if(!e.mpId||!MP.sala)return;
+  ref('salas/'+MP.sala+'/golpes').push({de:uid,id:e.mpId,d:Math.round(d),fx:limparFx(fx)});
+ };
+ function receberMorte(m){
+  const e=proxies.get(m.id)||en.find(q=>q.mpId===m.id);if(!e||e.mpRecompensado)return;
+  e.mpRecompensado=true;e.hp=0;killMonster(e);
+ }
+ function receberDano(d){
+  if(p.dead>0)return;
+  const atacante=d.a?en.find(q=>q.mpId===d.a)||null:null;
+  const fx=Array.isArray(d.fx)?d.fx.filter(f=>f&&FX_INFO[f.type]).map(f=>({...f,caster:atacante||p,self:false})):null;
+  hurtP(d.d,!!d.m,fx,null,atacante);
+ }
+ function receberTelegrafo(tg){
+  if(!window.inDungeon||!window.bossTelegraphs)return;
+  if(Date.now()+(N.offset||0)-(tg.t||0)>3000)return;
+  bossTelegraphs.push({type:tg.type,x:tg.x,y:tg.y,r:tg.r,angle:tg.angle,w:tg.w,length:tg.length,t:tg.atraso||0,maxT:tg.maxT||1.5,pct:tg.pct,label:tg.label,source:tg.src&&en.find(q=>q.mpId===tg.src)||null});
+ }
+ function receberPortas(s){
+  if(!window.inDungeon||!window.DUNGEON_DOORS||typeof s!=='string')return;
+  const abertas=new Set(s.split(',').filter(Boolean).map(Number));
+  DUNGEON_DOORS.forEach((door,i)=>{if(abertas.has(i)&&!door.opened){door.opened=true;if(door.wasLocked){ring(door.x,door.y,30,'#4ade80',.7);ft(door.x,door.y-18,'PORTA ABERTA!','#4ade80')}}});
+ }
+
+ /* ---------- troca de sala ---------- */
+ let ouvintes=[];
+ const ouvir=(r,ev,fn)=>{r.on(ev,fn);ouvintes.push(()=>r.off(ev,fn))};
+ function trocarSala(antiga,nova){
+  ouvintes.forEach(f=>f());ouvintes=[];proxies.clear();
+  if(window.mpEspelho||hostDe(nova)&&hostDe(nova)!==uid)for(const e of en)if(e.mpId&&e.mpProxy)proxies.set(e.mpId,e);
+  if(antiga&&hostDe(antiga)===uid)ref('salas/'+antiga).remove().catch(()=>{});
+  publicando=false;enviadoMon=new Map();MP.remotos.clear();
+  MP.sala=nova;entrouEm=Date.now();
+  const host=hostDe(nova),base='salas/'+nova;
+  window.mpEspelho=!!host&&host!==uid;
+  if(host===uid){
+   ref(base).onDisconnect().remove();
+   ouvir(ref(base+'/golpes'),'child_added',s=>{const g=s.val();s.ref.remove().catch(()=>{});if(g)receberGolpe(g)});
+  }else if(host){
+   ouvir(ref(base+'/mon'),'child_added',s=>aplicarMon(s.key,s.val()));
+   ouvir(ref(base+'/mon'),'child_changed',s=>aplicarMon(s.key,s.val()));
+   ouvir(ref(base+'/mon'),'child_removed',s=>removerProxy(s.key));
+   // só as mortes que aconteceram depois de chegar à sala dão recompensa
+   ouvir(ref(base+'/mortes'),'child_added',s=>{const m=s.val();if(m&&(m.t||0)>=entrouEm+(N.offset||0)-3000)receberMorte(m)});
+   ouvir(ref(base+'/tg'),'child_added',s=>{const tg=s.val();if(tg)receberTelegrafo(tg)});
+   ouvir(ref(base+'/portas'),'value',s=>receberPortas(s.val()));
+   ouvir(ref(base+'/danos/'+uid),'child_added',s=>{const d=s.val();s.ref.remove().catch(()=>{});if(d)receberDano(d)});
+   // na primeira lista completa do dono, somem os monstros locais que ele já não tem
+   // (ex.: voltou para a DG depois de morrer e alguns já tinham sido derrotados)
+   const listaRef=ref(base+'/mon'),conferir=s=>{
+    const v=s.val();if(!v)return;listaRef.off('value',conferir);
+    for(const e of en)if(e.mpId&&e.mpProxy&&!(e.mpId in v)&&MP.sala===nova){e.hp=0;e.gone=1;proxies.delete(e.mpId)}
+   };
+   ouvir(listaRef,'value',conferir);
+  }
+  window.dispatchEvent(new CustomEvent('mp-sala',{detail:{sala:nova,antiga}}));
+  atualizarPainel();
+ }
+ // o dono limpa mortes e telegrafos antigos para a sala não crescer
+ setInterval(()=>{if(!souHost()||!MP.remotos.size)return;const base='salas/'+MP.sala;
+  const lim=Date.now()+(N.offset||0)-8000;
+  for(const k of ['mortes','tg'])ref(base+'/'+k).limitToFirst(40).get().then(s=>s.forEach(c=>{if(((c.val()||{}).t||0)<lim)c.ref.remove().catch(()=>{})})).catch(()=>{})},6000);
+
+ function tick(){
+  if(!uid)return;
+  const nova=salaAtual();
+  if(nova!==MP.sala)trocarSala(MP.sala,nova);
+  atualizarRemotos();
+  publicar(performance.now());
+  // o dono da ilha visitada saiu dela: volta para casa
+  if(MP.visitando){const dono=outros().get(MP.visitando);if(!dono||dono.sala!=='ilha:'+MP.visitando){if(!(MP.semDono>0))MP.semDono=performance.now();else if(performance.now()-MP.semDono>4000){MP.semDono=0;voltarParaCasa('O dono saiu da ilha.')}}else MP.semDono=0}
+  // o líder saiu da DG: o grupo volta
+  if(window.inDungeon&&MP.dgSala&&hostDe(MP.dgSala)!==uid){const g=MP.grupo;if(!g||!g.dg||g.dg.sala!==MP.dgSala){if(!(MP.semLider>0))MP.semLider=performance.now();else if(performance.now()-MP.semLider>3000){MP.semLider=0;aviso('O líder saiu da masmorra.','#f87171');exitDungeon(true)}}else MP.semLider=0}
+ }
+
+ /* ---------- visitar ilhas ---------- */
+ let enLocal=null;
+ function visitar(dono){
+  if(dono===uid)return voltarParaCasa();
+  if(window.inDungeon)exitDungeon(true);
+  if(window.sairTaverna&&window.inTaverna)sairTaverna(true);
+  if(!MP.visitando){enLocal=en.splice(0,en.length)}else{en.length=0}
+  MP.visitando=dono;
+  const o=outros().get(dono);
+  const alvo=o&&o.x!=null?snapWalk(o.x+18,o.y+10,false):{x:CX,y:CY+34};
+  p.x=alvo.x;p.y=alvo.y;p.dest=null;p.path=[];p.tgt=null;
+  aviso('Ilha de '+MP.nomeDe(dono),'#9fe3ff');
+  tick();
+ }
+ function voltarParaCasa(motivo){
+  if(!MP.visitando)return;
+  MP.visitando=null;en.length=0;if(enLocal)en.push(...enLocal);enLocal=null;window.mpEspelho=false;
+  p.x=CX;p.y=CY+34;p.dest=null;p.path=[];p.tgt=null;
+  aviso(motivo?motivo+' De volta à sua ilha.':'De volta à sua ilha.','#9fe3ff');
+  tick();
+ }
+ MP.voltarParaCasa=voltarParaCasa;MP.visitar=visitar;
+ // sair da taverna ou da DG leva para a própria ilha
+ MP.antesDeSair=()=>{if(MP.visitando)voltarParaCasa()};
+
+ /* ---------- DG: o líder abre a sala; os membros entram como espelho ---------- */
+ let entrandoComoMembro=false;
+ window.addEventListener('ilha-dg-entrou',()=>{
+  if(!uid)return;
+  if(entrandoComoMembro){
+   entrandoComoMembro=false;window.mpEspelho=true;
+   // os monstros fixos que este jogador criou só acompanham os do líder (não atacam por conta própria)
+   en.forEach((e,i)=>{e.mpId='m'+i;e.mpProxy=true;e.mpTx=e.x;e.mpTy=e.y;proxies.set(e.mpId,e)});
+   tick();return;
+  }
+  else{
+   const g=MP.grupo,lider=MP.grupoLider===uid&&g;
+   const membros=lider?Object.keys(g.membros||{}).filter(id=>id!==uid).slice(0,MAX_GRUPO-1):[];
+   MP.tamanhoGrupo=1+membros.length;
+   MP.dgSala=membros.length?'dg:'+uid+':'+Date.now().toString(36):null;
+   window.mpEspelho=false;
+   if(lider&&membros.length){
+    ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'});
+    aviso('Grupo de '+MP.tamanhoGrupo+': inimigos com +'+Math.round(ESCALA_VIDA*100*(MP.tamanhoGrupo-1))+'% de vida e +'+Math.round(ESCALA_DANO*100*(MP.tamanhoGrupo-1))+'% de dano','#f0a52e');
+   }
+  }
+  // ids iguais para os monstros fixos da DG (mesma ordem em todos os jogadores)
+  en.forEach((e,i)=>{e.mpId='m'+i;escalar(e)});
+  tick();
+ });
+ window.addEventListener('ilha-dg-saiu',()=>{
+  const eraLider=MP.dgSala&&hostDe(MP.dgSala)===uid;
+  MP.dgSala=null;MP.tamanhoGrupo=1;window.mpEspelho=false;proxies.clear();
+  if(eraLider)ref('grupos/'+uid+'/dg').remove().catch(()=>{});
+ });
+ function entrarDgDoGrupo(){
+  const g=MP.grupo;if(!g||!g.dg)return;
+  if(window.inDungeon){if(MP.dgSala===g.dg.sala)return;exitDungeon(true)}
+  if(MP.visitando)voltarParaCasa();
+  if(window.inTaverna&&window.sairTaverna)sairTaverna(true);
+  window.currentDungeonId=g.dg.id;MP.dgSala=g.dg.sala;MP.tamanhoGrupo=g.dg.n||2;
+  entrandoComoMembro=true;window.mpEspelho=true;
+  enterGoblinDungeon();
+  if(!window.inDungeon){entrandoComoMembro=false;window.mpEspelho=false;MP.dgSala=null}
+ }
+ MP.entrarDgDoGrupo=entrarDgDoGrupo;
+
+ /* ---------- grupo ---------- */
+ let grupoOff=null;
+ function seguirGrupo(lider){
+  if(grupoOff){grupoOff();grupoOff=null}
+  MP.grupoLider=lider;MP.grupo=null;
+  if(!lider){atualizarPainel();return}
+  try{localStorage.setItem('ilha-rpg-grupo',lider)}catch(e){}
+  const r=ref('grupos/'+lider);let anterior=null;
+  const fn=s=>{
+   const g=s.val();
+   if(!g||!g.membros||!g.membros[uid]){
+    if(MP.grupo&&lider!==uid)aviso('O grupo acabou ou você saiu dele.','#c0ae91');
+    try{localStorage.removeItem('ilha-rpg-grupo')}catch(e){}
+    seguirGrupo(null);return;
+   }
+   MP.grupo=g;for(const [id,nome] of Object.entries(g.membros))if(typeof nome==='string')MP.nomes.set(id,nome);
+   const dg=g.dg&&g.dg.sala;
+   if(lider!==uid&&dg&&dg!==anterior&&!(window.inDungeon&&MP.dgSala===dg))convidarDg(g);
+   anterior=dg||null;atualizarPainel();
+  };
+  r.on('value',fn);grupoOff=()=>r.off('value',fn);
+ }
+ function criarGrupo(){
+  if(MP.grupoLider)return Promise.resolve();
+  const membros={[uid]:N.nome()};
+  return ref('grupos/'+uid).set({lider:uid,membros}).then(()=>{ref('grupos/'+uid).onDisconnect().remove();seguirGrupo(uid)});
+ }
+ function sairDoGrupo(){
+  const lider=MP.grupoLider;if(!lider)return;
+  if(lider===uid)ref('grupos/'+uid).remove();else ref('grupos/'+lider+'/membros/'+uid).remove();
+  seguirGrupo(null);
+ }
+ MP.sairDoGrupo=sairDoGrupo;
+
+ /* ---------- convites ---------- */
+ async function convidar(para,tipo){
+  if(para===uid)return;
+  if(tipo==='grupo'){
+   if(MP.grupoLider&&MP.grupoLider!==uid){aviso('Só o líder do grupo convida.','#f87171');return}
+   await criarGrupo();
+   if(Object.keys((MP.grupo&&MP.grupo.membros)||{}).length>=MAX_GRUPO){aviso('O grupo já tem '+MAX_GRUPO+' jogadores.','#f87171');return}
+  }
+  await ref('convites/'+para+'/'+uid).set({tipo,nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP});
+  aviso('Convite enviado para '+MP.nomeDe(para)+'.','#9fe3ff');
+ }
+ MP.convidar=convidar;
+ const toasts=el('div','mpToasts');document.body.append(toasts);
+ function toast(texto,acoes,ms){
+  const t=el('div','mpToast');t.append(el('span','',texto));
+  const fechar=()=>t.remove();
+  for(const [rotulo,fn,cls] of acoes)t.append(btn(rotulo,()=>{fechar();fn&&fn()},cls));
+  toasts.append(t);if(ms)setTimeout(fechar,ms);return t;
+ }
+ function receberConvite(s){
+  const de=s.key,c=s.val();if(!c||!c.tipo)return;
+  const agora=Date.now()+(N.offset||0);
+  if(agora-(c.t||0)>CONVITE_S*1000){s.ref.remove().catch(()=>{});return}
+  MP.nomes.set(de,c.nome);
+  const recusar=()=>s.ref.remove().catch(()=>{});
+  if(c.tipo==='ilha')toast(c.nome+' convidou você para a ilha dele(a).',[['Ir',()=>{recusar();visitar(de)},'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
+  else if(c.tipo==='grupo')toast(c.nome+' convidou você para o grupo.',[['Entrar',async()=>{
+   if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
+   try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
+   catch(e){aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
+   recusar();
+  },'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
+ }
+ let toastDg=null;
+ function convidarDg(g){
+  if(toastDg)toastDg.remove();
+  toastDg=toast('Seu grupo entrou na masmorra '+(g.dg.nome||'')+'.',[['Entrar',entrarDgDoGrupo,'mpBtn ok'],['Depois',null]],60000);
+ }
+ // o aviso some quando o jogador já está na DG do grupo (ou ela acabou)
+ setInterval(()=>{if(toastDg&&toastDg.isConnected&&(!MP.grupo||!MP.grupo.dg||window.inDungeon&&MP.dgSala===MP.grupo.dg.sala)){toastDg.remove();toastDg=null}},500);
+
+ /* ---------- painel: jogadores online, grupo e ilha ---------- */
+ const painel=el('section','mpPainel');painel.hidden=true;painel.setAttribute('aria-label','Jogadores');
+ painel.addEventListener('keydown',e=>e.stopPropagation());
+ document.body.append(painel);
+ const abrirBtn=btn('Jogadores',()=>{painel.hidden=!painel.hidden;atualizarPainel()},'mpBtn mpAbrir');abrirBtn.title='Jogadores online, grupo e convites';
+ MP.botaoPainel=abrirBtn;
+ function onde(o){
+  if(!o||!o.sala)return '';
+  if(o.sala==='taverna')return 'na taverna';
+  if(o.sala.startsWith('dg:'))return 'numa masmorra';
+  const dono=hostDe(o.sala);return dono===o.id||dono===o.uid?'na própria ilha':'na ilha de '+MP.nomeDe(dono);
+ }
+ function atualizarPainel(){
+  if(painel.hidden)return;
+  const box=[];
+  const h=el('div','mpTopo');h.append(el('b','','Jogadores'),btn('Fechar',()=>{painel.hidden=true}));box.push(h);
+  // situação atual
+  const aqui=el('div','mpAqui');
+  aqui.append(el('span','',window.inTaverna?'Você está na taverna.':MP.visitando?'Você está na ilha de '+MP.nomeDe(MP.visitando)+'.':window.inDungeon?'Você está numa masmorra.':'Você está na sua ilha.'));
+  if(MP.visitando)aqui.append(btn('Voltar para minha ilha',()=>voltarParaCasa()));
+  box.push(aqui);
+  // grupo
+  const g=MP.grupo,gr=el('div','mpGrupo');
+  if(g&&g.membros){
+   gr.append(el('b','','Grupo ('+Object.keys(g.membros).length+'/'+MAX_GRUPO+')'+(MP.grupoLider===uid?' · você é o líder':'')));
+   const ul=el('ul');for(const [id,nome] of Object.entries(g.membros)){const li=el('li','',(id===MP.grupoLider?'[líder] ':'')+(typeof nome==='string'?nome:MP.nomeDe(id))+(id===uid?' (você)':''));ul.append(li)}
+   gr.append(ul);
+   if(g.dg&&MP.grupoLider!==uid&&!(window.inDungeon&&MP.dgSala===g.dg.sala))gr.append(btn('Entrar na DG do grupo',entrarDgDoGrupo,'mpBtn ok'));
+   if(MP.grupoLider===uid)gr.append(el('p','mpNota','Abra o portal do acampamento e entre numa DG: o grupo recebe o convite para entrar junto.'));
+   gr.append(btn(MP.grupoLider===uid?'Desfazer grupo':'Sair do grupo',sairDoGrupo,'mpBtn perigo'));
+  }else gr.append(el('p','mpNota','Sem grupo. Convide alguém abaixo para montar um grupo de DG (até '+MAX_GRUPO+').'));
+  box.push(gr);
+  // lista de jogadores
+  const lista=el('ul','mpLista');let n=0;
+  for(const [id,o] of outros()){
+   if(id===uid||o.x==null)continue;n++;
+   const li=el('li');li.append(el('span','mpNome',(o.name||'?')+' · Nv '+(o.lvl||1)),el('small','',onde(Object.assign({id},o))));
+   const acoes=el('div','mpAcoes');
+   acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
+   if(!(g&&g.membros&&g.membros[id]))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
+   li.append(acoes);lista.append(li);
+  }
+  if(!n)lista.append(el('li','mpNota','Ninguém mais online agora.'));
+  box.push(el('b','mpSub','Online ('+n+')'),lista);
+  painel.replaceChildren(...box);
+ }
+ MP.atualizarPainel=atualizarPainel;
+ setInterval(()=>{if(!painel.hidden)atualizarPainel()},2000);
+
+ /* ---------- início: depois do login ---------- */
+ function iniciar(){
+  N=window.NUVEM;db=N.db;uid=N.uid;
+  ref('convites/'+uid).on('child_added',receberConvite);
+  // volta ao grupo depois de recarregar a página (se ainda for membro)
+  let salvo=null;try{salvo=localStorage.getItem('ilha-rpg-grupo')}catch(e){}
+  if(salvo)ref('grupos/'+salvo+'/membros/'+uid).get().then(s=>{if(s.exists())seguirGrupo(salvo);else try{localStorage.removeItem('ilha-rpg-grupo')}catch(e){}}).catch(()=>{});
+  setInterval(tick,100);tick();
+ }
+ if(window.NUVEM)iniciar();else window.addEventListener('nuvem-pronta',iniciar,{once:true});
+})();

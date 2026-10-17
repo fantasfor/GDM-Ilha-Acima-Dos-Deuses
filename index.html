@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ilha do Acampamento</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%231f6a9a'/%3E%3Crect x='3' y='4' width='10' height='9' fill='%23e3cc8f'/%3E%3Crect x='4' y='5' width='8' height='7' fill='%234f9d4a'/%3E%3Crect x='7' y='7' width='2' height='2' fill='%23ffb02e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css?v=20261017133642">
+<link rel="stylesheet" href="css/ui2.css?v=20261017133642">
+<link rel="stylesheet" href="css/hud.css?v=20261017133642">
+</head><body>
+<canvas id="g"></canvas>
+<div id="top"></div>
+<canvas id="mm" width="160" height="160"></canvas>
+<div id="quest"></div>
+<div id="dialogue" role="dialog" aria-modal="true"></div>
+<div id="skillPanel"></div>
+<div id="mon"><canvas id="monic" width="40" height="40"></canvas><div id="monbars"><div id="monname"></div><div class="bar hp"><div id="monhp"></div><span id="monhpt"></span></div><div class="bar mp"><div id="monmp"></div><span id="monmpt"></span></div></div></div>
+<div id="invp"><div class="ttl">Mochila</div><div class="doll"><div class="dcol" id="eql"></div><div class="dmid"><img id="dollimg"></div><div class="dcol" id="eqr"></div></div><div id="invToolbar">Bolsa</div><div id="invLayout"><div id="invCategories" role="group" aria-label="Categorias do inventário"></div><div class="inv" id="inv"></div></div></div>
+<div id="touchpad"><div id="stick"></div></div>
+<div id="hud"><div id="dock">
+ <div id="port"><div id="pname"></div><canvas id="pt" width="96" height="80"></canvas><div class="xp"><div id="xpb"></div><span id="lv">Nv 1</span></div><div class="rankxp"><div id="rankxpb"></div><span id="ranklv">Rank 1 · 0/100</span></div></div>
+ <button id="skillBtn" type="button">Habilidades</button>
+ <div id="st"></div>
+ <div id="mid"><div id="sks"></div>
+  <div class="bar hp"><div id="hpb"></div><span id="hpt"></span><span class="rg" id="hpr"></span></div>
+  <div class="bar mp"><div id="mpb"></div><span id="mpt"></span><span class="rg" id="mpr"></span></div></div>
+ <div id="bagw"><div id="bag"></div><div id="gold"></div></div>
+</div></div>
+<!-- Dados do jogo: um único arquivo de projeto, gravado pela Engine (editor.html). -->
+<script src="js/projeto.js?v=20261017133642"></script>
+<script src="js/config.js?v=20261017133642"></script>
+<script src="js/dungeon-library.js?v=20261017133642"></script>
+<script src="js/sprites.js?v=20261017133642"></script>
+<script src="js/game-art.js?v=20261017133642"></script>
+<script src="js/art.js?v=20261017133642"></script>
+<script src="js/monster-art.js?v=20261017133642"></script>
+<script src="js/pacote-mapa.js?v=20261017133642"></script>
+<script src="js/chao.js?v=20261017133642"></script>
+<script src="js/world.js?v=20261017133642"></script>
+<script src="js/scenery.js?v=20261017133642"></script>
+<script src="js/state.js?v=20261017133642"></script>
+<script src="js/combat.js?v=20261017133642"></script>
+<script src="js/extra.js?v=20261017133642"></script>
+<script src="js/custom.js?v=20261017133642"></script>
+<script src="js/input.js?v=20261017133642"></script>
+<script src="js/ui.js?v=20261017133642"></script>
+<script src="js/update.js?v=20261017133642"></script>
+<script src="js/dungeon.js?v=20261017133642"></script>
+<script src="js/minimapa.js?v=20261017133642"></script>
+<script src="js/render.js?v=20261017133642"></script>
+<script src="js/portals.js?v=20261017133642"></script>
+<script src="js/spawns.js?v=20261017133642"></script>
+<script src="js/menu.js?v=20261017133642"></script>
+<script src="js/codex.js?v=20261017133642"></script>
+<script src="js/effects.js?v=20261017133642"></script>
+<script src="js/artes.js?v=20261017133642"></script>
+<script src="js/audio.js?v=20261017133642"></script>
+<script src="js/hud.js?v=20261017133642"></script>
+<script src="js/firebase-config.js?v=20261017133642"></script>
+<script src="js/conta.js?v=20261017133642"></script>
+<script src="js/multiplayer.js?v=20261017133642"></script>
+<script src="js/online.js?v=20261017133642"></script>
+<script src="js/taverna.js?v=20261017133642"></script>
+<script src="js/voz.js?v=20261017133642"></script>
+<script src="js/motor.js?v=20261017133642"></script>
+</body></html>
