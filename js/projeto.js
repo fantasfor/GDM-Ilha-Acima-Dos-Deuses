@@ -3894,116 +3894,10 @@ window.PROJETO={
   ],
   "portais": [
    {
-    "id": "portal_ruins",
-    "name": "Ruínas do Norte",
-    "minLevel": 1,
-    "targetLevel": 1,
-    "frequency": 1,
-    "monsters": [
-     {
-      "id": "sl",
-      "chance": 65,
-      "min": 1,
-      "max": 2,
-      "elite": 3
-     },
-     {
-      "id": "bat",
-      "chance": 35,
-      "min": 1,
-      "max": 1,
-      "elite": 3
-     }
-    ]
-   },
-   {
-    "id": "portal_cliff",
-    "name": "Penhasco Leste",
-    "minLevel": 4,
-    "targetLevel": 6,
-    "frequency": 1,
-    "monsters": [
-     {
-      "id": "sk",
-      "chance": 45,
-      "min": 1,
-      "max": 2,
-      "elite": 5
-     },
-     {
-      "id": "wolf",
-      "chance": 35,
-      "min": 1,
-      "max": 1,
-      "elite": 5
-     },
-     {
-      "id": "spider",
-      "chance": 20,
-      "min": 1,
-      "max": 1,
-      "elite": 5
-     }
-    ]
-   },
-   {
-    "id": "portal_wolf_trail",
-    "name": "Trilha dos Lobos",
-    "minLevel": 4,
-    "targetLevel": 6,
-    "frequency": 0.9,
-    "monsters": [
-     {
-      "id": "wolf",
-      "chance": 60,
-      "min": 1,
-      "max": 2,
-      "elite": 8
-     },
-     {
-      "id": "spider",
-      "chance": 40,
-      "min": 1,
-      "max": 1,
-      "elite": 8
-     }
-    ]
-   },
-   {
-    "id": "portal_forest",
-    "name": "Floresta Antiga",
-    "minLevel": 7,
-    "targetLevel": 10,
-    "frequency": 1,
-    "monsters": [
-     {
-      "id": "shroom",
-      "chance": 50,
-      "min": 2,
-      "max": 2,
-      "elite": 8
-     },
-     {
-      "id": "ghost",
-      "chance": 30,
-      "min": 1,
-      "max": 1,
-      "elite": 8
-     },
-     {
-      "id": "goblin",
-      "chance": 20,
-      "min": 1,
-      "max": 1,
-      "elite": 8
-     }
-    ]
-   },
-   {
     "id": "portal_mushroom_grove",
     "name": "Bosque dos Cogumelos",
     "minLevel": 7,
-    "targetLevel": 9,
+    "targetLevel": 30,
     "frequency": 1.1,
     "monsters": [
      {
@@ -4024,68 +3918,8 @@ window.PROJETO={
       "id": "sprout",
       "chance": 20,
       "min": 1,
-      "max": 1,
+      "max": 6,
       "elite": 10
-     }
-    ]
-   },
-   {
-    "id": "portal_coast",
-    "name": "Costa Sul",
-    "minLevel": 11,
-    "targetLevel": 14,
-    "frequency": 1,
-    "monsters": [
-     {
-      "id": "crab",
-      "chance": 50,
-      "min": 2,
-      "max": 3,
-      "elite": 10
-     },
-     {
-      "id": "ghost",
-      "chance": 30,
-      "min": 1,
-      "max": 2,
-      "elite": 10
-     },
-     {
-      "id": "sk",
-      "chance": 20,
-      "min": 1,
-      "max": 1,
-      "elite": 10
-     }
-    ]
-   },
-   {
-    "id": "portal_guardian_sanctum",
-    "name": "Santuário do Guardião",
-    "minLevel": 15,
-    "targetLevel": 18,
-    "frequency": 0.7,
-    "monsters": [
-     {
-      "id": "ghost",
-      "chance": 50,
-      "min": 1,
-      "max": 2,
-      "elite": 12
-     },
-     {
-      "id": "sk",
-      "chance": 40,
-      "min": 1,
-      "max": 1,
-      "elite": 12
-     },
-     {
-      "id": "boss",
-      "chance": 10,
-      "min": 1,
-      "max": 1,
-      "elite": 12
      }
     ]
    },
@@ -4132,7 +3966,7 @@ window.PROJETO={
     "id": "broto",
     "name": "Broto",
     "minLevel": 10,
-    "targetLevel": 10,
+    "targetLevel": 30,
     "frequency": 1,
     "monsters": [
      {
