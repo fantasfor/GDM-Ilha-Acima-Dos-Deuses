@@ -21,7 +21,7 @@
  const qgrid=E('div','qgrid');quick.append(qhead,qgrid);
  const qslots=[...Array(6)].map((_,i)=>{const s=E('button','qslot');s.type='button';s.dataset.i=i;s.innerHTML='<img alt=""><b></b><kbd>'+(i+1)+'</kbd>';
   s.onclick=e=>{e.stopPropagation();useSlot(i)};
-  s._tip=()=>I[i]?itemTip(I[i].id,I[i].q)+'<div class=tm>Tecla '+(i+1)+' · arraste itens da mochila para cá</div>':'<b>Atalho '+(i+1)+'</b><div class=tm>Vazio. Arraste um item da mochila para cá (ou use Organizar: consumíveis vêm primeiro).</div>';
+  s._tip=()=>I[i]?itemTip(I[i].id,I[i].q)+'<div class=tm>Tecla '+(i+1)+' · arraste itens da mochila para cá</div>':'<b>Atalho '+(i+1)+'</b><div class=tm>Vazio. Arraste uma poção ou outro consumível da mochila para cá. Só consumíveis ficam nos atalhos.</div>';
   dragSource(s,()=>i);dropTarget(s,from=>swapSlots(from,i));qgrid.append(s);return s});
  dock.append(quick);
  // alerta de vida baixa
@@ -33,9 +33,13 @@
  let dragFrom=null;
  function dragSource(el,get){el.draggable=true;el.addEventListener('dragstart',e=>{dragFrom=get();e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','slot')}catch(err){}el.classList.add('dragging');tipEl.style.display='none'});el.addEventListener('dragend',()=>{dragFrom=null;el.classList.remove('dragging');document.querySelectorAll('.dropOver').forEach(x=>x.classList.remove('dropOver'))})}
  function dropTarget(el,fn){el.addEventListener('dragover',e=>{if(dragFrom==null)return;e.preventDefault();el.classList.add('dropOver')});el.addEventListener('dragleave',()=>el.classList.remove('dropOver'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dropOver');const f=dragFrom;dragFrom=null;if(f!=null)fn(f)})}
+ // atalhos 1–6 (espaços 0–5 da bolsa) só aceitam consumíveis
+ const podeEm=(k,s)=>k>=QUICK_N||!s||ehConsumivel(s.id);
  function swapSlots(a,b){
-  if(typeof a=='string'){if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(window.ehArma&&ehArma(EQ[a])&&armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
-  if(a===b)return;[I[a],I[b]]=[I[b],I[a]];dirtyInv=true;saveGame();
+  if(typeof a=='string'){if(b<QUICK_N){unequip(a);return}if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(window.ehArma&&ehArma(EQ[a])&&armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
+  if(a===b)return;
+  if(!podeEm(b,I[a])||!podeEm(a,I[b])){ft(p.x,p.y-24,'Atalhos 1–6: só itens consumíveis','#ccc');return}
+  [I[a],I[b]]=[I[b],I[a]];dirtyInv=true;saveGame();
  }
 
  /* ---------- mochila ---------- */
@@ -50,7 +54,10 @@
  sortBtn.onclick=e=>{e.stopPropagation();sortBag()};foot.append(cap,hint,sortBtn);invp.append(foot);
  const SLOT_ORDER=['sw','sh','he','ch','le','bo','ca','ne','ri'];
  const catOf=s=>{const t=gearType[s.id],d=ITEMS[s.id];return d.use?0:d.material?1:t?2+SLOT_ORDER.indexOf(t==='sh'?'sh':t):20};
- function sortBag(){const items=I.filter(Boolean).sort((a,b)=>catOf(a)-catOf(b)||(b.q||0)-(a.q||0)||a.id.localeCompare(b.id));I.fill(null);items.forEach((s,i)=>I[i]=s);dirtyInv=true;saveGame();ft(p.x,p.y-24,'Mochila organizada','#e7cb88')}
+ function sortBag(){const items=I.filter(Boolean).sort((a,b)=>catOf(a)-catOf(b)||(b.q||0)-(a.q||0)||a.id.localeCompare(b.id));I.fill(null);
+  // consumíveis primeiro (enchem os atalhos); o resto começa depois dos atalhos
+  const nc=items.filter(s=>ehConsumivel(s.id)).length,base=Math.max(QUICK_N,nc);I.length=Math.max(I.length,base+items.length-nc);I.fill(null);
+  items.forEach((s,i)=>I[i<nc?i:base+i-nc]=s);dirtyInv=true;saveGame();ft(p.x,p.y-24,'Mochila organizada','#e7cb88')}
  // ícone de escudo para o espaço Mão 2 vazio
  const SHIELD=spr(["..kkkkkkkk..",".kssssssssk.",".kswwsssssk.",".kswssssssk.",".kssssssssk.",".kssssssssk.","..kssssssk..","...kssssk...","....kssk....",".....kk....."],{k:'#243243',s:'#8796a8',w:'#dbe8f2'});
  const EMPTY_ICON={he:'he',ch:'ch',le:'le',bo:'bo',ca:'ca',ne:'ne',r1:'ri',r2:'ri',sw:'sw'};
@@ -69,7 +76,7 @@
    if(t=='sw'&&!d.th)add('Equipar na Mão 2',()=>{useSlot(i,'sh');closeMenu()});
    if(t=='ri')add('Equipar no Anel 2',()=>{useSlot(i,'r2');closeMenu()})}
   else if(d.use)add('Usar',()=>{useSlot(i);closeMenu()});
-  if(i>=6){const free=[0,1,2,3,4,5];add('Mover para os atalhos (1–6)',()=>{const j=free.find(k=>!I[k]);swapSlots(i,j==null?0:j);closeMenu()})}
+  if(i>=QUICK_N&&d.use){const free=[0,1,2,3,4,5];add('Mover para os atalhos (1–6)',()=>{const j=free.find(k=>!I[k]);swapSlots(i,j==null?0:j);closeMenu()})}
   if(QUEST_ITEMS.has(s.id))menu.append(E('div','imNote','Item de missão: não pode ser descartado.'));
   else add('Descartar'+(s.n>1?' (×'+s.n+')':''),b=>{if(!b.dataset.ok){b.dataset.ok='1';b.textContent='Clique de novo para confirmar';b.classList.add('danger');return}I[i]=null;dirtyInv=true;saveGame();ft(p.x,p.y-24,itemName(s.id)+' descartado','#f99');closeMenu()},'danger');
   menu.classList.add('open');const w=menu.offsetWidth,h=menu.offsetHeight;menu.style.left=Math.max(4,Math.min(innerWidth-w-4,x))+'px';menu.style.top=Math.max(4,Math.min(innerHeight-h-4,y))+'px';
@@ -88,6 +95,9 @@
   return d;
  }
  renderInv=function(){
+  // bolsa sem limite: sempre sobra pelo menos uma fileira vazia no fim
+  arrumarAtalhos();let last=I.length-1;while(last>=0&&!I[last])last--;
+  const want=Math.max(40,Math.ceil((last+1+8)/8)*8),old=I.length;I.length=want;if(want>old)I.fill(null,old);
   const el=$('eql'),er=$('eqr');el.innerHTML='';er.innerHTML='';grid.innerHTML='';
   const sprite=heroImg('d'),px=sprite.getContext('2d').getImageData(0,0,sprite.width,sprite.height).data;let x0=sprite.width,y0=sprite.height,x1=-1,y1=-1;
   for(let y=0;y<sprite.height;y++)for(let x=0;x<sprite.width;x++)if(px[(y*sprite.width+x)*4+3]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
@@ -106,7 +116,7 @@
   // na aba "Todos" mostra a bolsa inteira (com espaços vazios); nas outras, só o que combina
   if(invCategory=='all')I.forEach((s,i)=>grid.append(slotEl(i,s)));
   else{const hits=I.map((s,i)=>[s,i]).filter(([s])=>s&&catMatch(s,invCategory));hits.forEach(([s,i])=>grid.append(slotEl(i,s)));if(!hits.length)grid.append(E('div','invEmpty','Nada nesta categoria.'))}
-  const used=I.filter(Boolean).length;cap.textContent=used+'/'+I.length+' espaços';cap.classList.toggle('full',used>=I.length);
+  const used=I.filter(Boolean).length;cap.textContent=used+(used==1?' item':' itens');
   hint.textContent=invEquipSlot?'Escolha o item para '+SLOT_LABEL[invEquipSlot]+' (clique no espaço de novo para cancelar)':'Arraste para trocar · botão direito: opções';
   dirtyInv=false;
  };

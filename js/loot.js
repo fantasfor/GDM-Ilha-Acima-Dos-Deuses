@@ -57,7 +57,7 @@
    const m=moedas[i];m.t+=dt;
    if(m.lugar!==aqui){moedas.splice(i,1);continue}
    if(m.fase==='salto'){m.x+=m.vx*dt;m.y+=m.vy*dt;m.vy+=260*dt;if(m.y>=m.chao&&m.vy>0){m.y=m.chao;m.vy*=-.35;m.vx*=.5;if(Math.abs(m.vy)<18){m.vy=0;m.vx=0}}if(m.t>=m.espera){m.fase='voo';m.t=0;m.sx=m.x;m.sy=m.y}}
-   else{const k=Math.min(1,m.t/.4),e=k*k;m.x=m.sx+(p.x-m.sx)*e;m.y=m.sy+(p.y-12-m.sy)*e;if(k>=1)moedas.splice(i,1)}
+   else{const k=Math.min(1,m.t/.4),e=k*k;m.x=m.sx+(p.x-m.sx)*e;m.y=m.sy+(p.y-12-m.sy)*e;if(k>=1){moedas.splice(i,1);if(window.playGameSound)playGameSound('moeda')}}
   }
  }
  const upd0=upd;upd=function(dt){upd0(dt);try{atualizar(dt)}catch(e){console.error('Itens no chão:',e)}};
@@ -67,7 +67,7 @@
   for(const m of moedas){const x=Math.round(m.x),y=Math.round(m.y);ctx.fillStyle='#7a5a10';ctx.fillRect(x-2,y-1,4,3);ctx.fillStyle='#ffd84a';ctx.fillRect(x-2,y-2,4,3);ctx.fillStyle='#fff6c0';ctx.fillRect(x-1,y-2,1,1)}
   for(const o of itens){
    if(o.t<0&&o.fase==='salto')continue;
-   const cor=corDe(o.q),r=raridade(o.q),x=Math.round(o.x),flut=o.fase==='chao'?Math.round(Math.sin(tt*3+o.bob)*1.5):0,y=Math.round(o.y)+flut;
+   const cor=window.ehMissao&&ehMissao(o.id,o.questReward)?'#ffd84a':corDe(o.q),r=raridade(o.q),x=Math.round(o.x),flut=o.fase==='chao'?Math.round(Math.sin(tt*3+o.bob)*1.5):0,y=Math.round(o.y)+flut;
    // feixe de luz e sombra no chão
    if(o.fase!=='voo'){
     ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x,Math.round(o.y)+7,5,2,0,0,7);ctx.fill();ctx.restore();
@@ -76,6 +76,8 @@
    ctx.save();ctx.shadowColor=cor;ctx.shadowBlur=r>=3?6:3;
    ctx.fillStyle='#0f0d0a';ctx.fillRect(x-6,y-6,12,12);ctx.strokeStyle=cor;ctx.lineWidth=1;ctx.strokeRect(x-5.5,y-5.5,11,11);ctx.restore();
    const im=imagem(o.id);if(im&&(im.complete===undefined||im.complete))try{ctx.drawImage(im,x-4,y-4,8,8)}catch(e){}
+   // item de missão: "!" dourado pulando em cima
+   if(window.ehMissao&&ehMissao(o.id,o.questReward)&&o.fase!=='voo'){const yy=y-10-Math.round(Math.abs(Math.sin(tt*5+o.bob))*3);ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('!',x+1,yy+1);ctx.fillStyle='#ffd84a';ctx.fillText('!',x,yy)}
    // brilhos girando nas raridades épica e lendária
    if(r>=4&&o.fase!=='voo')for(let k=0;k<(r>=5?4:2);k++){const a=tt*2+k*Math.PI*2/(r>=5?4:2);ctx.fillStyle=k%2?'#fff':cor;ctx.fillRect(Math.round(x+Math.cos(a)*9),Math.round(y+Math.sin(a)*6),1,1)}
   }

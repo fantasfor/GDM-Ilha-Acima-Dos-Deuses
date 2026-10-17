@@ -180,6 +180,8 @@ const sounds={
  death:()=>{tone(185,112,.36,'sine',.019);tone(92,58,.42,'sine',.009,.04);noise(.32,.009,700,0,'bandpass',260,.65)},
  coin:()=>{noise(.09,.012,5200,0,'bandpass',1800,1.2);tone(1320,1180,.18,'sine',.012,.16);tone(1760,1510,.16,'sine',.008,.2)},
  item:()=>{tone(420,560,.13,'sine',.018);tone(620,830,.18,'sine',.012,.075)},
+ // cada moeda que chega ao personagem: "blim" curto, com altura um pouco diferente a cada vez
+ moeda:()=>{const f=2000+Math.random()*450;tone(f,f*.985,.16,'sine',.014);tone(f*1.5,f*1.48,.09,'sine',.006,.012);noise(.025,.004,9000,0,'highpass',12000,.6)},
  // morte do jogador: queda grave, acorde menor descendo e um baque
  defeat:()=>{const t=agora();[[57,0],[53,.18],[50,.36],[45,.6]].forEach(([m,d])=>nota(bus.efeitos,mtof(m),t+d,.35,{tipo:'triangle',vol:.05*escala,solta:.6,filtro:1800}));
   nota(bus.efeitos,mtof(33),t+.6,1.2,{tipo:'sine',vol:.07*escala,solta:1.4});tone(90,38,.7,'sine',.06,.6);noise(.8,.02,500,.6,'lowpass',90,.7)},

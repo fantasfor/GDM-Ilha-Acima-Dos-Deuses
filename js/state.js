@@ -1,5 +1,12 @@
 /* ---------- estado ---------- */
 const I=Array(40).fill(null);let dirtyInv=true;
+// itens de missão: aparecem em dourado com "!" quando caem
+const ITENS_MISSAO=new Set(['saw','wood','magicWood']);
+window.ehMissao=(id,quest)=>!!(quest||ITENS_MISSAO.has(id)||(ITEMS[id]&&ITEMS[id].quest));
+/* bestiário (enciclopédia): quantos de cada monstro o jogador matou e quais itens cada um já deixou cair */
+const BESTIARIO={k:{},d:{}};window.BESTIARIO=BESTIARIO;
+window.anotarMorte=ty=>{if(ty)BESTIARIO.k[ty]=(BESTIARIO.k[ty]||0)+1};
+window.anotarDrop=(ty,id)=>{if(ty&&id)(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1};
 const SLOTS=['he','ch','le','bo','ca','ne','r1','r2','sw','sh'];
 const EQ=Object.fromEntries(SLOTS.map(s=>[s,null]));
 const fits=(slot,id)=>!!gearType[id]&&(gearType[id]==slot||(gearType[id]=='ri'&&(slot=='r1'||slot=='r2'))||(slot=='sh'&&gearType[id]=='sw'&&!ITEMS[id].th));
@@ -22,7 +29,14 @@ function withWeaponDamageRoll(action){
 }
 const heroC={};
 function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};let key=p.cls+p.sex+dir+ph+'w'+E.swing;for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
-function addItem(id,q,count=1){if(!ITEMS[id]||!Number.isInteger(count)||count<1)return false;if(ITEMS[id].use||ITEMS[id].stackable){const s=I.find(s=>s&&s.id==id);if(s){s.n+=count;dirtyInv=true;return true}}const needed=ITEMS[id].use||ITEMS[id].stackable?1:count,free=I.filter(s=>!s).length;if(free<needed){const start=I.length;I.length+=needed-free;I.fill(null,start)}for(let n=0;n<count;n++){const i=I.indexOf(null);I[i]={id,n:ITEMS[id].use||ITEMS[id].stackable?count:1};if(gearType[id])I[i].q=q==null?rollQ():q;if(ITEMS[id].use||ITEMS[id].stackable)break}dirtyInv=true;return true}
+/* Os 6 primeiros espaços são a barra de atalhos (teclas 1–6) e só aceitam consumíveis.
+   A bolsa não tem limite: sem espaço livre, ela cresce. */
+const QUICK_N=6,ehConsumivel=id=>!!(ITEMS[id]&&ITEMS[id].use);
+function livre(id){const de=ehConsumivel(id)?0:QUICK_N;let i=I.indexOf(null,de);if(i<0){i=Math.max(I.length,de);const old=I.length;I.length=i+8;I.fill(null,old)}return i}
+// tira dos atalhos o que não é consumível (saves antigos)
+function arrumarAtalhos(){for(let i=0;i<QUICK_N&&i<I.length;i++){const s=I[i];if(s&&!ehConsumivel(s.id)){I[i]=null;I[livre(s.id)]=s;dirtyInv=true}}}
+window.ehConsumivel=ehConsumivel;
+function addItem(id,q,count=1){if(!ITEMS[id]||!Number.isInteger(count)||count<1)return false;const pilha=ITEMS[id].use||ITEMS[id].stackable;if(pilha){const s=I.find(s=>s&&s.id==id);if(s){s.n+=count;dirtyInv=true;return true}}for(let n=0;n<count;n++){const i=livre(id);I[i]={id,n:pilha?count:1};if(gearType[id])I[i].q=q==null?rollQ():q;if(pilha)break}dirtyInv=true;return true}
 const itemCount=id=>I.reduce((n,s)=>n+(s&&s.id==id?s.n:0),0);
 function consumeItems(id,count){
  if(itemCount(id)<count)return false;
@@ -45,11 +59,10 @@ function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;c
  if(t=='sw'&&ITEMS[s.id].th)sl='sw';
  if(t=='sh')sl='sh';
  const old=EQ[sl];
- if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh&&I.indexOf(null)<0)I.push(null);
  if(sl=='sh'&&EQ.sw&&ITEMS[EQ.sw.id].th){ft(p.x,p.y-24,'Arma de duas mãos','#ccc');return}
- EQ[sl]=s;I[i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){const j=I.indexOf(null);if(j>=0){I[j]=EQ.sh;EQ.sh=null}}
+ EQ[sl]=s;I[i]=null;if(old)I[i<QUICK_N?livre(old.id):i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){I[livre(EQ.sh.id)]=EQ.sh;EQ.sh=null}
  dirtyInv=true;setPortrait();saveGame();if(window.playEntitySound)playEntitySound('items',s.id,'use')}
-function unequip(sl){if(!EQ[sl])return;if(ehArma(EQ[sl])&&armaTravada())return;let i=I.indexOf(null);if(i<0){i=I.length;I.push(null)}I[i]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
+function unequip(sl){if(!EQ[sl])return;if(ehArma(EQ[sl])&&armaTravada())return;I[livre(EQ[sl].id)]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
 function useSlot(i,preferredSlot){const s=I[i];if(!s||p.dead>0)return;if(gearType[s.id]){equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
  const h=d.heal||{};if(h.hp){p.hp=Math.min(mhp(),p.hp+h.hp);ft(p.x,p.y-12,'+'+h.hp,'#6f6')}if(h.mp){p.mp=Math.min(mmp(),p.mp+h.mp);ft(p.x,p.y-12,'+'+h.mp,'#6cf')}
  grantAttributeBuff(p,'item:'+s.id,d.bonuses,d.bonusDuration||5);

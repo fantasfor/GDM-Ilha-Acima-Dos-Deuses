@@ -20,18 +20,19 @@ function drawPortrait(){const W=96,H=80,g=pt.createLinearGradient(0,0,0,H);g.add
  const hi=heroImg('d',{ph,sw:atk});
  pt.drawImage(hi,11,2,18,16,Math.round((W-w*18/14)/2),H-4-h+bob,Math.round(w*18/14),h)}
 const INV_CATEGORIES=[['all','Todos'],['consumables','Consumíveis'],['materials','Materiais'],['sw','Armas'],['he','Capacete'],['ch','Peito'],['le','Calça'],['bo','Bota'],['ca','Capa'],['ne','Colar'],['ri','Anel']];
+/* ícones 16×16 dos filtros da mochila: contorno escuro, três tons e um brilho */
 const INV_CATEGORY_ICONS={
- materials:woodIcon(),
- all:spr(["....kkkk....","...kbbbbk...","..kbbbybbbk.",".kbbbbbbbbk.",".kbbbyybbbk.",".kbbbbbbbbk.",".kbbbbbbbbk.",".kbkkkkkkbk.",".kbbbbbbbbk.","..kbbbbbbk..","...kkkkkk...","............"],{b:'#b5722e',y:'#e8c15a',k:'#3a2410'}),
- consumables:spr(["....wwww....","....wwww....",".....kk.....","....krrk....","...krrrrk...","...krrrrk...","...krrrrk...","...krrrrk...","...krrrrk...","....krrk....",".....kk.....","............"],{w:'#d8ecff',k:'#5a3522',r:'#d83a45'}),
- sw:spr(["..........ss",".........sss","........sss.",".......sss..","......sss...",".....sss....","....sss.....","...sss......","..sss.......",".sss........","sssssssss...","...kk......."],{s:'#d7e1eb',k:'#a87538'}),
- he:spr(["....kkkk....","...kssssk...","..kssssssk..",".kssssssssk.",".kssssssssk.",".kssskksssk.",".kkk..kkk...","............"],{k:'#263444',s:'#bdcbd7'}),
- ch:spr(["..kkkkkkkk..",".kssssssssk.","kswwsssswwsk","kswwsssswwsk","kswwsssswwsk",".kssssssssk.",".kssskksssk.",".kssskksssk.","..kkkkkkkk.."],{k:'#243243',s:'#9aaec1',w:'#dbe8f2'}),
- le:spr(["..kkkkkkkk..",".kssssssssk.",".kssskksssk.",".kssskksssk.",".kssskksssk.",".kssskksssk.",".kkk..kkk...","............"],{k:'#34261c',s:'#9d7546'}),
- bo:spr(["..kk....kk..","..ks....sk..","..ks....sk..",".kss....ssk.",".ksssssssssk",".kkkkkkkkkk.","............"],{k:'#34261c',s:'#b07c48'}),
- ca:spr(["...kkkkkk...","..kssssssk..",".kssssssssk.",".kssssssssk.",".kssssssssk.","..kssssssk..","...kssssk...","....kkkk...."],{k:'#322223',s:'#b7404d'}),
- ne:spr(["...kk..kk...","...ks..sk...","....kssk....",".....kk.....",".....yy.....",".....yy.....",".....kk.....","............"],{k:'#704d1b',s:'#e1bb61',y:'#f3df82'}),
- ri:spr(["....kkkk....","..kk....kk..",".k..yyyy..k.","k..yy..yy..k","k..yy..yy..k",".k..yyyy..k.","..kk....kk..","....kkkk...."],{k:'#745018',y:'#e7bf4c'})
+ all:spr(["......oooo......",".....o3333o.....","....o3o..o3o....","...oooooooooo...","..o2222222222o..",".o222222222222o.",".o211111111112o.",".o21oooooooo12o.",".o21o4yyyy4o12o.",".o21o444444o12o.",".o21oooooooo12o.",".o211111111112o.",".o222222222222o.",".o122222222221o.","..oooooooooooo..","................"],{o:'#2a1708',1:'#7a4520',2:'#a8642c',3:'#c98a45',4:'#8a5226',y:'#f2c94c'}),
+ consumables:spr(["......oooo......","......occo......","......occo......",".....oooooo.....","......owgo......","......owgo......",".....owgggo.....","....owrrrrro....","...owrRrrrrro...","...orRrrrrrdo...","...orrrrrrrdo...","...orrrrrrddo...","....orrrrddo....",".....oddddo.....","......oooo......","................"],{o:'#3a1a14',c:'#a0703a',g:'#cfe6f2',w:'#ffffff',r:'#d8343f',R:'#ff9a9a',d:'#8e1c28'}),
+ materials:spr(["................",".....oooooo.....","...oo222222oo...","..o2211111122o..",".o221yyyyyy122o.",".o21yy1111yy12o.","o221y1yyyy1y122o","o21y1y1111y1y12o","o21y1y1oo1y1y12o","o21y1y1111y1y12o","o221y1yyyy1y122o",".o21yy1111yy12o.",".o221yyyyyy122o.","..o2211111122o..","...oo222222oo...",".....oooooo....."],{o:'#2e1a0c',2:'#6b4423',1:'#d6a466',y:'#a8733c'}),
+ sw:spr([".............ooo","............owwo","...........owwso","..........owwso.",".........owwso..","........owwso...",".......owwso....","......owwso.....","..oo.owwso......","..oyoowso.......","...oyyoo........","...ohyyo........","..ohhoyyo.......",".ohho.oo........","obbo............","ooo............."],{o:'#1e2630',w:'#f4f8fc',s:'#9fb0c0',y:'#e0b040',h:'#7a4a24',b:'#e8c050'}),
+ he:spr([".......rr.......","......orro......","....oooooooo....","...o23333222o...","..o2333322221o..","..o2332222221o..",".o232222222221o.",".o222222222211o.",".oooooooooooooo.",".o21kkk11kkk12o.",".o211111111112o.",".o2111o..o1112o.",".o211o....o112o.","..ooo......ooo..","................","................"],{o:'#1c2530',1:'#5d6f80',2:'#8ea2b4',3:'#dde8f0',k:'#0a0e14',r:'#c83a3a'}),
+ ch:spr(["................","..ooo......ooo..",".o233oooooo332o.","o22333322333322o","o21122222222112o",".oo1223333221oo.","..o1223333221o..","..o1222332221o..","..o1222222221o..","..o1yyyBByyy1o..","..o1222222221o..","..o1122222211o..","...oooooooooo...","................","................","................"],{o:'#1a2433',1:'#4c6178',2:'#7f97ad',3:'#c9d8e4',y:'#6b4a2a',B:'#e8c050'}),
+ le:spr(["................","...ooooooooooo..","...oyyyyByyyyo..","...o222222221o..","...o232222221o..","...o2322o2221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...okkko.okkko..","...ooooo.ooooo..","................","................"],{o:'#2a1c12',1:'#5e4024',2:'#8a6238',3:'#b48a56',y:'#3a2a1a',B:'#e0b848',k:'#4a3220'}),
+ bo:spr(["................","................","....oooooo......","....o3222o......","....o3222o......","....o3221o......","....oyyyyo......","....o3221o......","....o32221oo....","....o3222221o...","...o3222222221o.","...o2222222221o.","...okkkkkkkkkko.","...oooooooooooo.","................","................"],{o:'#2a1a0e',1:'#6a4022',2:'#9a6438',3:'#c89060',y:'#e0b848',k:'#3a2414'}),
+ ca:spr(["................","....oooooooo....","...oyoo22ooyo...","...o32222221o...","..o3322222211o..","..o3222222221o..","..o3222122221o..",".o332221222211o.",".o322221222221o.",".o322221222221o.","o33222212222211o","o32222212222221o","oo22oo2222oo22oo","..oo..oooo..oo..","................","................"],{o:'#2a0e12',1:'#78202c',2:'#b03040',3:'#e05a64',y:'#f0c850'}),
+ ne:spr(["................",".oo..........oo.",".oyo........oyo.","..oyo......oyo..","...oyo....oyo...","....oyo..oyo....",".....oyooyo.....","......oyyo......",".....oooooo.....","....o3bbbbdo....","....obbbbbdo....","....obbbbddo....",".....obbddo.....","......oddo......",".......oo.......","................"],{o:'#3a2608',y:'#e8c050',3:'#d8f4ff',b:'#3aa0e8',d:'#1e5ea0'}),
+ ri:spr(["................","......oooo......",".....o3bbdo.....",".....obbddo.....","......oooo......","....oyyyyyyo....","...oy3o..oyyo...","..oy3o....oyyo..","..oy3o....oyyo..","..oyyo....oy1o..","..oyyo....oy1o..","...oyyo..oy1o...","....oyyyy11o....",".....oooooo.....","................","................"],{o:'#3a2608',y:'#e8c050',3:'#fff2b0',1:'#a87820',b:'#e04060',d:'#901830'})
 };
 let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
 $('bag').onclick=e=>{e.stopPropagation();togInv()};
@@ -186,7 +187,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,gateOpen:CAMP_WALL.gateOpen,lootMode,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -207,6 +208,9 @@ function loadGame(){
   p.basicMode=BASIC_MODES.includes(d.p.basicMode)?d.p.basicMode:'sw';p.basicNext=d.p.basicNext=='sh'?'sh':'sw';
   lootMode=Object.prototype.hasOwnProperty.call(LOOT_MODES,d.lootMode)?d.lootMode:'manual';
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
+  BESTIARIO.k={};BESTIARIO.d={};const best=d.bestiario||{};
+  if(best.k&&typeof best.k=='object')for(const ty in best.k)if(Number.isFinite(best.k[ty])&&best.k[ty]>0)BESTIARIO.k[ty]=Math.floor(best.k[ty]);
+  if(best.d&&typeof best.d=='object')for(const ty in best.d)if(best.d[ty]&&typeof best.d[ty]=='object')for(const id in best.d[ty])if(ITEMS[id])(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1;
   if(!walk(p.x,p.y)){p.x=CX;p.y=CY+34}
   I.length=Math.max(40,d.items.length);I.fill(null);d.items.forEach((s,i)=>{if(s&&ITEMS[s.id]&&Number.isInteger(s.n)&&s.n>0)I[i]={id:s.id,n:s.n,q:s.q}});
   for(const id of Object.keys(EQ)){const e=d.equipment&&d.equipment[id];EQ[id]=e&&fits(id,e.id)?{id:e.id,n:1,q:e.q}:null}
@@ -321,11 +325,11 @@ function showDrop(){compactDrops();dp.innerHTML='';dp.style.display=drops.length
  [['manual','Manual'],['all','Tudo'],['good','Boa ou melhor'],['rare','Rara ou melhor'],['epic','Épica ou melhor'],['perfect','Perfeita']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=value=='manual'?'Coleta: '+label:value=='all'?'Coleta: '+label:'Coleta: '+label;mode.appendChild(option)});
  mode.value=lootMode;mode.onchange=()=>{lootMode=mode.value;saveGame();const ready=drops.filter(autoAccepts);ready.forEach(acceptDrop);if(!ready.length)showDrop()};h.appendChild(mode);dp.appendChild(h);
  const rejectAll=document.createElement('button');rejectAll.className='rejectAll';rejectAll.type='button';rejectAll.textContent='Rejeitar tudo';rejectAll.onclick=rejectAllDrops;dp.appendChild(rejectAll);
- drops.forEach(o=>{const r=document.createElement('div');r.className='dr'+qc(o);r._tip=()=>itemTip(o.id,o.q);
-  r.innerHTML='<img src="'+ITEMS[o.id].ic+'"><span>'+ITEMS[o.id].n.split(' (')[0]+(o.q==null?'':' <small>'+o.q+'%</small>')+((o.n||1)>1?' <b>×'+(o.n||1)+'</b>':'')+'</span><button class=ya aria-label="Aceitar '+ITEMS[o.id].n.split(' (')[0]+'">✓</button><button class=xa aria-label="Rejeitar '+ITEMS[o.id].n.split(' (')[0]+'">✕</button>';
+ drops.forEach(o=>{const r=document.createElement('div'),missao=ehMissao(o.id,o.questReward);r.className='dr'+qc(o)+(missao?' missao':'');r._tip=()=>itemTip(o.id,o.q);
+  r.innerHTML='<img src="'+ITEMS[o.id].ic+'"><span>'+(missao?'<em class="qm">!</em> ':'')+ITEMS[o.id].n.split(' (')[0]+(o.q==null?'':' <small>'+o.q+'%</small>')+((o.n||1)>1?' <b>×'+(o.n||1)+'</b>':'')+'</span><button class=ya aria-label="Aceitar '+ITEMS[o.id].n.split(' (')[0]+'">✓</button><button class=xa aria-label="Rejeitar '+ITEMS[o.id].n.split(' (')[0]+'">✕</button>';
   r.querySelector('.ya').onclick=()=>acceptDrop(o);r.querySelector('.xa').onclick=()=>rejectDrop(o);dp.appendChild(r)});
  dp.classList.toggle('shift',invOpen)}
-function acceptDrop(o=drops[0]){if(!o)return;if(!addItem(o.id,o.q,o.n||1)){ft(p.x,p.y-24,'Bolsa cheia!','#f66');return}if(o.questReward&&o.id=='saw')sawObtained=true;if(window.playGameSound)playGameSound('item');ft(p.x,p.y-16,ITEMS[o.id].n.split(' (')[0]+((o.n||1)>1?' ×'+(o.n||1):''),'#9f9');drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
+function acceptDrop(o=drops[0]){if(!o)return;if(!addItem(o.id,o.q,o.n||1)){ft(p.x,p.y-24,'Bolsa cheia!','#f66');return}if(o.questReward&&o.id=='saw')sawObtained=true;if(window.playGameSound)playGameSound('item');const missao=ehMissao(o.id,o.questReward);ft(p.x,p.y-16,(missao?'! ':'')+ITEMS[o.id].n.split(' (')[0]+((o.n||1)>1?' ×'+(o.n||1):''),missao?'#ffd84a':'#9f9');drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
 function rejectDrop(o=drops[0]){if(!o)return;drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
 function rejectAllDrops(){if(!drops.length)return;drops.length=0;tipEl.style.display='none';showDrop();saveGame()}
 addEventListener('keydown',e=>{if(!drops.length)return;if(TECLAS.acao(e)=='pegar')acceptDrop();else if(e.key=='Escape')rejectDrop()});

@@ -14,24 +14,43 @@ function mons(){const be=en.find(e=>e.boss);return Object.keys(MONSTER_TYPES).ma
  const own=t.drops&&t.drops.length?t.drops:null,bn=t.bossType=='grandboss'?.4:t.bossType=='boss'?.2:0;
  return{id,t,B,img:t.sprite||(SP[B.base]||SP.sl).d,sk:(t.skills&&t.skills[0])||t.skill,bt:t.bossType||'normal',size:t.size||100,sp:window.SPAWNINFO&&SPAWNINFO[id],own,drops:own?own.map(d=>[d,CALC.dropChance*(1+bn)/own.length]):null}})}
 const gear=()=>GEARIDS.filter(id=>!ITEMS[id].use),defCh=id=>(DEF.find(d=>d[0]==id)||[0,0])[1]+(gear().includes(id)?RND/gear().length:0);
+/* ---- bestiário: só aparece o que o jogador já descobriu (js/state.js BESTIARIO) ---- */
+const MAIS_INFO=100,abertos=new Set(),sombras=new Map();
+const mortes=id=>(window.BESTIARIO&&BESTIARIO.k[id])||0,jaCaiu=(ty,id)=>!!(window.BESTIARIO&&BESTIARIO.d[ty]&&BESTIARIO.d[ty][id]);
+// silhueta preta do sprite para monstros ainda não derrotados
+function sombra(m){if(!sombras.has(m.id)){const c=document.createElement('canvas');c.width=m.img.width;c.height=m.img.height;const x=c.getContext('2d');x.drawImage(m.img,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#4a4236';x.fillRect(0,0,c.width,c.height);sombras.set(m.id,c.toDataURL())}return sombras.get(m.id)}
+// chance real de cada item cair deste monstro (mesma regra de killMonster em combat.js)
+function chances(m){const t=m.t,g=t.guaranteedDrops||[],own=(t.drops||[]).filter(id=>!g.includes(id)),bn=t.bossType=='grandboss'?.4:t.bossType=='boss'?.2:0,out={};
+ g.forEach(id=>out[id]=1);
+ if(own.length)own.forEach(id=>out[id]=(out[id]||0)+CALC.dropChance*(1+bn)/own.length);
+ else if(!g.length)gear().forEach(id=>{const c=defCh(id);if(c>0)out[id]=c});
+ return out}
 /* ---- abas ---- */
-function tMon(){const g=E('div','cx-grid');mons().sort((a,b)=>(a.bt!='normal')-(b.bt!='normal')||(a.sp?a.sp.min:99)-(b.sp?b.sp.min:99)).forEach(m=>{const c=E('div','cx-card'),B=m.B,sk=m.sk;
+function tMon(){const g=E('div','cx-grid');mons().sort((a,b)=>(a.bt!='normal')-(b.bt!='normal')||(a.sp?a.sp.min:99)-(b.sp?b.sp.min:99)).forEach(m=>{const c=E('div','cx-card'),B=m.B,sk=m.sk,n=mortes(m.id);
  const badge=m.bt=='grandboss'?'<span class="cx-badge gb">Grande chefe</span>':m.bt=='boss'?'<span class="cx-badge boss">Chefe</span>':'<span class="cx-badge">Normal</span>';
+ if(!n){c.classList.add('cx-oculto');c.innerHTML='<div class="cx-head"><img src="'+sombra(m)+'"><div><b>???</b>'+badge+'</div></div><div class="dim">Derrote este monstro para descobrir.</div>';g.appendChild(c);return}
  const lv=m.sp?'Nv '+m.sp.min+(m.sp.max&&m.sp.max<999?'–'+m.sp.max:'+'):m.bt!='normal'?'Único':'—',where=m.sp?(m.sp.far?'longe do acampamento':m.sp.coast?'costa':'toda a ilha'):'ponto fixo';
+ const ch=chances(m),ids=Object.keys(ch).filter(id=>ITEMS[id]),vistos=ids.filter(id=>jaCaiu(m.id,id)).sort((a,b)=>ch[b]-ch[a]),falta=ids.length-vistos.length;
+ const drops=(vistos.length?'<div class="cx-drops">'+vistos.map(id=>'<div class="cx-drop'+(window.ehMissao&&ehMissao(id)?' missao':'')+'" title="'+nm(id)+'"><img src="'+ITEMS[id].ic+'"><span>'+(window.ehMissao&&ehMissao(id)?'! ':'')+nm(id)+'</span><b>'+pct(ch[id])+'</b></div>').join('')+'</div>':'<div class="dim">Nenhum item caiu ainda.</div>')
+  +(falta>0?'<div class="dim">+'+falta+' item(ns) ainda não encontrado(s)</div>':'');
+ const info=n>=MAIS_INFO,aberto=info&&abertos.has(m.id);
  c.innerHTML='<div class="cx-head"><img src="'+m.img.toDataURL()+'"><div><b>'+m.t.name+'</b>'+badge+'<span class="cx-badge">'+lv+'</span></div></div>'
- +'<div class="cx-row"><span>Tamanho</span><span>'+Math.round(m.size)+'%</span></div><div class="cx-row"><span>Vida base</span><span>'+Math.round(B.max)+'</span></div><div class="cx-row"><span>Dano base</span><span>'+Math.round(B.dmg)+'</span></div><div class="cx-row"><span>Velocidade</span><span>'+Math.round(B.spd)+'</span></div>'
+ +'<div class="cx-row"><span>Derrotados</span><span>'+n+'</span></div>'
+ +'<div class="cx-sub">Drops</div>'+drops
+ +(aberto?'<div class="cx-sub">Informações</div><div class="cx-row"><span>Tamanho</span><span>'+Math.round(m.size)+'%</span></div><div class="cx-row"><span>Vida base</span><span>'+Math.round(B.max)+'</span></div><div class="cx-row"><span>Dano base</span><span>'+Math.round(B.dmg)+'</span></div><div class="cx-row"><span>Velocidade</span><span>'+Math.round(B.spd)+'</span></div>'
  +'<div class="cx-row"><span>Atributos F/A/I</span><span>'+m.t.stats.F+' / '+m.t.stats.A+' / '+m.t.stats.I+'</span></div><div class="cx-row"><span>Agressividade</span><span>'+B.aggro+' px</span></div>'
  +'<div class="cx-row"><span>XP / Ouro</span><span>'+B.xp+' / '+B.g+'</span></div><div class="cx-row"><span>Aparece</span><span>'+where+'</span></div>'
- +(sk&&sk.name?'<div class="cx-sub">Habilidade</div><div class="cx-row"><span>'+sk.name+'</span><span>'+(sk.cost<999999?sk.cost+' mana · ':'')+(sk.cd<999?sk.cd+'s':'')+'</span></div>'+(((sk.fxs||sk.effects)||[]).length?'<div class="cx-row"><span>Efeitos</span><span>'+(sk.fxs||sk.effects).map(f=>FX_INFO[f.type]?FX_INFO[f.type].n:f.type).join(', ')+'</span></div>':''):'')
- +'<div class="cx-sub">Drops'+(m.own?'':' (padrão)')+'</div><ul>'+(m.drops?m.drops.map(d=>'<li>'+nm(d[0])+' — '+pct(d[1])+'</li>').join(''):DEF.map(d=>'<li>'+nm(d[0])+' — '+pct(d[1])+'</li>').join('')+'<li>Equipamento aleatório ('+gear().length+' possíveis) — '+pct(RND)+'</li>')+'</ul>';
+ +(sk&&sk.name?'<div class="cx-sub">Habilidade</div><div class="cx-row"><span>'+sk.name+'</span><span>'+(sk.cost<999999?sk.cost+' mana · ':'')+(sk.cd<999?sk.cd+'s':'')+'</span></div>'+(((sk.fxs||sk.effects)||[]).length?'<div class="cx-row"><span>Efeitos</span><span>'+(sk.fxs||sk.effects).map(f=>FX_INFO[f.type]?FX_INFO[f.type].n:f.type).join(', ')+'</span></div>':''):''):'');
+ const bt=E('button','cx-mais',info?(aberto?'Menos informações':'Mais informações'):'Mais informações: '+n+'/'+MAIS_INFO+' derrotados');bt.type='button';bt.disabled=!info;
+ bt.onclick=()=>{if(abertos.has(m.id))abertos.delete(m.id);else abertos.add(m.id);render()};c.appendChild(bt);
  g.appendChild(c)});return g}
-function tItem(){const src={};mons().forEach(m=>{if(m.drops)m.drops.forEach(d=>(src[d[0]]=src[d[0]]||[]).push(m.t.name+' '+pct(d[1])))});
+function tItem(){const src={};mons().forEach(m=>{const ch=chances(m);for(const id in ch)if(jaCaiu(m.id,id))(src[id]=src[id]||[]).push(m.t.name+' '+pct(ch[id]))});
  const cats={};Object.keys(ITEMS).forEach(id=>{const it=ITEMS[id],k=it.use?'Consumíveis':SLOT[gearType[id]]||'Outros';(cats[k]=cats[k]||[]).push(id)});
  const w=E('div');['Arma','Escudo','Capacete','Peitoral','Calça','Bota','Capa','Colar','Anel','Consumíveis','Outros'].forEach(k=>{if(!cats[k])return;w.appendChild(E('h4','',k+' ('+cats[k].length+')'));const g=E('div','cx-grid');
- cats[k].forEach(id=>{const it=ITEMS[id],c=E('div','cx-card'),d=defCh(id),from=(src[id]||[]).slice();if(d>0&&!it.use)from.push('Monstros comuns '+pct(d));
+ cats[k].forEach(id=>{const it=ITEMS[id],c=E('div','cx-card'),from=(src[id]||[]).slice();
   c.innerHTML='<div class="cx-head"><img src="'+(it.ic||it.c.toDataURL())+'"><div><b>'+nm(id)+'</b><span class="cx-badge">'+k+'</span>'+(it.th?'<span class="cx-badge">2 mãos</span>':'')+(it.wt?'<span class="cx-badge">'+it.wt+'</span>':'')+'</div></div>'
   +'<div class="cx-row"><span>Atributos</span><span>'+(st(id)||'—')+'</span></div>'+(it.use?'<div class="cx-row"><span>Uso</span><span>consumível</span></div>':'<div class="cx-row"><span>Qualidade</span><span>0–100 (Ruim → Perfeita)</span></div>')
-  +'<div class="cx-sub">Origem</div>'+(from.length?'<ul>'+from.map(s=>'<li>'+s+'</li>').join('')+'</ul>':'<div class="dim">Sem drop</div>');g.appendChild(c)});w.appendChild(g)});return w}
+  +'<div class="cx-sub">Origem</div>'+(from.length?'<ul>'+from.map(s=>'<li>'+s+'</li>').join('')+'</ul>':'<div class="dim">Ainda não descoberta</div>');g.appendChild(c)});w.appendChild(g)});return w}
 function tSkill(){const w=E('div'),basics=(GAMEDATA.items||[]).filter(it=>it.kind=='weapon'&&typeof BASIC!='undefined'&&BASIC[it.id]);if(basics.length){w.appendChild(E('h4','','Ataques básicos das armas'));const grid=E('div','cx-grid');basics.forEach(it=>{const b=BASIC[it.id],card=E('div','cx-card'),head=E('div','cx-head'),img=E('img');img.src=b.ic;head.append(img,E('b','',b.n));card.append(head,E('div','cx-badge','Ataque básico · '+(it.name||it.id)),E('div','dim',b.t||'Ataque automático da arma.'),E('div','dim','Alcance '+Math.round(b.rng)+(b.proj?' · à distância':' · corpo a corpo')+'. Configurado no editor da arma.'));grid.appendChild(card)});w.appendChild(grid)}Object.keys(CL).forEach(id=>{const c=CL[id];let ents=[];try{ents=skillEntries(id)}catch(e){}
  w.appendChild(E('h4','',c.n+' — F '+(c.F+3)+' · A '+(c.A+3)+' · I '+(c.I+3)));
  const ps=[c.passive&&c.passive.n?c.passive.n+': '+(c.passive.d||''):'',...(c.plist||[]).map(r=>r.d.n+' (nv '+r.lv+'): '+r.d.t)].filter(Boolean);if(ps.length){const p0=E('div','cx-card','<div class="cx-sub">Passivas</div><ul>'+ps.map(s=>'<li>'+s+'</li>').join('')+'</ul>');p0.style.marginBottom='8px';w.appendChild(p0)}

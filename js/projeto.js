@@ -1128,13 +1128,59 @@ window.PROJETO={
      "magicLifeSteal": 20
     },
     "basic": {
-     "name": "Orbe do cajado",
-     "rng": 80,
+     "name": "Projetil de Fogo",
+     "rng": 50,
      "dm": 1,
      "ranged": true,
-     "proj": "#55ffff",
-     "desc": "Dispara um orbe arcano.",
-     "skillId": "projetil_de_fogo"
+     "proj": "#ff0000",
+     "desc": "Ataque automático da arma.",
+     "damageType": "magic",
+     "base": 10,
+     "per": 0,
+     "charPercent": 100,
+     "scaleStat": "I",
+     "scalePercent": 0,
+     "icon": "blade",
+     "bonuses": {
+      "critChance": 20,
+      "critDamage": 20
+     },
+     "vfx": "fire",
+     "sprite": {
+      "w": 24,
+      "h": 24,
+      "q": 1,
+      "palette": [
+       "#161f2c",
+       "#7a1f2b",
+       "#c23a3a",
+       "#05070a",
+       "#213044",
+       "#293a53",
+       "#0d121a",
+       "#151f2b",
+       "#151e2a",
+       "#141d2a",
+       "#141d29",
+       "#141c28",
+       "#131b27",
+       "#131b26",
+       "#121a25",
+       "#121a24",
+       "#111923",
+       "#111823",
+       "#111822",
+       "#101721",
+       "#101720",
+       "#0f161f",
+       "#0f151e",
+       "#0e151d",
+       "#0e141c",
+       "#0e131c",
+       "#0d131b"
+      ],
+      "pixels": "4555555555555555555555534000000000000000000000034700000000000000000000734800000000000100001000834900000010001000110000934a00000010001001100000a34b00000010011012100000b34c00000110011122210000c34d00001010122122221000d34e00001001122222221000e34f00000101122222221000f34g00000101122222220000g34h00000111221222100000h34i00001211221222100000i34j00001221221221000000j34k00001222221221000000k34l00001222211221000000l34m00001221211210000000m34n00001221111210000000n34o00012221111210000000o34p00000000000000000000p34q00000000000000000000q3466666666666666666666663333333333333333333333333"
+     }
     },
     "skills": [],
     "tags": [
@@ -1148,6 +1194,14 @@ window.PROJETO={
       "dur": 4,
       "power": 3,
       "pct": 12,
+      "src": "magic"
+     },
+     {
+      "type": "burn",
+      "chance": 20,
+      "dur": 5,
+      "power": 5,
+      "pct": 5,
       "src": "magic"
      }
     ],
@@ -1224,24 +1278,6 @@ window.PROJETO={
    }
   ],
   "skills": [
-   {
-    "id": "basic_strike",
-    "name": "Golpe básico",
-    "category": "basic",
-    "isRanged": false,
-    "basicRange": 22,
-    "damageType": "weapon",
-    "base": 0,
-    "per": 0,
-    "charPercent": 100,
-    "scaleStat": "none",
-    "scalePercent": 0,
-    "icon": "blade",
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "effects": [],
-    "desc": "Ataque automático da arma."
-   },
    {
     "id": "war_throw",
     "name": "Arremesso",
@@ -1968,72 +2004,6 @@ window.PROJETO={
      "monstro"
     ],
     "cross": false
-   },
-   {
-    "id": "projetil_de_fogo",
-    "name": "Projetil de Fogo",
-    "category": "basic",
-    "isRanged": true,
-    "basicRange": 50,
-    "damageType": "magic",
-    "base": 10,
-    "per": 0,
-    "charPercent": 100,
-    "scaleStat": "I",
-    "scalePercent": 0,
-    "projectileColor": "#ff0000",
-    "icon": "blade",
-    "effects": [
-     {
-      "type": "burn",
-      "chance": 20,
-      "dur": 5,
-      "power": 5,
-      "pct": 5,
-      "src": "magic"
-     }
-    ],
-    "desc": "Ataque automático da arma.",
-    "bonuses": {
-     "critChance": 20,
-     "critDamage": 20
-    },
-    "vfx": "fire",
-    "sprite": {
-     "w": 24,
-     "h": 24,
-     "q": 1,
-     "palette": [
-      "#161f2c",
-      "#7a1f2b",
-      "#c23a3a",
-      "#05070a",
-      "#213044",
-      "#293a53",
-      "#0d121a",
-      "#151f2b",
-      "#151e2a",
-      "#141d2a",
-      "#141d29",
-      "#141c28",
-      "#131b27",
-      "#131b26",
-      "#121a25",
-      "#121a24",
-      "#111923",
-      "#111823",
-      "#111822",
-      "#101721",
-      "#101720",
-      "#0f161f",
-      "#0f151e",
-      "#0e151d",
-      "#0e141c",
-      "#0e131c",
-      "#0d131b"
-     ],
-     "pixels": "4555555555555555555555534000000000000000000000034700000000000000000000734800000000000100001000834900000010001000110000934a00000010001001100000a34b00000010011012100000b34c00000110011122210000c34d00001010122122221000d34e00001001122222221000e34f00000101122222221000f34g00000101122222220000g34h00000111221222100000h34i00001211221222100000i34j00001221221221000000j34k00001222221221000000k34l00001222211221000000l34m00001221211210000000m34n00001221111210000000n34o00012221111210000000o34p00000000000000000000p34q00000000000000000000q3466666666666666666666663333333333333333333333333"
-    }
    }
   ],
   "passives": [
@@ -2494,7 +2464,9 @@ window.PROJETO={
     "gold": 5,
     "aggro": 65,
     "equipment": [],
-    "drops": [],
+    "drops": [
+     "cajado_arcano_copia"
+    ],
     "skills": [],
     "attackSpeed": 1,
     "sprite": {
@@ -3695,18 +3667,21 @@ window.PROJETO={
     "name": "Ruínas do Norte",
     "minLevel": 1,
     "targetLevel": 1,
-    "countMin": 2,
-    "countMax": 3,
-    "eliteChance": 0.03,
     "frequency": 1,
     "monsters": [
      {
       "id": "sl",
-      "chance": 65
+      "chance": 65,
+      "min": 1,
+      "max": 2,
+      "elite": 3
      },
      {
       "id": "bat",
-      "chance": 35
+      "chance": 35,
+      "min": 1,
+      "max": 1,
+      "elite": 3
      }
     ]
    },
@@ -3715,22 +3690,28 @@ window.PROJETO={
     "name": "Penhasco Leste",
     "minLevel": 4,
     "targetLevel": 6,
-    "countMin": 2,
-    "countMax": 4,
-    "eliteChance": 0.05,
     "frequency": 1,
     "monsters": [
      {
       "id": "sk",
-      "chance": 45
+      "chance": 45,
+      "min": 1,
+      "max": 2,
+      "elite": 5
      },
      {
       "id": "wolf",
-      "chance": 35
+      "chance": 35,
+      "min": 1,
+      "max": 1,
+      "elite": 5
      },
      {
       "id": "spider",
-      "chance": 20
+      "chance": 20,
+      "min": 1,
+      "max": 1,
+      "elite": 5
      }
     ]
    },
@@ -3739,18 +3720,21 @@ window.PROJETO={
     "name": "Trilha dos Lobos",
     "minLevel": 4,
     "targetLevel": 6,
-    "countMin": 2,
-    "countMax": 3,
-    "eliteChance": 0.08,
     "frequency": 0.9,
     "monsters": [
      {
       "id": "wolf",
-      "chance": 60
+      "chance": 60,
+      "min": 1,
+      "max": 2,
+      "elite": 8
      },
      {
       "id": "spider",
-      "chance": 40
+      "chance": 40,
+      "min": 1,
+      "max": 1,
+      "elite": 8
      }
     ]
    },
@@ -3759,22 +3743,28 @@ window.PROJETO={
     "name": "Floresta Antiga",
     "minLevel": 7,
     "targetLevel": 10,
-    "countMin": 3,
-    "countMax": 4,
-    "eliteChance": 0.08,
     "frequency": 1,
     "monsters": [
      {
       "id": "shroom",
-      "chance": 50
+      "chance": 50,
+      "min": 2,
+      "max": 2,
+      "elite": 8
      },
      {
       "id": "ghost",
-      "chance": 30
+      "chance": 30,
+      "min": 1,
+      "max": 1,
+      "elite": 8
      },
      {
       "id": "goblin",
-      "chance": 20
+      "chance": 20,
+      "min": 1,
+      "max": 1,
+      "elite": 8
      }
     ]
    },
@@ -3783,22 +3773,28 @@ window.PROJETO={
     "name": "Bosque dos Cogumelos",
     "minLevel": 7,
     "targetLevel": 9,
-    "countMin": 3,
-    "countMax": 4,
-    "eliteChance": 0.1,
     "frequency": 1.1,
     "monsters": [
      {
       "id": "shroom",
-      "chance": 45
+      "chance": 45,
+      "min": 1,
+      "max": 2,
+      "elite": 10
      },
      {
       "id": "ghost",
-      "chance": 35
+      "chance": 35,
+      "min": 1,
+      "max": 1,
+      "elite": 10
      },
      {
       "id": "sprout",
-      "chance": 20
+      "chance": 20,
+      "min": 1,
+      "max": 1,
+      "elite": 10
      }
     ]
    },
@@ -3807,22 +3803,28 @@ window.PROJETO={
     "name": "Costa Sul",
     "minLevel": 11,
     "targetLevel": 14,
-    "countMin": 3,
-    "countMax": 5,
-    "eliteChance": 0.1,
     "frequency": 1,
     "monsters": [
      {
       "id": "crab",
-      "chance": 50
+      "chance": 50,
+      "min": 2,
+      "max": 3,
+      "elite": 10
      },
      {
       "id": "ghost",
-      "chance": 30
+      "chance": 30,
+      "min": 1,
+      "max": 2,
+      "elite": 10
      },
      {
       "id": "sk",
-      "chance": 20
+      "chance": 20,
+      "min": 1,
+      "max": 1,
+      "elite": 10
      }
     ]
    },
@@ -3831,22 +3833,28 @@ window.PROJETO={
     "name": "Santuário do Guardião",
     "minLevel": 15,
     "targetLevel": 18,
-    "countMin": 2,
-    "countMax": 3,
-    "eliteChance": 0.12,
     "frequency": 0.7,
     "monsters": [
      {
       "id": "ghost",
-      "chance": 50
+      "chance": 50,
+      "min": 1,
+      "max": 2,
+      "elite": 12
      },
      {
       "id": "sk",
-      "chance": 40
+      "chance": 40,
+      "min": 1,
+      "max": 1,
+      "elite": 12
      },
      {
       "id": "boss",
-      "chance": 10
+      "chance": 10,
+      "min": 1,
+      "max": 1,
+      "elite": 12
      }
     ]
    },
@@ -3855,14 +3863,14 @@ window.PROJETO={
     "name": "Ratos",
     "minLevel": 1,
     "targetLevel": 1,
-    "countMin": 5,
-    "countMax": 10,
-    "eliteChance": 0.2,
     "frequency": 1,
     "monsters": [
      {
       "id": "rato",
-      "chance": 100
+      "chance": 100,
+      "min": 5,
+      "max": 10,
+      "elite": 20
      }
     ]
    },
@@ -3871,18 +3879,21 @@ window.PROJETO={
     "name": "Serrote",
     "minLevel": 1,
     "targetLevel": 20,
-    "countMin": 2,
-    "countMax": 5,
-    "eliteChance": 0.1,
     "frequency": 20,
     "monsters": [
      {
       "id": "gob",
-      "chance": 50
+      "chance": 50,
+      "min": 1,
+      "max": 3,
+      "elite": 10
      },
      {
       "id": "goblin",
-      "chance": 50
+      "chance": 50,
+      "min": 1,
+      "max": 3,
+      "elite": 10
      }
     ]
    },
@@ -3891,18 +3902,21 @@ window.PROJETO={
     "name": "Broto",
     "minLevel": 10,
     "targetLevel": 10,
-    "countMin": 2,
-    "countMax": 5,
-    "eliteChance": 0.5,
     "frequency": 1,
     "monsters": [
      {
       "id": "sprout",
-      "chance": 50
+      "chance": 50,
+      "min": 1,
+      "max": 3,
+      "elite": 50
      },
      {
       "id": "shroom",
-      "chance": 50
+      "chance": 50,
+      "min": 1,
+      "max": 3,
+      "elite": 0
      }
     ]
    }

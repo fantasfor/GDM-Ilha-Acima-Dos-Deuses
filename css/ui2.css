@@ -53,6 +53,14 @@
 .cx-row{display:flex;justify-content:space-between;gap:6px;color:#b1a58b;line-height:1.55}.cx-row span:last-child{color:#e7ddc9;text-align:right}
 .cx-sub{margin-top:6px;color:#d5ae62;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
 .cx-card ul{margin:2px 0 0;padding-left:15px;color:#cfc3a8}.cx-card .dim{color:#8f846c}
+/* bestiário: monstro ainda não derrotado, drops descobertos e botão de mais informações */
+.cx-card.cx-oculto{opacity:.75}.cx-card.cx-oculto b{color:#6f6450;letter-spacing:2px}
+.cx-drops{display:flex;flex-direction:column;gap:2px;margin-top:3px}
+.cx-drop{display:flex;align-items:center;gap:6px;color:#cfc3a8}.cx-drop img{width:20px;height:20px;image-rendering:pixelated;background:#0a0908;border:1px solid #3d3020;flex:none}
+.cx-drop span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cx-drop b{color:#e7ddc9;font-weight:normal}
+.cx-drop.missao span{color:#ffd84a;font-weight:bold}
+.cx-mais{display:block;width:100%;margin-top:7px;padding:4px 6px;font:bold 10px monospace;color:#e7cb88;background:linear-gradient(#2a2117,#15110c);border:1px solid #5a472d;cursor:pointer}
+.cx-mais:disabled{color:#7a6f58;cursor:default}.cx-mais:not(:disabled):hover{border-color:#d4ad60;color:#fff}
 /* painéis nunca cobrem a barra inferior nem os botões do topo */
 #codex{top:56px!important;transform:translateX(-50%)!important;height:auto!important;max-height:calc(100vh - 56px - 200px)!important;bottom:150px}
 #skillPanel{top:56px!important;transform:translateX(-50%)!important;max-height:calc(100vh - 56px - 200px)!important}

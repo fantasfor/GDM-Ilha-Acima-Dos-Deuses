@@ -91,14 +91,14 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 #ap div{border-bottom:1px dotted #2e2519;padding:1px 0}
 .doll{margin:0;gap:8px;padding:6px;flex:none;background:#0d0b09;border:2px solid #0a0806;outline:1px solid var(--line2);outline-offset:-3px}
 .dmid{width:120px;border:2px solid #0a0806;outline:1px solid var(--line2);outline-offset:-3px;background:radial-gradient(#3a3022,#12100d 75%)}
-.dcol{gap:3px}
+.dcol{gap:15px;padding-bottom:13px}
 #hud{overflow:visible}
 .eqslot{position:relative;width:40px;height:40px;padding:0;border:2px solid #0a0806;outline:1px solid var(--line);outline-offset:-3px;background:linear-gradient(145deg,#1c1915,#0b0b0b);box-shadow:inset 0 0 8px #000;cursor:pointer}
 .eqslot img{width:30px;height:30px;image-rendering:pixelated}
 .eqslot img.ghost{opacity:.22;filter:grayscale(1)}
-.eqslot .eqName{position:absolute;left:0;right:0;bottom:0;font:7px/9px monospace;color:#8f846c;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden}
-/* com item equipado o nome do espaço continua, numa faixa escura por cima do ícone */
-.eqslot:not(.empty) .eqName{background:#0a0806cc;color:#d8c9a4}
+/* nome do espaço logo abaixo do quadrado */
+.eqslot .eqName{position:absolute;left:-8px;right:-8px;top:100%;margin-top:2px;font:bold 10px/11px monospace;color:#a89878;text-align:center;pointer-events:none;white-space:nowrap;text-shadow:1px 1px 0 #000}
+.eqslot:not(.empty) .eqName{color:#e8d6a8}
 /* em combate: armas travadas */
 .emCombate .eqslot[data-slot="sw"],.emCombate .eqslot[data-slot="sh"]{outline-color:#d44!important;box-shadow:0 0 8px #d4444466,inset 0 0 8px #000}
 .emCombate .eqslot[data-slot="sw"] .eqName,.emCombate .eqslot[data-slot="sh"] .eqName{color:#f0a090}
@@ -123,7 +123,9 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 #inv .invEmpty{grid-column:1/-1}
 #invFoot{display:flex;align-items:center;gap:8px;font:10px monospace;color:var(--muted)}
 #invFoot .invCap{color:var(--gold);font-weight:bold;white-space:nowrap}
-#invFoot .invCap.full{color:#ff8a7a}
+/* itens de missão em "Itens encontrados" */
+#drop .dr.missao span{color:#ffd84a!important;font-weight:bold}
+#drop .dr .qm{font-style:normal;font-weight:bold;color:#ffd84a;text-shadow:0 0 4px #ffb020aa}
 #invFoot .invHint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .invSort{flex:none}
 /* menu do botão direito */

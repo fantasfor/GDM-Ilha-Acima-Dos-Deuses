@@ -107,11 +107,12 @@ function killMonster(e){
   // na ilha com outros jogadores, XP e ouro são divididos entre quem participou (js/multiplayer.js)
   const parte=window.MP&&MP.parte?MP.parte(e):1;
   if(parte<=0){if(p.tgt==e)p.tgt=null;return}
+  if(window.anotarMorte)anotarMorte(e.ty);
   const xp=Math.max(1,Math.round(e.xp*parte)),gold=Math.round(e.g*parte);
-  gainPlayerXp(xp);p.gold+=gold;gainClassXp(xp);ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
+  gainPlayerXp(xp);p.gold+=gold;gainClassXp(xp);ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound&&!window.soltarMoedas)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
   if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GUARDIÃO ESQUELETO DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
   // os itens caem no chão onde o monstro morreu e depois voam até o jogador (js/loot.js)
-  const largar=(id,quest=false)=>window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest}):offerDrop(id,quest);
+  const largar=(id,quest=false)=>{if(window.anotarDrop)anotarDrop(e.ty,id);return window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest}):offerDrop(id,quest)};
   if(gold>0&&window.soltarMoedas)soltarMoedas(e.x,e.y,gold);
   if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar('saw',true)}
   const guaranteed=MONSTER_TYPES[e.ty].guaranteedDrops||[];
