@@ -1,5 +1,6 @@
 /* ---------- Chat de voz (WebRTC) ----------
    Conversa por voz com quem está na mesma sala (sua ilha com visitas, a DG do grupo ou a taverna).
+   Em grupo, a voz é a do grupo (sala grupo:{líder}) e funciona com cada um em um lugar diferente.
    O áudio vai direto entre os jogadores (ponto a ponto); o Firebase só faz a apresentação:
     voz/{sala}/{uid}     quem está com a voz ligada nesta sala
     sinal/{uid}/{id}     ofertas, respostas e candidatos de rede endereçados a cada jogador
@@ -53,7 +54,7 @@
  function atualizar(){
   bVoz.classList.toggle('on',ligado);bVoz.setAttribute('aria-pressed',String(ligado));
   bVoz.textContent=ligado?'Voz ('+(conectados()+1)+')':'Voz';
-  bVoz.title=ligado?'Sair do chat de voz':'Entrar no chat de voz com quem está no mesmo lugar';
+  bVoz.title=ligado?'Sair do chat de voz':window.MP&&MP.grupoLider?'Entrar no chat de voz do grupo':'Entrar no chat de voz com quem está no mesmo lugar';
   const tecla=window.TECLAS?TECLAS.rotulo('falar'):'V';
   bMic.hidden=!ligado;bFalar.hidden=!ligado||cfg.modo!=='apertar';
   bMic.className='vozMic '+(!ligado?'':mudo?'mudo':transmitindo()?'aberto':'espera');
@@ -141,7 +142,7 @@
   if(!ligado)itens.push(el('p','mpNota','Você está fora da voz. Clique em Voz para entrar.'));
   else{
    const outros=[...presentes.keys()].filter(id=>id!==uid);
-   if(!outros.length)itens.push(el('p','mpNota','Ninguém mais está com a voz ligada aqui. A voz só conecta quem está no mesmo lugar (mesma ilha, DG ou taverna) e também clicou em Voz.'));
+   if(!outros.length)itens.push(el('p','mpNota',window.MP&&MP.grupoLider?'Ninguém do grupo está com a voz ligada. Em grupo, a voz conecta os membros que clicaram em Voz, em qualquer lugar.':'Ninguém mais está com a voz ligada aqui. Sem grupo, a voz só conecta quem está no mesmo lugar (mesma ilha, DG ou taverna) e também clicou em Voz.'));
    const ul=el('ul');
    for(const id of outros){
     const par=pares.get(id),estado=par?par.estado:'conectando';
@@ -209,8 +210,8 @@
   await servidores();
   ligado=true;mudo=false;apertando=false;medir(uid,mic);if(ctxAudio&&ctxAudio.state==='suspended')ctxAudio.resume();
   aplicarMic();
-  sistema(cfg.modo==='apertar'?'Voz ligada: segure '+(window.TECLAS?TECLAS.rotulo('falar'):'V')+' ou o botão Falar para falar.':'Voz ligada: quem estiver no mesmo lugar com a voz ligada vai ouvir você.');
-  entrarNaSala(window.MP&&MP.sala);atualizar();if(!painel.hidden)montarPainel();
+  sistema(cfg.modo==='apertar'?'Voz ligada: segure '+(window.TECLAS?TECLAS.rotulo('falar'):'V')+' ou o botão Falar para falar.':(window.MP&&MP.grupoLider?'Voz ligada: o seu grupo ouve você em qualquer lugar.':'Voz ligada: quem estiver no mesmo lugar com a voz ligada vai ouvir você.'));
+  entrarNaSala(salaDesejada());atualizar();if(!painel.hidden)montarPainel();
  }
  function desligar(){
   if(!ligado)return;
@@ -218,7 +219,10 @@
   if(mic){mic.getTracks().forEach(t=>t.stop());mic=null}const n=niveis.get(uid);if(n){try{n.src.disconnect()}catch(e){}niveis.delete(uid)}
   apertando=false;sistema('Voz desligada.');atualizar();if(!painel.hidden)montarPainel();
  }
- window.addEventListener('mp-sala',e=>{if(!ligado)return;sairDaSala();entrarNaSala(e.detail&&e.detail.sala)});
+ // em grupo a voz é do grupo (vale em qualquer lugar); sem grupo, é a do lugar onde o jogador está
+ const salaDesejada=()=>window.MP&&MP.grupoLider?'grupo:'+MP.grupoLider:window.MP&&MP.sala;
+ function trocarSala(){if(!ligado)return;const nova=salaDesejada();if(nova===sala)return;sairDaSala();entrarNaSala(nova)}
+ window.addEventListener('mp-sala',trocarSala);window.addEventListener('mp-grupo',trocarSala);
 
  /* ---- sala de voz ---- */
  function entrarNaSala(nova){
@@ -328,7 +332,7 @@
  function iniciar(){
   N=window.NUVEM;db=N.db;uid=N.uid;
   db.ref('sinal/'+uid).on('child_added',sinal);
-  window.VOZ={ligar,desligar,get ligado(){return ligado},get pares(){return conectados()},get mudo(){return mudo},get transmitindo(){return transmitindo()},cfg,
+  window.VOZ={ligar,desligar,get ligado(){return ligado},get sala(){return sala},get pares(){return conectados()},get mudo(){return mudo},get transmitindo(){return transmitindo()},cfg,
    abrirConfig(){painel.hidden=false;montarPainel()},
    estados:()=>Object.fromEntries([...pares].map(([id,par])=>[id,par.estado]))};
   atualizar();

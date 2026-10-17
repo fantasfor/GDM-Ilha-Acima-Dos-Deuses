@@ -35,7 +35,7 @@
  }
  function spot(def){
   for(let t=0;t<30;t++){const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*def.radius,x=def.x+Math.cos(a)*r,y=def.y+Math.sin(a)*r;
-   if(walk(x,y)&&(window.inDungeon||!insideCamp(x,y,6)))return{x,y}}
+   if(walk(x,y)&&(window.inDungeon||!insideCamp(x,y,6))&&(typeof longeDeArvores!='function'||longeDeArvores(x,y)))return{x,y}}
   return walk(def.x,def.y)?{x:def.x,y:def.y}:null;
  }
  function effect(def,x,y){

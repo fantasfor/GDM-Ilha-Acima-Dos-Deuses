@@ -3940,29 +3940,6 @@ window.PROJETO={
     ]
    },
    {
-    "id": "serrote",
-    "name": "Serrote",
-    "minLevel": 1,
-    "targetLevel": 20,
-    "frequency": 20,
-    "monsters": [
-     {
-      "id": "gob",
-      "chance": 50,
-      "min": 1,
-      "max": 3,
-      "elite": 10
-     },
-     {
-      "id": "goblin",
-      "chance": 50,
-      "min": 1,
-      "max": 3,
-      "elite": 10
-     }
-    ]
-   },
-   {
     "id": "broto",
     "name": "Broto",
     "minLevel": 10,

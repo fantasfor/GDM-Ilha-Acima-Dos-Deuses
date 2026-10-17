@@ -33,7 +33,7 @@ window.spawnAt=spawnAt;
 function makeElite(e){e.elite=true;e.max=Math.round(e.max*1.5);e.hp=e.max;e.dmg=Math.round(e.dmg*1.35);e.armor=Math.round((e.armor||e.stats.A*5)*1.25);e.magicArmor=Math.round((e.magicArmor||e.stats.F+e.stats.A+e.stats.I)*1.25);e.xp=Math.round(e.xp*1.5);e.g=Math.round(e.g*1.5);return e}
 window.makeElite=makeElite;
 /* áreas: grade 3x3; no máximo 5 inimigos por área (contando os que ainda vão sair dos portais) */
-const PORTAL_DURATION=2,PORTAL_OPEN=.3,PORTAL_CLOSE=.35,PORTAL_FIRST_SPAWN=.4,PORTAL_LAST_SPAWN=1.55;
+const PORTAL_REFILL=.7,PORTAL_DURATION=2,PORTAL_OPEN=.3,PORTAL_CLOSE=.35,PORTAL_FIRST_SPAWN=.4,PORTAL_LAST_SPAWN=1.55;
 const portals=[],AR=W/3,areaOf=(x,y)=>Math.min(2,x/AR|0)+3*Math.min(2,y/AR|0);let pid=0;
 const cnt=a=>en.reduce((n,e)=>n+(e.hp>0&&e.area==a?1:0),0)+portals.reduce((n,q)=>n+(q.a==a?q.left:0),0);
 let timer=2;
@@ -73,7 +73,7 @@ function openPortal(){
  const positions=[];
  for(let y=8;y<W-8;y+=16)for(let x=8;x<W-8;x+=16){
   const a=areaOf(x,y),available=availableByArea[a];
-  if(available>0&&walk(x,y)&&V(x/T|0,y/T|0)<=25&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
+  if(available>0&&walk(x,y)&&longeDeArvores(x,y)&&V(x/T|0,y/T|0)<=25&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
  }
  const candidates=portalOptions.filter(def=>positions.some(pos=>pos.available>=minPack(def)));
  if(!candidates.length)return;
@@ -85,7 +85,7 @@ function openPortal(){
  portals.push({x:position.x,y:position.y,t:0,a,n0:plan.length,left:plan.length,plan,next:PORTAL_FIRST_SPAWN,interval:(PORTAL_LAST_SPAWN-PORTAL_FIRST_SPAWN)/Math.max(1,plan.length-1),fin:0,id:++pid,siteId:site.id,ang:Math.atan2(CY-position.y,CX-position.x)+rnd(-.8,.8)});
 }
 /* A composição segue as chances e quantidades configuradas para o portal escolhido. */
-function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,1.1),r=rnd(16,34),px=q.x+Math.cos(a)*r,py=q.y+Math.sin(a)*r;if(walk(px,py)&&!insideCamp(px,py)){ox=px;oy=py;break}}
+function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,1.1),r=rnd(16,34),px=q.x+Math.cos(a)*r,py=q.y+Math.sin(a)*r;if(walk(px,py)&&!insideCamp(px,py)&&longeDeArvores(px,py)){ox=px;oy=py;break}}
  const entry=q.plan.shift();if(!entry)return;const e=spawnAt(q.x,q.y,entry.type);Object.assign(e,{hx:ox,hy:oy,dest:{x:ox,y:oy},area:q.a,pack:q.id});
  if(entry.elite)makeElite(e);
  if(entry.type=='gob'&&questMonsterRequested('gob')&&!sawGoblin){
@@ -107,7 +107,9 @@ const upd0=upd;upd=function(dt){upd0(dt);
  sawGoblin=questMonsterRequested('gob')?questMonsterTarget('gob'):null;
  // portais só na própria ilha: na taverna não há monstros e, visitando outra ilha, quem solta os monstros é o dono
  if(!window.inDungeon&&!window.inTaverna&&!window.mpEspelho){
-  timer-=dt;if(timer<=0){timer=CALC.portalInterval;if(CALC.randomPortals!==false)openPortal()}
+  // abaixo do mínimo de monstros na ilha, os portais abrem bem mais rápido até completar; depois, no intervalo normal
+  const naIlha=en.reduce((n,e)=>n+(e.hp>0&&!e.boss&&!e.mpProxy?1:0),0)+portals.reduce((n,q)=>n+q.left,0),minimo=CALC.islandMinMonsters??20;
+  timer-=dt;if(timer<=0){timer=naIlha<minimo?PORTAL_REFILL:CALC.portalInterval;if(CALC.randomPortals!==false)openPortal()}
   // Toda a matilha sai antes do fechamento; o portal dura 2 segundos no total.
   for(let i=portals.length;i--;){const q=portals[i];q.t+=dt;
    while(q.left>0&&q.t>=q.next){emit(q);q.next+=q.interval}

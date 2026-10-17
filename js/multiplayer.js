@@ -363,6 +363,7 @@
  function seguirGrupo(lider){
   if(grupoOff){grupoOff();grupoOff=null}
   MP.grupoLider=lider;MP.grupo=null;
+  window.dispatchEvent(new CustomEvent('mp-grupo',{detail:{lider}})); // a voz passa para a sala do grupo (js/voz.js)
   if(!lider){atualizarPainel();return}
   try{localStorage.setItem('ilha-rpg-grupo',lider)}catch(e){}
   const r=ref('grupos/'+lider);let anterior=null;

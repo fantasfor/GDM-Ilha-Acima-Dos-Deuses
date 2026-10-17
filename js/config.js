@@ -1,5 +1,5 @@
 /* constantes de cálculo (editáveis pelo GM na Enciclopédia > Cálculos) */
-const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,dropChance:.22,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10};
+const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,dropChance:.22,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20};
 const CALC_DEF={...CALC};
 const ITEM_STATS={
  dmg:{label:'Dano',text:'dano'},

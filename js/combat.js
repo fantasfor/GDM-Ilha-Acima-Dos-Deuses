@@ -369,7 +369,7 @@ function darKit(c,{salvar=true}={}){
  dirtyInv=true;if(window.setPortrait)setPortrait();ft(p.x,p.y-30,'Kit inicial: '+CL[c].n,'#ffd84a');if(salvar)saveGame();return true}
 window.darKit=darKit;
 // barra de conjuração embaixo do herói (desenhada pelo render.js e pelo dungeon.js)
-window.desenharConj=()=>{const c=p.conj;if(!c)return;const k=Math.max(0,Math.min(1,1-c.r/c.total)),x=Math.round(p.x)-13,y=Math.round(p.y)+5;
+window.desenharConj=()=>{const c=p.conj;if(!c||c.total<=.5)return; // conjurações curtas (até 0,5 s) não mostram barraconst k=Math.max(0,Math.min(1,1-c.r/c.total)),x=Math.round(p.x)-13,y=Math.round(p.y)+5;
  ctx.fillStyle='#000c';ctx.fillRect(x-1,y-1,28,5);ctx.fillStyle='#2a2216';ctx.fillRect(x,y,26,3);ctx.fillStyle=c.s.vfxColor||'#ffd84a';ctx.fillRect(x,y,Math.round(26*k),3);ctx.fillStyle='#fff8';ctx.fillRect(x,y,Math.round(26*k),1)};
 function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana||p.conj)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const equipped=EQ[s.weaponSlot||'sw'];if(!skillWeaponAllowed(s,equipped&&ITEMS[equipped.id])){ft(p.x,p.y-24,'Precisa de uma tag: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}if(dist(p,t)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{p.fx=w.x-p.x;p.fy=w.y-p.y}
  // com tempo de conjuração o jogador para e a habilidade sai no fim da barra (update.js); andar cancela

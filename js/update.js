@@ -125,7 +125,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    if(!e.dest&&e.roamT<=0){
     for(let attempt=0;attempt<12;attempt++){
      const angle=rnd(0,Math.PI*2),radius=rnd(18,e.roamRadius),x=home.x+Math.cos(angle)*radius,y=home.y+Math.sin(angle)*radius;
-     if(walk(x,y)&&!insideCamp(x,y,8)){navigate(e,x,y);break}
+     if(walk(x,y)&&!insideCamp(x,y,8)&&longeDeArvores(x,y)){navigate(e,x,y);break}
     }
     if(!e.dest)e.roamT=.5
    }
