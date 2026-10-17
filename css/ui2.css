@@ -254,6 +254,10 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #f0cf7a;out
 .mpToasts{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;width:min(420px,calc(100vw - 20px));pointer-events:none}
 .mpToast{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border:2px solid #e7cb88;background:#191510f2;color:#fff2d7;font:12px monospace;box-shadow:0 8px 24px #000c;pointer-events:auto;animation:mpop .25s ease-out}
 .mpToast span{flex:1 1 200px}
+/* correio: o botão brilha enquanto houver solicitação pendente */
+.mpCorreioBtn.temCorreio{border-color:#f0cf7a!important;color:#ffe9a8!important;box-shadow:0 0 8px #f0cf7a88;animation:mpCorreio 1.6s ease-in-out infinite}
+@keyframes mpCorreio{50%{box-shadow:0 0 2px #f0cf7a33}}
+@media(prefers-reduced-motion:reduce){.mpCorreioBtn.temCorreio{animation:none}}
 /* ---------- Conta: tela de login (js/conta.js) ---------- */
 #conta{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#0c1a2aee,#05080efa);backdrop-filter:blur(6px);padding:12px;box-sizing:border-box;font-family:monospace}
 #conta.open{display:flex}

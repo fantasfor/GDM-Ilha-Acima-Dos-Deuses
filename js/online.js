@@ -32,6 +32,7 @@
    const b=el('button','onlineTab',rotulo);b.type='button';b.title=dica;b.onclick=()=>{canal=id;refreshTabs();openChat()};tabs[id]=b;bar.append(b);
   }
   if(window.MP&&MP.botaoPainel)bar.append(MP.botaoPainel);
+  if(window.MP&&MP.botaoCorreio)bar.append(MP.botaoCorreio);
  }
  function refreshTabs(){for(const id in tabs){tabs[id].classList.toggle('on',canal===id);tabs[id].setAttribute('aria-pressed',String(canal===id))}input.placeholder=(nuvem?(canal==='g'?'[Global] ':'[Local] '):'')+'Mensagem (Enter envia, Esc fecha) · /nome NovoNome'}
  refreshTabs();

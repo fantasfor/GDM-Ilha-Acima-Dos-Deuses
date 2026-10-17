@@ -414,25 +414,60 @@
   for(const [rotulo,fn,cls] of acoes)t.append(btn(rotulo,()=>{fechar();fn&&fn()},cls));
   toasts.append(t);if(ms)setTimeout(fechar,ms);return t;
  }
- function receberConvite(s){
-  const de=s.key,c=s.val();if(!c||!c.tipo)return;
-  const agora=Date.now()+(N.offset||0);
-  if(agora-(c.t||0)>CONVITE_S*1000){s.ref.remove().catch(()=>{});return}
-  MP.nomes.set(de,c.nome);
-  const recusar=()=>s.ref.remove().catch(()=>{});
-  if(c.tipo==='ilha')toast(c.nome+' convidou você para a ilha dele(a).',[['Ir',()=>{recusar();visitar(de)},'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
-  else if(c.tipo==='amizade')toast(c.nome+' quer ser seu amigo.',[['Aceitar',async()=>{
+ /* ---------- correio: solicitações pendentes (convites/{eu}/{quem enviou}) ----------
+    Chegam como aviso no topo e ficam no Correio até aceitar, recusar ou vencer:
+    amizade vale 7 dias; convite de ilha ou de grupo, 10 minutos. */
+ const VALIDADE={amizade:7*86400000,ilha:600000,grupo:600000};
+ const pendentes=new Map(); // de -> {tipo,nome,t,toast}
+ const TEXTO={ilha:n=>n+' convidou você para a ilha dele(a).',amizade:n=>n+' quer ser seu amigo.',grupo:n=>n+' convidou você para o grupo.'};
+ const ROTULO_ACEITAR={ilha:'Ir',amizade:'Aceitar',grupo:'Entrar'};
+ const vencido=c=>Date.now()+(N.offset||0)-(c.t||0)>(VALIDADE[c.tipo]||CONVITE_S*1000);
+ function recusarConvite(de){const c=pendentes.get(de);if(c&&c.toast)c.toast.remove();pendentes.delete(de);ref('convites/'+uid+'/'+de).remove().catch(()=>{});atualizarCorreio()}
+ async function aceitarConvite(de){
+  const c=pendentes.get(de);if(!c)return;recusarConvite(de);
+  if(c.tipo==='ilha')visitar(de);
+  else if(c.tipo==='amizade'){
    try{await ref().update({['amigos/'+uid+'/'+de]:c.nome,['amigos/'+de+'/'+uid]:N.nome()});aviso('Agora você e '+c.nome+' são amigos.','#9fe3ff')}
    catch(e){aviso('Não foi possível aceitar a amizade.','#f87171')}
-   recusar();
-  },'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
-  else if(c.tipo==='grupo')toast(c.nome+' convidou você para o grupo.',[['Entrar',async()=>{
+  }else if(c.tipo==='grupo'){
    if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
    try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
    catch(e){aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
-   recusar();
-  },'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
+  }
  }
+ function receberConvite(s){
+  const de=s.key,c=s.val();if(!c||!c.tipo||!TEXTO[c.tipo])return;
+  if(vencido(c)){s.ref.remove().catch(()=>{});return}
+  MP.nomes.set(de,c.nome);
+  const antigo=pendentes.get(de);if(antigo&&antigo.toast)antigo.toast.remove();
+  const item={tipo:c.tipo,nome:c.nome,t:c.t};pendentes.set(de,item);
+  // o aviso some sozinho; a solicitação continua no Correio
+  item.toast=toast(TEXTO[c.tipo](c.nome),[[ROTULO_ACEITAR[c.tipo],()=>aceitarConvite(de),'mpBtn ok'],['Recusar',()=>recusarConvite(de)],['Depois',null]],CONVITE_S*1000);
+  atualizarCorreio();if(window.playGameSound)playGameSound('quest',.5);
+ }
+ const correio=el('section','mpPainel mpCorreio');correio.hidden=true;correio.setAttribute('aria-label','Correio');
+ correio.addEventListener('keydown',e=>e.stopPropagation());document.body.append(correio);
+ const correioBtn=btn('Correio',()=>{correio.hidden=!correio.hidden;if(!correio.hidden)painel.hidden=true;atualizarCorreio()},'mpBtn mpAbrir mpCorreioBtn');correioBtn.title='Correio: pedidos de amizade e convites de ilha e de grupo';
+ MP.botaoCorreio=correioBtn;MP.fecharCorreio=()=>{correio.hidden=true};
+ function atualizarCorreio(){
+  for(const [de,c] of pendentes)if(vencido(c)){if(c.toast)c.toast.remove();pendentes.delete(de);ref('convites/'+uid+'/'+de).remove().catch(()=>{})}
+  const n=pendentes.size;correioBtn.textContent=n?'Correio ('+n+')':'Correio';correioBtn.classList.toggle('temCorreio',n>0);
+  if(correio.hidden)return;
+  const box=[];const h=el('div','mpTopo');h.append(el('b','','Correio'),btn('Fechar',()=>{correio.hidden=true}));box.push(h);
+  const ul=el('ul','mpLista');
+  const lista=[...pendentes].sort((a,b)=>(b[1].t||0)-(a[1].t||0));
+  if(!lista.length)ul.append(el('li','mpNota','Nenhuma solicitação. Pedidos de amizade e convites de ilha e de grupo aparecem aqui.'));
+  for(const [de,c] of lista){
+   const li=el('li');li.append(el('span','mpNome',TEXTO[c.tipo](c.nome)));
+   const resta=(VALIDADE[c.tipo]-(Date.now()+(N.offset||0)-(c.t||0)))/60000;
+   li.append(el('small','',c.tipo==='amizade'?'Pedido de amizade':'Vence em '+Math.max(1,Math.ceil(resta))+' min'));
+   const acoes=el('div','mpAcoes');acoes.append(btn(ROTULO_ACEITAR[c.tipo],()=>aceitarConvite(de),'mpBtn ok'),btn('Recusar',()=>recusarConvite(de),'mpBtn perigo'));
+   li.append(acoes);ul.append(li);
+  }
+  box.push(ul);correio.replaceChildren(...box);
+ }
+ MP.correio={aceitar:aceitarConvite,recusar:recusarConvite,get pendentes(){return [...pendentes.keys()]}};
+ setInterval(atualizarCorreio,5000);
  let toastDg=null;
  function convidarDg(g){
   if(toastDg)toastDg.remove();
@@ -471,7 +506,7 @@
  const painel=el('section','mpPainel');painel.hidden=true;painel.setAttribute('aria-label','Jogadores');
  painel.addEventListener('keydown',e=>e.stopPropagation());
  document.body.append(painel);
- const abrirBtn=btn('Jogadores',()=>{painel.hidden=!painel.hidden;atualizarPainel()},'mpBtn mpAbrir');abrirBtn.title='Jogadores online, grupo e convites';
+ const abrirBtn=btn('Jogadores',()=>{painel.hidden=!painel.hidden;if(!painel.hidden&&window.MP&&MP.fecharCorreio)MP.fecharCorreio();atualizarPainel()},'mpBtn mpAbrir');abrirBtn.title='Jogadores online, grupo e convites';
  MP.botaoPainel=abrirBtn;
  addEventListener('keydown',e=>{if(window.TECLAS&&TECLAS.acao(e)==='jogadores'){painel.hidden=!painel.hidden;atualizarPainel()}});
  function onde(o){
@@ -548,7 +583,9 @@
  /* ---------- início: depois do login ---------- */
  function iniciar(){
   N=window.NUVEM;db=N.db;uid=N.uid;
-  ref('convites/'+uid).on('child_added',receberConvite);
+  const caixa=ref('convites/'+uid);
+  caixa.on('child_added',receberConvite);caixa.on('child_changed',receberConvite);
+  caixa.on('child_removed',s=>{const c=pendentes.get(s.key);if(c){if(c.toast)c.toast.remove();pendentes.delete(s.key);atualizarCorreio()}});
   ref('amigos/'+uid).on('value',s=>{MP.amigos=s.val()||{};for(const [id,n] of Object.entries(MP.amigos))if(typeof n==='string'&&!MP.nomes.has(id))MP.nomes.set(id,n);atualizarPainel()});
   ref('sussurros/'+uid).on('child_added',s=>{
    const m=s.val();s.ref.remove().catch(()=>{});
@@ -557,8 +594,9 @@
    linha({canal:'s',id:m.de,name:m.nome,text:m.text.slice(0,140),t:Math.round((m.t||Date.now())/1000)});
   });
   // ajuda nas batalhas: curas, bênçãos e proteções contam como participação (divisão de XP e ouro na ilha)
-  const cast0=cast;
-  cast=function(s){const t0=s.t,r=cast0.apply(this,arguments);if(s.t>t0&&!window.inTaverna&&window.tipoHabilidade&&tipoHabilidade(s)!=='impacto')MP.apoiou();return r};
+  // lancar (combat.js) é quando a habilidade sai de fato (na hora ou no fim da conjuração)
+  const cast0=lancar;
+  lancar=function(s){const t0=s.t,r=cast0.apply(this,arguments);if(s.t>t0&&!window.inTaverna&&window.tipoHabilidade&&tipoHabilidade(s)!=='impacto')MP.apoiou();return r};
   // volta ao grupo depois de recarregar a página (se ainda for membro)
   let salvo=null;try{salvo=localStorage.getItem('ilha-rpg-grupo')}catch(e){}
   if(salvo)ref('grupos/'+salvo+'/membros/'+uid).get().then(s=>{if(s.exists())seguirGrupo(salvo);else try{localStorage.removeItem('ilha-rpg-grupo')}catch(e){}}).catch(()=>{});

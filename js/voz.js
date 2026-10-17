@@ -1,6 +1,6 @@
 /* ---------- Chat de voz (WebRTC) ----------
    Conversa por voz com quem está na mesma sala (sua ilha com visitas, a DG do grupo ou a taverna).
-   Em grupo, a voz é a do grupo (sala grupo:{líder}) e funciona com cada um em um lugar diferente.
+   Em grupo, também entra na sala do grupo (grupo:{líder}): os membros se ouvem em qualquer lugar, e quem está no mesmo lugar continua ouvindo.
    O áudio vai direto entre os jogadores (ponto a ponto); o Firebase só faz a apresentação:
     voz/{sala}/{uid}     quem está com a voz ligada nesta sala
     sinal/{uid}/{id}     ofertas, respostas e candidatos de rede endereçados a cada jogador
@@ -10,8 +10,8 @@
 (function(){
  if(MODO.teste||MODO.motor||!window.CONTA_ATIVA)return;
  const MAX=8,TENTATIVAS=3,STUN=[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
- let N=null,db=null,uid=null,sala=null,ligado=false,mudo=false,mic=null,ctxAudio=null,ice=null;
- const pares=new Map(),niveis=new Map(),offs=[],presentes=new Map(),tentativas=new Map();
+ let N=null,db=null,uid=null,ligado=false,mudo=false,mic=null,ctxAudio=null,ice=null;
+ const pares=new Map(),niveis=new Map(),tentativas=new Map();
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
  // os áudios dos outros ficam na página (alguns navegadores não tocam áudio solto)
  const sons=el('div');sons.hidden=true;document.body.append(sons);
@@ -54,7 +54,7 @@
  function atualizar(){
   bVoz.classList.toggle('on',ligado);bVoz.setAttribute('aria-pressed',String(ligado));
   bVoz.textContent=ligado?'Voz ('+(conectados()+1)+')':'Voz';
-  bVoz.title=ligado?'Sair do chat de voz':window.MP&&MP.grupoLider?'Entrar no chat de voz do grupo':'Entrar no chat de voz com quem está no mesmo lugar';
+  bVoz.title=ligado?'Sair do chat de voz':window.MP&&MP.grupoLider?'Entrar no chat de voz (mesmo lugar e grupo)':'Entrar no chat de voz com quem está no mesmo lugar';
   const tecla=window.TECLAS?TECLAS.rotulo('falar'):'V';
   bMic.hidden=!ligado;bFalar.hidden=!ligado||cfg.modo!=='apertar';
   bMic.className='vozMic '+(!ligado?'':mudo?'mudo':transmitindo()?'aberto':'espera');
@@ -141,8 +141,8 @@
   const itens=[];
   if(!ligado)itens.push(el('p','mpNota','Você está fora da voz. Clique em Voz para entrar.'));
   else{
-   const outros=[...presentes.keys()].filter(id=>id!==uid);
-   if(!outros.length)itens.push(el('p','mpNota',window.MP&&MP.grupoLider?'Ninguém do grupo está com a voz ligada. Em grupo, a voz conecta os membros que clicaram em Voz, em qualquer lugar.':'Ninguém mais está com a voz ligada aqui. Sem grupo, a voz só conecta quem está no mesmo lugar (mesma ilha, DG ou taverna) e também clicou em Voz.'));
+   const outros=[...new Set([...salas.values()].flatMap(s=>[...s.membros]))].filter(id=>id!==uid);
+   if(!outros.length)itens.push(el('p','mpNota',window.MP&&MP.grupoLider?'Ninguém mais está com a voz ligada aqui nem no seu grupo. Em grupo, a voz conecta quem está no mesmo lugar e os membros do grupo em qualquer lugar.':'Ninguém mais está com a voz ligada aqui. Sem grupo, a voz só conecta quem está no mesmo lugar (mesma ilha, DG ou taverna) e também clicou em Voz.'));
    const ul=el('ul');
    for(const id of outros){
     const par=pares.get(id),estado=par?par.estado:'conectando';
@@ -210,8 +210,8 @@
   await servidores();
   ligado=true;mudo=false;apertando=false;medir(uid,mic);if(ctxAudio&&ctxAudio.state==='suspended')ctxAudio.resume();
   aplicarMic();
-  sistema(cfg.modo==='apertar'?'Voz ligada: segure '+(window.TECLAS?TECLAS.rotulo('falar'):'V')+' ou o botão Falar para falar.':(window.MP&&MP.grupoLider?'Voz ligada: o seu grupo ouve você em qualquer lugar.':'Voz ligada: quem estiver no mesmo lugar com a voz ligada vai ouvir você.'));
-  entrarNaSala(salaDesejada());atualizar();if(!painel.hidden)montarPainel();
+  sistema(cfg.modo==='apertar'?'Voz ligada: segure '+(window.TECLAS?TECLAS.rotulo('falar'):'V')+' ou o botão Falar para falar.':(window.MP&&MP.grupoLider?'Voz ligada: quem está no mesmo lugar e o seu grupo (em qualquer lugar) ouvem você.':'Voz ligada: quem estiver no mesmo lugar com a voz ligada vai ouvir você.'));
+  sincronizarSalas();if(!painel.hidden)montarPainel();
  }
  function desligar(){
   if(!ligado)return;
@@ -219,30 +219,32 @@
   if(mic){mic.getTracks().forEach(t=>t.stop());mic=null}const n=niveis.get(uid);if(n){try{n.src.disconnect()}catch(e){}niveis.delete(uid)}
   apertando=false;sistema('Voz desligada.');atualizar();if(!painel.hidden)montarPainel();
  }
- // em grupo a voz é do grupo (vale em qualquer lugar); sem grupo, é a do lugar onde o jogador está
- const salaDesejada=()=>window.MP&&MP.grupoLider?'grupo:'+MP.grupoLider:window.MP&&MP.sala;
- function trocarSala(){if(!ligado)return;const nova=salaDesejada();if(nova===sala)return;sairDaSala();entrarNaSala(nova)}
- window.addEventListener('mp-sala',trocarSala);window.addEventListener('mp-grupo',trocarSala);
-
- /* ---- sala de voz ---- */
- function entrarNaSala(nova){
-  if(!nova||!ligado)return;sala=nova;
-  const eu=db.ref('voz/'+sala+'/'+uid);eu.set({nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP});eu.onDisconnect().remove();
-  const lista=db.ref('voz/'+sala);
-  const add=s=>{const id=s.key;presentes.set(id,(s.val()||{}).nome||'');if(id!==uid&&window.MP&&s.val()&&s.val().nome)MP.nomes.set(id,s.val().nome);conectarCom(id);atualizar()};
-  const rem=s=>{presentes.delete(s.key);tentativas.delete(s.key);fechar(s.key);atualizar()};
+ /* ---- salas de voz: a do lugar sempre; em grupo, também a do grupo (os membros se ouvem em qualquer lugar).
+    Quem está em qualquer uma das salas conecta, uma conexão só por pessoa. ---- */
+ const salas=new Map(); // nome -> {membros:Set de uids, offs:[]}
+ const presente=id=>[...salas.values()].some(s=>s.membros.has(id));
+ const salaCom=id=>{for(const [n,s] of salas)if(s.membros.has(id))return n;return salas.keys().next().value||null};
+ const salasDesejadas=()=>[...new Set([window.MP&&MP.sala,window.MP&&MP.grupoLider&&'grupo:'+MP.grupoLider].filter(Boolean))];
+ function sincronizarSalas(){if(!ligado)return;const quero=salasDesejadas();for(const n of [...salas.keys()])if(!quero.includes(n))sairDe(n);for(const n of quero)if(!salas.has(n))entrarEm(n);atualizar()}
+ window.addEventListener('mp-sala',sincronizarSalas);window.addEventListener('mp-grupo',sincronizarSalas);
+ function entrarEm(nome){
+  const s={membros:new Set(),offs:[]};salas.set(nome,s);
+  const eu=db.ref('voz/'+nome+'/'+uid);eu.set({nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP});eu.onDisconnect().remove();
+  const lista=db.ref('voz/'+nome);
+  const add=x=>{const id=x.key;s.membros.add(id);if(id!==uid&&window.MP&&x.val()&&x.val().nome)MP.nomes.set(id,x.val().nome);conectarCom(id);atualizar()};
+  const rem=x=>{s.membros.delete(x.key);if(!presente(x.key)){tentativas.delete(x.key);fechar(x.key)}atualizar()};
   lista.on('child_added',add);lista.on('child_removed',rem);
-  offs.push(()=>lista.off('child_added',add),()=>lista.off('child_removed',rem));
+  s.offs.push(()=>lista.off('child_added',add),()=>lista.off('child_removed',rem));
+ }
+ function sairDe(nome){
+  const s=salas.get(nome);if(!s)return;salas.delete(nome);s.offs.forEach(f=>f());
+  db.ref('voz/'+nome+'/'+uid).remove().catch(()=>{});
+  for(const id of [...pares.keys()])if(!presente(id)){tentativas.delete(id);fechar(id)}
  }
  // quem tem o uid menor oferece; o outro espera a oferta
- function conectarCom(id){if(id===uid||pares.has(id)||pares.size>=MAX-1||!presentes.has(id))return;if(uid<id)abrir(id,true)}
- function sairDaSala(){
-  offs.splice(0).forEach(f=>f());
-  for(const id of [...pares.keys()])fechar(id);
-  if(sala)db.ref('voz/'+sala+'/'+uid).remove().catch(()=>{});
-  presentes.clear();tentativas.clear();sala=null;atualizar();
- }
- const enviar=(para,dados)=>db.ref('sinal/'+para).push({de:uid,sala,...dados,t:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+ function conectarCom(id){if(id===uid||pares.has(id)||pares.size>=MAX-1||!presente(id))return;if(uid<id)abrir(id,true)}
+ function sairDaSala(){for(const n of [...salas.keys()])sairDe(n);for(const id of [...pares.keys()])fechar(id);tentativas.clear();atualizar()}
+ const enviar=(para,dados)=>db.ref('sinal/'+para).push({de:uid,sala:salaCom(para),...dados,t:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 
  /* ---- conexão com um jogador ---- */
  function abrir(id,ofertar){
@@ -308,13 +310,13 @@
  }
  async function sinal(s){
   const m=s.val();s.ref.remove().catch(()=>{});
-  if(!m||!ligado||m.sala!==sala||m.de===uid)return;
+  if(!m||!ligado||!salas.has(m.sala)||m.de===uid)return;
   if(Date.now()+(N.offset||0)-(m.t||0)>30000)return;
   let par=pares.get(m.de);
   try{
    if(m.tipo==='offer'){
     if(par)fechar(m.de);if(pares.size>=MAX-1)return;
-    if(!presentes.has(m.de))presentes.set(m.de,'');
+    if(!presente(m.de))salas.get(m.sala).membros.add(m.de);
     par=abrir(m.de,false);
     await par.pc.setRemoteDescription({type:'offer',sdp:m.sdp});
     const r=await par.pc.createAnswer();await par.pc.setLocalDescription(r);
@@ -332,7 +334,7 @@
  function iniciar(){
   N=window.NUVEM;db=N.db;uid=N.uid;
   db.ref('sinal/'+uid).on('child_added',sinal);
-  window.VOZ={ligar,desligar,get ligado(){return ligado},get sala(){return sala},get pares(){return conectados()},get mudo(){return mudo},get transmitindo(){return transmitindo()},cfg,
+  window.VOZ={ligar,desligar,get ligado(){return ligado},get sala(){return [...salas.keys()].join(',')},get pares(){return conectados()},get mudo(){return mudo},get transmitindo(){return transmitindo()},cfg,
    abrirConfig(){painel.hidden=false;montarPainel()},
    estados:()=>Object.fromEntries([...pares].map(([id,par])=>[id,par.estado]))};
   atualizar();
