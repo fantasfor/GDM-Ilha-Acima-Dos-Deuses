@@ -92,6 +92,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;const di=dot&
  const roll=dot?{damage:d,lifeSteal:0,magicLifeSteal:0}:combatRoll(p,d);d=roll.damage;drainLife(p,Math.min(e.hp,d),stealRatio(roll,magicShare));
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
+ if(!dot&&window.somDoJogador)somDoJogador('h.'+e.ty+'.'+(magic?1:0)); // os outros jogadores da sala ouvem o golpe
  if(e.mpProxy){e.hp=Math.max(1,e.hp-d);if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx)applyFx(e,fx.filter(f=>f.self));if(window.MP)MP.golpe(e,d,fx&&fx.filter(f=>!f.self));return}
  e.hp-=d;if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx&&e.hp>0)applyFx(e,fx);
  if(e.hp<=0)killMonster(e)}
@@ -269,7 +270,7 @@ L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,t:0,f:nu
  const weapon=EQ[o.weaponSlot||'sw'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!skillWeaponAllowed(o,weapon&&ITEMS[weapon.id]);
  if(o.el){o.el.style.backgroundImage='url('+o.ic+')';o.el.classList.toggle('wk',!!o.w);o.el.style.visibility=o.n?'':'hidden';o.el.querySelector('em').textContent=o.mana}});
 if(window.renderSkillMenu)renderSkillMenu()}
-applySkills();const carpenter={cls:'war',nm:'Carpinteiro',x:CX+290,y:CY-180,carpenter:true},blacksmith={cls:'war',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[{cls:'war',nm:'Guerreiro',x:CX-58,y:CY+30},{cls:'mag',nm:'Mago',x:CX,y:CY+74},{cls:'hea',nm:'Curandeiro',x:CX+58,y:CY+30},{cls:'sty',nm:'Estilista',x:CX-34,y:CY-4},carpenter,blacksmith];
+applySkills();const carpenter={cls:'war',nm:'Carpinteiro',x:CX+290,y:CY-180,carpenter:true},blacksmith={cls:'war',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
 function placeCarpenter(){carpenter.x=carpenterHelped?CX+34:CX+290;carpenter.y=carpenterHelped?CY-48:CY-180}
 function placeBlacksmith(){const saved=(typeof blacksmithSaved!=='undefined'&&blacksmithSaved)||window.blacksmithSaved;blacksmith.x=saved?CX+64:-9999;blacksmith.y=saved?CY-36:-9999}
 placeCarpenter();placeBlacksmith();
@@ -346,12 +347,6 @@ function showDungeonMenu(){
  clearMovementInput();
  window.showProjectDungeonMenu();
 }
-const sexBox=document.createElement('div');
-sexBox.style.cssText='position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);background:#1b1530ee;border:2px solid #ffd84a;border-radius:8px;padding:14px 18px;color:#ffe28a;font:14px monospace;text-align:center;display:none;z-index:20';
-sexBox.innerHTML='Estilista: escolha seu personagem<br><br><button data-s="m">Masculino</button> <button data-s="f">Feminino</button> <button data-s="">Cancelar</button>';
-document.body.appendChild(sexBox);
-sexBox.onclick=e=>{const s=e.target.dataset&&e.target.dataset.s;if(s===undefined)return;sexBox.style.display='none';
- if(s&&s!=p.sex){p.sex=s;setPortrait();dirtyInv=true;ring(p.x,p.y,36,'#ffd84a',.6);ft(p.x,p.y-24,s=='m'?'Masculino':'Feminino','#ffd84a')}};
 function setClass(c){if(c==p.cls){ft(p.x,p.y-24,'Você já é '+CL[c].n,'#fff');return}
  const n=CL[c];p.classProgress=p.classProgress||{};if(!p.classProgress[c])p.classProgress[c]={rank:1,xp:0};
  p.cls=c;p.hp=Math.min(p.hp,mhp());p.mp=Math.min(p.mp,mmp());
@@ -360,4 +355,4 @@ function setClass(c){if(c==p.cls){ft(p.x,p.y-24,'Você já é '+CL[c].n,'#fff');
 const wpos=()=>({x:(mx-cv.width/2)/S+p.x,y:(my-cv.height/2)/S+p.y});
 function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const equipped=EQ[s.weaponSlot||'sw'];if(!skillWeaponAllowed(s,equipped&&ITEMS[equipped.id])){ft(p.x,p.y-24,'Precisa de uma tag: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}if(dist(p,t)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{p.fx=w.x-p.x;p.fy=w.y-p.y}
  const style=s.vfx||'arcane';if(style!='none')fxs.push({x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style});
- p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound('magic')}
+ p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(window.somDoJogador)somDoJogador('c.'+s.id);if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound('magic')}

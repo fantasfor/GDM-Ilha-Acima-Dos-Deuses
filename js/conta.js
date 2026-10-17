@@ -122,14 +122,29 @@
 
  /* ---- online em tempo real: online/{uid} e chat ---- */
  const nuvem={pronto:false,id:null,name:'',
-  outros:new Map(),msgs:[],seq:0,conectado:false,offset:0,enviado:{},ultimoPos:0,ultimoT:0,
+  outros:new Map(),msgs:[],seq:0,conectado:false,offset:0,enviado:{},ultimoPos:0,ultimoT:0,ultimoLento:0,
+  posSala:null,ultimoRapido:0,rapidoEnviado:'',somSeq:0,sons:'',aoSom:null,
+  // posição suavizada de outro jogador da sala: desenha um pouco no passado, entre duas amostras recebidas
+  posicao(id){
+   const a=amostras.get(id);if(!a||!a.length)return null;
+   const t=performance.now()-ATRASO_MS;
+   if(t<=a[0].t)return a[0];
+   for(let i=a.length-1;i>=0;i--)if(a[i].t<=t){const q=a[i],r=a[i+1];if(!r)return q;const k=(t-q.t)/Math.max(1,r.t-q.t);return {x:q.x+(r.x-q.x)*k,y:q.y+(r.y-q.y)*k}}
+   return a[a.length-1];
+  },
   async sync({me,since,chat}){
    if(!this.conectado)throw new Error('sem conexão');
-   const agora=Date.now(),eu=db.ref('online/'+user.uid);
-   const dados={name:this.name,cls:me.cls,sex:me.sex,lvl:me.lvl,x:me.x,y:me.y,fx:me.fx,fy:me.fy,hp:Math.round(me.hp*100)/100,dead:me.dead,dg:me.dg,eq:me.eq,sala:me.sala||'ilha:'+user.uid};
-   // só os campos que mudaram, no máximo 5 vezes por segundo
+   const agora=Date.now(),eu=db.ref('online/'+user.uid),sala=me.sala||'ilha:'+user.uid;
+   // rápido: posição, vida, ping e sons de ataque vão para pos/{sala}/{uid}, só para quem está no mesmo lugar
+   if(sala!==this.posSala)trocarPos(sala);
+   if(me.sons&&me.sons.length){this.somSeq=(this.somSeq+1)%1000;this.sons=me.sons.slice(0,4).map(t=>String(t).replace(/[|,]/g,'').slice(0,40)).join(',')}
+   const rapido=[me.x,me.y,me.fx,me.fy,Math.round(me.hp*100)/100,me.dead?1:0,Math.round(me.ping||0),this.somSeq,this.sons].join('|');
+   if(rapido!==this.rapidoEnviado&&agora-this.ultimoRapido>=90){this.ultimoRapido=agora;this.rapidoEnviado=rapido;db.ref('pos/'+sala+'/'+user.uid).set(rapido).catch(()=>{})}
+   // lento: nome, classe, equipamento e sala (lista de jogadores e amigos); posição só de vez em quando
+   const dados={name:this.name,cls:me.cls,sex:me.sex,lvl:me.lvl,hp:Math.round(me.hp*10)/10,dead:me.dead,dg:me.dg,eq:me.eq,sala};
+   if(agora-this.ultimoPos>=1500||this.enviado.sala!==sala){dados.x=me.x;dados.y=me.y}
    const mudou={};for(const k in dados)if(JSON.stringify(dados[k])!==JSON.stringify(this.enviado[k]))mudou[k]=dados[k];
-   if(Object.keys(mudou).length&&agora-this.ultimoPos>=200){this.ultimoPos=agora;Object.assign(this.enviado,mudou);eu.update(mudou)}
+   if(Object.keys(mudou).length&&(agora-this.ultimoLento>=1000||'sala' in mudou)){this.ultimoLento=agora;if('x' in mudou)this.ultimoPos=agora;Object.assign(this.enviado,mudou);eu.update(mudou)}
    if(agora-this.ultimoT>20000){this.ultimoT=agora;eu.update({t:firebase.database.ServerValue.TIMESTAMP})}
    for(const m of chat){
     // canal global ('g') para todos; local ('l') só para quem está na mesma sala
@@ -144,16 +159,47 @@
   },
   // troca de nome pelo chat (/nome): o nome precisa estar livre; devolve true ou false
   async rename(nome){if(!await reservarNome(nome))return false;this.name=nome;return true},
-  leave(){if(user)db.ref('online/'+user.uid).remove().catch(()=>{})}
+  leave(){if(user){db.ref('online/'+user.uid).remove().catch(()=>{});if(this.posSala)db.ref('pos/'+this.posSala+'/'+user.uid).remove().catch(()=>{})}}
  };
+ /* ---- posições rápidas da sala atual: pos/{sala}/{uid} = "x|y|fx|fy|hp|morto|ping|seqSom|sons" ---- */
+ const ATRASO_MS=110,amostras=new Map(),rapidos=new Map();let posOff=null;
+ function aplicarRapido(id,s){
+  if(id===user.uid||typeof s!=='string')return;
+  const [x,y,fx,fy,hp,dead,ping,seq,sons]=s.split('|'),r={x:+x,y:+y,fx:+fx||0,fy:+fy||0,hp:+hp,dead:dead==='1',ping:+ping||0};
+  if(!Number.isFinite(r.x)||!Number.isFinite(r.y))return;
+  const ant=rapidos.get(id);rapidos.set(id,Object.assign(r,{seq}));
+  const a=amostras.get(id)||[];a.push({t:performance.now(),x:r.x,y:r.y});
+  // teleporte (troca de mapa, entrada em DG): começa do ponto novo
+  if(a.length>1&&Math.hypot(a[a.length-2].x-r.x,a[a.length-2].y-r.y)>160)a.splice(0,a.length-1);
+  while(a.length>12)a.shift();amostras.set(id,a);
+  const o=nuvem.outros.get(id);if(o)Object.assign(o,{x:r.x,y:r.y,fx:r.fx,fy:r.fy,hp:r.hp,dead:r.dead,ping:r.ping,sala:nuvem.posSala});
+  if(ant&&seq!==ant.seq&&sons&&nuvem.aoSom)nuvem.aoSom(id,sons.split(','),r);
+ }
+ function trocarPos(sala){
+  if(posOff){posOff();posOff=null}
+  if(nuvem.posSala)db.ref('pos/'+nuvem.posSala+'/'+user.uid).remove().catch(()=>{});
+  amostras.clear();rapidos.clear();nuvem.posSala=sala;nuvem.rapidoEnviado='';
+  if(!sala)return;
+  db.ref('pos/'+sala+'/'+user.uid).onDisconnect().remove();
+  const r=db.ref('pos/'+sala),add=s=>aplicarRapido(s.key,s.val()),rem=s=>{amostras.delete(s.key);rapidos.delete(s.key)};
+  r.on('child_added',add);r.on('child_changed',add);r.on('child_removed',rem);
+  posOff=()=>{r.off('child_added',add);r.off('child_changed',add);r.off('child_removed',rem)};
+ }
  function ligarOnline(){
   const lista=db.ref('online');
-  const guardar=s=>nuvem.outros.set(s.key,s.val()||{});
+  // o registro lento não apaga a posição rápida de quem está na mesma sala
+  const guardar=s=>{
+   const v=s.val()||{},o=nuvem.outros.get(s.key)||{};
+   for(const k of Object.keys(o))if(!(k in v))delete o[k];
+   Object.assign(o,v);
+   const r=rapidos.get(s.key);if(r&&v.sala===nuvem.posSala)Object.assign(o,{x:r.x,y:r.y,fx:r.fx,fy:r.fy,hp:r.hp,dead:r.dead,ping:r.ping});
+   nuvem.outros.set(s.key,o);
+  };
   lista.on('child_added',guardar);lista.on('child_changed',guardar);lista.on('child_removed',s=>nuvem.outros.delete(s.key));
   db.ref('.info/serverTimeOffset').on('value',s=>nuvem.offset=s.val()||0);
   db.ref('.info/connected').on('value',s=>{
    nuvem.conectado=!!s.val();
-   if(nuvem.conectado){const eu=db.ref('online/'+user.uid);eu.onDisconnect().remove();nuvem.enviado={};nuvem.ultimoT=0}
+   if(nuvem.conectado){const eu=db.ref('online/'+user.uid);eu.onDisconnect().remove();nuvem.enviado={};nuvem.ultimoT=0;nuvem.rapidoEnviado='';if(nuvem.posSala)db.ref('pos/'+nuvem.posSala+'/'+user.uid).onDisconnect().remove()}
   });
   const receber=canal=>s=>{
    const v=s.val()||{};if(typeof v.text!=='string')return;
@@ -322,7 +368,8 @@
   if(perfil.nome)await liberarNome(chaveNome(perfil.nome));
   // amigos: some da lista dos outros também
   try{const a=(await db.ref('amigos/'+uid).get()).val()||{};for(const id of Object.keys(a))await db.ref('amigos/'+id+'/'+uid).remove().catch(()=>{})}catch(e){}
-  for(const k of ['saves','perfis','online','amigos','grupos','convites','sussurros','ultimaMsg'])await db.ref(k+'/'+uid).remove().catch(()=>{});
+  if(nuvem.posSala)await db.ref('pos/'+nuvem.posSala+'/'+uid).remove().catch(()=>{});
+  for(const k of ['saves','perfis','online','amigos','grupos','convites','sussurros','ultimaMsg','ping'])await db.ref(k+'/'+uid).remove().catch(()=>{});
   try{await user.delete()}
   catch(e){
    if(e.code!=='auth/requires-recent-login')throw e;

@@ -77,7 +77,6 @@ passiveData.forEach(s=>{
  PDEF[s.id]={n:s.name||s.id,t:s.desc||auto,stats:s.stats||{},hp:n(s.hp),mp:n(s.mp),dmg:n(s.dmg),arm:n(s.arm),magicArm:n(s.magicArm),spd:n(s.spd),moveSpeed:n(s.moveSpeed),attackSpeed:n(s.attackSpeed),F:n(s.F),A:n(s.A),I:n(s.I)}});
 
 /* ---------- classes (builds) ---------- */
-const place=[[-72,-8],[72,-8],[-30,-40],[30,-40],[-80,40],[80,40],[0,-52]];let pi=0;
 L('classes').forEach(c=>{
  if(!c.id)return;
  const isBase=!!CL[c.id],previousSkills=SKS[c.id]||[];
@@ -92,7 +91,7 @@ L('classes').forEach(c=>{
  const createdSkills=(Array.isArray(c.skills)?c.skills:[]).slice(0,6).map(r=>({d:SDEF[r.id],rank:Math.max(1,Math.min(10,n(r.rank,n(r.lv,1))))})).filter(r=>r.d).sort((x,y)=>x.rank-y.rank).map(r=>({...r.d,rank:r.rank,owner:c.id}));
  SKS[c.id]=createdSkills.length?createdSkills:previousSkills;
  HS[c.id]=HS[base];
- if(!isBase)while(pi<place.length){const [dx,dy]=place[pi++];if(walk(CX+dx,CY+dy)){NPCS.push({cls:c.id,nm:CL[c.id].n,x:CX+dx,y:CY+dy});break}}});
+});
 
 const port=$('port');
 if(port)port._tip=()=>{const c=CL[p.cls],ps=c.passive;return'<b>'+c.n+'</b>'+(ps&&ps.n?'<div class=tw>Passiva: '+ps.n+'</div><div>'+(ps.d||'')+'</div>':'')

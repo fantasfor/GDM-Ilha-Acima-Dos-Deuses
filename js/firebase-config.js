@@ -16,3 +16,15 @@ window.FIREBASE_CONFIG = {
    Opções: 'google', 'github', 'microsoft', 'email', 'convidado'.
    Cada uma precisa estar ativada em Authentication > Sign-in method no Firebase. */
 window.LOGIN_PROVEDORES = ['google', 'email', 'convidado'];
+
+/* Chat de voz: servidor TURN (opcional, mas recomendado).
+   A voz vai direto entre os jogadores. Em muitas redes (internet móvel, alguns provedores de fibra
+   com CGNAT, redes de empresa) a conexão direta é bloqueada e ninguém se escuta: o TURN repassa o áudio.
+   O Metered (metered.ca) tem plano grátis: crie a conta, crie um app e copie a URL de credenciais,
+   que tem este formato:
+     https://SEU-APP.metered.live/api/v1/turn/credentials?apiKey=SUA_CHAVE
+   Passo a passo em ferramentas/LEIA-ME-GITHUB-PAGES.md. */
+window.VOZ_TURN_URL = 'https://gdm-ilha-acima-dos-deuses.metered.live/api/v1/turn/credentials?apiKey=d5d4bb650a22e3b67985baa85004417879b0';
+/* Ou, se tiver outro servidor TURN, coloque a lista aqui:
+   [{ urls: 'turn:servidor:3478', username: 'usuario', credential: 'senha' }] */
+window.VOZ_ICE = [];

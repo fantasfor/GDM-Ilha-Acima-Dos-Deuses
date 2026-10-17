@@ -456,7 +456,10 @@ function canSee(x,y){
  return !visionTrees().some(t=>treeHit(p.x,p.y,dx,dy,t)<1)
 }
 function drawVision(){
- if(fog.width!=cv.width||fog.height!=cv.height){fog.width=cv.width;fog.height=cv.height;fogMaskCv.width=cv.width;fogMaskCv.height=cv.height}
+ // a névoa é toda borrada: desenhada em resolução reduzida (Q) e ampliada, custa uma fração do tempo
+ const Q=window.modoDesempenho?.2:.35,S0=S,FW=Math.max(1,Math.ceil(cv.width*Q)),FH=Math.max(1,Math.ceil(cv.height*Q));
+ if(fog.width!=FW||fog.height!=FH){fog.width=FW;fog.height=FH;fogMaskCv.width=FW;fogMaskCv.height=FH}
+ {const S=S0*Q;
  const FOG_A=.80,FOG_RGB='58,66,72',W=fog.width,H=fog.height,cx=W/2,cy=H/2,r=VISION_RANGE*S;
  // máscara de visão: polígono de raios (bloqueado pelas árvores), borrado e com borda radial suave
  const m=fogMask;m.setTransform(1,0,0,1,0,0);m.globalCompositeOperation='source-over';m.filter='none';m.clearRect(0,0,W,H);
@@ -482,9 +485,11 @@ function drawVision(){
  });
  fogCtx.setTransform(1,0,0,1,0,0);fogCtx.globalAlpha=1;
  fogCtx.globalCompositeOperation='destination-out';fogCtx.drawImage(fogMaskCv,0,0);fogCtx.globalCompositeOperation='source-over';
- ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(fog,0,0);ctx.restore()
+ }
+ ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='low';ctx.drawImage(fog,0,0,cv.width,cv.height);ctx.restore()
 }
 function drawDynamicLighting(){
+ if(window.modoDesempenho)return;
  const W=cv.width,H=cv.height;
  const sources=[],screen=(x,y)=>({x:W/2+(x-p.x)*S,y:H/2+(y-p.y)*S});
  const add=(x,y,r,color,power=1)=>{const pt=screen(x,y);if(pt.x+r<0||pt.x-r>W||pt.y+r<0||pt.y-r>H)return;sources.push({...pt,r:r*S,color,power})};

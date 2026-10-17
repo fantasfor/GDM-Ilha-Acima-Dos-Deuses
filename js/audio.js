@@ -5,27 +5,42 @@ let audio=null,noiseBuffer=null;
 const clips=new Map(),loops=new Map();
 let unlocked=false,lastScene='';
 const settings=()=>PROJ.audio||{};
+/* saída de som (alto-falante/fone) e volume geral, escolhidos pelo jogador; js/voz.js usa a mesma saída */
+const SOM_KEY='ilha-rpg-som';
+const SOM=window.SOM=Object.assign({saida:'',volume:100},(()=>{try{return JSON.parse(localStorage.getItem(SOM_KEY)||'{}')}catch(e){return {}}})());
+let escala=1; // volume deste som (sons de outros jogadores ficam mais baixos com a distância)
+const ganho=()=>escala*Math.max(0,Math.min(1,(+SOM.volume||0)/100));
+const elementos=new Set(); // todos os <audio> do jogo, para trocar a saída de uma vez
+function saidaEm(el){if(el&&el.setSinkId&&SOM.saida!==undefined)el.setSinkId(SOM.saida||'').catch(()=>{})}
+SOM.salvar=()=>{try{localStorage.setItem(SOM_KEY,JSON.stringify({saida:SOM.saida,volume:SOM.volume}))}catch(e){}};
+SOM.aplicarSaida=el=>{if(el)saidaEm(el);else{elementos.forEach(saidaEm);if(audio&&audio.setSinkId)audio.setSinkId(SOM.saida||'').catch(()=>{})}window.dispatchEvent(new Event('som-saida'))};
+SOM.definirSaida=id=>{SOM.saida=id||'';SOM.salvar();SOM.aplicarSaida()};
+SOM.definirVolume=v=>{SOM.volume=Math.max(0,Math.min(100,Math.round(+v||0)));SOM.salvar()};
+SOM.suportaSaida=()=>'setSinkId' in HTMLMediaElement.prototype;
+SOM.dispositivos=async tipo=>{try{return (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind===tipo)}catch(e){return []}};
+SOM.testar=()=>window.playGameSound&&playGameSound('coin');
+const registrar=el=>{elementos.add(el);if(SOM.saida)saidaEm(el);return el};
 function playClip(config,loop=false){
  if(!config||!config.src)return null;
  const key=config.src;
  let clip=clips.get(key);
  if(!clip){
-  clip=new window.Audio(key);clip.preload='auto';
+  clip=registrar(new window.Audio(key));clip.preload='auto';
   clip.addEventListener('error',()=>console.error('Não foi possível carregar o áudio:',config.name||key.slice(0,120)));
   clips.set(key,clip)
  }
  const voice=loop||!clip.paused?clip.cloneNode():clip;
- if(voice!==clip)voice.addEventListener('error',()=>console.error('Não foi possível carregar o áudio:',config.name||key.slice(0,120)));
- voice.volume=Math.max(0,Math.min(1,Number.isFinite(+config.volume)?+config.volume:.5));voice.loop=loop;
+ if(voice!==clip){voice.addEventListener('error',()=>console.error('Não foi possível carregar o áudio:',config.name||key.slice(0,120)));if(SOM.saida)saidaEm(voice)}
+ voice.volume=Math.max(0,Math.min(1,(Number.isFinite(+config.volume)?+config.volume:.5)*(loop?Math.max(0,Math.min(1,(+SOM.volume||0)/100)):ganho())));voice.loop=loop;
  if(!loop&&voice.readyState>0)voice.currentTime=0;
  voice.play().catch(error=>console.error('Não foi possível reproduzir o áudio '+(config.name||'configurado')+':',error));
  return voice
 }
 window.previewGameAudio=config=>playClip(config);
-window.playEntitySound=(category,id,event)=>{
+window.playEntitySound=(category,id,event,vol=1)=>{
  const entry=(typeof GAMEDATA!=='undefined'&&GAMEDATA[category]||[]).find(d=>d.id==id);
  const config=entry&&entry.sounds&&entry.sounds[event];
- if(config&&config.src){playClip(config);return true}
+ if(config&&config.src){escala=vol;try{playClip(config)}finally{escala=1}return true}
  return false
 };
 function refreshLoops(){
@@ -36,7 +51,7 @@ function refreshLoops(){
   const src=unlocked&&!document.hidden&&sound&&sound.src;
   if(current&&(current.src!==src||scene!==lastScene)){current.voice.pause();loops.delete(kind)}
   if(src&&!loops.has(kind)){const voice=playClip(sound,true);loops.set(kind,{src,voice})}
-  else if(src&&loops.has(kind))loops.get(kind).voice.volume=Math.max(0,Math.min(1,+sound.volume||0));
+  else if(src&&loops.has(kind))loops.get(kind).voice.volume=Math.max(0,Math.min(1,(+sound.volume||0)*Math.max(0,Math.min(1,(+SOM.volume||0)/100))));
  }
  lastScene=scene
 }
@@ -44,7 +59,7 @@ window.refreshGameAudio=refreshLoops;
 setInterval(refreshLoops,500);
 document.addEventListener('visibilitychange',refreshLoops);
 const swordClips=['espada1.mp3','espada2.mp3'].map(file=>{
- const clip=new window.Audio('assets/audio/'+file);
+ const clip=registrar(new window.Audio('assets/audio/'+file));
  clip.preload='auto';clip.volume=.72;
  clip.addEventListener('error',()=>console.error('Não foi possível carregar o som de espada:',clip.src));
  return clip
@@ -52,13 +67,15 @@ const swordClips=['espada1.mp3','espada2.mp3'].map(file=>{
 function unlock(){
  unlocked=true;refreshLoops();
  if(!AudioCtor)return;
- audio=audio||new AudioCtor();
+ criarContexto();
  if(audio.state=='suspended')audio.resume().catch(error=>console.error('Não foi possível iniciar o áudio do jogo:',error));
 }
+function criarContexto(){if(!audio){audio=new AudioCtor();if(SOM.saida&&audio.setSinkId)audio.setSinkId(SOM.saida).catch(()=>{})}return audio}
 document.addEventListener('pointerdown',unlock,{once:true,capture:true});
 document.addEventListener('keydown',unlock,{once:true,capture:true});
 function tone(startFreq,endFreq,duration,type='triangle',volume=.035,delay=0){
  const start=audio.currentTime+delay,osc=audio.createOscillator(),gain=audio.createGain();
+ volume*=ganho();if(volume<=.0002)return;
  osc.type=type;osc.frequency.setValueAtTime(startFreq,start);
  osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),start+duration);
  gain.gain.setValueAtTime(.0001,start);gain.gain.linearRampToValueAtTime(volume,start+.006);
@@ -66,6 +83,7 @@ function tone(startFreq,endFreq,duration,type='triangle',volume=.035,delay=0){
  osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+duration+.01)
 }
 function noise(duration,volume,cutoff,delay=0,filterType='lowpass',endCutoff=cutoff,q=0.7){
+ volume*=ganho();if(volume<=.0002)return;
  if(!noiseBuffer){
   noiseBuffer=audio.createBuffer(1,audio.sampleRate, audio.sampleRate);
   const samples=noiseBuffer.getChannelData(0);
@@ -81,7 +99,8 @@ function noise(duration,volume,cutoff,delay=0,filterType='lowpass',endCutoff=cut
 function playSword(){
  const clip=swordClips[Math.floor(Math.random()*swordClips.length)];
  const voice=clip.paused?clip:clip.cloneNode();
- voice.volume=clip.volume;
+ if(voice!==clip&&SOM.saida)saidaEm(voice);
+ voice.volume=Math.max(0,Math.min(1,.72*ganho()));
  if(voice.readyState>0)voice.currentTime=0;
  const playback=voice.play();
  if(playback)playback.catch(error=>console.error('Não foi possível reproduzir o som de espada:',error))
@@ -103,15 +122,19 @@ const sounds={
  item:()=>{tone(420,560,.13,'sine',.018);tone(620,830,.18,'sine',.012,.075)},
  defeat:()=>{tone(330,196,.28,'sine',.018);tone(164,98,.32,'sine',.009,.06)}
 };
-window.playGameSound=function(name){
+// vol: 0 a 1, multiplica o volume (sons de outros jogadores, pela distância)
+window.playGameSound=function(name,vol=1){
  const config=settings();
- if(config[name]&&config[name].src){playClip(config[name]);return}
- if(name=='sword'){playSword();return}
- if(!AudioCtor)return;
- const play=sounds[name];
- if(!play)return;
- audio=audio||new AudioCtor();
- if(audio.state=='suspended')audio.resume().then(play).catch(error=>console.error('Não foi possível iniciar o áudio do jogo:',error));
- else play()
+ escala=vol;
+ try{
+  if(config[name]&&config[name].src){playClip(config[name]);return}
+  if(name=='sword'){playSword();return}
+  if(!AudioCtor)return;
+  const play=sounds[name];
+  if(!play)return;
+  criarContexto();
+  if(audio.state=='suspended')audio.resume().then(()=>{escala=vol;try{play()}finally{escala=1}}).catch(error=>console.error('Não foi possível iniciar o áudio do jogo:',error));
+  else play()
+ }finally{escala=1}
 };
 })();

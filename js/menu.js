@@ -4,6 +4,7 @@ const KEY='ilha-rpg-save',OPT='ilha-rpg-opt',$$=(t,c,h)=>{const e=document.creat
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 let opt={zoom:1,mm:170};try{Object.assign(opt,JSON.parse(ls.get(OPT)||'{}'))}catch(e){}
 window.autoTargetAfterKill=opt.autoTargetAfterKill!==false;
+window.modoDesempenho=!!opt.desempenho;
 window.MMR=opt.mm;setZoom(opt.zoom);
 const saveOpt=()=>ls.set(OPT,JSON.stringify(opt));
 const zoom=z=>{setZoom(z);opt.zoom=ZM;saveOpt()},mmz=f=>{window.MMR=opt.mm=Math.max(90,Math.min(380,Math.round(opt.mm*f)));saveOpt()};
@@ -44,7 +45,24 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   bind(r1,()=>ZM,v=>zoom(v),v=>Math.round(v*100)+'%');bind(r2,()=>opt.mm,v=>{window.MMR=opt.mm=v;saveOpt()},v=>v);
   const r3=$$('label','mrow','<span>Atacar outro inimigo automaticamente após derrotar o alvo</span><input type="checkbox">'),check=r3.querySelector('input');
   check.checked=window.autoTargetAfterKill;check.onchange=()=>{window.autoTargetAfterKill=opt.autoTargetAfterKill=check.checked;saveOpt()};
-  box.append(r1,r2,r3);back()}
+  const caixa=(texto,get,set)=>{const r=$$('label','mrow','<span>'+texto+'</span><input type="checkbox">'),c=r.querySelector('input');c.checked=get();c.onchange=()=>set(c.checked);return r};
+  // desempenho e rede
+  const r4=caixa('Modo desempenho (menos luzes e névoa mais leve, para computadores fracos)',()=>!!window.modoDesempenho,v=>{window.modoDesempenho=opt.desempenho=v;saveOpt()});
+  box.append(r1,r2,r3,r4);
+  if(window.REDE)box.append(caixa('Mostrar ping e FPS no canto da tela',()=>REDE.mostrar,v=>{REDE.mostrar=v}));
+  // som: volume, saída (alto-falante/fone) e, com conta, a voz
+  if(window.SOM){
+   const rv=$$('div','mrow','<span>Volume do jogo</span><input type=range min=0 max=100 step=5><b></b>');
+   bind(rv,()=>SOM.volume,v=>SOM.definirVolume(v),v=>Math.round(v)+'%');rv.querySelector('input').addEventListener('change',()=>SOM.testar());
+   box.append(rv);
+   if(SOM.suportaSaida()){
+    const rs=$$('label','mrow','<span>Saída de som</span>'),sel=$$('select');sel.append(new Option('Padrão do sistema',''));rs.append(sel);box.append(rs);
+    SOM.dispositivos('audiooutput').then(lista=>{lista.filter(d=>d.deviceId!=='default').forEach((d,i)=>sel.append(new Option(d.label||'Saída '+(i+1),d.deviceId)));sel.value=SOM.saida;if(sel.value!==SOM.saida)sel.value=''});
+    sel.onchange=()=>{SOM.definirSaida(sel.value);SOM.testar()};
+   }
+   if(window.VOZ&&VOZ.abrirConfig)box.append(B('Configurar voz e microfone',()=>{toggle();VOZ.abrirConfig()}));
+  }
+  back()}
  else{h('Controles');if(window.TECLAS)TECLAS.painel(box,()=>show());
   box.append($$('h3','teclasGrupo','Dicas'),$$('div','mhelp','Aceite a madeira e a madeira mágica dos Brotos Vivos nos itens encontrados; elas ficam em Materiais na mochila.<br>Após construir a paliçada, fale com o carpinteiro e entregue 10 madeiras mágicas para construir o portal do acampamento.<br>Monstros pedidos em missões recebem +20% no peso de spawn enquanto são necessários.<br>Chat: <kbd>/nome NovoNome</kbd> muda seu nome · <kbd>/s Nome mensagem</kbd> sussurra para alguém.'));back()}}
 show();
@@ -65,7 +83,7 @@ if(typeof hurtP=='function'){const h1=hurtP;hurtP=function(d,m){const r=h1.apply
 const draw0=draw;draw=function(){draw0();const dt=Math.min(.05,Math.max(0,time-pt));pt=time;
  ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));
  // sombras de nuvens
- for(let i=0;i<6;i++){const x=(i*431+time*7)%(W+500)-250,y=(i*263+40)%W,g=ctx.createRadialGradient(x,y,4,x,y,110);g.addColorStop(0,'rgba(6,16,30,.13)');g.addColorStop(1,'rgba(6,16,30,0)');ctx.fillStyle=g;ctx.fillRect(x-110,y-110,220,220)}
+ if(!window.modoDesempenho)for(let i=0;i<6;i++){const x=(i*431+time*7)%(W+500)-250,y=(i*263+40)%W,g=ctx.createRadialGradient(x,y,4,x,y,110);g.addColorStop(0,'rgba(6,16,30,.13)');g.addColorStop(1,'rgba(6,16,30,0)');ctx.fillStyle=g;ctx.fillRect(x-110,y-110,220,220)}
  // rastro de projéteis e meteoros
  proj.forEach(q=>part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3)));
  const cur=mets.slice();pm.forEach(m=>{if(!cur.includes(m)){burst(m.x,m.y,'#ff8a2a',40,95,.7);burst(m.x,m.y,'#ffe08a',18,60,.5);ringFx(m.x,m.y,4,40,.5,'#f93');ringFx(m.x,m.y,2,26,.4,'#fff')}});pm=cur;

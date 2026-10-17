@@ -65,11 +65,12 @@ Abra **Authentication › Settings › Authorized domains** e adicione:
 
 ## 6. Gerar a pasta e publicar
 
-1. Rode **`Publicar-GitHub-Pages.bat`** na pasta `Jogo`. Ele monta `Jogo/github-pages/` só com o que o jogo usa e mostra se o online está ativo.
+1. Rode **`Publicar-GitHub-Pages.bat`** na pasta `Jogo`. Ele monta, dentro do repositório clonado em `Jogo/GDM-Ilha-Acima-Dos-Deuses/GDM-Ilha-Acima-Dos-Deuses/`, só o que o jogo usa, e mostra se o online está ativo.
 2. Crie um repositório **público** em <https://github.com/new> (ex.: `ilha-rpg`).
-3. Envie o **conteúdo** da pasta `github-pages`. Há duas formas:
-   - **Pelo site:** no repositório, use **Add file › Upload files** e arraste tudo o que está dentro de `github-pages`.
-   - **Pelo terminal** (com o Git instalado), na pasta `github-pages`:
+3. Envie o **conteúdo** dessa pasta. Há três formas:
+   - **Pelo GitHub Desktop:** faça **Commit** e depois **Push origin**.
+   - **Pelo site:** no repositório, use **Add file › Upload files** e arraste tudo o que está dentro da pasta.
+   - **Pelo terminal** (com o Git instalado), dentro da pasta:
 
      ```
      git init
@@ -87,7 +88,8 @@ Abra **Authentication › Settings › Authorized domains** e adicione:
 1. Edite na Engine e salve com Ctrl+S.
 2. Rode `Publicar-GitHub-Pages.bat` de novo. Ele mantém a pasta `.git`.
 3. Envie as mudanças:
-   - **Pelo terminal:** na pasta `github-pages`, rode `git add .`, depois `git commit -m "Atualização"` e `git push`.
+   - **Pelo GitHub Desktop:** **Commit** e depois **Push origin**.
+   - **Pelo terminal:** na pasta do repositório, rode `git add .`, depois `git commit -m "Atualização"` e `git push`.
    - **Pelo site:** faça o upload de novo.
 
 Os arquivos vão marcados com a versão, então os jogadores recebem a atualização ao recarregar a página.
@@ -108,7 +110,7 @@ Os arquivos vão marcados com a versão, então os jogadores recebem a atualiza�
 |---|---|
 | **Cada um tem sua ilha** | Ao entrar, você está sozinho na sua ilha, com seus monstros e seu progresso. Cabem **até 4 pessoas** numa ilha. |
 | **Convidar para a ilha** | Botão **Jogadores** (na barra do chat, tecla P) › **Convidar p/ ilha**. Quem aceita vai para a sua ilha e vê os seus monstros, que atacam qualquer um. **XP e ouro são divididos** em partes iguais entre quem participou da batalha: quem causou dano ou efeito no monstro, ou usou cura, bênção ou proteção nos últimos 15 segundos. Com 2 jogadores, cada um recebe 50%. Os itens vêm para cada participante. **Voltar para minha ilha** fica no mesmo painel. |
-| **Amigos** | **Jogadores** › **Adicionar amigo**. Depois que o outro aceita, ele aparece em **Amigos**, online ou offline. **Visitar** leva direto para a ilha dele, sem convite. **Sussurrar** abre uma mensagem privada. |
+| **Amigos** | **Jogadores** › **Adicionar amigo**. Depois que o outro aceita, ele aparece em **Amigos**, online ou offline. **Visitar** leva direto para a ilha dele, sem convite. Com o amigo online, dá para **Convidar p/ grupo** e **Convidar p/ ilha** direto da lista. **Sussurrar** abre uma mensagem privada. |
 | **Sussurro** | No chat: `/s Nome mensagem`. Para responder o último sussurro: `/r mensagem`. Os sussurros recebidos enquanto você estava offline aparecem quando você entra. |
 | **Grupo de DG (até 5)** | **Jogadores** › **Convidar p/ grupo**. O líder entra numa DG pelo portal do acampamento e o grupo recebe o aviso **Entrar**. Os inimigos ficam mais fortes a cada jogador extra: +60% de vida e +15% de dano. Se o líder sair, o grupo volta. |
 | **Taverna** | Botão **Taverna** no canto de cima. É o ponto de encontro de todos, sem monstros. As habilidades interagem entre os jogadores: curas curam quem está perto (ou o jogador mirado), bênçãos e proteções fortalecem e ataques só empurram, sem dano. A taverneira vende uma bebida que enche a vida e a mana. |
@@ -118,9 +120,39 @@ Os arquivos vão marcados com a versão, então os jogadores recebem a atualiza�
 | **Salvamento** | Automático, sem salvar ou carregar manual: o que você faz não tem volta. Para recomeçar do zero, use o link vermelho **Excluir conta** no fim do menu (Esc). Ele apaga o personagem, o progresso, o nome, os amigos e o login, e volta para a tela de entrada, onde dá para criar outro personagem. |
 | **Controles** | Menu › **Controles**: clique numa ação e aperte a nova tecla. Se a tecla já estiver em uso, as duas ações trocam. |
 
-**Ao atualizar de uma versão anterior, publique de novo as regras** de `regras-firebase.json` (passo 3): as regras novas cobrem salas, convites, grupos e voz.
+**Ao atualizar de uma versão anterior, publique de novo as regras** de `regras-firebase.json` (passo 3). As regras novas cobrem salas, convites, grupos, voz, nomes, posições (`pos`) e ping. Sem elas, os outros jogadores não aparecem.
 
-**A voz** vai direto entre os jogadores (WebRTC), sem passar pelo Firebase. Em algumas redes muito fechadas (empresas, alguns 4G), ela pode não conectar. Para essas redes seria preciso um servidor TURN, que é pago.
+**A voz** vai direto entre os jogadores (WebRTC), sem passar pelo Firebase. Em muitas redes a conexão direta é bloqueada e ninguém se escuta: internet móvel (4G/5G), provedores de fibra com CGNAT e redes de empresa. Para essas redes é preciso um **servidor TURN**, que repassa o áudio. Veja a seção abaixo.
+
+### Servidor TURN para a voz (recomendado)
+
+O Metered tem um plano grátis com alguns GB de TURN por mês. Confira o limite atual no painel deles.
+
+1. Crie a conta em <https://dashboard.metered.ca/signup> e escolha o plano **Free**.
+2. No painel, crie um app. Ele ganha um endereço do tipo `SEU-APP.metered.live`.
+3. Em **TURN Server › Credentials**, crie uma credencial (API key).
+4. Monte a URL e cole em `window.VOZ_TURN_URL`, no arquivo `Jogo/js/firebase-config.js`:
+
+   ```js
+   window.VOZ_TURN_URL = 'https://SEU-APP.metered.live/api/v1/turn/credentials?apiKey=SUA_CHAVE';
+   ```
+5. Rode o `Publicar-GitHub-Pages.bat` e envie as mudanças.
+
+Se você tiver outro servidor TURN, coloque os dados dele em `window.VOZ_ICE`, no mesmo arquivo.
+
+Na engrenagem da voz, cada pessoa aparece com o estado **conectado**, **conectando…** ou **sem conexão**. Se aparecer "sem conexão", a rede bloqueou a conexão direta. Sem TURN, o jogo tenta de novo 3 vezes e depois avisa no chat.
+
+## Ping, FPS e desempenho
+
+- **Ping e FPS:** aparecem no canto de cima à direita. Para esconder, use Menu › Opções › **Mostrar ping e FPS**. Até 90 ms fica verde, até 180 ms amarelo e acima disso vermelho. No painel **Jogadores** aparece também o ping de quem está no mesmo lugar.
+- **Modo desempenho:** fica em Menu › Opções. Tira as luzes e deixa a névoa mais leve, para computadores fracos.
+- **Rede:** cada jogador só recebe os movimentos de quem está no mesmo lugar, até 10 vezes por segundo. Os outros personagens andam suavizados, mesmo quando a internet oscila.
+
+## Som
+
+- **Volume do jogo e saída de som:** ficam em Menu › Opções. A saída pode ser o alto-falante ou o fone e vale para os sons do jogo e para a voz.
+- **Entrada (microfone) e saída:** também podem ser escolhidas na engrenagem da voz.
+- **Ataques dos outros jogadores:** os golpes e as habilidades de quem está no mesmo lugar tocam para você, mais baixos quanto mais longe.
 
 ## Limites do plano gratuito (Spark)
 

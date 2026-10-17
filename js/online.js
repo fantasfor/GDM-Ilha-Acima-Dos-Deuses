@@ -7,7 +7,7 @@
 (function(){
  const nuvem=!!window.CONTA_ATIVA;
  if(MODO.teste||MODO.motor||(!nuvem&&!/^https?:$/.test(location.protocol)))return;
- const KEY='ilha-rpg-online',SYNC_MS=200,BUBBLE_S=6,LOG_MAX=40;
+ const KEY='ilha-rpg-online',SYNC_MS=nuvem?100:200,BUBBLE_S=6,LOG_MAX=40,SOM_ALCANCE=330;
  const store={get(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return {}}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
  const cfg=Object.assign({name:''},store.get());
  if(!cfg.name){cfg.name='Aventureiro'+Math.floor(1000+Math.random()*9000);store.set(cfg)}
@@ -93,11 +93,29 @@
   e.preventDefault();openChat();
  });
 
+ /* ---- sons de combate: os golpes e habilidades deste jogador tocam para os outros da sala ---- */
+ const filaSons=[];
+ window.somDoJogador=token=>{if(nuvem&&filaSons.length<6)filaSons.push(token)};
+ function tocarSomRemoto(token,vol){
+  const ps=window.playEntitySound,pg=window.playGameSound;let m;
+  if((m=token.match(/^h\.(.+)\.([01])$/))){if(!(ps&&ps('monsters',m[1],'hurt',vol))&&pg)pg(m[2]==='1'?'magicHit':'sword',vol)}
+  else if((m=token.match(/^c\.(.+)$/))){if(!(ps&&ps('skills',m[1],'cast',vol))&&pg)pg('magic',vol)}
+  else if((m=token.match(/^b\.(.+)$/))&&ps)ps('skills',m[1],'cast',vol);
+ }
+ if(nuvem&&window.ONLINE_NUVEM)ONLINE_NUVEM.aoSom=(id,tokens,r)=>{
+  if(p.dead>0&&!r)return;
+  const d=Math.hypot(r.x-p.x,r.y-p.y);if(d>SOM_ALCANCE)return;
+  // mais baixo que os próprios sons e cada vez mais baixo com a distância
+  const vol=.75*Math.max(.15,1-d/SOM_ALCANCE);
+  tokens.slice(0,3).forEach((t,i)=>setTimeout(()=>tocarSomRemoto(t,vol),i*60));
+ };
+
  /* ---- sincronização com o servidor ---- */
  function snapshot(){
   const eq={};for(const slot of ['he','ch','le','bo','ca','ne','sw','sh'])if(EQ[slot])eq[slot]=EQ[slot].id;
   return {id:myId,name:cfg.name,cls:p.cls,sex:p.sex,lvl:p.lvl,x:Math.round(p.x),y:Math.round(p.y),fx:Math.sign(p.fx||0),fy:Math.sign(p.fy||0),
-   hp:Math.max(0,Math.min(1,p.hp/Math.max(1,mhp()))),dead:p.dead>0,dg:!!window.inDungeon,eq,sala:minhaSala()};
+   hp:Math.max(0,Math.min(1,p.hp/Math.max(1,mhp()))),dead:p.dead>0,dg:!!window.inDungeon,eq,sala:minhaSala(),
+   ping:window.REDE?REDE.ping:0,sons:filaSons.splice(0)};
  }
  let joined=false;
  async function sync(){
@@ -133,7 +151,7 @@
    if(!o){o={x:j.x,y:j.y,fx:0,fy:1};others.set(j.id,o)}
    // trocou de lugar (ilha, DG, taverna): as coordenadas são de outro mapa
    if(o.sala!==j.sala){o.x=j.x;o.y=j.y}
-   Object.assign(o,{id:j.id,name:j.name,cls:j.cls,sex:j.sex,lvl:j.lvl,tx:j.x,ty:j.y,hp:j.hp,dead:j.dead,dg:j.dg,sala:j.sala,eq:j.eq||{},left:false,at:now});
+   Object.assign(o,{id:j.id,name:j.name,cls:j.cls,sex:j.sex,lvl:j.lvl,tx:j.x,ty:j.y,hp:j.hp,dead:j.dead,dg:j.dg,sala:j.sala,eq:j.eq||{},ping:j.ping||0,left:false,at:now});
    if(Math.hypot(o.x-j.x,o.y-j.y)>140){o.x=j.x;o.y=j.y}
    if(j.fx||j.fy){o.fx=j.fx;o.fy=j.fy}
    const agora=visivel(o);
@@ -175,7 +193,10 @@
   if(window.vozFalando&&vozFalando(myId)&&p.dead<=0)list.push([p.y+.2,()=>falaIcone(p.x,p.y-30)]);
   for(const o of others.values()){
    if(!visivel(o)||o.tx==null)continue;
-   const k=Math.min(1,dt*10);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k;
+   // com conta: posição interpolada entre as amostras recebidas (movimento liso mesmo com a rede oscilando)
+   const q=nuvem&&window.ONLINE_NUVEM&&ONLINE_NUVEM.posicao?ONLINE_NUVEM.posicao(o.id):null;
+   if(q){o.x=q.x;o.y=q.y}
+   else{const k=Math.min(1,dt*10);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k}
    if(Math.abs(o.x-p.x)>320||Math.abs(o.y-p.y)>240)continue;
    list.push([o.y,()=>{
     const f=face(o),an=anim(o,0);ctx.globalAlpha=o.dead?.35:1;

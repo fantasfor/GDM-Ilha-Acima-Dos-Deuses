@@ -9,7 +9,7 @@
    cada um ganha a própria XP, ouro e itens. No grupo, os inimigos da DG ficam mais fortes. */
 (function(){
  if(MODO.teste||MODO.motor||!window.CONTA_ATIVA)return;
- const MAX_GRUPO=5,MAX_ILHA=4,PUB_MS=150,CONVITE_S=90,APOIO_MS=15000;
+ const MAX_GRUPO=5,MAX_ILHA=4,PUB_MS=100,CONVITE_S=90,APOIO_MS=15000;
  // por jogador extra no grupo: +60% de vida e +15% de dano para os inimigos da DG
  const ESCALA_VIDA=.6,ESCALA_DANO=.15;
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
@@ -454,6 +454,11 @@
   if(o.sala.startsWith('dg:'))return 'numa masmorra';
   const dono=hostDe(o.sala);return dono===o.id||dono===o.uid?'na própria ilha':'na ilha de '+MP.nomeDe(dono);
  }
+ // ping de quem está no mesmo lugar (chega junto com a posição)
+ function pingDe(nome,o){
+  if(!o||!(o.ping>0)||o.sala!==MP.sala)return;
+  const c=window.REDE?REDE.cor(o.ping):'';nome.append(el('small','mpPing '+c,o.ping+' ms'));
+ }
  function atualizarPainel(){
   if(painel.hidden)return;
   const box=[];
@@ -482,10 +487,13 @@
   for(const id of ids){
    const o=outros().get(id),on=online(id);
    const li=el('li',on?'':'offline');
-   li.append(el('span','mpNome',(typeof MP.amigos[id]==='string'?MP.amigos[id]:MP.nomeDe(id))+(on?' · Nv '+(o.lvl||1):'')),el('small','',on?onde(Object.assign({id},o)):'offline'));
+   const nm=el('span','mpNome',(typeof MP.amigos[id]==='string'?MP.amigos[id]:MP.nomeDe(id))+(on?' · Nv '+(o.lvl||1):''));if(on)pingDe(nm,o);
+   li.append(nm,el('small','',on?onde(Object.assign({id},o)):'offline'));
    const acoes=el('div','mpAcoes');
    if(on&&o.sala==='ilha:'+id&&MP.visitando!==id)acoes.append(btn('Visitar',()=>visitar(id),'mpBtn ok'));
    if(on&&o.sala==='taverna'&&!window.inTaverna&&window.entrarTaverna)acoes.append(btn('Ir à taverna',()=>entrarTaverna(),'mpBtn ok'));
+   if(on&&!(g&&g.membros&&g.membros[id])&&!(MP.grupoLider&&MP.grupoLider!==uid))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
+   if(on&&o.sala!=='ilha:'+uid)acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
    acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));
    acoes.append(btn('Remover',()=>{if(confirm('Remover '+MP.nomeDe(id)+' dos amigos?'))removerAmigo(id)},'mpBtn perigo'));
    li.append(acoes);ula.append(li);
@@ -495,10 +503,11 @@
   const lista=el('ul','mpLista');let n=0;
   for(const [id,o] of outros()){
    if(id===uid||o.x==null)continue;n++;
-   const li=el('li');li.append(el('span','mpNome',(o.name||'?')+' · Nv '+(o.lvl||1)+(MP.amigos[id]?' · amigo':'')),el('small','',onde(Object.assign({id},o))));
+   const nm=el('span','mpNome',(o.name||'?')+' · Nv '+(o.lvl||1)+(MP.amigos[id]?' · amigo':''));pingDe(nm,o);
+   const li=el('li');li.append(nm,el('small','',onde(Object.assign({id},o))));
    const acoes=el('div','mpAcoes');
-   acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
-   if(!(g&&g.membros&&g.membros[id]))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
+   if(o.sala!=='ilha:'+uid)acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
+   if(!(g&&g.membros&&g.membros[id])&&!(MP.grupoLider&&MP.grupoLider!==uid))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
    if(!MP.amigos[id])acoes.append(btn('Adicionar amigo',()=>convidar(id,'amizade')));
    acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));
    li.append(acoes);lista.append(li);
