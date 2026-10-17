@@ -91,7 +91,7 @@ function openSkillPicker(index,button){
 document.addEventListener('pointerdown',e=>{if(skillPicker.classList.contains('open')&&!skillPicker.contains(e.target)&&!e.target.closest('.skillSelect'))closeSkillPicker()});
 addEventListener('keydown',e=>{if(e.key=='Escape')closeSkillPicker()});
 $('skillBtn').onclick=()=>{skillPanel.classList.toggle('open');if(skillPanel.classList.contains('open'))renderSkillMenu()};
-addEventListener('keydown',e=>{if(e.key.toLowerCase()=='k'){$('skillBtn').click()}});
+addEventListener('keydown',e=>{if(TECLAS.acao(e)=='painel_hab'){$('skillBtn').click()}});
 /* ---------- Missões (cadeia principal dos NPCs) ---------- */
 const QUEST_STEPS=[
  {k:'questDone',n:'Derrotar o Guardião Esqueleto',who:'Principal'},
@@ -323,4 +323,4 @@ function showDrop(){compactDrops();dp.innerHTML='';dp.style.display=drops.length
 function acceptDrop(o=drops[0]){if(!o)return;if(!addItem(o.id,o.q,o.n||1)){ft(p.x,p.y-24,'Bolsa cheia!','#f66');return}if(o.questReward&&o.id=='saw')sawObtained=true;if(window.playGameSound)playGameSound('item');ft(p.x,p.y-16,ITEMS[o.id].n.split(' (')[0]+((o.n||1)>1?' ×'+(o.n||1):''),'#9f9');drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
 function rejectDrop(o=drops[0]){if(!o)return;drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
 function rejectAllDrops(){if(!drops.length)return;drops.length=0;tipEl.style.display='none';showDrop();saveGame()}
-addEventListener('keydown',e=>{if(!drops.length)return;const k=e.key.toLowerCase();if(k=='f')acceptDrop();else if(k=='escape')rejectDrop()});
+addEventListener('keydown',e=>{if(!drops.length)return;if(TECLAS.acao(e)=='pegar')acceptDrop();else if(e.key=='Escape')rejectDrop()});

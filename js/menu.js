@@ -10,7 +10,7 @@ const zoom=z=>{setZoom(z);opt.zoom=ZM;saveOpt()},mmz=f=>{window.MMR=opt.mm=Math.
 /* câmera e minimapa: roda do mouse, teclas e botões */
 cv.addEventListener('wheel',e=>{e.preventDefault();zoom(ZM*(e.deltaY<0?1.1:1/1.1))},{passive:false});
 $('mm').addEventListener('wheel',e=>{e.preventDefault();mmz(e.deltaY<0?.88:1.13)},{passive:false});
-addEventListener('keydown',e=>{if(e.key=='+'||e.key=='=')zoom(ZM*1.1);else if(e.key=='-'||e.key=='_')zoom(ZM/1.1);else if(e.key=='Escape'){if(!(window.closePanels&&closePanels()))toggle()}});
+addEventListener('keydown',e=>{const a=window.TECLAS&&TECLAS.acao(e);if(a=='zoom_mais')zoom(ZM*1.1);else if(a=='zoom_menos')zoom(ZM/1.1);else if(e.key=='Escape'){if(!(window.closePanels&&closePanels()))toggle()}});
 const hb=$$('div');hb.id='hbtns';hb.innerHTML='<button class="ib" data-a="in" title="Aproximar (+)">+</button><button class="ib" data-a="out" title="Afastar (-)">−</button><button class="ib" data-a="menu" title="Menu (Esc)">☰</button>';
 const mz=$$('div');mz.id='mmz';mz.innerHTML='<button class="ib" data-a="min" title="Aproximar minimapa">+</button><button class="ib" data-a="mout" title="Afastar minimapa">−</button>';
 document.body.append(hb,mz);
@@ -22,27 +22,22 @@ const menu=$$('div');menu.id='menu';if(paused&&!MODO.motor)menu.className='open'
 if(started&&window.saveGame)saveGame();
 const upd0=upd;upd=function(dt){if(paused)return;upd0(dt)};
 function toggle(){if(MODO.motor)return;if(paused&&!started)started=true;paused=!paused;view='main';menu.classList.toggle('open',paused);if(paused)show()}
-const hasSave=()=>!!ls.get(KEY),slotKey=i=>'ilha-rpg-slot'+i;
-const info=raw=>{try{const d=JSON.parse(raw);return 'Nv '+d.p.lvl+' · '+((CL[d.p.cls]||{}).n||d.p.cls)+' · '+(d.p.gold|0)+' ouro'}catch(e){return null}};
-const slotData=i=>{try{return JSON.parse(ls.get(slotKey(i)))}catch(e){return null}};
-const restart=raw=>{window._noSave=true;if(window.saveGame)window.saveGame=()=>{};if(raw==null)ls.del(KEY);else ls.set(KEY,raw);sessionStorage.setItem('ilha-skip','1');location.reload()};
+/* O progresso é salvo sozinho o tempo todo (e na conta, quando há login): não existe carregar um
+   ponto antigo, então o que o jogador faz não tem volta. Com conta, recomeçar é "Apagar conta" (js/conta.js). */
+const hasSave=()=>!!ls.get(KEY);
+const restart=()=>{window._noSave=true;if(window.saveGame)window.saveGame=()=>{};ls.del(KEY);sessionStorage.setItem('ilha-skip','1');location.reload()};
 const B=(t,fn,c)=>{const b=$$('button','mb '+(c||''),t);b.onclick=fn;return b};
 function show(){const box=$$('div','mbox');menu.replaceChildren(box);
  const h=(t)=>{box.append($$('h1','',t||'Ilha do<br>Acampamento'),$$('div','sub','AVENTURA RPG'))},back=()=>box.append(B('← Voltar',()=>{view='main';show()}));
  if(view=='main'){h(started?'Pausa':null);
   box.append(started?B('▶ Voltar ao jogo',toggle):B(hasSave()?'▶ Continuar':'▶ Novo jogo',()=>{started=true;toggle();if(window.saveGame)saveGame()}));
-  if(started)box.append(B('💾 Salvar jogo',()=>{view='save';show()}));
-  box.append(B('📂 Carregar jogo',()=>{view='load';show()}));
-  if(hasSave()||started)box.append(B('✦ Novo jogo',()=>{view='new';show()},'danger'));
-  box.append(B('⚙ Opções',()=>{view='opt';show()}),B('❓ Controles',()=>{view='help';show()}));
+  box.append(B('⚙ Opções',()=>{view='opt';show()}),B('⌨ Controles',()=>{view='help';show()}));
+  box.append($$('p','msave','O jogo salva automaticamente.'));
+  // excluir fica escondido no fim, pequeno e vermelho: com conta exclui a conta; sem conta apaga o progresso
+  if(window.CONTA_ATIVA){const d=$$('button','mDel','Excluir conta');d.type='button';d.onclick=()=>{if(window.excluirConta)excluirConta(box)};box.append(d)}
+  else if(hasSave()||started){const d=$$('button','mDel','Apagar progresso');d.type='button';d.onclick=()=>{view='new';show()};box.append(d)}
   }
- else if(view=='new'){h('Novo jogo');box.append($$('p','mhelp','Isso apaga o progresso atual (os slots salvos são mantidos). Tem certeza?'),B('Sim, começar do zero',()=>restart(null),'danger'));back()}
- else if(view=='save'||view=='load'){h(view=='save'?'Salvar jogo':'Carregar jogo');
-  const cur=ls.get(KEY);
-  if(view=='load')box.append(row('Autosave',cur,()=>restart(cur),'Carregar'));
-  for(let i=1;i<=3;i++){const d=slotData(i);
-   box.append(row('Slot '+i,d&&d.raw,view=='save'?()=>{if(window.saveGame)saveGame();const r=ls.get(KEY);ls.set(slotKey(i),JSON.stringify({t:Date.now(),raw:r}));show()}:()=>restart(d.raw),view=='save'?'Salvar':'Carregar',d&&d.t,view=='load'&&!d))}
-  back()}
+ else if(view=='new'){h('Apagar progresso');box.append($$('p','mhelp','Isso apaga todo o progresso deste navegador e não tem como desfazer. Tem certeza?'),B('Sim, começar do zero',()=>restart(),'danger'));back()}
  else if(view=='opt'){h('Opções');
   const r1=$$('div','mrow','<span>Zoom da câmera</span><input type=range min=.6 max=2.4 step=.05><b></b>'),r2=$$('div','mrow','<span>Alcance do minimapa</span><input type=range min=90 max=380 step=10><b></b>');
   const bind=(r,get,set,fmt)=>{const i=r.querySelector('input'),o=r.querySelector('b');i.value=get();o.textContent=fmt(get());i.oninput=()=>{set(+i.value);o.textContent=fmt(get())}};
@@ -50,9 +45,10 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   const r3=$$('label','mrow','<span>Atacar outro inimigo automaticamente após derrotar o alvo</span><input type="checkbox">'),check=r3.querySelector('input');
   check.checked=window.autoTargetAfterKill;check.onchange=()=>{window.autoTargetAfterKill=opt.autoTargetAfterKill=check.checked;saveOpt()};
   box.append(r1,r2,r3);back()}
- else{h('Controles');box.append($$('div','mhelp','<kbd>Botão direito</kbd> mover / atacar; o personagem para quando o caminho fica bloqueado<br><kbd>Botão esquerdo</kbd> inspecionar / falar com NPC / abrir ou fechar o portão ao sul / abrir o menu do portal DG<br>A proteção e a paliçada seguem o mesmo perímetro quadrado do acampamento.<br>Aceite a madeira e a madeira mágica dos Brotos Vivos nos itens encontrados; elas ficam em Materiais na mochila.<br>Após construir a paliçada, fale com o carpinteiro e entregue 10 madeiras mágicas para construir o portal do acampamento. O menu tem a DG dos Goblins, ainda indisponível.<br>Monstros pedidos em missões recebem +20% no peso de spawn enquanto são necessários.<br><kbd>Q W E R T Y Z X</kbd> habilidades<br><kbd>1-6</kbd> itens da bolsa · <kbd>I</kbd> mochila<br><kbd>Enter</kbd> chat online · <kbd>/nome NovoNome</kbd> muda seu nome no online<br><kbd>Roda</kbd> ou <kbd>+ −</kbd> zoom da câmera<br><kbd>Esc</kbd> menu'));back()}}
-function row(name,raw,fn,label,t,off){const r=$$('div','msl'),i=raw&&info(raw);r.innerHTML='<div style="flex:1"><b>'+name+'</b>'+(i?i+(t?'<br>'+new Date(t).toLocaleString('pt-BR'):''):'— vazio —')+'</div>';if(!off&&(label!='Carregar'||i))r.append(B(label,fn));return r}
+ else{h('Controles');if(window.TECLAS)TECLAS.painel(box,()=>show());
+  box.append($$('h3','teclasGrupo','Dicas'),$$('div','mhelp','Aceite a madeira e a madeira mágica dos Brotos Vivos nos itens encontrados; elas ficam em Materiais na mochila.<br>Após construir a paliçada, fale com o carpinteiro e entregue 10 madeiras mágicas para construir o portal do acampamento.<br>Monstros pedidos em missões recebem +20% no peso de spawn enquanto são necessários.<br>Chat: <kbd>/nome NovoNome</kbd> muda seu nome · <kbd>/s Nome mensagem</kbd> sussurra para alguém.'));back()}}
 show();
+window.atualizarMenu=()=>{if(menu.classList.contains('open'))show()};
 /* ---------- efeitos de habilidade ---------- */
 const P=[],RG=[];let pt=0,pm=[];const R=(a,b)=>a+Math.random()*(b-a);
 const part=(x,y,vx,vy,l,c,s=2,g=0)=>P.push({x,y,vx,vy,l,m:l,c,s,g}),ringFx=(x,y,r0,r1,l,c)=>RG.push({x,y,r0,r1,l,m:l,c});

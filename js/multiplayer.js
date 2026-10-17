@@ -9,7 +9,7 @@
    cada um ganha a própria XP, ouro e itens. No grupo, os inimigos da DG ficam mais fortes. */
 (function(){
  if(MODO.teste||MODO.motor||!window.CONTA_ATIVA)return;
- const MAX_GRUPO=5,PUB_MS=150,CONVITE_S=90;
+ const MAX_GRUPO=5,MAX_ILHA=4,PUB_MS=150,CONVITE_S=90,APOIO_MS=15000;
  // por jogador extra no grupo: +60% de vida e +15% de dano para os inimigos da DG
  const ESCALA_VIDA=.6,ESCALA_DANO=.15;
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
@@ -106,9 +106,32 @@
    if(abertas!==portasEnviadas){portasEnviadas=abertas;ref(base+'/portas').set(abertas||'-')}
   }
  }
+ /* ---- participação e divisão da recompensa ----
+    Na ilha, XP e ouro de cada monstro são divididos em partes iguais entre quem participou da batalha:
+    quem causou dano ou aplicou efeito nele, e quem usou cura/bênção/proteção nos últimos 15 s.
+    Na DG do grupo, cada um recebe a recompensa inteira. */
+ const apoios=new Map();
+ MP.participou=e=>{if(souHost())(e.mpQuem||(e.mpQuem=new Set())).add(uid)};
+ MP.apoiou=()=>{
+  if(!uid||!MP.sala||MP.sala==='taverna')return;
+  if(souHost())apoios.set(uid,Date.now());
+  else if(hostDe(MP.sala))ref('salas/'+MP.sala+'/apoio').push({de:uid,t:firebase.database.ServerValue.TIMESTAMP});
+ };
+ MP.parte=e=>e.mpParte==null?1:e.mpParte;
  MP.morreu=e=>{
-  if(!souHost()||!e.mpId||!MP.remotos.size)return;
-  ref('salas/'+MP.sala+'/mortes').push({id:e.mpId,t:firebase.database.ServerValue.TIMESTAMP});
+  if(!souHost())return; // quem visita já recebeu a sua parte no aviso de morte do dono
+  if(!e.mpId||!MP.remotos.size){e.mpParte=1;return}
+  const ilha=MP.sala.startsWith('ilha:');let quem=[uid,...MP.remotos.keys()];
+  if(ilha){
+   const s=new Set(e.mpQuem||[]),agora=Date.now();
+   for(const [u,t] of apoios)if(agora-t<APOIO_MS&&(u===uid||MP.remotos.has(u)))s.add(u);
+   if(!s.size)s.add(uid);
+   quem=[...s];
+  }
+  const n=ilha?quem.length:1;
+  e.mpParte=quem.includes(uid)?1/n:0;
+  // XP e ouro vão com o aviso: valem os do monstro do dono (nível, elite e escala do grupo)
+  ref('salas/'+MP.sala+'/mortes').push({id:e.mpId,quem,n,xp:Math.round(e.xp||0),g:Math.round(e.g||0),t:firebase.database.ServerValue.TIMESTAMP});
  };
  MP.telegrafo=tg=>{
   if(!souHost()||!MP.remotos.size)return;
@@ -118,6 +141,7 @@
   const e=en.find(q=>q.mpId===g.id);if(!e||e.hp<=0||!(g.d>0))return;
   e.hp-=Math.min(g.d,100000);e.hit=.15;ft(e.x,e.y-22,Math.round(g.d),'#9fe3ff');
   const autor=MP.remotos.get(g.de);if(autor){e.mpAlvo=autor;e.alert=8}
+  (e.mpQuem||(e.mpQuem=new Set())).add(g.de);
   if(Array.isArray(g.fx)&&e.hp>0)applyFx(e,g.fx.filter(f=>f&&FX_INFO[f.type]).map(f=>({...f,caster:e,self:false})));
   if(e.hp<=0)killMonster(e);
  }
@@ -162,7 +186,12 @@
  };
  function receberMorte(m){
   const e=proxies.get(m.id)||en.find(q=>q.mpId===m.id);if(!e||e.mpRecompensado)return;
-  e.mpRecompensado=true;e.hp=0;killMonster(e);
+  e.mpRecompensado=true;e.hp=0;
+  // quem não participou da batalha não ganha nada desse monstro
+  const quem=m.quem&&typeof m.quem==='object'?Object.values(m.quem):null;
+  if(quem&&!quem.includes(uid)){e.gone=1;if(p.tgt===e)p.tgt=null;return}
+  if(Number.isFinite(m.xp))e.xp=m.xp;if(Number.isFinite(m.g))e.g=m.g;
+  e.mpParte=1/Math.max(1,m.n||1);killMonster(e);
  }
  function receberDano(d){
   if(p.dead>0)return;
@@ -188,13 +217,14 @@
   ouvintes.forEach(f=>f());ouvintes=[];proxies.clear();
   if(window.mpEspelho||hostDe(nova)&&hostDe(nova)!==uid)for(const e of en)if(e.mpId&&e.mpProxy)proxies.set(e.mpId,e);
   if(antiga&&hostDe(antiga)===uid)ref('salas/'+antiga).remove().catch(()=>{});
-  publicando=false;enviadoMon=new Map();MP.remotos.clear();
+  publicando=false;enviadoMon=new Map();MP.remotos.clear();apoios.clear();
   MP.sala=nova;entrouEm=Date.now();
   const host=hostDe(nova),base='salas/'+nova;
   window.mpEspelho=!!host&&host!==uid;
   if(host===uid){
    ref(base).onDisconnect().remove();
    ouvir(ref(base+'/golpes'),'child_added',s=>{const g=s.val();s.ref.remove().catch(()=>{});if(g)receberGolpe(g)});
+   ouvir(ref(base+'/apoio'),'child_added',s=>{const a=s.val();s.ref.remove().catch(()=>{});if(a&&a.de)apoios.set(a.de,Date.now())});
   }else if(host){
    ouvir(ref(base+'/mon'),'child_added',s=>aplicarMon(s.key,s.val()));
    ouvir(ref(base+'/mon'),'child_changed',s=>aplicarMon(s.key,s.val()));
@@ -234,8 +264,12 @@
 
  /* ---------- visitar ilhas ---------- */
  let enLocal=null;
+ // quantas pessoas estão na ilha de alguém agora (dono incluído, se estiver nela)
+ const pessoasNaIlha=dono=>[...outros()].filter(([id,o])=>id!==uid&&o.sala==='ilha:'+dono).length+(MP.sala==='ilha:'+dono?1:0);
  function visitar(dono){
   if(dono===uid)return voltarParaCasa();
+  if(MP.visitando===dono)return;
+  if(pessoasNaIlha(dono)>=MAX_ILHA){aviso('A ilha de '+MP.nomeDe(dono)+' está cheia ('+MAX_ILHA+'/'+MAX_ILHA+').','#f87171');return}
   if(window.inDungeon)exitDungeon(true);
   if(window.sairTaverna&&window.inTaverna)sairTaverna(true);
   if(!MP.visitando){enLocal=en.splice(0,en.length)}else{en.length=0}
@@ -336,6 +370,8 @@
  /* ---------- convites ---------- */
  async function convidar(para,tipo){
   if(para===uid)return;
+  if(tipo==='ilha'&&pessoasNaIlha(uid)>=MAX_ILHA){aviso('Sua ilha já tem '+MAX_ILHA+' pessoas.','#f87171');return}
+  if(tipo==='amizade'&&MP.amigos[para]){aviso(MP.nomeDe(para)+' já é seu amigo.','#c0ae91');return}
   if(tipo==='grupo'){
    if(MP.grupoLider&&MP.grupoLider!==uid){aviso('Só o líder do grupo convida.','#f87171');return}
    await criarGrupo();
@@ -359,6 +395,11 @@
   MP.nomes.set(de,c.nome);
   const recusar=()=>s.ref.remove().catch(()=>{});
   if(c.tipo==='ilha')toast(c.nome+' convidou você para a ilha dele(a).',[['Ir',()=>{recusar();visitar(de)},'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
+  else if(c.tipo==='amizade')toast(c.nome+' quer ser seu amigo.',[['Aceitar',async()=>{
+   try{await ref().update({['amigos/'+uid+'/'+de]:c.nome,['amigos/'+de+'/'+uid]:N.nome()});aviso('Agora você e '+c.nome+' são amigos.','#9fe3ff')}
+   catch(e){aviso('Não foi possível aceitar a amizade.','#f87171')}
+   recusar();
+  },'mpBtn ok'],['Recusar',recusar]],CONVITE_S*1000);
   else if(c.tipo==='grupo')toast(c.nome+' convidou você para o grupo.',[['Entrar',async()=>{
    if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
    try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
@@ -374,12 +415,39 @@
  // o aviso some quando o jogador já está na DG do grupo (ou ela acabou)
  setInterval(()=>{if(toastDg&&toastDg.isConnected&&(!MP.grupo||!MP.grupo.dg||window.inDungeon&&MP.dgSala===MP.grupo.dg.sala)){toastDg.remove();toastDg=null}},500);
 
- /* ---------- painel: jogadores online, grupo e ilha ---------- */
+ /* ---------- amigos e sussurros ----------
+    amigos/{uid}/{amigo} = nome (a amizade é aceita pelos dois lados)
+    sussurros/{para}/{id} = mensagem privada; quem recebe apaga ao ler (chega mesmo se estava offline) */
+ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+ MP.amigos={};MP.ultimoSussurro=null;
+ const linha=m=>{if(window.onlineLinha)onlineLinha(m)};
+ function removerAmigo(id){ref().update({['amigos/'+uid+'/'+id]:null,['amigos/'+id+'/'+uid]:null}).catch(()=>{})}
+ MP.sussurrar=(para,text)=>{
+  text=String(text||'').trim().slice(0,140);if(!text||!para||para===uid)return false;
+  const key=ref('sussurros/'+para).push().key;
+  ref().update({['sussurros/'+para+'/'+key]:{de:uid,nome:N.nome(),text,t:TS()},['ultimaMsg/'+uid]:TS()})
+   .then(()=>linha({canal:'s',id:uid,name:'para '+MP.nomeDe(para),text,t:Math.round(Date.now()/1000)}))
+   .catch(()=>window.onlineSystem&&onlineSystem('Sussurro não enviado: espere um instante entre mensagens.'));
+  return true;
+ };
+ // "/s Nome mensagem": procura o nome conhecido (online ou amigo) mais longo no começo do texto
+ MP.resolverSussurro=texto=>{
+  const conhecidos=new Map();
+  for(const [id,o] of outros())if(id!==uid&&o.name)conhecidos.set(id,o.name);
+  for(const [id,nome] of Object.entries(MP.amigos))if(typeof nome==='string'&&!conhecidos.has(id))conhecidos.set(id,nome);
+  const t=texto.toLowerCase();let melhor=null;
+  for(const [id,nome] of conhecidos){const n=nome.toLowerCase();if((t===n||t.startsWith(n+' '))&&(!melhor||n.length>melhor.nome.length))melhor={id,nome}}
+  return melhor?{id:melhor.id,msg:texto.slice(melhor.nome.length).trim()}:null;
+ };
+ const abrirSussurro=id=>{if(window.abrirChatCom)abrirChatCom('/s '+MP.nomeDe(id)+' ')};
+
+ /* ---------- painel: jogadores online, amigos, grupo e ilha ---------- */
  const painel=el('section','mpPainel');painel.hidden=true;painel.setAttribute('aria-label','Jogadores');
  painel.addEventListener('keydown',e=>e.stopPropagation());
  document.body.append(painel);
  const abrirBtn=btn('Jogadores',()=>{painel.hidden=!painel.hidden;atualizarPainel()},'mpBtn mpAbrir');abrirBtn.title='Jogadores online, grupo e convites';
  MP.botaoPainel=abrirBtn;
+ addEventListener('keydown',e=>{if(window.TECLAS&&TECLAS.acao(e)==='jogadores'){painel.hidden=!painel.hidden;atualizarPainel()}});
  function onde(o){
   if(!o||!o.sala)return '';
   if(o.sala==='taverna')return 'na taverna';
@@ -406,14 +474,33 @@
    gr.append(btn(MP.grupoLider===uid?'Desfazer grupo':'Sair do grupo',sairDoGrupo,'mpBtn perigo'));
   }else gr.append(el('p','mpNota','Sem grupo. Convide alguém abaixo para montar um grupo de DG (até '+MAX_GRUPO+').'));
   box.push(gr);
+  // amigos (online primeiro)
+  const ids=Object.keys(MP.amigos),online=id=>{const o=outros().get(id);return !!(o&&o.x!=null&&o.sala)};
+  ids.sort((a,b)=>online(b)-online(a)||MP.nomeDe(a).localeCompare(MP.nomeDe(b)));
+  const ula=el('ul','mpLista');
+  if(!ids.length)ula.append(el('li','mpNota','Nenhum amigo ainda. Use "Adicionar amigo" em quem está online.'));
+  for(const id of ids){
+   const o=outros().get(id),on=online(id);
+   const li=el('li',on?'':'offline');
+   li.append(el('span','mpNome',(typeof MP.amigos[id]==='string'?MP.amigos[id]:MP.nomeDe(id))+(on?' · Nv '+(o.lvl||1):'')),el('small','',on?onde(Object.assign({id},o)):'offline'));
+   const acoes=el('div','mpAcoes');
+   if(on&&o.sala==='ilha:'+id&&MP.visitando!==id)acoes.append(btn('Visitar',()=>visitar(id),'mpBtn ok'));
+   if(on&&o.sala==='taverna'&&!window.inTaverna&&window.entrarTaverna)acoes.append(btn('Ir à taverna',()=>entrarTaverna(),'mpBtn ok'));
+   acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));
+   acoes.append(btn('Remover',()=>{if(confirm('Remover '+MP.nomeDe(id)+' dos amigos?'))removerAmigo(id)},'mpBtn perigo'));
+   li.append(acoes);ula.append(li);
+  }
+  box.push(el('b','mpSub','Amigos ('+ids.filter(online).length+'/'+ids.length+' online)'),ula);
   // lista de jogadores
   const lista=el('ul','mpLista');let n=0;
   for(const [id,o] of outros()){
    if(id===uid||o.x==null)continue;n++;
-   const li=el('li');li.append(el('span','mpNome',(o.name||'?')+' · Nv '+(o.lvl||1)),el('small','',onde(Object.assign({id},o))));
+   const li=el('li');li.append(el('span','mpNome',(o.name||'?')+' · Nv '+(o.lvl||1)+(MP.amigos[id]?' · amigo':'')),el('small','',onde(Object.assign({id},o))));
    const acoes=el('div','mpAcoes');
    acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
    if(!(g&&g.membros&&g.membros[id]))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
+   if(!MP.amigos[id])acoes.append(btn('Adicionar amigo',()=>convidar(id,'amizade')));
+   acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));
    li.append(acoes);lista.append(li);
   }
   if(!n)lista.append(el('li','mpNota','Ninguém mais online agora.'));
@@ -427,6 +514,16 @@
  function iniciar(){
   N=window.NUVEM;db=N.db;uid=N.uid;
   ref('convites/'+uid).on('child_added',receberConvite);
+  ref('amigos/'+uid).on('value',s=>{MP.amigos=s.val()||{};for(const [id,n] of Object.entries(MP.amigos))if(typeof n==='string'&&!MP.nomes.has(id))MP.nomes.set(id,n);atualizarPainel()});
+  ref('sussurros/'+uid).on('child_added',s=>{
+   const m=s.val();s.ref.remove().catch(()=>{});
+   if(!m||typeof m.text!=='string'||Date.now()+(N.offset||0)-(m.t||0)>86400000)return;
+   MP.nomes.set(m.de,m.nome);MP.ultimoSussurro=m.de;
+   linha({canal:'s',id:m.de,name:m.nome,text:m.text.slice(0,140),t:Math.round((m.t||Date.now())/1000)});
+  });
+  // ajuda nas batalhas: curas, bênçãos e proteções contam como participação (divisão de XP e ouro na ilha)
+  const cast0=cast;
+  cast=function(s){const t0=s.t,r=cast0.apply(this,arguments);if(s.t>t0&&!window.inTaverna&&window.tipoHabilidade&&tipoHabilidade(s)!=='impacto')MP.apoiou();return r};
   // volta ao grupo depois de recarregar a página (se ainda for membro)
   let salvo=null;try{salvo=localStorage.getItem('ilha-rpg-grupo')}catch(e){}
   if(salvo)ref('grupos/'+salvo+'/membros/'+uid).get().then(s=>{if(s.exists())seguirGrupo(salvo);else try{localStorage.removeItem('ilha-rpg-grupo')}catch(e){}}).catch(()=>{});

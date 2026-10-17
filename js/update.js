@@ -61,8 +61,8 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
   if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Guardião Esqueleto primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}else if(n.cls=='sty')sexBox.style.display='block';else setClass(n.cls)}else approach(p,n,22)}
   if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';toggleCampGate()}
   if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';showDungeonMenu()}
-  const kx=(held.has('d')||held.has('arrowright')?1:0)-(held.has('a')||held.has('arrowleft')?1:0)+p.joy.x;
-  const ky=(held.has('s')||held.has('arrowdown')?1:0)-(held.has('w')||held.has('arrowup')?1:0)+p.joy.y,kl=Math.hypot(kx,ky);
+  const kx=(held.has('mover_direita')?1:0)-(held.has('mover_esquerda')?1:0)+p.joy.x;
+  const ky=(held.has('mover_baixo')?1:0)-(held.has('mover_cima')?1:0)+p.joy.y,kl=Math.hypot(kx,ky);
   if(kl>.08){p.dest=null;p.path=[];p.pathKey='';p.tgt=null;p.npcT=null;p.gateT=false;p.portalT=false;move(p,{x:p.x+kx/kl*40,y:p.y+ky/kl*40},CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt)}
   else movePlayer(CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt);
   p.bf=Math.max(0,p.bf-dt);

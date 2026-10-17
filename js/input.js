@@ -27,9 +27,13 @@ function order(click,mode=0){if(p.dead>0)return;const w=wpos();
  else if(mode==0){insp=null;p.npcT=null;p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;setDest(w.x,w.y);ring(w.x,w.y,8,'#5f5',.35)}
  else insp=null}
 const held=new Set();
-addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement)return;const k=e.key.toLowerCase();
- const s=SK.find(s=>s.k==k);if(s)cast(s);if(k>='1'&&k<='6')useSlot(k-1);if(k=='i'||k=='b')togInv()});
-addEventListener('keyup',e=>held.delete(e.key.toLowerCase()));
+// teclas configuráveis em Menu › Controles (js/controles.js)
+addEventListener('keydown',e=>{const a=TECLAS.acao(e);if(!a)return;
+ if(a.startsWith('mover_')){held.add(a);e.preventDefault();return}
+ if(a.startsWith('hab')){const s=SK[+a.slice(3)-1];if(s)cast(s);return}
+ if(a.startsWith('item')){useSlot(+a.slice(4)-1);return}
+ if(a=='mochila')togInv()});
+addEventListener('keyup',e=>{for(const id of [...held])if(TECLAS.tecla(id)===e.code)held.delete(id)});
 function clearMovementInput(){
  held.clear();rdown=false;padId=null;p.joy={x:0,y:0};stick.style.transform='';
  p.dest=null;p.npcT=null;p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;p.gateT=false;

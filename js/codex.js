@@ -59,7 +59,7 @@ const check=()=>{let opened=null;for(const k in P){const o=P[k].on();if(o&&!was[
  if(opened){for(const k in P)if(k!=opened&&P[k].on()){P[k].off();was[k]=false}const pk=$('skillPicker');pk&&pk.classList.remove('open')}};
 const mo=new MutationObserver(check);Object.values(P).forEach(p=>mo.observe(p.el,{attributes:true,attributeFilter:['class','style']}));
 window.closePanels=()=>{let c=false;for(const k in P)if(P[k].on()){P[k].off();c=true}return c};
-addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;if(e.key.toLowerCase()=='j')toggle()});
+addEventListener('keydown',e=>{if(TECLAS.acao(e)=='enciclopedia')toggle()});
 const ix=E('button','cx-x','✕');ix.id='invX';$('invp').appendChild(ix);ix.onclick=()=>togInv();
 let dropMin=false;const dp0=$('drop'),sd=showDrop;showDrop=function(){sd();const h=dp0.querySelector('.dh');if(h){const b=E('button','dmin',dropMin?'▢':'—');b.onclick=()=>{dropMin=!dropMin;showDrop()};h.appendChild(b)}dp0.classList.toggle('min',dropMin);placeDrop()};
 function placeDrop(){if(getComputedStyle(dp0).display=='none')return;const r=$('dock').getBoundingClientRect(),iv=$('invp'),vis=getComputedStyle(iv).display!='none',w=dp0.offsetWidth,h=dp0.offsetHeight,S=(k,v)=>dp0.style.setProperty(k,v,'important'),

@@ -91,6 +91,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;const di=dot&
  else{const defense=tr?0:mg?magicalDefense:physicalDefense;d=Math.max(1,(d-defense)*(dot?1:vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)))}
  const roll=dot?{damage:d,lifeSteal:0,magicLifeSteal:0}:combatRoll(p,d);d=roll.damage;drainLife(p,Math.min(e.hp,d),stealRatio(roll,magicShare));
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
+ if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
  if(e.mpProxy){e.hp=Math.max(1,e.hp-d);if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx)applyFx(e,fx.filter(f=>f.self));if(window.MP)MP.golpe(e,d,fx&&fx.filter(f=>!f.self));return}
  e.hp-=d;if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx&&e.hp>0)applyFx(e,fx);
  if(e.hp<=0)killMonster(e)}
@@ -101,7 +102,11 @@ function killMonster(e){
   if(window.MP)MP.morreu(e);
   e.rt = (window.inDungeon || e.isDungeonMob) ? 0 : 15;
   if(window.inDungeon || e.isDungeonMob) e.gone = 1;
-  gainPlayerXp(e.xp);p.gold+=e.g;gainClassXp(e.xp);ft(e.x,e.y-30,'+'+e.g+'g','#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(e.g>0&&window.playGameSound)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
+  // na ilha com outros jogadores, XP e ouro são divididos entre quem participou (js/multiplayer.js)
+  const parte=window.MP&&MP.parte?MP.parte(e):1;
+  if(parte<=0){if(p.tgt==e)p.tgt=null;return}
+  const xp=Math.max(1,Math.round(e.xp*parte)),gold=Math.round(e.g*parte);
+  gainPlayerXp(xp);p.gold+=gold;gainClassXp(xp);ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
   if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GUARDIÃO ESQUELETO DERROTADO!','#ffd84a');saveGame()}
   if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');offerDrop('saw',true)}
   const guaranteed=MONSTER_TYPES[e.ty].guaranteedDrops||[];

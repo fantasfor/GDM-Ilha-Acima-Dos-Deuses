@@ -75,6 +75,12 @@
             ".validate": "newData.hasChildren(['de', 'id', 'd']) && newData.child('d').isNumber() && newData.child('d').val() >= 0 && newData.child('d').val() <= 100000"
           }
         },
+        "apoio": {
+          "$id": {
+            ".write": "auth != null && ((!data.exists() && newData.child('de').val() === auth.uid) || (!newData.exists() && ($sala === 'ilha:' + auth.uid || $sala.beginsWith('dg:' + auth.uid + ':'))))",
+            ".validate": "newData.hasChildren(['de', 't'])"
+          }
+        },
         "danos": {
           "$alvo": {
             "$id": {
@@ -94,9 +100,10 @@
     "convites": {
       "$para": {
         ".read": "auth != null && auth.uid === $para",
+        ".write": "auth != null && auth.uid === $para && !newData.exists()",
         "$de": {
           ".write": "auth != null && (auth.uid === $de || auth.uid === $para)",
-          ".validate": "newData.hasChildren(['tipo', 'nome', 't']) && newData.child('tipo').val().matches(/^(ilha|grupo)$/) && newData.child('nome').isString() && newData.child('nome').val().length <= 18 && newData.child('t').val() === now"
+          ".validate": "newData.hasChildren(['tipo', 'nome', 't']) && newData.child('tipo').val().matches(/^(ilha|grupo|amizade)$/) && newData.child('nome').isString() && newData.child('nome').val().length <= 18 && newData.child('t').val() === now"
         }
       }
     },
@@ -115,6 +122,26 @@
           ".validate": "newData.hasChildren(['id', 'sala', 'n']) && newData.child('sala').val().beginsWith('dg:' + $lider + ':') && newData.child('n').val() <= 5"
         },
         "$outro": { ".validate": false }
+      }
+    },
+    "amigos": {
+      "$dono": {
+        ".read": "auth != null && auth.uid === $dono",
+        ".write": "auth != null && auth.uid === $dono && !newData.exists()",
+        "$amigo": {
+          ".write": "auth != null && (auth.uid === $dono || (auth.uid === $amigo && (!newData.exists() || root.child('convites').child($amigo).child($dono).child('tipo').val() === 'amizade')))",
+          ".validate": "newData.isString() && newData.val().length <= 18"
+        }
+      }
+    },
+    "sussurros": {
+      "$para": {
+        ".read": "auth != null && auth.uid === $para",
+        ".write": "auth != null && auth.uid === $para && !newData.exists()",
+        "$id": {
+          ".write": "auth != null && ((!data.exists() && newData.child('de').val() === auth.uid && newData.parent().parent().parent().child('ultimaMsg').child(auth.uid).val() === now && (!root.child('ultimaMsg').child(auth.uid).exists() || root.child('ultimaMsg').child(auth.uid).val() < now - 700)) || (!newData.exists() && auth.uid === $para))",
+          ".validate": "newData.hasChildren(['de', 'nome', 'text', 't']) && newData.child('text').isString() && newData.child('text').val().length >= 1 && newData.child('text').val().length <= 140 && newData.child('nome').isString() && newData.child('nome').val().length <= 18 && newData.child('t').val() === now"
+        }
       }
     },
     "voz": {
@@ -147,7 +174,15 @@
         ".read": "auth != null",
         ".write": "auth != null && auth.uid === $uid",
         "nome": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 18" },
+        "criado": { ".validate": "newData.isBoolean()" },
         "$outro": { ".validate": false }
+      }
+    },
+    "nomes": {
+      ".read": "auth != null",
+      "$chave": {
+        ".write": "auth != null && ((!data.exists() || data.val() === auth.uid) && (newData.val() === auth.uid || !newData.exists()))",
+        ".validate": "$chave.matches(/^[a-z0-9]{3,18}$/) && newData.val() === auth.uid"
       }
     },
     "saves": {

@@ -106,12 +106,17 @@ Os arquivos vão marcados com a versão, então os jogadores recebem a atualiza�
 
 | Recurso | Como funciona |
 |---|---|
-| **Cada um tem sua ilha** | Ao entrar, você está sozinho na sua ilha, com seus monstros e seu progresso. |
-| **Convidar para a ilha** | Botão **Jogadores** (na barra do chat) › **Convidar p/ ilha**. Quem aceita vai para a sua ilha e vê os seus monstros. Os monstros atacam qualquer um, e cada um ganha XP, ouro e itens quando um monstro morre. **Voltar para minha ilha** fica no mesmo painel. |
+| **Cada um tem sua ilha** | Ao entrar, você está sozinho na sua ilha, com seus monstros e seu progresso. Cabem **até 4 pessoas** numa ilha. |
+| **Convidar para a ilha** | Botão **Jogadores** (na barra do chat, tecla P) › **Convidar p/ ilha**. Quem aceita vai para a sua ilha e vê os seus monstros, que atacam qualquer um. **XP e ouro são divididos** em partes iguais entre quem participou da batalha: quem causou dano ou efeito no monstro, ou usou cura, bênção ou proteção nos últimos 15 segundos. Com 2 jogadores, cada um recebe 50%. Os itens vêm para cada participante. **Voltar para minha ilha** fica no mesmo painel. |
+| **Amigos** | **Jogadores** › **Adicionar amigo**. Depois que o outro aceita, ele aparece em **Amigos**, online ou offline. **Visitar** leva direto para a ilha dele, sem convite. **Sussurrar** abre uma mensagem privada. |
+| **Sussurro** | No chat: `/s Nome mensagem`. Para responder o último sussurro: `/r mensagem`. Os sussurros recebidos enquanto você estava offline aparecem quando você entra. |
 | **Grupo de DG (até 5)** | **Jogadores** › **Convidar p/ grupo**. O líder entra numa DG pelo portal do acampamento e o grupo recebe o aviso **Entrar**. Os inimigos ficam mais fortes a cada jogador extra: +60% de vida e +15% de dano. Se o líder sair, o grupo volta. |
 | **Taverna** | Botão **Taverna** no canto de cima. É o ponto de encontro de todos, sem monstros. As habilidades interagem entre os jogadores: curas curam quem está perto (ou o jogador mirado), bênçãos e proteções fortalecem e ataques só empurram, sem dano. A taverneira vende uma bebida que enche a vida e a mana. |
 | **Chat** | Aba **Local**: só quem está no mesmo lugar (ilha, DG ou taverna); aparece em balão sobre o personagem. Aba **Global**: todos online. |
-| **Voz** | Botão **Voz** na barra do chat: conversa com quem está no mesmo lugar e também ligou a voz. **Mudo** desliga o microfone. Um ícone aparece sobre quem está falando. |
+| **Voz** | Botão **Voz** na barra do chat: conversa com quem está no mesmo lugar e também ligou a voz. O **microfone** ao lado mostra o nível do som enquanto transmite: verde é transmitindo, cinza é esperando e riscado é mudo. Clique nele para ficar mudo. A **engrenagem** permite escolher entre **Sempre ligado** e **Apertar para falar** (tecla V, ou segurar o botão **Falar**), além do microfone, do volume dos outros e de um teste de nível. Um ícone aparece sobre quem está falando. |
+| **Criação de personagem** | No primeiro login, o jogador escolhe o **nome**, a **classe** e o **sexo**, com uma prévia do sprite. O nome é único: maiúsculas, acentos e símbolos não contam, então "Ána" e "ana" são o mesmo nome. O comando `/nome` no chat respeita a mesma regra. |
+| **Salvamento** | Automático, sem salvar ou carregar manual: o que você faz não tem volta. Para recomeçar do zero, use o link vermelho **Excluir conta** no fim do menu (Esc). Ele apaga o personagem, o progresso, o nome, os amigos e o login, e volta para a tela de entrada, onde dá para criar outro personagem. |
+| **Controles** | Menu › **Controles**: clique numa ação e aperte a nova tecla. Se a tecla já estiver em uso, as duas ações trocam. |
 
 **Ao atualizar de uma versão anterior, publique de novo as regras** de `regras-firebase.json` (passo 3): as regras novas cobrem salas, convites, grupos e voz.
 

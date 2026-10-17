@@ -194,6 +194,7 @@
   if(/aumenta|metade do dano|protege|escudo|b[eê]n[cç][aã]o|f[uú]ria/i.test(txt))return 'bencao';
   return 'impacto';
  }
+ window.tipoHabilidade=tipoDe;
  const COR={cura:'#7f7',bencao:'#ffd84a',impacto:'#f97316'};
  function jogadorPerto(w){
   if(!window.MP)return null;let melhor=null,bd=40;

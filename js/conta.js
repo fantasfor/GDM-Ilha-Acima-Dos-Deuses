@@ -8,9 +8,10 @@
  const C=window.FIREBASE_CONFIG;
  if(MODO.teste||MODO.motor||!C||!C.apiKey||!C.databaseURL)return;
  window.CONTA_ATIVA=true;
+ if(window.atualizarMenu)atualizarMenu();
  const V='10.12.2',SDK=['app','auth','database'].map(n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js');
- const SAVE='ilha-rpg-save',DONO='ilha-rpg-dono',QUANDO='ilha-rpg-save-t',SLOTS=[1,2,3].map(i=>'ilha-rpg-slot'+i);
- const UPLOAD_MS=20000,MAX_SAVE=300000;
+ const SAVE='ilha-rpg-save',DONO='ilha-rpg-dono',QUANDO='ilha-rpg-save-t';
+ const UPLOAD_MS=10000,MAX_SAVE=300000;
  const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
  let auth,db,user=null,perfil={nome:''},enviado=null,ultimoEnvio=0,meuT=0;
@@ -79,8 +80,7 @@
   box.append(botao('Tentar de novo',()=>location.reload()),botao('Jogar offline',()=>tela.classList.remove('open'),'dim'));
  }
 
- /* ---- progresso: localStorage <-> saves/{uid} ---- */
- const lerSlots=()=>{const s={};SLOTS.forEach((k,i)=>{const v=ls.get(k);if(v&&v.length<MAX_SAVE)s['s'+(i+1)]=v});return s};
+ /* ---- progresso: localStorage <-> saves/{uid} (só o salvamento automático; não há pontos antigos para voltar) ---- */
  function recarregar(){window._noSave=true;location.reload()}
  async function sincronizarProgresso(){
   const nuvem=(await db.ref('saves/'+user.uid).get()).val();
@@ -89,12 +89,11 @@
    // a nuvem foi salva por outro aparelho depois do último envio deste (ou este navegador era de outra pessoa):
    // usa o da nuvem. Compara por igualdade para não depender do relógio de cada computador.
    ls.set(SAVE,nuvem.dados);ls.set(QUANDO,String(nuvem.t));ls.set(DONO,user.uid);
-   SLOTS.forEach((k,i)=>{const v=nuvem.slots&&nuvem.slots['s'+(i+1)];if(typeof v==='string')ls.set(k,v);else ls.del(k)});
    recarregar();return false;
   }
   if(!nuvem&&dono&&dono!==user.uid){
    // conta nova num navegador que tinha o jogo de outra conta: começa do zero
-   ls.del(SAVE);ls.del(QUANDO);SLOTS.forEach(k=>ls.del(k));ls.set(DONO,user.uid);
+   ls.del(SAVE);ls.del(QUANDO);ls.del('ilha-rpg-explorado');ls.set(DONO,user.uid);
    recarregar();return false;
   }
   ls.set(DONO,user.uid);enviado=nuvem?nuvem.dados:null;meuT=nuvem?nuvem.t:0;
@@ -116,7 +115,7 @@
   const agora=Date.now();
   if(dados===enviado||(!forcar&&agora-ultimoEnvio<UPLOAD_MS))return;
   enviado=dados;ultimoEnvio=agora;meuT=agora;ls.set(QUANDO,String(agora));
-  db.ref('saves/'+user.uid).set({t:agora,dados,slots:lerSlots()}).catch(e=>{enviado=null;console.warn('Progresso não enviado à nuvem:',e&&e.code||e)});
+  db.ref('saves/'+user.uid).set({t:agora,dados}).catch(e=>{enviado=null;console.warn('Progresso não enviado à nuvem:',e&&e.code||e)});
  }
  setInterval(()=>enviarProgresso(false),5000);
  addEventListener('pagehide',()=>{if(window.saveGame)saveGame();enviarProgresso(true)});
@@ -143,7 +142,8 @@
    for(const [id,o] of this.outros)if(id!==user.uid&&o.x!=null&&(!o.t||o.t>limite))jogadores.push(Object.assign({id},o,{eq:o.eq||{}}));
    return {ok:true,jogadores,chat:this.msgs.filter(m=>m.n>(since||0))};
   },
-  rename(nome){this.name=nome;perfil.nome=nome;db.ref('perfis/'+user.uid).set({nome}).catch(()=>{})},
+  // troca de nome pelo chat (/nome): o nome precisa estar livre; devolve true ou false
+  async rename(nome){if(!await reservarNome(nome))return false;this.name=nome;return true},
   leave(){if(user)db.ref('online/'+user.uid).remove().catch(()=>{})}
  };
  function ligarOnline(){
@@ -182,6 +182,97 @@
  }
  window.ONLINE_NUVEM=nuvem;
 
+ /* ---- nomes únicos: nomes/{chave} = uid ----
+    A chave ignora maiúsculas, acentos e símbolos ("Ána_1" e "ana1" são o mesmo nome). */
+ const limparNome=n=>String(n||'').replace(/[^\p{L}\p{N} _-]/gu,'').replace(/\s+/g,' ').trim().slice(0,18);
+ const chaveNome=n=>limparNome(n).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const nomeValido=n=>{const l=limparNome(n);return l.length>=3&&chaveNome(l).length>=3};
+ // libera um nome só se ele for deste jogador
+ async function liberarNome(chave){try{if((await db.ref('nomes/'+chave).get()).val()===user.uid)await db.ref('nomes/'+chave).remove()}catch(e){}}
+ async function nomeLivre(n){const v=(await db.ref('nomes/'+chaveNome(n)).get()).val();return !v||v===user.uid}
+ async function reservarNome(n){
+  n=limparNome(n);if(!nomeValido(n))return false;
+  const nova=chaveNome(n),antiga=perfil.nome?chaveNome(perfil.nome):null;
+  try{if(!await nomeLivre(n))return false}catch(e){return false}
+  try{await db.ref('nomes/'+nova).set(user.uid)}catch(e){return false} // as regras também recusam nome de outra pessoa
+  if(antiga&&antiga!==nova)liberarNome(antiga);
+  perfil.nome=n;await db.ref('perfis/'+user.uid).set({nome:n,criado:true});perfil.criado=true;
+  return true;
+ }
+
+ /* ---- criação de personagem: nome, classe e sexo, com prévia do sprite ---- */
+ function spritePersonagem(cls,sex){
+  const c=CL[cls];if(c&&c.sprite)return c.sprite;
+  const E={nude:1,sex,swing:0,shWeapon:false};
+  for(const s of Object.keys(EQ))if(EQ[s]&&ITEMS[EQ[s].id])E[s]=ITEMS[EQ[s].id];
+  return human((c&&c.base)||cls,'d',0,E);
+ }
+ // desenha o sprite ampliado só em múltiplos inteiros: os pixels continuam quadrados e a proporção não muda
+ function desenharPrevia(cv,img){
+  // recorta a borda transparente do sprite para ampliar só o personagem
+  const t=document.createElement('canvas');t.width=img.width;t.height=img.height;const tg=t.getContext('2d');tg.drawImage(img,0,0);
+  const d=tg.getImageData(0,0,t.width,t.height).data;let x0=t.width,y0=t.height,x1=-1,y1=-1;
+  for(let y=0;y<t.height;y++)for(let x=0;x<t.width;x++)if(d[(y*t.width+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  if(x1<0){x0=0;y0=0;x1=t.width-1;y1=t.height-1}
+  const w=x1-x0+1,h=y1-y0+1,g=cv.getContext('2d'),k=Math.max(1,Math.floor(Math.min((cv.width-12)/w,(cv.height-16)/h)));
+  g.clearRect(0,0,cv.width,cv.height);g.imageSmoothingEnabled=false;
+  const x=Math.round((cv.width-w*k)/2),y=Math.round((cv.height-h*k)/2)-3;
+  g.fillStyle='#0007';g.fillRect(x+Math.round(w*k*.15),y+h*k-k,Math.round(w*k*.7),k*2);
+  g.drawImage(t,x0,y0,w,h,x,y,w*k,h*k);
+ }
+ function criarPersonagem(){
+  return new Promise(pronto=>{
+   const box=caixa('CRIE SEU PERSONAGEM');
+   let cls=CL[p.cls]?p.cls:'war',sex=p.sex==='f'?'f':'m',verificado=null,timer=null;
+   const sugestao=limparNome((user.displayName||'').split(' ')[0]);
+   const f=el('form','criarForm');
+   // nome
+   const ln=el('label','criarCampo');ln.append(el('span','','Nome do personagem'));
+   const nome=el('input');nome.maxLength=18;nome.autocomplete='off';nome.placeholder='3 a 18 letras ou números';nome.value=perfil.nome||(sugestao.length>=3?sugestao:'');
+   const status=el('small','criarStatus');ln.append(nome,status);f.append(ln);
+   // prévia
+   const prev=el('canvas','criarPrevia');prev.width=132;prev.height=132;
+   const nomeCls=el('b','criarClasse');
+   const lp=el('div','criarPreviaBox');lp.append(prev,nomeCls);f.append(lp);
+   // classe
+   const lc=el('div','criarCampo');lc.append(el('span','','Classe'));const gc=el('div','criarOpcoes');lc.append(gc);f.append(lc);
+   const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n);
+   const bc={};for(const id of ids){const b=botao(CL[id].n,()=>{cls=id;atualizar()},'criarOpcao');bc[id]=b;gc.append(b)}
+   // sexo
+   const ls2=el('div','criarCampo');ls2.append(el('span','','Sexo'));const gs=el('div','criarOpcoes');ls2.append(gs);f.append(ls2);
+   const bs={m:botao('Masculino',()=>{sex='m';atualizar()},'criarOpcao'),f:botao('Feminino',()=>{sex='f';atualizar()},'criarOpcao')};gs.append(bs.m,bs.f);
+   const ok=botao('Começar a aventura',null);ok.type='submit';f.append(ok);
+   box.append(f);
+   const msg=el('p','contaMsg');box.append(msg);
+   function atualizar(){
+    for(const id in bc){bc[id].classList.toggle('on',id===cls);bc[id].setAttribute('aria-pressed',String(id===cls))}
+    for(const id in bs){bs[id].classList.toggle('on',id===sex);bs[id].setAttribute('aria-pressed',String(id===sex))}
+    nomeCls.textContent=CL[cls].n+' · '+(sex==='f'?'Feminino':'Masculino');
+    try{desenharPrevia(prev,spritePersonagem(cls,sex))}catch(e){}
+   }
+   // nome: confere se está livre enquanto digita
+   async function conferir(){
+    const n=nome.value;verificado=null;
+    if(!nomeValido(n)){status.textContent='Use de 3 a 18 letras ou números.';status.className='criarStatus erro';return}
+    status.textContent='Verificando…';status.className='criarStatus';
+    try{const livre=await nomeLivre(n);if(nome.value!==n)return;verificado=livre?n:null;status.textContent=livre?'Nome disponível':'Esse nome já está em uso';status.className='criarStatus '+(livre?'ok':'erro')}
+    catch(e){status.textContent='Não foi possível verificar agora.';status.className='criarStatus erro'}
+   }
+   nome.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(conferir,350)});
+   f.onsubmit=async e=>{
+    e.preventDefault();ok.disabled=true;msg.classList.remove('erro');msg.textContent='Criando personagem…';
+    if(!await reservarNome(nome.value)){ok.disabled=false;msg.classList.add('erro');msg.textContent=nomeValido(nome.value)?'Esse nome já está em uso. Escolha outro.':'Use de 3 a 18 letras ou números.';conferir();return}
+    // aplica classe e sexo ao herói e salva
+    p.sex=sex;p.classProgress=p.classProgress||{};if(!p.classProgress[cls])p.classProgress[cls]={rank:1,xp:0};
+    p.cls=cls;p.hp=mhp();p.mp=mmp();if(window.applySkills)applySkills();if(window.setPortrait)setPortrait();if(window.renderSkillMenu)renderSkillMenu();
+    if(window.saveGame)saveGame();enviarProgresso(true);
+    pronto();
+   };
+   atualizar();if(nome.value)conferir();
+   setTimeout(()=>nome.focus(),50);
+  });
+ }
+
  /* ---- conta no menu: nome, vincular convidado e sair ---- */
  const descrever=()=>{
   if(!user)return '';
@@ -200,8 +291,49 @@
   r.append(botao('Sair da conta',async()=>{
    if(window.saveGame)saveGame();enviarProgresso(true);nuvem.leave();
    window._noSave=true;await auth.signOut();location.reload();
-  },'danger'));
-  box.append(r);
+  }));
+  const del=box.querySelector('.mDel');if(del)box.insertBefore(r,del);else box.append(r);
+ }
+ // chamado pelo link "Excluir conta" no fim do menu (js/menu.js)
+ window.excluirConta=box=>{if(user)confirmarApagar(box)};
+
+ /* ---- apagar conta: progresso, perfil, amigos e o login; não tem volta ---- */
+ function confirmarApagar(box){
+  const c=el('div','contaApagar');
+  c.append(el('p','','Excluir a conta remove para sempre o seu personagem, o progresso, o nome, os amigos e o login. Não tem como desfazer. Depois você volta para a tela de entrada e pode criar um personagem novo.'),
+   el('p','','Para confirmar, digite APAGAR:'));
+  const i=el('input');i.autocomplete='off';i.setAttribute('aria-label','Digite APAGAR para confirmar');
+  i.addEventListener('keydown',e=>e.stopPropagation());
+  const msg=el('p','contaMsg');
+  const ok=botao('Excluir minha conta',async()=>{
+   if(i.value.trim().toUpperCase()!=='APAGAR'){msg.textContent='Digite APAGAR para confirmar.';msg.classList.add('erro');return}
+   ok.disabled=true;msg.classList.remove('erro');msg.textContent='Excluindo…';
+   try{await apagarConta();}
+   catch(e){ok.disabled=false;msg.classList.add('erro');msg.textContent=msgErro(e)}
+  },'danger');
+  c.append(i,ok,botao('Cancelar',()=>c.remove(),'dim'),msg);
+  const antigo=box.querySelector('.contaApagar');if(antigo)antigo.remove();
+  box.append(c);i.focus();
+ }
+ async function apagarConta(){
+  const uid=user.uid;
+  window._noSave=true;nuvem.leave();
+  // libera o nome para outra pessoa usar
+  if(perfil.nome)await liberarNome(chaveNome(perfil.nome));
+  // amigos: some da lista dos outros também
+  try{const a=(await db.ref('amigos/'+uid).get()).val()||{};for(const id of Object.keys(a))await db.ref('amigos/'+id+'/'+uid).remove().catch(()=>{})}catch(e){}
+  for(const k of ['saves','perfis','online','amigos','grupos','convites','sussurros','ultimaMsg'])await db.ref(k+'/'+uid).remove().catch(()=>{});
+  try{await user.delete()}
+  catch(e){
+   if(e.code!=='auth/requires-recent-login')throw e;
+   // o Firebase pede um login recente para apagar: confirma de novo e tenta outra vez
+   const p=user.providerData[0]&&user.providerData[0].providerId;
+   if(p==='password'){const senha=prompt('Por segurança, digite a sua senha para apagar a conta:');if(!senha)throw e;await user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(user.email,senha))}
+   else{const id={'google.com':'google','github.com':'github','microsoft.com':'microsoft'}[p];if(!id)throw e;await user.reauthenticateWithPopup(provedor(id))}
+   await user.delete();
+  }
+  for(const k of [SAVE,DONO,QUANDO,'ilha-rpg-explorado','ilha-rpg-grupo','ilha-rpg-online','ilha-rpg-dg-recordes'])ls.del(k);
+  location.reload();
  }
  const menu=document.getElementById('menu');
  if(menu)new MutationObserver(()=>{const box=menu.querySelector('.mbox');if(box&&[...box.querySelectorAll('button')].some(b=>/Opções/.test(b.textContent)))linhaConta(box)}).observe(menu,{childList:true});
@@ -222,14 +354,12 @@
    user=u;esperando('Carregando seu progresso…');
    try{
     const p=(await db.ref('perfis/'+u.uid).get()).val();
-    perfil.nome=p&&p.nome||'';
-    if(!perfil.nome){
-     const base=(u.displayName||'').split(' ')[0].replace(/[^\p{L}\p{N}_-]/gu,'').slice(0,18);
-     perfil.nome=base.length>=3?base:'Aventureiro'+Math.floor(1000+Math.random()*9000);
-     db.ref('perfis/'+u.uid).set({nome:perfil.nome}).catch(()=>{});
-    }
-    nuvem.id=u.uid;nuvem.name=perfil.nome;
+    perfil.nome=p&&p.nome||'';perfil.criado=!!(p&&p.criado);
+    nuvem.id=u.uid;nuvem.name=perfil.nome||'Aventureiro';
     if(!await sincronizarProgresso())return;
+    // conta nova (ou sem personagem): escolhe nome, classe e sexo antes de jogar
+    if(!perfil.criado)await criarPersonagem();
+    nuvem.name=perfil.nome;
    }catch(e){
     console.error('Falha ao ler a conta:',e);
     semNuvem(e&&e.code==='PERMISSION_DENIED'?'O banco recusou o acesso. Publique as regras de ferramentas/regras-firebase.json no Firebase.':'Não foi possível ler sua conta. Verifique a internet.');return;

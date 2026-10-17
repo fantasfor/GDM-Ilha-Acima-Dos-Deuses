@@ -162,6 +162,57 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #f0cf7a;out
 .vozMudo.on{background:#8a3a2f;border-color:#f0a090;color:#fff}
 .onlineLine .tag{display:inline-block;margin-right:4px;padding:0 3px;font-style:normal;font-size:9px;color:#191510;background:#c0ae91}
 .onlineLine.canal-g .tag{background:#9fe3ff}
+.onlineLine.canal-s .tag{background:#f0a0e0}.onlineLine.canal-s{color:#f6c8ec}.onlineLine.canal-s b{color:#f0a0e0}
+/* voz: microfone com nível, botão Falar e engrenagem */
+.vozMic,.vozCfg{pointer-events:auto;position:relative;width:26px;height:24px;padding:0;border:1px solid #6b532f;background:#191510ee;cursor:pointer;box-shadow:0 2px 8px #0008}
+.vozMic svg,.vozCfg svg{width:16px;height:16px;fill:#8a7a62;display:block;margin:auto}
+.vozCfg:hover svg{fill:#fff2cf}.vozCfg:hover,.vozMic:hover{border-color:#e7cb88}
+.vozMic.espera svg{fill:#c0ae91}
+.vozMic.aberto{border-color:#4f8a5a}.vozMic.aberto svg{fill:#9be7a8}
+.vozMic.mudo{border-color:#8a3a2f}.vozMic.mudo svg{fill:#f0a090}
+.vozMic.mudo::after{content:'';position:absolute;left:4px;right:4px;top:50%;height:2px;background:#f0a090;transform:rotate(-40deg)}
+.vozMic .vozNivel{position:absolute;left:2px;right:2px;bottom:1px;height:2px}
+.vozNivel{display:block;background:#0d0c0b;overflow:hidden}
+.vozNivel>i{display:block;height:100%;width:calc(var(--nivel,0)*100%);background:#5fe07a;transition:width .08s}
+.vozNivel.grande{flex:1;height:8px;border:1px solid #4a3a22}
+.vozFalar{touch-action:none;user-select:none}
+.vozFalar.on{background:#4f8a5a;border-color:#9be7a8;color:#fff}
+.vozMic:focus-visible,.vozCfg:focus-visible,.teclaBtn:focus-visible{outline:2px solid #ffe092;outline-offset:1px}
+.vozPainel{position:fixed;left:10px;top:calc(110px + env(safe-area-inset-top,0px));z-index:45;width:min(320px,calc(100vw - 20px));padding:10px;border:2px solid #8a6a3a;background:linear-gradient(150deg,#251e16f8,#0f0e0ef8 70%);color:#e9dfc9;font:11px monospace;box-shadow:0 12px 40px #000c}
+.vozPainel[hidden]{display:none}
+.vozTopo{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.vozTopo b{color:#f0cf7a;font-size:13px}
+.vozModo{margin:0 0 8px;padding:6px;border:1px solid #4a3a22}.vozModo legend{color:#f0cf7a;padding:0 4px}
+.vozModo label{display:grid;grid-template-columns:auto 1fr;gap:0 6px;align-items:center;padding:3px 0;cursor:pointer}
+.vozModo small{grid-column:2;color:#8a7a62}
+.vozLinha{display:flex;align-items:center;gap:8px;margin:6px 0}.vozLinha>span{flex:0 0 120px;color:#d8c9a4}
+.vozLinha select{flex:1;min-width:0;padding:4px;background:#120f0d;color:#fff2d7;border:1px solid #6b532f;font:11px monospace}
+.vozLinha input[type=range]{flex:1}
+/* editor de teclas (Menu › Controles) */
+.teclas{text-align:left}
+.teclasGrupo{margin:14px 0 4px;color:#f0cf7a;font-size:12px;letter-spacing:2px;text-transform:uppercase;text-align:left}
+.teclaLinha{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 0;border-bottom:1px solid #2c241a;color:#d8c9a4;font-size:12px}
+.teclaBtn{min-width:86px;padding:5px 8px;border:1px solid #80633a;background:#2c241a;color:#f0cf7a;font:bold 12px monospace;cursor:pointer}
+.teclaBtn:hover{border-color:#e8bd3e;color:#fff}
+.teclaBtn.esperando{background:#4f3a14;color:#fff;animation:mpop .6s ease-in-out infinite alternate}
+.msave{margin:10px 0 0;color:#8a7a62;font-size:11px}
+.mDel{display:block;margin:14px auto 0;padding:2px 6px;border:0;background:none;color:#b0443a;font:10px monospace;text-decoration:underline;opacity:.7;cursor:pointer}
+.mDel:hover{opacity:1;color:#ff6a5a}.mDel:focus-visible{outline:2px solid #ff6a5a;outline-offset:1px}
+/* criação de personagem (js/conta.js) */
+.criarForm{text-align:left}
+.criarCampo{display:block;margin:10px 0}.criarCampo>span{display:block;margin-bottom:4px;color:#f0cf7a;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.criarCampo input{display:block;width:100%;box-sizing:border-box;padding:10px;border:2px solid #6f5632;background:#120f0d;color:#fff2d7;font:14px monospace}
+.criarCampo input:focus-visible{outline:2px solid #ffe092;outline-offset:1px}
+.criarStatus{display:block;min-height:15px;margin-top:4px;color:#a99a78;font-size:11px}.criarStatus.ok{color:#9be7a8}.criarStatus.erro{color:#ff9a8a}
+.criarPreviaBox{display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0;padding:8px;border:1px solid #4a3a22;background:radial-gradient(circle at 50% 60%,#3a5a2e,#1a2414 70%)}
+.criarPrevia{width:132px;height:132px;image-rendering:pixelated;image-rendering:crisp-edges}
+.criarClasse{color:#fff2d7;font-size:12px}
+.criarOpcoes{display:flex;flex-wrap:wrap;gap:6px}
+.criarOpcao.mb{flex:1 1 30%;width:auto;margin:0;padding:8px 6px;font-size:12px}
+.criarOpcao.on{border-color:#e8bd3e;background:linear-gradient(#5a4520,#2a2010);color:#fff}
+.mpLista li.offline .mpNome{color:#8a7a62}
+.contaApagar{flex:1 1 100%;margin-top:8px;padding:8px;border:1px solid #8a3a2f;background:#2a1210aa;color:#f0c8c0}
+.contaApagar p{margin:0 0 6px}.contaApagar input{width:100%;box-sizing:border-box;margin-bottom:6px;padding:7px;border:1px solid #8a3a2f;background:#120f0d;color:#fff;font:12px monospace}
+.contaApagar .mb{display:inline-block;width:auto;margin:0 6px 0 0;padding:7px 12px;font-size:11px}
 .tavBtn{width:auto!important;padding:0 10px!important;font:bold 11px monospace!important;white-space:nowrap}
 .mpPainel{position:fixed;right:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:40;width:min(330px,calc(100vw - 20px));max-height:calc(100vh - 220px);overflow:auto;padding:10px;border:2px solid #8a6a3a;background:linear-gradient(150deg,#251e16f8,#0f0e0ef8 70%);color:#e9dfc9;font:11px monospace;box-shadow:0 12px 40px #000c}
 .mpPainel[hidden]{display:none}

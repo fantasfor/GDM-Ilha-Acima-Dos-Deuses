@@ -40,13 +40,14 @@
   log.push(entry);if(log.length>LOG_MAX)log.shift();
   const row=el('div','onlineLine'+(entry.system?' system':'')+(entry.id===myId?' mine':'')+(entry.canal?' canal-'+entry.canal:''));
   if(entry.system)row.textContent=entry.text;
-  else{const who=el('b','',entry.name+': ');row.append(el('time','',fmtTime(entry.t)));if(entry.canal)row.append(el('i','tag',entry.canal==='g'?'G':'L'));row.append(who,document.createTextNode(entry.text))}
+  else{const who=el('b','',entry.name+': ');row.append(el('time','',fmtTime(entry.t)));if(entry.canal)row.append(el('i','tag',{g:'G',l:'L',s:'S'}[entry.canal]||'?'));row.append(who,document.createTextNode(entry.text))}
   row.dataset.at=String(performance.now());lines.append(row);
   while(lines.childElementCount>LOG_MAX)lines.firstElementChild.remove();
   lines.scrollTop=lines.scrollHeight;
  }
  const system=text=>addLine({system:true,text});
- window.onlineSystem=system;
+ window.onlineSystem=system;window.onlineLinha=addLine;
+ window.abrirChatCom=texto=>{openChat();input.value=texto;input.setSelectionRange(texto.length,texto.length)};
  // com conta: visível só quem está na mesma sala; sem conta: todos fora das DGs
  const minhaSala=()=>window.MP&&MP.salaAtual?MP.salaAtual():null;
  const visivel=o=>nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon;
@@ -63,19 +64,32 @@
  form.onsubmit=e=>{
   e.preventDefault();const text=input.value.trim();input.value='';
   if(!text){closeChat();return}
+  // sussurro: "/s Nome mensagem" (ou /w) e "/r mensagem" responde o último que sussurrou para você
+  const sus=text.match(/^\/(s|w|sussurrar)\s+(.+)/i),resp=text.match(/^\/r\s+(.+)/i);
+  if(sus||resp){
+   if(!nuvem||!window.MP||!MP.sussurrar){system('Sussurros precisam de conta (online pela nuvem).');return}
+   let alvo=null,msg='';
+   if(resp){alvo=MP.ultimoSussurro;msg=resp[1];if(!alvo){system('Ninguém sussurrou para você ainda.');return}}
+   else{const r=MP.resolverSussurro(sus[2]);if(!r){system('Jogador não encontrado. Use /s Nome mensagem (precisa estar online ou ser seu amigo).');return}alvo=r.id;msg=r.msg}
+   if(!msg){system('Escreva a mensagem depois do nome.');return}
+   MP.sussurrar(alvo,msg);return;
+  }
   const rename=text.match(/^\/nome\s+(.+)/i);
   if(rename){
    const name=rename[1].replace(/[^\p{L}\p{N} _-]/gu,'').trim().slice(0,18);
    if(name.length<3){system('O nome precisa de 3 a 18 letras ou números.');return}
-   cfg.name=name;store.set(cfg);if(nuvem&&window.ONLINE_NUVEM)ONLINE_NUVEM.rename(name);system('Agora você é '+name+'.');return;
+   // com conta, o nome precisa estar livre (ninguém pode ter o mesmo)
+   if(nuvem&&window.ONLINE_NUVEM){ONLINE_NUVEM.rename(name).then(ok=>{if(ok){cfg.name=name;system('Agora você é '+name+'.')}else system('O nome '+name+' já está em uso ou é inválido.')});return}
+   cfg.name=name;store.set(cfg);system('Agora você é '+name+'.');return;
   }
   const msg=text.slice(0,140);
   outbox.push(nuvem?{text:msg,canal}:msg);
   // o balão sobre o personagem aparece no chat local (no global quem fala pode estar longe)
   if(!nuvem||canal==='l')myBubble={text:msg,t:performance.now()/1000};
+  closeChat();
  };
  addEventListener('keydown',e=>{
-  if(e.key!=='Enter'||e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||document.getElementById('menu')?.classList.contains('open'))return;
+  if(TECLAS.acao(e)!=='chat'||document.getElementById('menu')?.classList.contains('open')||document.getElementById('conta')?.classList.contains('open'))return;
   e.preventDefault();openChat();
  });
 

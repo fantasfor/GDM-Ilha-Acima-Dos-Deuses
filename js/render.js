@@ -364,7 +364,21 @@ function anim(u,wu,slime){
  if(u.hit>0)a.dx=Math.sin(t*90)*1.2;
  return a}
 const wh=img=>img.height/(img.q||1);
-function pick(w){return en.find(e=>{const size=e.size||1,r=(e.boss?24:16)*size,h=wh(e.img)*(e.boss?1.7:1)*size;return e.hp>0&&canSee(e.x,e.y)&&(dist(e,w)<r||dist({x:e.x,y:e.y-h/2},w)<r)})}
+/* Clique em monstro: caixa do tamanho do sprite desenhado (com folga de 5 px para os lados e em cima),
+   mínimo de 22×26 px para os pequenos; com vários sobrepostos, vence o mais perto do cursor. */
+function pick(w){
+ let best=null,bd=Infinity;
+ for(const e of en){
+  if(e.hp<=0||!canSee(e.x,e.y))continue;
+  const img=e.img,q=img&&img.q||1,sc=(e.bossType=='grandboss'?1.8:e.bossType=='boss'||e.boss?1.5:1)*(window.MSCALE||.7)*(e.size||1);
+  const half=Math.max(11,(img?img.width/q:16)*sc/2+5),h=Math.max(26,(img?img.height/q:16)*sc+8);
+  const dx=w.x-e.x,top=e.y-h,bottom=e.y+6;
+  if(Math.abs(dx)>half||w.y<top||w.y>bottom)continue;
+  const d=Math.hypot(dx,(w.y-(e.y-h/2))*.7);
+  if(d<bd){bd=d;best=e}
+ }
+ return best
+}
 function lunge(u,t,aw,wu){if(!(aw>0)||!t)return[0,0];const d=Math.hypot(t.x-u.x,t.y-u.y)||1,k=5*(1-aw/wu);return[(t.x-u.x)/d*k,(t.y-u.y)/d*k]}
 function statusDots(t,x,y){if(!t.st)return;let i=0;for(const k in t.st){if(!FX_INFO[k])continue;ctx.fillStyle='#000a';ctx.fillRect(x+i*4-.5,y-.5,3,3);ctx.fillStyle=FX_INFO[k].c;ctx.fillRect(x+i*4,y,2,2);i++}}
 function bar(x,y,w,f,c){ctx.fillStyle='#000a';ctx.fillRect(Math.round(x-w/2)-1,Math.round(y)-1,w+2,4);ctx.fillStyle=c;ctx.fillRect(Math.round(x-w/2),Math.round(y),Math.round(w*f),2)}
