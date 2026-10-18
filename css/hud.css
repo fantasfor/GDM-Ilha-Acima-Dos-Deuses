@@ -198,22 +198,30 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 /* espaço de habilidade da arma vazio (Z/X) */
 .sk.skVazio{background:#0e0c0a!important;box-shadow:inset 0 0 8px #000!important;cursor:default}
 .sk.skVazio em,.sk.skVazio u,.sk.skVazio span{display:none}
-/* montar grupo da DG: 5 espaços com a fotinha de cada jogador */
-.dgp-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:4px 0}
-.dgp-slot{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;min-height:132px;padding:8px 4px;box-sizing:border-box;background:radial-gradient(#2a2117,#0d0b09 75%);border:2px solid #0a0806;outline:1px solid var(--line2);outline-offset:-4px;font:11px monospace;color:var(--text)}
-.dgp-slot img{width:auto;height:78px;max-width:100%;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 2px #000a)}
-.dgp-slot b{display:block;margin:0!important;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold 11px monospace!important;color:#9fe3ff!important}
-.dgp-slot.lider{outline-color:#d4ad60}.dgp-slot.lider b{color:#ffe699!important}
-.dgp-slot small{color:var(--muted);font-size:10px}
-.dgp-semFoto{font:bold 34px monospace;color:#5a4a32;margin-bottom:auto;margin-top:18px}
-.dgp-slot.vazio{justify-content:center;cursor:pointer;background:#0b0a08;outline-style:dashed;outline-color:#5a4a32}
-.dgp-slot.vazio:hover:not(:disabled){outline-color:#f0cf7a;background:#16120d}.dgp-slot.vazio:disabled{cursor:default;opacity:.55}
-.dgp-mais{font:bold 34px/1 monospace;color:#b8964f}.dgp-slot.vazio:hover:not(:disabled) .dgp-mais{color:#ffe699}
-.dgp-slot.esperando .dgp-mais{color:#9fe3ff}
-.dgp-dif{margin:0!important;font:11px monospace!important;color:#f0a52e}.dgp-dif b{display:inline!important;margin:0!important;font:bold 11px monospace!important;color:#ffcf8a!important}
+/* cartas de lobby (js/lobby.js): grupo da DG e arena 1x1 / 2x2 — nome em cima, carta escura com a fotinha, "+" para convidar */
+.lobLinha{display:flex;align-items:flex-end;justify-content:center;gap:16px;padding:14px 4px 6px;flex-wrap:wrap}
+.lobCarta{display:flex;flex-direction:column;align-items:center;gap:5px}
+.lobCarta.alto{margin-bottom:42px}
+.lobRotulo{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 15px Georgia,'Times New Roman',serif;font-variant:small-caps;letter-spacing:.5px;color:#f2e8d2;text-shadow:0 1px 0 #000}
+.lobCard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:96px;height:146px;box-sizing:border-box;padding:8px 6px;background:#111010;border:2px solid #050403;outline:1px solid #3a3022;outline-offset:-5px;color:#f2e8d2;font:11px monospace;box-shadow:0 6px 14px #0009}
+.lobCard.lider{outline-color:#d4ad60}.lobCard.voce .lobFoto{box-shadow:0 0 0 1px #9fe3ff}
+.lobFoto{display:flex;align-items:center;justify-content:center;width:72px;height:88px;background:conic-gradient(#3b3f44 25%,#2c2f33 0 50%,#3b3f44 0 75%,#2c2f33 0) 0 0/8px 8px;border:2px solid #050403}
+.lobFoto img{height:74px;width:auto;max-width:68px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 2px #000a)}
+.lobSem{font:bold 34px monospace;color:#5a4a32}
+.lobCard small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c9b998;font-size:10px}
+.lobCard.vazio{cursor:pointer}.lobCard.vazio:disabled{cursor:default;opacity:.55}
+.lobCard.vazio:hover:not(:disabled){outline-color:#f0cf7a;background:#18150f}
+.lobMais{font:200 64px/1 Georgia,serif;color:#fff}
+.lobConv{font:600 15px Georgia,'Times New Roman',serif;font-variant:small-caps;letter-spacing:.5px;color:#fff}
+.lobCard.esperando .lobMais{font-size:40px;color:#9fe3ff}
+.lobX{align-self:center;margin:0 4px 30px;font:100 64px/1 Georgia,serif;color:#e8e0cc}
+@media(max-width:620px){.lobCard{width:78px;height:124px}.lobFoto{width:58px;height:72px}.lobFoto img{height:60px}.lobCarta.alto{margin-bottom:0}}
+.lobPlacar{display:flex;justify-content:center;gap:10px;margin:2px 0 8px;font:11px monospace;color:#c9b998}.lobPlacar b{color:#ffd84a}
+.lobModos{display:flex;justify-content:center;gap:8px;margin:4px 0}
+.lobModos button{padding:6px 16px;font:bold 12px monospace;color:#d9c79e;background:linear-gradient(#2a2117,#15110c);border:2px solid #0a0806;outline:1px solid #3a3022;outline-offset:-4px;cursor:pointer}
+.lobModos button.on{color:#ffe699;outline-color:#d4ad60}.dgp-dif{margin:0!important;font:11px monospace!important;color:#f0a52e}.dgp-dif b{display:inline!important;margin:0!important;font:bold 11px monospace!important;color:#ffcf8a!important}
 .dgp-convidar{display:flex;flex-direction:column;gap:3px;max-height:170px;overflow:auto;padding:8px;background:#15110d;border:1px solid var(--line2)}.dgp-convidar[hidden]{display:none}
 .dgp-voltar{padding:8px 14px;font:bold 12px monospace;color:#d9c79e;background:linear-gradient(#2a2117,#15110c);border:2px solid #0a0806;outline:1px solid var(--line2);outline-offset:-4px;cursor:pointer}
-@media(max-width:620px){.dgp-slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .dgm-cand{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dotted #3a2e1c;font:11px monospace;color:var(--text)}
 .dgm-cand span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dgm-cand small{color:var(--muted);white-space:nowrap}
 .dgm-convite{flex:none;padding:3px 9px;font:bold 10px monospace;color:#9be7a8;background:linear-gradient(#21301f,#121a10);border:1px solid #4f8a5a;cursor:pointer}

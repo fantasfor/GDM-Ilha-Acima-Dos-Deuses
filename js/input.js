@@ -7,6 +7,7 @@ addEventListener('pointerup',()=>rdown=false);
 // mode 0 = toque (mover e atacar), 1 = botão esquerdo (inspecionar/NPC), 2 = botão direito (mover e atacar)
 function order(click,mode=0){if(p.dead>0)return;const w=wpos();
  if(window.inTaverna&&click&&window.tavernaClick&&tavernaClick(w,mode))return;
+ if(window.inArena&&click&&window.ARENA&&mode!=2&&ARENA.clique(w,mode))return;
  if(window.inDungeon&&click&&window.handleDungeonClick){
   if(window.handleDungeonClick(w,mode))return;
  }
@@ -30,7 +31,7 @@ const held=new Set();
 // teclas configuráveis em Menu › Controles (js/controles.js)
 addEventListener('keydown',e=>{const a=TECLAS.acao(e);if(!a)return;
  if(a.startsWith('mover_')){held.add(a);e.preventDefault();return}
- if(a.startsWith('hab')){const s=SK[+a.slice(3)-1];if(s)cast(s);return}
+ if(a.startsWith('hab')){const s=SK[+a.slice(3)-1];if(s)window.teclaHabilidade?teclaHabilidade(s,e):cast(s);return}
  if(a.startsWith('item')){useSlot(+a.slice(4)-1);return}
  if(a=='mochila')togInv()});
 addEventListener('keyup',e=>{for(const id of [...held])if(TECLAS.tecla(id)===e.code)held.delete(id)});

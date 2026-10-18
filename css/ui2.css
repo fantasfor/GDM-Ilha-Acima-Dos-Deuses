@@ -25,8 +25,6 @@
 .mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:9px 0;color:#d8c9a4;font-size:13px;text-align:left}
 .mrow input[type=range]{flex:1;accent-color:#e8bd3e}
 .mrow input[type=checkbox]{flex:none;accent-color:#e8bd3e;width:17px;height:17px}
-.msl{display:flex;align-items:center;gap:8px;margin:8px 0;padding:8px 10px;border:1px solid #5b472d;border-radius:9px;background:#0d0c0b;text-align:left;font-size:12px;color:#d8c9a4}
-.msl b{display:block;color:#f0cf7a;font-size:13px}.msl .mb{margin:0;width:auto;padding:7px 12px;font-size:12px}
 .mhelp{text-align:left;font-size:12px;line-height:1.8;color:#d8c9a4}.mhelp kbd{background:#2c241a;border:1px solid #80633a;border-radius:4px;padding:0 5px;color:#f0cf7a}
 /* ---- coluna de botões: Enciclopédia / Mochila / Habilidades (iguais, só texto) ---- */
 #sbtns{display:flex;flex-direction:column;gap:5px;width:104px;flex:none;align-self:flex-end;justify-content:flex-end}
@@ -169,7 +167,6 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #f0cf7a;out
 .onlineTab:focus-visible,.mpBtn:focus-visible,.tavBtn:focus-visible{outline:2px solid #ffe092;outline-offset:1px}
 .vozBox{display:inline-flex;gap:4px}
 .vozBtn.on{background:#4f8a5a;border-color:#9be7a8;color:#fff}
-.vozMudo.on{background:#8a3a2f;border-color:#f0a090;color:#fff}
 .onlineLine .tag{display:inline-block;margin-right:4px;padding:0 3px;font-style:normal;font-size:9px;color:#191510;background:#c0ae91}
 .onlineLine.canal-g .tag{background:#9fe3ff}
 .onlineLine.canal-s .tag{background:#f0a0e0}.onlineLine.canal-s{color:#f6c8ec}.onlineLine.canal-s b{color:#f0a0e0}
@@ -254,10 +251,9 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #f0cf7a;out
 .mpToasts{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;width:min(420px,calc(100vw - 20px));pointer-events:none}
 .mpToast{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border:2px solid #e7cb88;background:#191510f2;color:#fff2d7;font:12px monospace;box-shadow:0 8px 24px #000c;pointer-events:auto;animation:mpop .25s ease-out}
 .mpToast span{flex:1 1 200px}
-/* correio: o botão brilha enquanto houver solicitação pendente */
-.mpCorreioBtn.temCorreio{border-color:#f0cf7a!important;color:#ffe9a8!important;box-shadow:0 0 8px #f0cf7a88;animation:mpCorreio 1.6s ease-in-out infinite}
+/* correio (cartinha .mpCarta em hud.css): brilha enquanto houver solicitação pendente */
 @keyframes mpCorreio{50%{box-shadow:0 0 2px #f0cf7a33}}
-@media(prefers-reduced-motion:reduce){.mpCorreioBtn.temCorreio{animation:none}}
+@media(prefers-reduced-motion:reduce){.mpCarta.temCorreio{animation:none}}
 /* ---------- Conta: tela de login (js/conta.js) ---------- */
 #conta{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#0c1a2aee,#05080efa);backdrop-filter:blur(6px);padding:12px;box-sizing:border-box;font-family:monospace}
 #conta.open{display:flex}

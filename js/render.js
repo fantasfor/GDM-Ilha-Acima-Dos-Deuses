@@ -355,7 +355,7 @@ function anim(u,wu,slime){
    a.sy=1+w*0.06;a.sx=1-w*0.03;
   }
  }else if(isMoving){
-  a.dy=-Math.abs(Math.sin(t*12.566))*1.2;
+  a.dy=-Math.abs(Math.sin(t*12.566))*1.2;a.mv=true;
   a.ph=[1,0,2,0][Math.floor(t*8)%4];
  }else{
   const w=Math.sin(t*2.5+id);
@@ -380,7 +380,6 @@ function pick(w){
  return best
 }
 function lunge(u,t,aw,wu){if(!(aw>0)||!t)return[0,0];const d=Math.hypot(t.x-u.x,t.y-u.y)||1,k=5*(1-aw/wu);return[(t.x-u.x)/d*k,(t.y-u.y)/d*k]}
-function statusDots(t,x,y){if(!t.st)return;let i=0;for(const k in t.st){if(!FX_INFO[k])continue;ctx.fillStyle='#000a';ctx.fillRect(x+i*4-.5,y-.5,3,3);ctx.fillStyle=FX_INFO[k].c;ctx.fillRect(x+i*4,y,2,2);i++}}
 function bar(x,y,w,f,c){ctx.fillStyle='#000a';ctx.fillRect(Math.round(x-w/2)-1,Math.round(y)-1,w+2,4);ctx.fillStyle=c;ctx.fillRect(Math.round(x-w/2),Math.round(y),Math.round(w*f),2)}
 function circ(x,y,r,c,fill){ctx.beginPath();ctx.ellipse(x,y,r,r*.75,0,0,7);if(fill){ctx.fillStyle=c;ctx.fill()}else{ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke()}}
 function drawMapElement(e){
@@ -425,7 +424,7 @@ function drawCampGate(){
  if(pickCampGate(wpos())){ctx.fillStyle='#fff';ctx.fillText('Clique para '+(CAMP_WALL.gateOpen?'fechar':'abrir'),x,y-51)}
 }
 const fog=document.createElement('canvas'),fogCtx=fog.getContext('2d'),fogMaskCv=document.createElement('canvas'),fogMask=fogMaskCv.getContext('2d'),VISION_RANGE=200;
-const visionTrees=()=>trees.filter(t=>Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);
+const visionTrees=()=>window.inArena||window.inTaverna?[]:trees.filter(t=>Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);
 function treeHit(ox,oy,dx,dy,t){
  const x=(ox-t.x)/15,y=(oy-(t.y-17))/11,a=(dx/15)**2+(dy/11)**2,b=2*(x*dx/15+y*dy/11),c=x*x+y*y-1;
  if(c<=0)return Infinity;
@@ -512,8 +511,28 @@ function drawDynamicLighting(){
  });
  ctx.restore()
 }
+/* Vazio em volta da ilha: espaço escuro com estrelas em 3 camadas (paralaxe) e duas nebulosas bem fracas */
+function drawEspaco(){
+ const w=cv.width,h=cv.height;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#04050c';ctx.fillRect(0,0,w,h);
+ const neb=(x0,y0,r,cor,par)=>{const x=x0-(p.x-CX)*par*S+w/2,y=y0-(p.y-CY)*par*S+h/2,g=ctx.createRadialGradient(x,y,0,x,y,r*S);g.addColorStop(0,cor);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(x-r*S,y-r*S,2*r*S,2*r*S)};
+ neb(-260,-180,420,'rgba(90,50,150,.16)',.05);neb(320,240,360,'rgba(30,90,150,.13)',.05);
+ const TS=1400;
+ for(const [n,par,sz,cam] of [[110,.06,1,1],[60,.14,1,2],[22,.26,2,3]])for(let k=0;k<n;k++){
+  const bx=hash(k,cam*31)*TS,by=hash(cam*17,k)*TS,x=((bx-p.x*par*S)%TS+TS)%TS,y=((by-p.y*par*S)%TS+TS)%TS,tw=.55+.45*Math.sin(time*(1.2+hash(k,cam)*2)+k);
+  ctx.globalAlpha=tw*(cam==1?.55:.85);ctx.fillStyle=k%9==0?'#9fc4ff':k%13==0?'#ffd9a8':'#ffffff';
+  for(let ox=x;ox<w;ox+=TS)for(let oy=y;oy<h;oy+=TS)ctx.fillRect(Math.round(ox),Math.round(oy),sz,sz)}
+ ctx.globalAlpha=1}
+/* Cachoeira: onde o rio chega na borda, a água cai no vazio (o desenho fixo está no mapa; aqui gotas e névoa animadas) */
+function drawCachoeira(){
+ const f=RIO_FIM;if(!f||Math.abs(f.x-p.x)>420||Math.abs(f.y-p.y)>320)return;
+ for(let k=0;k<26;k++){const ox=(hash(k,3)-.5)*2*(f.w+2),q=(time*.9+hash(k,7))%1,y=f.y+2+q*130;
+  ctx.globalAlpha=(1-q)*.8;ctx.fillStyle=k%3?'#cfe8f0':'#7fb8dc';ctx.fillRect(Math.round(f.x+ox),Math.round(y),1,3+Math.round(q*4))}
+ for(let k=0;k<10;k++){const q=(time*.35+hash(k,11))%1,r=6+q*14,x=f.x+(hash(k,13)-.5)*f.w*3,y=f.y+6+q*20;
+  ctx.globalAlpha=(1-q)*.22;ctx.fillStyle='#e6f4fa';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
+ ctx.globalAlpha=1}
 function draw(){
  if(MODO.motor)return;
+ if(window.inArena&&window.drawArena){drawArena();return}
  if(window.inTaverna&&window.drawTaverna){
   drawTaverna();
   return;
@@ -522,20 +541,19 @@ function draw(){
   drawDungeonWorld();
   return;
  }
- ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#1f6a9a';ctx.fillRect(0,0,cv.width,cv.height);
+ drawEspaco();
  ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));ctx.imageSmoothingEnabled=false;
  ctx.drawImage(map,0,0);
+ drawCachoeira();
  {const r=CAMP_SAFE_HALF_SIZE;ctx.fillStyle='#72bf7410';ctx.fillRect(CX-r,CY-r,r*2,r*2);ctx.strokeStyle='#9ad78460';ctx.lineWidth=1;ctx.strokeRect(CX-r,CY-r,r*2,r*2)}
 
  // correnteza do rio
- for(let y=Math.floor((p.y-190)/5)*5;y<p.y+190;y+=5){const rx=riverX(y),rw=riverW(y);if(Math.abs(rx-p.x)>340)continue;
+ for(let y=Math.floor((p.y-190)/5)*5;y<p.y+190;y+=5){const rx=riverX(y),rw=riverW(y);if(rw<4||Math.abs(rx-p.x)>340||(RIO_FIM&&y>RIO_FIM.y-4))continue;
   for(let k=0;k<3;k++){const o=hash(y,k)*2-1,yy=y+Math.floor((time*7+hash(k,y)*5)%5);if(RBR.some(b=>Math.abs(yy-b)<12))continue;ctx.fillStyle=(y/5+k)%2?'#ffffff40':'#bfe8f835';ctx.fillRect(Math.round(rx+o*(rw-3)+Math.sin(time*1.3+y*.4+k*2)*1.5),yy,3,1)}}
  // brilho da fogueira
  {const fl=.5+.12*Math.sin(time*9)+.06*Math.sin(time*23),g=ctx.createRadialGradient(CX,CY,4,CX,CY,95);g.addColorStop(0,'rgba(255,170,60,'+(.38*fl)+')');g.addColorStop(1,'rgba(255,120,30,0)');ctx.fillStyle=g;ctx.fillRect(CX-100,CY-100,200,200)}
- // marcas de água animadas
- ctx.fillStyle='#ffffff30';for(let k=0;k<60;k++){const a=hash(k,1)*W,b=hash(1,k)*W;if(V(a/T|0,b/T|0)>30&&Math.abs(a-p.x)<300&&Math.abs(b-p.y)<200)ctx.fillRect(Math.round(a+Math.sin(time+k)*3),Math.round(b),5,1)}
  // alvos de meteoro
- mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();
+ mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();if(window.desenharTelegrafos)desenharTelegrafos();
  const L=[];
  const occ=[];if(p.dead<=0)occ.push(p);en.forEach(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<300&&Math.abs(e.y-p.y)<220)occ.push(e)});NPCS.forEach(n=>occ.push(n));
  trees.forEach(t=>{if(Math.abs(t.x-p.x)<260&&Math.abs(t.y-p.y)<170){const hid=occ.some(u=>u.y<t.y&&u.y>t.y-25&&Math.abs(u.x-t.x)<17),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});

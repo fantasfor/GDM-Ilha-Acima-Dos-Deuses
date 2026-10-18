@@ -1,0 +1,113 @@
+/* ---------- Chefes com mecânicas ----------
+   Qualquer monstro pode ter "mecanicas" (Engine › Monstro › Mecânicas de chefe). Cada mecânica tem tipo, nome, recarga,
+   fase (só abaixo de X% da vida), aviso (tempo do telégrafo no chão) e dano em % da vida máxima de quem ficar na área.
+   Tipos: impacto (círculo no alvo), chuva (vários círculos), investida (faixa até o alvo e o chefe avança),
+   explosao (círculo em volta do chefe), anel (seguro só perto do chefe), raios (faixas em estrela), invocar (ajudantes)
+   e furia (fica mais forte por um tempo). "furia" do monstro: abaixo de X% da vida o chefe se enfurece de vez.
+   Só o dono da sala simula; os avisos vão para o grupo por MP.telegrafo. Os telégrafos ficam em window.TELEGRAFOS. */
+(function(){
+ const TG=window.TELEGRAFOS=[];
+ const PADRAO={impacto:{raio:52,aviso:1.6,danoPct:35,cd:9},chuva:{raio:30,aviso:1.4,danoPct:25,cd:14,qtd:4,espalhar:90},investida:{largura:40,comprimento:170,aviso:1.3,danoPct:40,cd:12},
+  explosao:{raio:70,aviso:1.8,danoPct:45,cd:16},anel:{raio:150,raioSeguro:44,aviso:2,danoPct:45,cd:20},raios:{largura:22,comprimento:160,aviso:1.5,danoPct:30,cd:15,qtd:6},
+  invocar:{qtd:3,cd:25,maxVivos:6},furia:{duracao:8,cd:30,mais:40}};
+ /* mecânicas do Lorde Goblin Demoníaco (também viram o padrão de quem criar um chefe novo na Engine) */
+ window.MECANICAS_LORDE_GOBLIN=[
+  {tipo:'impacto',nome:'Golpe Demoníaco',cd:8,danoPct:35,raio:54,aviso:1.5},
+  {tipo:'investida',nome:'Investida Brutal',cd:12,danoPct:40,largura:42,comprimento:180,aviso:1.2},
+  {tipo:'chuva',nome:'Desmoronamento',cd:14,fase:70,qtd:5,raio:30,espalhar:110,danoPct:25,aviso:1.4},
+  {tipo:'invocar',nome:'Chamado da Horda',cd:22,fase:55,monstro:'goblin',qtd:3,maxVivos:5},
+  {tipo:'anel',nome:'Fúria do Lorde',cd:20,fase:35,raio:160,raioSeguro:46,danoPct:50,aviso:2},
+  {tipo:'raios',nome:'Lâminas Infernais',cd:16,fase:35,qtd:8,comprimento:170,largura:20,danoPct:30,aviso:1.5}];
+ const val=(m,k)=>m[k]!=null&&m[k]!==''&&isFinite(+m[k])?+m[k]:(PADRAO[m.tipo]||{})[k];
+ const lista=e=>e.mecanicas||(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].mecanicas)||null;
+ const vida=e=>Math.max(0,e.hp)/Math.max(1,monsterMaxHp(e));
+ function telegrafar(tg){TG.push(tg);if(window.MP&&MP.telegrafo)MP.telegrafo(tg)}
+ const tremer=v=>{if(window.inDungeon&&window.tremerDG)tremerDG(v)};
+ function gritar(e,txt,cor='#ff7a5a'){ft(e.x,e.y-38,txt,cor);if(window.playEntitySound)playEntitySound('monsters',e.ty,'skill')}
+ /* ---- executar uma mecânica ---- */
+ function executar(e,m,a){
+  const area=areaMultiplier(e),aviso=Math.max(.3,val(m,'aviso')||1.5),pct=Math.max(0,val(m,'danoPct')||0)/100,nome=m.nome||'',base={src:e,t:0,maxT:aviso,pct,label:nome};
+  e.dest=null;e.path=[];e.fx=a.x-e.x;e.fy=a.y-e.y;
+  if(m.tipo==='impacto')telegrafar({...base,type:'circle',x:a.x,y:a.y,r:val(m,'raio')*area});
+  else if(m.tipo==='chuva'){const n=Math.max(1,Math.round(val(m,'qtd'))),sp=val(m,'espalhar');for(let k=0;k<n;k++)telegrafar({...base,type:'circle',x:a.x+(k?(Math.random()-.5)*2*sp:0),y:a.y+(k?(Math.random()-.5)*2*sp:0),r:val(m,'raio')*area,t:-k*.22,label:k?'':nome})}
+  else if(m.tipo==='investida'){const ang=Math.atan2(a.y-e.y,a.x-e.x),L=val(m,'comprimento')*area;telegrafar({...base,type:'rect',x:e.x,y:e.y,angle:ang,w:val(m,'largura')*area,length:L,investida:true})}
+  else if(m.tipo==='explosao')telegrafar({...base,type:'circle',x:e.x,y:e.y,r:val(m,'raio')*area,segue:true});
+  else if(m.tipo==='anel')telegrafar({...base,type:'ring',x:e.x,y:e.y,r:val(m,'raio')*area,r0:val(m,'raioSeguro')*area,segue:true});
+  else if(m.tipo==='raios'){const n=Math.max(2,Math.round(val(m,'qtd'))),giro=(e.mec.giro=(e.mec.giro||0)+Math.PI/n);for(let k=0;k<n;k++)telegrafar({...base,type:'rect',x:e.x,y:e.y,angle:giro+k*2*Math.PI/n,w:val(m,'largura')*area,length:val(m,'comprimento')*area,label:k?'':nome,segue:true})}
+  else if(m.tipo==='invocar'){
+   const id=MONSTER_TYPES[m.monstro]?m.monstro:Object.keys(MONSTER_TYPES).find(k=>!['boss','grandboss'].includes(MONSTER_TYPES[k].bossType)&&k!==e.ty);if(!id||!window.spawnAt)return;
+   const vivos=en.filter(o=>o.invocadoPor===e&&o.hp>0).length,n=Math.min(Math.round(val(m,'qtd')),Math.max(0,Math.round(val(m,'maxVivos'))-vivos));
+   for(let k=0;k<n;k++){const ang=Math.random()*6.283,r=26+Math.random()*24;let x=e.x+Math.cos(ang)*r,y=e.y+Math.sin(ang)*r;if(!walk(x,y)){x=e.x;y=e.y}
+    const o=spawnAt(x,y,id,Math.max(1,(e.lvl||1)-2));Object.assign(o,{invocadoPor:e,isDungeonMob:!!e.isDungeonMob,dungeonRoomId:e.dungeonRoomId,alert:8,pack:e.pack||('chefe'+e.mpId)});en.push(o);ring(x,y,12,'#b98cff',.4)}
+   ring(e.x,e.y,40,'#b98cff',.6);
+  }
+  else if(m.tipo==='furia'){e.mec.furiaT=val(m,'duracao');e.mec.furiaMais=val(m,'mais')/100;ring(e.x,e.y,36,'#ff3b30',.7)}
+  e.aw=Math.min(.9,aviso*.5);e.castOnly=true;e.skillWindup=false;e.mec.conjurando=aviso;
+  gritar(e,nome?nome+'!':'!');
+ }
+ /* ---- chamado pela IA dos monstros (update.js) enquanto o chefe persegue: true = ele usou uma mecânica agora ---- */
+ function tick(e,dt,a,d){
+  const mecs=lista(e);if(!mecs||!mecs.length)return false;
+  if(!e.mec){e.mec={cds:mecs.map(m=>Math.max(1.5,(val(m,'cd')||10)*.45)),base:{dmg:e.dmg,ac:e.ac,spd:e.spd}}}
+  const M=e.mec,v=vida(e);
+  if(!M.rugiu){M.rugiu=true;gritar(e,(e.name||MONSTER_TYPES[e.ty]?.name||'Chefe')+' ruge!','#ff5a3a');ring(e.x,e.y,46,'#ff5a3a',.6);tremer(.35)}
+  // fúria de fase: abaixo de X% da vida fica mais forte de vez
+  const limite=+(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].furia)||+e.furiaPct||0;
+  if(limite&&!M.enfurecido&&v*100<=limite){M.enfurecido=true;gritar(e,'ENFURECIDO!','#ff3b30');ring(e.x,e.y,60,'#ff3b30',.9);tremer(.5)}
+  aplicarForca(e);
+  for(let i=0;i<mecs.length;i++)M.cds[i]-=dt;
+  if(e.aw>0||a.dead>0||d>320)return false;
+  for(let i=0;i<mecs.length;i++){const m=mecs[i];if(M.cds[i]>0)continue;if(m.fase&&v*100>+m.fase)continue;
+   executar(e,m,a);M.cds[i]=Math.max(1,(val(m,'cd')||10)*cooldownMultiplier(e));return true}
+  return false;
+ }
+ function aplicarForca(e){const M=e.mec,b=M.base;let k=1;if(M.enfurecido)k+=.3;if(M.furiaT>0)k+=M.furiaMais||.4;
+  if(M.k!==k){M.k=k;e.dmg=Math.round(b.dmg*k);e.ac=b.ac/Math.min(1.6,k);e.spd=b.spd*(1+(k-1)*.4)}}
+ function reset(e){if(!e.mec)return;const b=e.mec.base;e.dmg=b.dmg;e.ac=b.ac;e.spd=b.spd;e.mec=null}
+ /* ---- telégrafos: crescem até o golpe; quem estiver dentro leva o dano ---- */
+ function dentro(tg,q){
+  if(tg.type==='circle')return dist(q,tg)<=tg.r;
+  if(tg.type==='ring'){const d=dist(q,tg);return d<=tg.r&&d>=tg.r0}
+  const c=Math.cos(tg.angle),s=Math.sin(tg.angle),dx=q.x-tg.x,dy=q.y-tg.y,lx=dx*c+dy*s,ly=-dx*s+dy*c;return lx>=0&&lx<=tg.length&&Math.abs(ly)<=tg.w/2;
+ }
+ function impacto(tg){
+  const cor=tg.type==='ring'?'#ff3b30':tg.type==='rect'?'#ff8a3a':'#ff5a3a';
+  if(tg.type==='rect'){for(let k=0;k<=4;k++){const f=k/4;fxs.push({x:tg.x+Math.cos(tg.angle)*tg.length*f,y:tg.y+Math.sin(tg.angle)*tg.length*f,r:tg.w*.7,c:cor,t:0,d:.45,style:'fire'})}}
+  else if(tg.type==='ring'){for(let k=0;k<10;k++){const a=k/10*6.283,r=(tg.r+tg.r0)/2;fxs.push({x:tg.x+Math.cos(a)*r,y:tg.y+Math.sin(a)*r,r:(tg.r-tg.r0)*.45,c:cor,t:0,d:.5,style:'fire'})}}
+  else{fxs.push({x:tg.x,y:tg.y,r:tg.r,c:cor,t:0,d:.5,style:'fire'});ring(tg.x,tg.y,tg.r,'#ffd36b',.35)}
+  tremer(tg.type==='circle'&&tg.r<40?.15:.3);if(window.playGameSound)playGameSound('magicHit');
+  if(p.dead<=0&&dentro(tg,p))hurtP(tg.dmg!=null?tg.dmg:Math.max(1,Math.round(mhp()*(tg.pct||.3))),false,null,null,tg.src||null);
+  // investida: o chefe atravessa a faixa
+  if(tg.investida&&tg.src&&tg.src.hp>0&&!tg.src.mpProxy){const e=tg.src;e.dash={x0:e.x,y0:e.y,x1:tg.x+Math.cos(tg.angle)*tg.length,y1:tg.y+Math.sin(tg.angle)*tg.length,t:0}}
+ }
+ function atualizar(dt){
+  for(let i=TG.length;i--;){const tg=TG[i];tg.t+=dt;
+   if(tg.segue&&tg.src&&tg.src.hp>0&&tg.t<tg.maxT*.6){tg.x=tg.src.x;tg.y=tg.src.y}
+   if(tg.t>=tg.maxT){TG.splice(i,1);impacto(tg)}}
+  for(const e of en){
+   if(e.dash){const D=e.dash;D.t+=dt/.28;const f=Math.min(1,D.t);let x=D.x0+(D.x1-D.x0)*f,y=D.y0+(D.y1-D.y0)*f;if(walk(x,y)){e.x=x;e.y=y}if(f>=1)e.dash=null;if(Math.random()<.6)fxs.push({x:e.x,y:e.y,r:10,c:'#c8a070',t:0,d:.4,style:'ring'})}
+   if(e.mec){if(e.mec.furiaT>0)e.mec.furiaT-=dt;if(e.mec.conjurando>0)e.mec.conjurando-=dt}
+  }
+ }
+ /* ---- desenho no chão (ilha e DG chamam antes das entidades) ---- */
+ window.desenharTelegrafos=function(){
+  const tt=time;
+  // auras dos chefes: roxa enquanto conjura, vermelha enfurecido
+  for(const e of en){if(!e.mec||e.hp<=0)continue;const pulso=.5+.5*Math.sin(tt*8);
+   if(e.mec.enfurecido||e.mec.furiaT>0){ctx.save();ctx.globalAlpha=.25+.2*pulso;ctx.fillStyle='#ff3b30';ctx.beginPath();ctx.ellipse(e.x,e.y,20+pulso*3,8+pulso,0,0,7);ctx.fill();ctx.restore()}
+   if(e.mec.conjurando>0){ctx.save();ctx.globalAlpha=.35+.25*pulso;ctx.strokeStyle='#c084fc';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y,16+pulso*4,6+pulso*2,0,0,7);ctx.stroke();ctx.restore()}}
+  for(const tg of TG){if(tg.t<0)continue;const f=Math.max(0,Math.min(1,tg.t/tg.maxT)),forte=f>.8?.5+.5*Math.sin(tt*30):0;
+   ctx.save();ctx.lineWidth=1.5;
+   const cor=tg.type==='ring'?'239,68,68':tg.type==='rect'?'249,115,22':'239,68,68';
+   ctx.strokeStyle='rgba('+cor+','+(.75+.25*forte)+')';ctx.fillStyle='rgba('+cor+',.16)';
+   if(tg.type==='circle'){ctx.beginPath();ctx.arc(tg.x,tg.y,tg.r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='rgba('+cor+',.38)';ctx.beginPath();ctx.arc(tg.x,tg.y,tg.r*f,0,7);ctx.fill()}
+   else if(tg.type==='ring'){ctx.beginPath();ctx.arc(tg.x,tg.y,tg.r,0,7);ctx.arc(tg.x,tg.y,tg.r0,0,7,true);ctx.fill();ctx.stroke();ctx.fillStyle='rgba('+cor+',.38)';ctx.beginPath();ctx.arc(tg.x,tg.y,tg.r0+(tg.r-tg.r0)*f,0,7);ctx.arc(tg.x,tg.y,tg.r0,0,7,true);ctx.fill();
+    ctx.strokeStyle='rgba(134,239,172,.8)';ctx.setLineDash([3,3]);ctx.beginPath();ctx.arc(tg.x,tg.y,tg.r0,0,7);ctx.stroke()}
+   else{ctx.translate(tg.x,tg.y);ctx.rotate(tg.angle);ctx.fillRect(0,-tg.w/2,tg.length,tg.w);ctx.strokeRect(0,-tg.w/2,tg.length,tg.w);ctx.fillStyle='rgba('+cor+',.38)';ctx.fillRect(0,-tg.w/2,tg.length*f,tg.w)}
+   ctx.restore();
+   if(tg.label){ctx.font='bold 6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(tg.label,tg.x+.5,tg.y-(tg.r||10)-3.5);ctx.fillStyle='#ffd36b';ctx.fillText(tg.label,tg.x,tg.y-(tg.r||10)-4)}
+  }
+ };
+ const upd0=upd;upd=function(dt){upd0(dt);atualizar(dt)};
+ window.CHEFES={tick,reset,executar,telegrafar,PADRAO,lista};
+})();

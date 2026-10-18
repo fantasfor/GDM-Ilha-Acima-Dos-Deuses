@@ -12,7 +12,7 @@
  const COR_SEM='#e7cb88';
  const corDe=q=>q==null?COR_SEM:QCOL[qi(q)];
  // lugar atual: se o jogador mudar de mapa antes do item chegar, ele vai direto para os encontrados
- const lugar=()=>(window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
+ const lugar=()=>(window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
  function imagem(id){
   const it=ITEMS[id];if(!it)return null;
   if(it.itemSprite)return it.itemSprite;

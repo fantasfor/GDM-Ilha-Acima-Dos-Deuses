@@ -9,7 +9,8 @@
  function normalize(def,inDg){
   const d=def||{},min=Math.max(1,Math.floor(num(d.countMin,2))),max=Math.max(min,Math.floor(num(d.countMax,4)));
   return{id:String(d.id||'spawn'),name:d.name||'Ponto de spawn',x:num(d.x,0),y:num(d.y,0),radius:Math.max(8,num(d.radius,inDg?40:56)),
-   disabled:!!d.disabled,monsters:(Array.isArray(d.monsters)?d.monsters:[]).filter(m=>m&&MONSTER_TYPES[m.id]&&num(m.chance,0)>0).map(m=>({id:m.id,chance:num(m.chance,0)})),
+   disabled:!!d.disabled,estilo:d.estilo=='portal'?'portal':'pontos',grupo:!!d.grupo,
+   monsters:(Array.isArray(d.monsters)?d.monsters:[]).filter(m=>m&&MONSTER_TYPES[m.id]&&num(m.chance,0)>0).map(m=>{const min=Math.max(0,Math.floor(num(m.min,1)));return{id:m.id,chance:num(m.chance,0),min,max:Math.max(min,Math.floor(num(m.max,min))),elite:Math.max(0,Math.min(100,num(m.elite,0)))}}),
    countMode:d.countMode=='fixed'?'fixed':'random',count:Math.max(1,Math.floor(num(d.count,3))),countMin:min,countMax:max,
    maxAlive:Math.max(1,Math.floor(num(d.maxAlive,inDg?max:Math.max(max,6)))),
    respawnMode:['interval','cleared','once'].includes(d.respawnMode)?d.respawnMode:inDg?'cleared':'interval',respawn:Math.max(0,num(d.respawn,inDg?2:25)),
@@ -46,6 +47,7 @@
   const def=s.def,at=spot(def);if(!at)return;
   const e=spawnAt(at.x,at.y,entry.type,entry.lvl);
   Object.assign(e,{hx:at.x,hy:at.y,roamRadius:def.roam,roamT:1+Math.random()*3,spawner:def.id});
+  if(def.grupo){const g=s.grupo&&s.grupo.lider&&s.grupo.lider.hp>0?s.grupo:(s.grupo={lider:e});if(g.lider!==e){const a=Math.random()*6.283,r=9+Math.random()*8;e.seguidor=g;e.offx=Math.cos(a)*r;e.offy=Math.sin(a)*r}}
   if(def.pack)e.pack='sp:'+def.id+':'+entry.wave;
   if(entry.elite)makeElite(e);
   e.xp=Math.round(e.xp*def.xpPct/100);e.g=Math.round(e.g*def.goldPct/100);
@@ -54,10 +56,21 @@
    const room=def.roomId!=null?(window.CAVE_ROOMS||[]).find(r=>String(r.id)===String(def.roomId)):(window.CAVE_ROOMS||[]).find(r=>at.x>=r.x&&at.x<=r.x+r.w&&at.y>=r.y&&at.y<=r.y+r.h);
    if(room)e.dungeonRoomId=room.id;
   }
-  effect(def,at.x,at.y);en.push(e);s.mobs.push(e);
+  if(!entry.pronto)effect(def,at.x,at.y);en.push(e);s.mobs.push(e);
+ }
+ /* Portal da DG: igual aos portais da ilha — cada monstro com chance %, quantidade mín.–máx. e elite % próprios;
+    se ninguém for sorteado, vem um deles. Sem fenda: a primeira leva já está no lugar quando a DG começa. */
+ function wavePortal(s,room){
+  const def=s.def,plan=[];
+  for(const m of def.monsters)if(Math.random()*100<m.chance)for(let k=irand(m.min,m.max);k-->0;)plan.push({type:m.id,elite:Math.random()*100<m.elite});
+  if(!plan.length){const m=def.monsters[Math.floor(Math.random()*def.monsters.length)];plan.push({type:m.id,elite:Math.random()*100<m.elite})}
+  s.waves++;const n=Math.min(room,plan.length);
+  for(let i=0;i<n;i++)s.queue.push({t:0,...plan[i],lvl:levelFor(def),wave:s.waves,pronto:true});
+  return true;
  }
  function wave(s){
   const def=s.def,room=def.maxAlive-alive(s)-s.queue.length;if(room<=0||!def.monsters.length)return false;
+  if(def.estilo=='portal')return wavePortal(s,room);
   const n=Math.min(room,def.countMode=='fixed'?def.count:irand(def.countMin,def.countMax));if(n<=0)return false;
   s.waves++;let elites=0;
   for(let i=0;i<n;i++){const elite=Math.random()*100<def.eliteChance&&(!def.eliteMax||elites<def.eliteMax);if(elite)elites++;
@@ -78,10 +91,12 @@
   if(!near&&def.activation=='near')return;
   if(wave(s)||def.respawnMode=='interval')s.timer=s.waves?def.respawn:def.startDelay;
  }
- const upd0=upd;upd=function(dt){upd0(dt);if(p.dead>0||window.inTaverna||window.mpEspelho)return;(window.inDungeon?dungeon:island).forEach(s=>tick(s,dt))};
+ const upd0=upd;upd=function(dt){upd0(dt);if(p.dead>0||window.inTaverna||window.inArena||window.mpEspelho)return;(window.inDungeon?dungeon:island).forEach(s=>tick(s,dt))};
  /* Na DG: cria os pontos da DG ativa; as portas de uma sala esperam as ondas finitas dos pontos ligados a ela. */
  window.SPAWNS={
-  enterDungeon(cfg){dungeon=(Array.isArray(cfg&&cfg.spawns)?cfg.spawns:[]).map(d=>state(normalize(d,true)));dungeon.forEach(s=>{if(s.def.activation=='always'&&!s.def.startDelay)tick(s,0)})},
+  enterDungeon(cfg){dungeon=(Array.isArray(cfg&&cfg.spawns)?cfg.spawns:[]).map(d=>state(normalize(d,true)));
+   // portal da DG: a primeira leva nasce junto com a DG, já no lugar; os outros pontos seguem a ativação
+   dungeon.forEach(s=>{if(s.def.estilo=='portal'&&!s.def.disabled&&s.def.monsters.length){s.active=true;wavePortal(s,s.def.maxAlive);s.timer=s.def.respawn;tick(s,0)}else if(s.def.activation=='always'&&!s.def.startDelay)tick(s,0)})},
   roomBusy(roomId){return dungeon.some(s=>{const d=s.def;if(d.disabled||!d.lockRoom||!d.monsters.length||d.roomId==null||String(d.roomId)!==String(roomId))return false;
    if(d.respawnMode=='interval'&&!d.waves)return false;return !finished(s)||s.queue.length>0})},
   lista:()=>(window.inDungeon?dungeon:island).map(s=>({id:s.def.id,nome:s.def.name,vivos:alive(s),ondas:s.waves,ativo:s.active,fim:finished(s)})),

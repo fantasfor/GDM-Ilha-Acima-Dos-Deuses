@@ -112,12 +112,18 @@ const IC_SHAPE={
 };
 const gearIcon=(slot,v,st)=>{const t=slot=='ri'?'ri':slot,sh=IC_SHAPE[t];return spr(sh[Math.min(st,sh.length-1)],{d:'#161022',m:v[0],h:shade(v[0],1.45),a:v[1],g:v[1]})};
 const statTxt=o=>Object.keys(ITEM_STATS).filter(k=>o[k]).map(k=>(o[k]>0?'+':'')+itemStatValue(k,o[k])+' '+ITEM_STATS[k].text).join(', ');
-const GEARIDS=[];
-for(const slot in GEAR)for(const [id,n,c,st,stats] of GEAR[slot]){ITEMS[id]={n:n+' ('+statTxt(stats)+')',...stats,c:gearIcon(slot,c,st),g:1,v:{c,st}};gearType[id]=slot;GEARIDS.push(id)}
+for(const slot in GEAR)for(const [id,n,c,st,stats] of GEAR[slot]){ITEMS[id]={n:n+' ('+statTxt(stats)+')',...stats,c:gearIcon(slot,c,st),g:1,v:{c,st}};gearType[id]=slot}
 ITEMS.sw.v={c:['#e6e6f0','#c9a227'],st:0};ITEMS.sh.v={c:['#9fb4c8','#d9a62e'],st:0};
-for(const [id,n,c,st,stats] of [['sw2','Machado de Guerra',['#9aa7b8','#7a4a25'],1,{dmg:12}],['sw3','Cajado Arcano',['#7a4a25','#55ffff'],2,{dmg:4,mp:30}]]){ITEMS[id]={n:n+' ('+statTxt(stats)+')',...stats,c:half(weaponIcon(st,c)),g:1,v:{c,st}};gearType[id]='sw';GEARIDS.push(id)}
+for(const [id,n,c,st,stats] of [['sw2','Machado de Guerra',['#9aa7b8','#7a4a25'],1,{dmg:12}],['sw3','Cajado Arcano',['#7a4a25','#55ffff'],2,{dmg:4,mp:30}]]){ITEMS[id]={n:n+' ('+statTxt(stats)+')',...stats,c:half(weaponIcon(st,c)),g:1,v:{c,st}};gearType[id]='sw'}
 for(const k in ITEMS){if(!ITEMS[k].g)ITEMS[k].c=half(ITEMS[k].c);ITEMS[k].ic=ITEMS[k].c.toDataURL()}
-function equippedArt(item,dir){return item&&item.equippedSprites&&(item.equippedSprites[dir]||item.equippedSprites[dir[0]])}
+/* Animação de armas e armaduras (Engine › item › Aparência): quadros Parado/Andando/Atacando por direção (d, u, s)
+   e da arma empunhada (w). O estado vem de quem está sendo desenhado (equipEstado) e o quadro sai do relógio. */
+const equipEstado={v:'idle'};
+function equipAnimQuadros(item,dir){const a=item&&item.equippedAnim&&(item.equippedAnim[dir]||item.equippedAnim[dir[0]]);if(!a)return null;const q=a[equipEstado.v]&&a[equipEstado.v].length?a[equipEstado.v]:a.idle;if(!q||!q.length)return null;const dur=+(a.durations&&a.durations[equipEstado.v]),iv=dur>0?dur/q.length:Math.max(.05,+a.interval||.18);return{q,i:Math.floor(performance.now()/1000/iv)%q.length}}
+function equipFrame(item,dir){const f=equipAnimQuadros(item,dir);return f&&f.q[f.i]||null}
+// define o estado e devolve o pedaço da chave de cache com o quadro de cada peça animada
+function chaveEquipAnim(itens,dir,estado){equipEstado.v=estado;let k='';for(const it of itens){if(!it||!it.equippedAnim)continue;for(const d of [dir,dir[0],'w']){const f=equipAnimQuadros(it,d);if(f)k+='|'+d+estado+f.i}}return k}
+function equippedArt(item,dir){return equipFrame(item,dir)||item&&item.equippedSprites&&(item.equippedSprites[dir]||item.equippedSprites[dir[0]])}
 function drawEquipmentLayers(E,slots,dir,cx){
  for(const slot of slots){const sprite=equippedArt(E[slot],dir);if(sprite)cx.drawImage(sprite,0,0,28,32)}
 }
@@ -185,15 +191,33 @@ function recortarHeroi(c){
  const lado=x1<0?0:par(Math.max(0,MARGEM-x0,x1+1-(MARGEM+80))),cima=x1<0?0:par(Math.max(0,MARGEM-y0)),baixo=x1<0?0:par(Math.max(0,y1+1-(MARGEM+48)));
  const r=mkCanvas(80+2*lado,48+cima+baixo,2);r.getContext('2d').drawImage(c,MARGEM-lado,MARGEM-cima,r.width,r.height,0,0,r.width,r.height);
  const o=half(r);o.pad=13+lado/2;o.anchorY=6+baixo/2;o.ox=lado/2;o.oy=cima/2;return o}
+/* Pose e golpe de cada tipo de arma: ângulo (-90 = ponta para cima, 0 = para a frente) e deslocamento da mão,
+   por direção (s = de lado, d = de frente, u = de costas) e passo do golpe (0 = parado, 1 = preparo, 2 = golpe, 3 = volta). */
+const POSES_ARMA={
+ corte:{s:[[-90],[-130],[-65],[-40]],d:[[-90],[-120],[-165],[150]],u:[[180],[140],[105],[70]],off:{d:[[-90],[-120],[-165],[150]],u:[[0],[40],[75],[110]]}},
+ pesado:{s:[[-95],[-170],[-35],[25]],d:[[-95],[-150],[175],[120]],u:[[190],[160],[95],[30]]},
+ estocada:{s:[[-60],[-5,-4],[0,8],[0,3]],d:[[-80],[95,0,-3],[90,0,7],[90,0,2]],u:[[-100],[-85,0,3],[-90,0,-7],[-90,0,-2]]},
+ vertical:{s:[[-90],[-90,0,-2],[-90,1,-5],[-90,0,-1]],d:[[-90],[-90,0,-2],[-90,0,-5],[-90,0,-1]],u:[[-90],[-90,0,-2],[-90,0,-5],[-90,0,-1]]},
+ arco:{s:[[-90],[-90,-1],[-90,-2],[-90]],d:[[-90],[-90,0,-1],[-90,0,-2],[-90]],u:[[-90],[-90,0,1],[-90,0,2],[-90]]},
+ besta:{s:[[0],[0,-1],[0,-3],[0]],d:[[90],[90,0,-1],[90,0,-3],[90]],u:[[-90],[-90,0,1],[-90,0,3],[-90]]},
+ soco:{s:[[-90],[-90,-2],[-90,6],[-90,2]],d:[[-90],[-90,0,-1],[-90,0,4],[-90,0,1]],u:[[-90],[-90,0,1],[-90,0,-4],[-90,0,-1]]},
+ escudo:{s:[[-90],[-90,-1],[-90,4],[-90,1]],d:[[-90],[-90],[-90,0,3],[-90,0,1]],u:[[-90],[-90],[-90,0,-2],[-90]]},
+ orbe:{s:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]],d:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]],u:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]]},
+ varinha:{s:[[-80],[-115],[-55],[-35]],d:[[-80],[-110],[-150],[160]],u:[[180],[150],[110],[80]]}
+};
+function poseArma(tipo,dir,hand,step){const P=POSES_ARMA[tipo]||POSES_ARMA.corte,tab=hand=='off'&&P.off&&P.off[dir]||P[dir]||POSES_ARMA.corte[dir],v=tab[step]||tab[0];return{a:v[0],dx:v[1]||0,dy:v[2]||0}}
 function gearWeapon(E,dir,swing,box,R,cx){
  const visualDir=dir;dir=dir[0];
  if(E.sh&&!E.shWeapon&&equippedArt(E.sh,visualDir))drawEquipmentLayers(E,['sh'],visualDir,cx);
  else if(E.sh&&dir=='d'&&!E.shWeapon){const [m,a]=E.sh.v.c;box(1,14,6,10,m);R(3,16,2,6,a);R(2,18,4,2,a)}
- const sd=dir=='s',bk=dir=='u',angles=sd?[-90,-130,-65,-40]:[-90,-120,-165,150];
- const drawHeld=(w,hand,step)=>{if(!w)return;const st=w.v.st,L=st==2?20:st==1?14:16,heldAngles=hand=='main'?(bk?[180,140,105,70]:angles):(bk?[0,40,75,110]:angles),heldAngle=heldAngles[step],hx=bk?(hand=='main'?7:21):hand=='main'?(sd?19:23):5;
-  if(equippedArt(w,visualDir)||w.equippedSprite){const sprite=equippedArt(w,visualDir)||w.equippedSprite,h=w.wt=='serrote'?12:L*2,width=Math.max(2,Math.round(h*sprite.width/sprite.height));
-   cx.save();cx.translate(hx,22);cx.rotate((heldAngle+90)*Math.PI/180);cx.imageSmoothingEnabled=false;cx.drawImage(sprite,-width/2,-h,width,h);cx.restore();return}
-  drawWeapon(R,st,w.v.c,hx,22,heldAngle,L,2)};
+ const sd=dir=='s',bk=dir=='u';
+ const drawHeld=(w,hand,step)=>{if(!w)return;const st=w.v.st,L=st==2?20:st==1?14:16,hx=bk?(hand=='main'?7:21):hand=='main'?(sd?19:23):5;
+  const pose=poseArma(w.ataque,sd?'s':bk?'u':'d',hand,step),heldAngle=pose.a;
+  if(equippedArt(w,visualDir)||equipFrame(w,'w')||w.equippedSprite){const sprite=equippedArt(w,visualDir)||equipFrame(w,'w')||w.equippedSprite;
+   // escalaMao 2: cada pixel do desenho = 1 pixel do herói (o quadro do herói é desenhado em 2× e reduzido)
+   const k2=w.escalaMao==2,h=k2?sprite.height*2:w.wt=='serrote'?12:L*2,width=k2?sprite.width*2:Math.max(2,Math.round(h*sprite.width/sprite.height)),pega=w.pega??1;
+   cx.save();cx.translate(hx+pose.dx,22+pose.dy);cx.rotate((heldAngle+90)*Math.PI/180);cx.imageSmoothingEnabled=false;cx.drawImage(sprite,-width/2,-h*pega,width,h);cx.restore();return}
+  drawWeapon(R,st,w.v.c,hx+pose.dx,22+pose.dy,heldAngle,L,2)};
  if(E.shWeapon)drawHeld(E.sh,'off',swing);
  drawHeld(E.sw,'main',swing)}
 /* Equipamento desenhado por cima do sprite base (28x32, antes de reduzir) */

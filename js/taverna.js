@@ -10,6 +10,11 @@
  const MESAS=[{x:OX+112,y:OY+150},{x:OX+212,y:OY+196},{x:OX+316,y:OY+150},{x:OX+104,y:OY+236},{x:OX+322,y:OY+238}];
  const BARRIS=[{x:OX+398,y:OY+96},{x:OX+398,y:OY+116},{x:OX+386,y:OY+106},{x:OX+30,y:OY+250}];
  const LAREIRA={x:OX+328,y:OY+44};
+ /* Lanceiro: mestre da arena (PvP, js/arena.js), de armadura de placas pesada, elmo fechado com pluma, escudo e lança */
+ const LANCEIRO={x:OX+214,y:OY+100,fx:0,fy:1,nm:'Lanceiro Aldric'};
+ // montado como os outros personagens (mesma escala de pixel): placas de ferro, grevas e botas de aço, capa, escudo e a lança do pacote de armas
+ const LANCA_NPC=(()=>{const a=window.PACOTE_ARMAS&&PACOTE_ARMAS.ARMAS.lanca;return{v:{c:['#9aa7b8','#7a4a25'],st:0},equippedSprite:a?pixelArt(a.mao):null,ataque:'estocada',pega:a?a.pega:.72,escalaMao:2,wt:'lanca'}})();
+ const looksLanceiro={},spriteLanceiro=dir=>looksLanceiro[dir]||(looksLanceiro[dir]=human('war',dir,0,{nude:1,sex:'m',he:ITEMS.he1,ch:ITEMS.ch1,le:ITEMS.le2,bo:ITEMS.bo2,ca:ITEMS.ca1,sh:ITEMS.sh,sw:LANCA_NPC}));
  /* mestres de classe: um por classe do projeto; aprender uma classe nova custa PRECO_CLASSE de ouro
     (voltar para uma classe que o jogador já aprendeu é grátis) */
  const PRECO_CLASSE=2000;
@@ -30,6 +35,7 @@
   for(const m of MESAS)if(Math.hypot(x-m.x,(y-m.y)*1.3)<15)return false;
   for(const b of BARRIS)if(Math.hypot(x-b.x,y-b.y)<8)return false;
   for(const m of MESTRES)if(Math.hypot(x-m.x,(y-m.y)*1.4)<6)return false;
+  if(Math.hypot(x-LANCEIRO.x,(y-LANCEIRO.y)*1.4)<8)return false;
   return true;
  };
  window.posicaoParaSalvar=()=>window.inTaverna&&ilhaPos?ilhaPos:p;
@@ -128,6 +134,11 @@
    ctx.fillStyle='#000';ctx.fillText(m.nm,m.x+.4,m.y-21.6);ctx.fillStyle='#ffe28a';ctx.fillText(m.nm,m.x,m.y-22);
    if(m.cls!==p.cls){ctx.fillStyle='#ffd84a';ctx.font='6px monospace';ctx.fillText('!',m.x,m.y-28+Math.round(Math.sin(time*4+m.x)*1.5))}
   }]);
+  L.push([LANCEIRO.y,()=>{const x=LANCEIRO.x,y=LANCEIRO.y,f=face(LANCEIRO);
+   if(lanceiroSob)circ(x,y,12,'#ff5');
+   dr(spriteLanceiro(f.d),x,y,f.fl,1,anim(LANCEIRO,0));
+   ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#000';ctx.fillText(LANCEIRO.nm,x+.4,y-21.6);ctx.fillStyle='#ffe28a';ctx.fillText(LANCEIRO.nm,x,y-22);
+   ctx.fillStyle='#f87171';ctx.font='bold 6px monospace';ctx.fillText('PvP',x,y-28+Math.round(Math.sin(time*4)*1.5))}]);
   // o balcão fica na frente da taverneira
   L.push([OY+91,()=>ctx.drawImage(fundo,8,66,186,26,OX+8,OY+66,186,26)]);
   if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
@@ -162,6 +173,7 @@
   if(window.inTaverna)return;
   if(window.inDungeon){ft(p.x,p.y-24,'Saia da masmorra antes de ir à taverna.','#f87171');return}
   if(p.dead>0)return;
+  if(window.inArena&&window.ARENA)ARENA.sair(true);
   if(window.MP&&MP.antesDeSair)MP.antesDeSair();
   ilhaPos={x:p.x,y:p.y};enGuardado=en.splice(0,en.length);montarMestres();
   clearMovementInput();window.inTaverna=true;
@@ -185,14 +197,17 @@
 
  /* ---- cliques: porta e taverneira ---- */
  window.tavernaClick=(w,mode)=>{
-  mestreAlvo=null;
+  mestreAlvo=null;lanceiroAlvo=false;
   if(Math.hypot(w.x-DOOR.x,w.y-(DOOR.y-4))<16){if(dist(p,DOOR)<34)sair();else setDest(DOOR.x,DOOR.y-12);return true}
   if(Math.hypot(w.x-BARKEEP.x,w.y-(BARKEEP.y-8))<16&&mode!=2){if(dist(p,BARKEEP)<44)falarTaverneira();else setDest(BARKEEP.x,OY+100);return true}
+  if(Math.hypot(w.x-LANCEIRO.x,w.y-(LANCEIRO.y-10))<13&&mode!=2){if(dist(p,LANCEIRO)<36)falarLanceiro();else{lanceiroAlvo=true;setDest(LANCEIRO.x,LANCEIRO.y+14)}return true}
   const m=mestreEm(w);
   if(m&&mode!=2){if(dist(p,m)<34)falarMestre(m);else{mestreAlvo=m;setDest(m.x,m.y+12)}return true}
   return false;
  };
- let mestreSob=null,mestreAlvo=null;
+ let mestreSob=null,mestreAlvo=null,lanceiroSob=false,lanceiroAlvo=false;
+ /* painel de PvP do Lanceiro (js/arena.js): partidas 1x1 / 2x2 com lobby, ou treino com o boneco */
+ function falarLanceiro(){lanceiroAlvo=false;if(window.ARENA)ARENA.abrirPainel()}
  const mestreEm=w=>MESTRES.find(m=>Math.hypot(w.x-m.x,w.y-(m.y-8))<14)||null;
  function falarMestre(m){
   mestreAlvo=null;
@@ -249,6 +264,9 @@
   BARKEEP.fx=p.x-BARKEEP.x;BARKEEP.fy=p.y-BARKEEP.y;if(dist(p,BARKEEP)>110){BARKEEP.fx=0;BARKEEP.fy=1}
   for(const m of MESTRES){if(dist(p,m)<70){m.fx=p.x-m.x;m.fy=p.y-m.y}else{m.fx=0;m.fy=1}}
   mestreSob=mestreEm(wpos());if(mestreSob)cv.style.cursor='pointer';
+  {const w=wpos();lanceiroSob=Math.hypot(w.x-LANCEIRO.x,w.y-(LANCEIRO.y-10))<13;if(lanceiroSob)cv.style.cursor='pointer'}
+  if(dist(p,LANCEIRO)<70){LANCEIRO.fx=p.x-LANCEIRO.x;LANCEIRO.fy=p.y-LANCEIRO.y}else{LANCEIRO.fx=0;LANCEIRO.fy=1}
+  if(lanceiroAlvo&&dist(p,LANCEIRO)<36){p.dest=null;p.path=[];falarLanceiro()}
   if(mestreAlvo&&dist(p,mestreAlvo)<34){p.dest=null;p.path=[];falarMestre(mestreAlvo)}
   if(p.y>OY+TH-12&&Math.abs(p.x-DOOR.x)<10)sair();
  };

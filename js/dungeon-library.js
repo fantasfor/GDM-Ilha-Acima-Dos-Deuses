@@ -2,7 +2,8 @@
    As DGs ficam em PROJETO.dgs ({version:2, activeId, dungeons:[{id, config}]}) e são editadas pela Engine. */
 (function(){
  const clone=value=>JSON.parse(JSON.stringify(value));
- const validConfig=config=>Array.isArray(config?.rooms)&&config.rooms.length>0&&config.rooms.every(room=>room&&[room.x,room.y,room.w,room.h].every(Number.isFinite)&&room.w>0&&room.h>0);
+ // DG de chão pintado vale com o chão (as áreas são opcionais); DG antiga precisa de salas
+ const validConfig=config=>Array.isArray(config?.rooms)&&(config.rooms.length>0||!!(config.pintado&&config.chao&&Object.keys(config.chao).length))&&config.rooms.every(room=>room&&[room.x,room.y,room.w,room.h].every(Number.isFinite)&&room.w>0&&room.h>0);
  window.normalizeDungeonLibrary=value=>{
   if(value?.version!==2||!Array.isArray(value.dungeons))return {version:2,activeId:null,dungeons:[]};
   const ids=new Set(),dungeons=[];
@@ -106,18 +107,11 @@
   /* ---------- montar grupo: 5 espaços com a fotinha de cada jogador; os vazios têm "+" para convidar.
      Ao começar, o grupo é chamado para a mesma DG e os inimigos ficam mais fortes a cada um que entra. ---------- */
   const enviados=new Map(); // id -> nome (convite enviado, ainda não entrou)
-  // fotinha: o sprite de frente recortado até a borda do personagem
-  function foto(sprite){
-   if(!sprite)return '';const t=document.createElement('canvas');t.width=sprite.width;t.height=sprite.height;const g=t.getContext('2d');g.drawImage(sprite,0,0);
-   const d=g.getImageData(0,0,t.width,t.height).data;let x0=t.width,y0=t.height,x1=-1,y1=-1;
-   for(let y=0;y<t.height;y++)for(let x=0;x<t.width;x++)if(d[(y*t.width+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-   if(x1<0)return '';const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;o.getContext('2d').drawImage(t,x0,y0,o.width,o.height,0,0,o.width,o.height);return o.toDataURL();
-  }
   function montarGrupo(entry){
    const c=entry.config;let abertoConvite=false;
    root.replaceChildren();
    const head=E('header','dgm-head');head.append(E('b','dgm-title','Montar grupo · '+(c.name||'Masmorra')),E('small','dgm-sub','Até 5 jogadores. Clique em + para convidar ou comece sozinho.'));
-   const slots=E('div','dgp-slots'),conv=E('div','dgp-convidar'),dif=E('p','dgp-dif'),nota=E('p','dgm-muted');
+   const slots=E('div',''),conv=E('div','dgp-convidar'),dif=E('p','dgp-dif'),nota=E('p','dgm-muted');
    const foot=E('div','dgm-foot'),voltar=E('button','dgp-voltar','Voltar'),comecar=E('button','dgm-enter','Começar');voltar.type=comecar.type='button';
    voltar.onclick=()=>{root.replaceChildren(head0,body);renderList();renderDetail()};
    comecar.onclick=()=>entrar(entry);
@@ -126,17 +120,15 @@
    function render(){
     const g=MP.grupoDg(),n=g.membros.length;
     for(const m of g.membros)enviados.delete(m.id);
-    slots.replaceChildren();
+    // cartas no estilo do lobby (js/lobby.js): nome em cima, fotinha, "+" para convidar; alturas desencontradas
+    const cartas=[];
     for(let k=0;k<g.max;k++){
-     const m=g.membros[k];
-     if(m){const card=E('div','dgp-slot cheio'+(m.lider?' lider':''));const src=foto(m.voce?heroImg('d'):window.spriteDeJogador&&spriteDeJogador(m.id));
-      if(src){const im=E('img');im.src=src;im.alt='';card.append(im)}else card.append(E('span','dgp-semFoto','?'));
-      card.append(E('b','',(m.lider?'★ ':'')+m.nome),E('small','',(m.voce?'Você · ':'')+'Nv '+m.nivel));slots.append(card);continue}
+     const m=g.membros[k],alto=k%2===1;
+     if(m){cartas.push(LOBBY.carta({rotulo:m.nome,sprite:m.voce?heroImg('d'):window.spriteDeJogador&&spriteDeJogador(m.id),sub:(m.voce?'Você · ':'')+'Nv '+m.nivel,lider:m.lider,voce:m.voce,alto}));continue}
      const esperando=[...enviados.values()][k-n];
-     const b=E('button','dgp-slot vazio'+(esperando?' esperando':''));b.type='button';
-     b.append(E('span','dgp-mais',esperando?'…':'+'),E('small','',esperando?'Aguardando '+esperando:g.podeConvidar?'Convidar':'Vazio'));
-     b.disabled=!g.podeConvidar||g.cheio;b.onclick=()=>{abertoConvite=!abertoConvite;renderConvite()};slots.append(b);
+     cartas.push(LOBBY.carta({rotulo:'Jogador '+(k+1),vazio:true,esperando,podeClicar:g.podeConvidar&&!g.cheio,alto,onClick:()=>{abertoConvite=!abertoConvite;renderConvite()}}));
     }
+    slots.replaceChildren(LOBBY.linha(cartas));
     dif.replaceChildren(E('b','',n>1?'Dificuldade com '+n+': ':'Sozinho: '),document.createTextNode(n>1?'inimigos com '+MP.escalaTexto(n)+'.':'dificuldade normal. Cada jogador a mais: '+MP.escalaTexto(2)+'.'));
     nota.textContent=g.podeConvidar?'O convite chega no Correio de quem você chamar. Ao começar, o grupo recebe o chamado para esta masmorra; a dificuldade sobe a cada um que entra.':'Só o líder do grupo convida e começa. Quando o líder entrar, você recebe o chamado.';
     comecar.disabled=!g.podeConvidar;

@@ -9,10 +9,10 @@
  let dungeonChests = [];
  let dungeonBosses = [];
  let dungeonBoss = null;
- let bossTelegraphs = [];
- window.bossTelegraphs = bossTelegraphs;
  let flyingLoots = [];
  let dungeonShake = 0;
+ window.tremerDG = v => { dungeonShake = Math.max(dungeonShake, v); }; // mecânicas de chefe (js/chefes.js)
+ const limparTelegrafos = () => { if(window.TELEGRAFOS) TELEGRAFOS.length = 0; };
  let bossDefeatedEvent = false;
  let clearRecorded = false;
  let dungeonTorches = [];
@@ -63,7 +63,16 @@
   window.DUNGEON_BLACKSMITH_POS = DUNGEON_BLACKSMITH_POS;
   dungeonTorches = (cfg.torches || []).map(t => ({ ...t }));
   window.dungeonTorches = dungeonTorches;
+  // chão pintado (Engine): o que está pintado é chão, o resto é parede; salas viram só áreas (portas, monstros, spawns)
+  DUNGEON_CHAO = cfg.pintado && cfg.chao && typeof cfg.chao === 'object' && Object.keys(cfg.chao).length ? cfg.chao : null;
+  DUNGEON_CAIXA = DUNGEON_CHAO && window.CHAO ? CHAO.dgCaixa(DUNGEON_CHAO) : null;
+  dungeonCamada = null;
  }
+ let DUNGEON_CHAO = null, DUNGEON_CAIXA = null, dungeonCamada = null, dungeonTexturas = null;
+ const texturasChao = () => dungeonTexturas || (dungeonTexturas = window.CHAO ? CHAO.texturas(PROJ.pixel) : {});
+ const chaoDG = (x, y) => DUNGEON_CHAO && DUNGEON_CHAO[Math.floor(x / 16) + ',' + Math.floor(y / 16)];
+ // caixas que cobrem o mapa da DG (caminhos, minimapa): salas, corredores e a área pintada
+ window.dungeonCaixas = () => [...CAVE_ROOMS, ...CAVE_CORRIDORS, ...(DUNGEON_CAIXA ? [DUNGEON_CAIXA] : [])];
  window.syncDungeonFromConfig = syncDungeonFromConfig;
  syncDungeonFromConfig();
 
@@ -352,6 +361,7 @@
   if(!window.inDungeon) return false;
 
   const isInsideCave = (px, py) => {
+   if(DUNGEON_CHAO){ const id = chaoDG(px, py), t = id && texturasChao()[id]; return !!id && !(t && t.liquido); }
    for(let i = 0; i < CAVE_ROOMS.length; i++){
     const r = CAVE_ROOMS[i];
     if(px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return true;
@@ -392,6 +402,13 @@
   return true;
  }
  window.dungeonWalk = dungeonWalk;
+ // parede para golpes e magias: fora das salas/corredores ou porta fechada (baús e NPCs não bloqueiam)
+ window.dungeonParede = (x, y) => {
+  if(!window.inDungeon) return false;
+  const dentro = DUNGEON_CHAO ? !!chaoDG(x, y) : [...CAVE_ROOMS, ...CAVE_CORRIDORS].some(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
+  if(!dentro) return true;
+  return DUNGEON_DOORS.some(door => !dungeonDoorOpen(door) && Math.abs(x - door.x) <= Math.max(8, Number(door.w) || 12) / 2 && Math.abs(y - door.y) <= Math.max(8, Number(door.h) || 56) / 2);
+ };
 
  function updateDungeonDoors(){
   DUNGEON_DOORS.forEach(door => {
@@ -702,9 +719,9 @@
   dungeonBoss.pathKey = '';
   dungeonBoss.roamT = 5;
   dungeonBoss.roamRadius = 30;
-  dungeonBoss.smashCd = 6;
-  dungeonBoss.chargeCd = 11;
-  dungeonBoss.boulderCd = 16;
+  // mecânicas (js/chefes.js): as do projeto, se o Lorde Goblin tiver sido editado na Engine; senão as originais
+  if(!MONSTER_TYPES.goblinBoss?.mecanicas) dungeonBoss.mecanicas = window.MECANICAS_LORDE_GOBLIN;
+  if(!MONSTER_TYPES.goblinBoss?.furia) dungeonBoss.furiaPct = 25;
   dungeonBoss.delayedHp = dungeonBoss.max;
 
   window.dungeonBoss = dungeonBoss;
@@ -734,101 +751,7 @@
    }
    return;
   }
-  // no grupo, só o líder controla o chefe; os outros recebem os golpes telegrafados
-  if(window.mpEspelho) return;
-
-  // IA das Habilidades Telegrafadas do Boss
-  dungeonBoss.smashCd -= dt;
-  dungeonBoss.chargeCd -= dt;
-  dungeonBoss.boulderCd -= dt;
-
-  // alvo: o jogador mais próximo do grupo; o dano é uma fração da vida de quem estiver na área
-  const alvo = window.MP && MP.alvoDe ? MP.alvoDe(dungeonBoss) : p;
-  const telegrafar = tg => { bossTelegraphs.push(tg); if(window.MP && MP.telegrafo) MP.telegrafo(tg); };
-  const dToPlayer = dist(dungeonBoss, alvo);
-  if(alvo.dead <= 0 && dToPlayer < 240){
-   // Habilidade 1: Impacto Demoníaco (Smash Circular)
-   if(dungeonBoss.smashCd <= 0){
-    if(window.playEntitySound)playEntitySound('monsters',dungeonBoss.ty,'skill');
-    dungeonBoss.smashCd = 10*cooldownMultiplier(dungeonBoss);
-    telegrafar({
-     type: 'circle',
-     x: alvo.x, y: alvo.y,
-     r: 54*areaMultiplier(dungeonBoss),
-     source: dungeonBoss,
-     t: 0, maxT: 1.8,
-     pct: 0.90,
-     label: 'IMPACTO DEMONÍACO'
-    });
-    dungeonBoss.aw = 0.7; // Windup do chefe
-    dungeonBoss.castOnly = true;
-   }
-   // Habilidade 2: Investida Brutal / Rajada Retangular
-   else if(dungeonBoss.chargeCd <= 0){
-    if(window.playEntitySound)playEntitySound('monsters',dungeonBoss.ty,'skill');
-    dungeonBoss.chargeCd = 13*cooldownMultiplier(dungeonBoss);
-    const angle = Math.atan2(alvo.y - dungeonBoss.y, alvo.x - dungeonBoss.x);
-    telegrafar({
-     type: 'rect',
-     x: dungeonBoss.x, y: dungeonBoss.y,
-     angle,
-     w: 42*areaMultiplier(dungeonBoss), length: 175*areaMultiplier(dungeonBoss),
-     source: dungeonBoss,
-     t: 0, maxT: 1.6,
-     pct: 0.85,
-    });
-    dungeonBoss.aw = 0.6;
-    dungeonBoss.castOnly = true;
-   }
-   // Habilidade 3: Chuva de Brasas / Desmoronamento (quando HP < 50%)
-   else if(dungeonBoss.hp < dungeonBoss.max * 0.5 && dungeonBoss.boulderCd <= 0){
-    if(window.playEntitySound)playEntitySound('monsters',dungeonBoss.ty,'skill');
-    dungeonBoss.boulderCd = 15*cooldownMultiplier(dungeonBoss);
-    for(let k = 0; k < 3; k++){
-     const ox = (Math.random() - 0.5) * 80;
-     const oy = (Math.random() - 0.5) * 80;
-     telegrafar({
-      type: 'circle',
-      x: alvo.x + ox, y: alvo.y + oy,
-      r: 32*areaMultiplier(dungeonBoss),
-      source: dungeonBoss,
-      t: -k * 0.25, maxT: 1.4,
-      pct: 0.55,
-      label: 'QUEDA DE ROCHAS'
-     });
-    }
-   }
-  }
- }
-
- function updateTelegraphs(dt){
-  for(let i = bossTelegraphs.length - 1; i >= 0; i--){
-   const tg = bossTelegraphs[i];
-   tg.t += dt;
-   if(tg.t >= tg.maxT){
-    // Executa o golpe no fim do telegrafo!
-    let hit = false;
-    if(tg.type === 'circle'){
-     if(dist(p, {x: tg.x, y: tg.y}) <= tg.r){
-      hit = true;
-     }
-    } else if(tg.type === 'rect'){
-     const cos = Math.cos(tg.angle), sin = Math.sin(tg.angle);
-     const dx = p.x - tg.x, dy = p.y - tg.y;
-     const localX = dx * cos + dy * sin;
-     const localY = -dx * sin + dy * cos;
-     if(localX >= 0 && localX <= tg.length && Math.abs(localY) <= tg.w / 2){
-      hit = true;
-     }
-    }
-
-    if(hit && p.dead <= 0){
-     hurtP(tg.dmg != null ? tg.dmg : Math.round(mhp() * (tg.pct || 0.5)), false,null,null,tg.source);
-    }
-
-    bossTelegraphs.splice(i, 1);
-   }
-  }
+  // as mecânicas do chefe (golpes telegrafados, fúria, invocações) ficam em js/chefes.js
  }
 
  function updateFlyingLoot(dt){
@@ -910,7 +833,6 @@
    if(rec) ft(p.x, p.y - 44, 'MASMORRA CONCLUÍDA · ' + Math.floor(ms / 60000) + ':' + String(Math.round(ms / 1000) % 60).padStart(2, '0') + (rec.best === Math.round(ms) ? ' · NOVO RECORDE!' : ''), '#ffd84a');
   }
   updateBossAI(dt);
-  updateTelegraphs(dt);
   updateFlyingLoot(dt);
  }
  window.updateDungeon = updateDungeon;
@@ -923,8 +845,7 @@
   window.inDungeon = true;
   bossDefeatedEvent = false;
   clearRecorded = false;
-  bossTelegraphs = [];
-  window.bossTelegraphs = bossTelegraphs;
+  limparTelegrafos();
   flyingLoots = [];
   dungeonBoss = null;
   dungeonBosses = [];
@@ -997,7 +918,7 @@
     en.push(mon);
    }
    const mobRoom = CAVE_ROOMS.find(room => String(room.id) === String(m.roomId)) || dungeonRoomAt(m.x, m.y);
-   const bossRoom = isBoss ? (mobRoom || nearestDungeonRoom(m.x, m.y)) : mobRoom;
+   const bossRoom = isBoss ? (mobRoom || (DUNGEON_CHAO ? null : nearestDungeonRoom(m.x, m.y))) : mobRoom; // chão pintado: chefe fora de área anda livre
    mon.dungeonRoomId = bossRoom && bossRoom.id;
    if(isBoss && bossRoom) mon.dungeonRoomBounds = { x: bossRoom.x, y: bossRoom.y, w: bossRoom.w, h: bossRoom.h };
    if(m.animation && typeof m.animation === 'object'){
@@ -1054,7 +975,7 @@
  function exitDungeon(toCampPortal = true){
   if(!window.inDungeon) return;
   window.inDungeon = false;
-  bossTelegraphs = [];
+  limparTelegrafos();
   flyingLoots = [];
   dungeonBosses = [];
   dungeonBoss = null;
@@ -1522,10 +1443,16 @@
   ctx.imageSmoothingEnabled = false;
 
   // 1. Chão da Caverna de Rocha (Salas e Corredores integrados perfeitamente)
-  const allBoxes = [...CAVE_ROOMS, ...CAVE_CORRIDORS];
+  // com chão pintado as salas são só áreas lógicas: o chão e as paredes vêm da camada pintada
+  const allBoxes = DUNGEON_CHAO ? [] : [...CAVE_ROOMS, ...CAVE_CORRIDORS];
   const palette = DUNGEON_THEME_COLORS[DUNGEON_THEME] || DUNGEON_THEME_COLORS.cave;
-  const floorPattern = cachedDungeonPattern(DUNGEON_ART.floor||gameArtData('dg-floor-'+(getActiveDungeonConfig().theme||'cave')));
-  const wallPattern = cachedDungeonPattern(DUNGEON_ART.wall||gameArtData('dg-wall-'+(getActiveDungeonConfig().theme||'cave')));
+  const floorData = DUNGEON_ART.floor||gameArtData('dg-floor-'+(getActiveDungeonConfig().theme||'cave')), wallData = DUNGEON_ART.wall||gameArtData('dg-wall-'+(getActiveDungeonConfig().theme||'cave'));
+  const floorPattern = cachedDungeonPattern(floorData);
+  const wallPattern = cachedDungeonPattern(wallData);
+  if(DUNGEON_CHAO && window.CHAO){
+   if(!dungeonCamada) dungeonCamada = CHAO.dgCamada(DUNGEON_CHAO, texturasChao(), { piso: cachedDungeonArt(floorData), parede: cachedDungeonArt(wallData), cores: palette });
+   if(dungeonCamada) ctx.drawImage(dungeonCamada.c, dungeonCamada.x, dungeonCamada.y);
+  }
 
   // Base escura de todas as salas e corredores
   ctx.fillStyle = palette.outer;
@@ -1534,7 +1461,7 @@
   // Interior de rocha do chão (unificado sem bordas internas)
   ctx.fillStyle = floorPattern || palette.inner;
   allBoxes.forEach(r => ctx.fillRect(r.x + 2, r.y + 2, r.w - 4, r.h - 4));
-  CAVE_CORRIDORS.forEach(c => {
+  (DUNGEON_CHAO ? [] : CAVE_CORRIDORS).forEach(c => {
    if(c.dir === 'h' || c.w >= c.h){
     ctx.fillRect(c.x - 3, c.y + 2, c.w + 6, c.h - 4);
    } else {
@@ -1606,7 +1533,6 @@
   DUNGEON_DECORATIONS.forEach(dec => {
    drawDungeonDecoration(dec);
   });
-
   // 6. Tochas da Caverna com Iluminação Dinâmica
   dungeonTorches.forEach(t => {
    if(drawCustomDungeonObject(t))return;
@@ -1637,33 +1563,8 @@
   const isBossDead = dungeonBossesDefeated();
   if(!DUNGEON_EXIT_PORTAL.disabled&&!drawCustomDungeonObject(DUNGEON_EXIT_PORTAL,isBossDead?1:.5))drawDungeonGate(DUNGEON_EXIT_PORTAL.x, DUNGEON_EXIT_PORTAL.y, 'exit', isBossDead);
 
-  // 5. Áreas Telegrafadas do Boss no Chão (Telegraphs)
-  bossTelegraphs.forEach(tg => {
-   if(tg.type === 'circle'){
-    // Zona circular de impacto
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(tg.x, tg.y, tg.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(239,68,68,0.32)';
-    ctx.fill();
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.restore();
-   } else if(tg.type === 'rect'){
-    // Zona retangular de investida
-    ctx.save();
-    ctx.translate(tg.x, tg.y);
-    ctx.rotate(tg.angle);
-
-    ctx.fillStyle = 'rgba(249,115,22,0.32)';
-    ctx.fillRect(0, -tg.w / 2, tg.length, tg.w);
-    ctx.strokeStyle = '#f97316';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(0, -tg.w / 2, tg.length, tg.w);
-    ctx.restore();
-   }
-  });
+  // 5. Avisos das mecânicas de chefe no chão e auras (js/chefes.js)
+  if(window.desenharTelegrafos) desenharTelegrafos();
 
   // 6. Lista de Entidades para desenhar com ordenação por Y (Y-sort)
   const renderList = [];
@@ -1970,7 +1871,8 @@
   mm.fillRect(0, 0, sz, sz);
 
   // Ajusta o minimapa ao tamanho real do pack, inclusive mapas abertos e coordenadas negativas.
-  const boxes = [...CAVE_ROOMS, ...CAVE_CORRIDORS];
+  const boxes = window.dungeonCaixas();
+  if(!boxes.length) return;
   const minX = Math.min(...boxes.map(box => box.x)) - 24;
   const maxX = Math.max(...boxes.map(box => box.x + box.w)) + 24;
   const minY = Math.min(...boxes.map(box => box.y)) - 24;
@@ -1982,14 +1884,25 @@
   const toMmX = x => offsetX + (x - minX) * scale;
   const toMmY = y => offsetY + (y - minY) * scale;
 
-  // Salas e corredores da caverna no minimapa
+  // Salas e corredores: só o trecho dentro do campo de visão agora (sem memória do que já foi visto)
+  const near = (x, y) => Math.hypot(x - p.x, y - p.y) <= VISION_RANGE;
+  mm.save();
+  mm.beginPath();
+  mm.arc(toMmX(p.x), toMmY(p.y), VISION_RANGE * scale, 0, Math.PI * 2);
+  mm.clip();
   mm.fillStyle = '#261f1c';
-  CAVE_ROOMS.forEach(r => {
-   mm.fillRect(toMmX(r.x), toMmY(r.y), r.w * scale, r.h * scale);
-  });
-  CAVE_CORRIDORS.forEach(c => {
-   mm.fillRect(toMmX(c.x), toMmY(c.y), c.w * scale, c.h * scale);
-  });
+  if(DUNGEON_CHAO){
+   const i0 = Math.floor((p.x - VISION_RANGE) / 16), i1 = Math.floor((p.x + VISION_RANGE) / 16), j0 = Math.floor((p.y - VISION_RANGE) / 16), j1 = Math.floor((p.y + VISION_RANGE) / 16);
+   for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j]) mm.fillRect(toMmX(i * 16), toMmY(j * 16), 16 * scale + .5, 16 * scale + .5);
+  } else {
+   CAVE_ROOMS.forEach(r => {
+    mm.fillRect(toMmX(r.x), toMmY(r.y), r.w * scale, r.h * scale);
+   });
+   CAVE_CORRIDORS.forEach(c => {
+    mm.fillRect(toMmX(c.x), toMmY(c.y), c.w * scale, c.h * scale);
+   });
+  }
+  mm.restore();
 
   // Baús no minimapa
   dungeonChests.forEach(ch => {
@@ -2012,8 +1925,8 @@
 
   // Portais no minimapa
   mm.fillStyle = '#38bdf8';
-  mm.fillRect(toMmX(DUNGEON_ENTRANCE_PORTAL.x) - 2, toMmY(DUNGEON_ENTRANCE_PORTAL.y) - 2, 5, 5);
-  if(!DUNGEON_EXIT_PORTAL.disabled&&dungeonBossesDefeated()){
+  if(near(DUNGEON_ENTRANCE_PORTAL.x, DUNGEON_ENTRANCE_PORTAL.y))mm.fillRect(toMmX(DUNGEON_ENTRANCE_PORTAL.x) - 2, toMmY(DUNGEON_ENTRANCE_PORTAL.y) - 2, 5, 5);
+  if(!DUNGEON_EXIT_PORTAL.disabled&&dungeonBossesDefeated()&&near(DUNGEON_EXIT_PORTAL.x, DUNGEON_EXIT_PORTAL.y)){
    mm.fillStyle = '#4ade80';
    mm.fillRect(toMmX(DUNGEON_EXIT_PORTAL.x) - 2, toMmY(DUNGEON_EXIT_PORTAL.y) - 2, 5, 5);
   }

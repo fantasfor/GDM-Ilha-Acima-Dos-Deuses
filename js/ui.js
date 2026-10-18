@@ -40,7 +40,7 @@ INV_CATEGORIES.forEach(([id,label])=>{const button=document.createElement('butto
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
 let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
-SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();cast(s)};const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
+SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();window.mirarOuLancar?mirarOuLancar(s):cast(s)};const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
 const skTip=s=>!s.n?'<b>Habilidade da arma</b><div class=tm>Vazio: a arma equipada não tem habilidade para este espaço.</div>':'<b>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+(s.w?'<div class=tw>Habilidade da arma</div>':'')+'<div>'+s.d()+'</div><div class=tm>Mana: '+s.mana+' • Recarga: '+s.cd+'s · '+(s.castTime>0?'Conjuração: '+tempoConj(s).toFixed(1)+'s':'Instantânea')+'</div>'+(s.wt&&s.wt.length?'<div class=tm>Exige uma tag de arma: '+s.wt.join(', ')+'</div>':'')+(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe dona</div>':'');
 const skillPanel=$('skillPanel');
 function renderSkillMenu(){
@@ -187,7 +187,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{}},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0}},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -199,6 +199,7 @@ function loadGame(){
  try{
   const d=JSON.parse(raw);if(!d||!d.p||!Array.isArray(d.items))return false;
   for(const k of ['x','y','hp','mp','lvl','xp','gold'])if(Number.isFinite(d.p[k]))p[k]=d.p[k];
+  if(d.ilhaV!==2){p.x+=CHAO.ILHA_DESLOC;p.y+=CHAO.ILHA_DESLOC} // save da ilha menor: mesmo lugar em relação ao acampamento
   p.lvl=Math.max(1,Math.min(30,Math.floor(p.lvl)));if(p.lvl>=CALC.maxLevel)p.xp=0;
   if(CL[d.p.cls])p.cls=d.p.cls;
   p.classProgress={war:{rank:1,xp:0}};
@@ -210,6 +211,7 @@ function loadGame(){
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
   // kits iniciais já recebidos; saves de antes dos kits contam as classes que o jogador já tinha
   p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=true}else for(const c in p.classProgress)p.kits[c]=true;
+  const pv=d.p.pvp||{};p.pvp={};for(const k of ['abates','mortes','vitorias','derrotas','empates'])p.pvp[k]=Math.max(0,Math.floor(+pv[k]||0)); // placar da arena
   BESTIARIO.k={};BESTIARIO.d={};const best=d.bestiario||{};
   if(best.k&&typeof best.k=='object')for(const ty in best.k)if(Number.isFinite(best.k[ty])&&best.k[ty]>0)BESTIARIO.k[ty]=Math.floor(best.k[ty]);
   if(best.d&&typeof best.d=='object')for(const ty in best.d)if(best.d[ty]&&typeof best.d[ty]=='object')for(const id in best.d[ty])if(ITEMS[id])(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1;
@@ -247,7 +249,7 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
  const damageFactor=(1+(c.pDmg||0))*(p.bf>0?1.5:1)*(1+effectSum('dmgup')/100);
  const hasteFactor=Object.keys(p.st||{}).reduce((factor,k)=>{const s=p.st[k];return FX_INFO[k]&&FX_INFO[k].kind=='haste'&&s.t>0?factor*(1+s.pw*(s.n||1)/100):factor},1);
  const moveBase=Math.round(CALC.move*(1+bonus('spd')+bonus('moveSpeed')+baseA*CALC.spdPerA)),moveWithEffects=Math.round(CALC.move*(1+spdB()+(p.bf>0?.3:0))*hasteFactor);
- const armorBase=Math.round(baseA*CALC.armPerA+bonus('arm')),magicArmorBase=Math.round(baseF+baseA+baseI+bonus('magicArm'));
+ const armorBase=Math.round(baseA*CALC.armPerA+bonus('arm')),magicArmorBase=Math.round(baseI*CALC.magArmPerI+bonus('magicArm'));
  const intervalBase=Math.max(CALC.minInterval,(c.attackSpeed||1)*(1-baseA*CALC.atkSpdPerA)*(1-bonus('attackSpeed')));
  const guardEffect=Math.min(80,effectSum('guard')),protection=Math.round((1-(1-guardEffect/100)*(p.guard>0?.5:1))*100);
  ap.innerHTML='<h4>Atributos</h4>'+
@@ -279,7 +281,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  if(monster){const mc=$('monic').getContext('2d');mc.clearRect(0,0,40,40);mc.imageSmoothingEnabled=false;
   const k=Math.min(36/info.img.width,36/info.img.height),iw=Math.round(info.img.width*k),ih=Math.round(info.img.height*k);
   mc.drawImage(info.img,Math.round((40-iw)/2),Math.round((40-ih)/2),iw,ih);
-  const mm2=35+(info.stats.I-3)*5;
+  const mm2=Math.round(monsterMaxMp(info))||1;
   $('monhp').style.width=Math.max(0,info.hp)/info.max*100+'%';$('monhpt').textContent=Math.ceil(Math.max(0,info.hp))+' / '+info.max;
   $('monmp').style.width=Math.max(0,info.mp)/mm2*100+'%';$('monmpt').textContent=Math.floor(info.mp)+' / '+mm2;
   const bossLabel=info.bossType=='grandboss'?'♛ GRANDE CHEFE · ':info.bossType=='boss'?'★ CHEFE · ':info.elite?'✦ ELITE · ':'';mon.classList.toggle('elite',!!info.elite);

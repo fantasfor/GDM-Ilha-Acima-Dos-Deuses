@@ -136,7 +136,7 @@
   if(cmb&&!invEquipSlot)hint.textContent='Em combate: armas travadas até '+SAIR_COMBATE_S+'s depois de sair do combate ('+Math.ceil(combateRestante())+'s)';
   else if(!cmb&&/^Em combate/.test(hint.textContent))hint.textContent='Arraste para trocar · botão direito: opções';
   SK.forEach(s=>{const was=ready.get(s);if(was>0&&!(s.t>0)&&s.el){s.el.classList.remove('readyFlash');void s.el.offsetWidth;s.el.classList.add('readyFlash')}ready.set(s,s.t)});
-  const loc=window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
+  const loc=window.inArena?'Arena':window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
   if(loc!==lastLoc){lastLoc=loc;mmLabel.textContent=loc}
   const r=$('mm').getBoundingClientRect();mmLabel.style.left=r.left+'px';mmLabel.style.width=r.width+'px';mmLabel.style.top=(r.top-mmLabel.offsetHeight-6)+'px';
   const z=$('mmz');z.style.top=(r.top+4)+'px';z.style.left=(r.right-z.offsetWidth-4)+'px';

@@ -26,10 +26,10 @@ function makeSkill(s){
   case'heal':f=()=>{heal(Math.round(pv()));if(n(s.mpRestore)>0)p.mp=Math.min(mmp(),p.mp+n(s.mpRestore))};d=()=>'Recupera '+Math.round(pv())+' de vida'+(n(s.mpRestore)>0?' e '+n(s.mpRestore)+' de mana':'')+'.';break;
   case'guard':f=guard;d=()=>'Por 6 s você recebe metade do dano.';break;
   case'buff':f=()=>{p.bf=n(s.base,8);ring(p.x,p.y,40,col,.5);ft(p.x,p.y-24,s.name+'!',col)};d=()=>'Por '+n(s.base,8)+' s aumenta o dano e a velocidade.';break;
-  case'meteor':f=w=>mets.push({x:w.x,y:w.y,t:.9,radius:r*areaMultiplier(p),dmg:pv(),magic,fx:fx&&fx()});d=()=>'Chama um meteoro no local do mouse: '+P()+' de dano em área.';break;
+  case'meteor':f=Object.assign(w=>mets.push({x:w.x,y:w.y,t:.9,radius:r*areaMultiplier(p),dmg:pv(),magic,fx:fx&&fx()}),{mira:1});d=()=>'Chama um meteoro no local do mouse: '+P()+' de dano em área.';break;
   default:return null}
  if(['heal','guard','buff'].includes(s.effect)&&(n(s.actionStats?.physicalDmg)||n(s.actionStats?.magicDmg))){
-  const perform=f;f=(w,t)=>{perform(w,t);for(const enemy of en)if(enemy.hp>0&&dist(enemy,p)<r*areaMultiplier(p))hurtE(enemy,{physical:Math.max(0,n(s.actionStats.physicalDmg)),magic:Math.max(0,n(s.actionStats.magicDmg))},false,fx&&fx())};
+  const perform=f;f=(w,t)=>{perform(w,t);for(const enemy of en)if(enemy.hp>0&&dist(enemy,p)<r*areaMultiplier(p)&&linhaLivre(p,enemy))hurtE(enemy,{physical:Math.max(0,n(s.actionStats.physicalDmg)),magic:Math.max(0,n(s.actionStats.magicDmg))},false,fx&&fx())};
  }
  const sprite=pixelArt(s.sprite),dd=d,dmgTag=()=>skillMagic(s)?'mágico':'físico';d=()=>dd().replace(/ de dano/g,' de dano '+(split?'':dmgTag()))+fxText(s.effects)+(attributeText(s.actionStats)?' Ação: '+attributeText(s.actionStats)+'.':'')+(attributeText(s.bonuses)?' Bônus: '+attributeText(s.bonuses)+'.':'');
  return{id:s.id,category:s.category||'ability',n:s.name||s.id,effect:s.effect,radius:r,mana:n(s.mana),cd:Math.max(.3,n(s.cd,3)),castTime:conj(s),actionStats:s.actionStats,bonuses:s.bonuses,bonusDuration:n(s.bonusDuration,5),ic:sprite?sprite.toDataURL():SKI(s.icon||'orb',s.c1||'#4a6a96',s.c2||'#fff'),f,d:s.desc?()=>s.desc+' ('+d()+')':d,wt:lc(s.weaponTypes).map(weaponTag),tags:tags(s.tags),cross:!!s.cross,vfx:s.vfx||'arcane',vfxColor:col}}
@@ -53,6 +53,11 @@ L('items').forEach(it=>{
   if(range)st.dmg=(range.min+range.max)/2;
   o={n:nm+' ('+(range?'dano '+range.min+' - '+range.max+(statTxt({...st,dmg:0})?', '+statTxt({...st,dmg:0}):''):statTxt(st))+')',...st,...(range?{damageMin:range.min,damageMax:range.max}:{}),c:pixelArt(it.sprite)||half(weaponIcon(style,c)),g:1,v:{c,st:style},wt:wtype,th:twoHanded,equippedSprite:pixelArt(it.equippedSprite)};
   gearType[it.id]='sw';
+  // pose e golpe na mão (js/sprites.js POSES_ARMA): escolhido na Engine ou pelo tipo da arma
+  const ATAQUE_PADRAO={espada_grande:'pesado',machado_2mao:'pesado',martelo_2mao:'pesado',adaga:'estocada',lanca:'estocada',cajado:'vertical',arco:'arco',besta:'besta',manopla:'soco',escudo:'escudo',orbe:'orbe',vara:'varinha',varinha:'varinha'};
+  o.ataque=POSES_ARMA[it.ataque]?it.ataque:ATAQUE_PADRAO[wtype]||'corte';
+  if(it.pega!=null&&it.pega!=='')o.pega=Math.max(0,Math.min(1,+it.pega/100));
+  o.escalaMao=+it.escalaMao===2?2:1;
   /* ataque básico: configurado na própria arma (it.basic). Projetos antigos ligavam uma habilidade da
      categoria "basic" (basic.skillId); a Engine move esses dados para a arma, mas o jogo ainda lê os dois. */
   const b0=it.basic||{},basicSkill=b0.skillId?L('skills').find(s=>s.id==b0.skillId&&s.category=='basic'):null;
@@ -78,8 +83,10 @@ L('items').forEach(it=>{
  if(it.price!==undefined&&it.price!==''&&it.price!==null&&Number.isFinite(+it.price))o.price=Math.max(0,Math.round(+it.price));
  o.itemSprite=pixelArt(it.itemSprite);
  o.equippedSprites=Object.fromEntries(Object.entries(it.equippedSprites||{}).map(([dir,art])=>[dir,pixelArt(art)]));
- o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL();
- if(it.drop!==false&&!GEARIDS.includes(it.id))GEARIDS.push(it.id)});
+ // animação vestida/empunhada (d, u, s e w = arma na mão): quadros Parado/Andando/Atacando
+ const anims=Object.entries(it.equippedAnim||{}).map(([dir,a])=>{if(!a||typeof a!='object')return null;const q=k=>(Array.isArray(a[k])?a[k]:[]).map(pixelArt).filter(Boolean),r={idle:q('idle'),walk:q('walk'),attack:q('attack'),durations:{...a.durations},interval:a.interval};return r.idle.length||r.walk.length||r.attack.length?[dir,r]:null}).filter(Boolean);
+ if(anims.length)o.equippedAnim=Object.fromEntries(anims);
+ o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL()});
 if(ITEMS.saw){ITEMS.saw.c=sawToolIcon();ITEMS.saw.ic=ITEMS.saw.c.toDataURL();ITEMS.saw.equippedSprite=sawToolSprite()}
 for(const key of Object.keys(heroC))delete heroC[key];
 
@@ -94,7 +101,7 @@ passiveData.forEach(s=>{
 /* ---------- classes (builds) ---------- */
 L('classes').forEach(c=>{
  if(!c.id)return;
- const isBase=!!CL[c.id],previousSkills=SKS[c.id]||[];
+ const previousSkills=SKS[c.id]||[];
  const a=c.attrs||{},g=c.per||{},ps=c.passive||{},base=['war','mag','hea'].includes(c.base)?c.base:'war';
  const pl=(Array.isArray(c.passives)?c.passives:[]).map(r=>({d:PDEF[r.id],lv:Math.max(1,n(r.lv,1))})).filter(r=>r.d).sort((x,y)=>x.lv-y.lv);
  const sum=k=>pl.reduce((t,r)=>t+(p.lvl>=r.lv?n(r.d[k]):0),0);
@@ -120,7 +127,7 @@ function normDrops(m){
  const out={},put=(id,c)=>{if(ITEMS[id])out[id]=Math.max(out[id]||0,Math.max(0,Math.min(100,+c||0)))};
  const lista=Array.isArray(m.drops)?m.drops:[],g=Array.isArray(m.guaranteedDrops)?m.guaranteedDrops:[];
  const velhos=lista.filter(x=>typeof x=='string'&&!g.includes(x)),bn=m.bossType=='grandboss'?.4:m.bossType=='boss'?.2:0;
- velhos.forEach(id=>put(id,CALC.dropChance*(1+bn)/velhos.length*100));
+ velhos.forEach(id=>put(id,.22*(1+bn)/velhos.length*100)); // lista antiga (sem %): 22% divididos entre os itens
  g.forEach(id=>put(id,100));
  lista.forEach(x=>{if(x&&typeof x=='object')put(x.id,x.chance)});
  return Object.entries(out).filter(([,c])=>c>0).map(([id,chance])=>({id,chance}));
@@ -136,12 +143,14 @@ L('monsters').forEach(m=>{
   actionStats:k.actionStats,bonuses:k.bonuses,bonusDuration:n(k.bonusDuration,5),effect:k.effect,windup:conj(k)>0?conj(k):.5,damage:n(k.base),per:n(k.per),charPercent:n(k.charPercent),effects:Array.isArray(k.effects)?k.effects:[],magic:k.damageType=='magic'||k.damageType!='physical'&&!!(weapon&&weapon.damageType=='magic'),radius:n(k.radius),flatDamage:true,scaleStat:k.scaleStat||'none',scalePercent:n(k.scalePercent,k.scaleStat&&k.scaleStat!='none'?100:0),vfx:k.vfx||'arcane',vfxColor:k.color||k.c2||'#9bd4ff'
  }));
  const sprite=pixelArt(m.sprite),sp=sprite?{d:sprite,u:sprite,s:sprite,ds:sprite,us:sprite,w:null}:null;
- MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,tags:lc(m.tags),custom:true,classId,sprite,sp,animation:m.animation,size:n(m.size,100),attackSpeed:n(m.attackSpeed),moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
+ MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,classId,sprite,sp,animation:m.animation,size:n(m.size,100),attackSpeed:n(m.attackSpeed),moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
   bossType:['boss','grandboss'].includes(m.bossType)?m.bossType:'normal',equipment:{stats:total,weaponRanges,weapon:weapon?{damageType:weapon.damageType=='magic'?'magic':'physical',basic:weapon.basic||{},effects:Array.isArray(weapon.effects)?weapon.effects:[]}:null},
-  drops:normDrops(m),skills:createdSkills};
+  drops:normDrops(m),skills:createdSkills,
+  // chefe com mecânicas (js/chefes.js) e fúria abaixo de X% da vida
+  mecanicas:Array.isArray(m.mecanicas)&&m.mecanicas.length?m.mecanicas.filter(x=>x&&x.tipo):null,furia:n(m.furia)};
  const f=n(s.F,5),pow=weapon&&weapon.damageType=='magic'?n(s.I,3)*5:f*3;
  MB[m.id]={max:40+f*5,dmg:pow+n(total.dmg),spd:28+n(s.A,3)*.45,xp:n(m.xp,15),g:n(m.gold,5),aggro:n(m.aggro,65),wu:.4,ac:Math.max(.3,n(m.attackSpeed)||CL[classId].attackSpeed||1),base};
- if(m.id!='boss')CM[m.id]={min:n(m.minLevel,1),max:n(m.maxLevel,999),w:Math.max(.1,n(m.weight,1))}});
+ if(m.id!='boss'&&!['boss','grandboss'].includes(m.bossType))CM[m.id]={min:n(m.minLevel,1),max:n(m.maxLevel,999),w:Math.max(.1,n(m.weight,1))}});
 const ids=Object.keys(CM);
 if(ids.length){
  pickType=function(far){

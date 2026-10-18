@@ -1,6 +1,10 @@
 /* constantes de cálculo (editáveis pelo GM na Enciclopédia > Cálculos) */
-const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,dropChance:.22,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,monHpMul:6,monHpLevel:.08,armorFloor:.3};
+const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,monHpMul:6,monHpLevel:.08,armorFloor:.3,
+ magArmPerI:1,monMp0:35,monMpPerI:5,monArmPerA:5,monMagArmPerI:1,monPhysPerF:3,monMagPerI:5,monRegenPerF:.05,monRegenPerI:.05,monMove0:28,monMovePerA:.45,monMinInterval:.25,monAtkSpdPerA:.005};
 const CALC_DEF={...CALC};
+/* fórmulas dos monstros: separadas das do personagem (Engine › Fórmulas › Monstros) */
+const monPhysPerF=()=>CALC.monPhysPerF,monMagPerI=()=>CALC.monMagPerI;
+const monMana=I=>CALC.monMp0+(I-3)*CALC.monMpPerI,monMagArm=(F,A,I)=>I*CALC.monMagArmPerI;
 const ITEM_STATS={
  dmg:{label:'Dano',text:'dano'},
  physicalDmg:{label:'Dano físico',text:'dano físico'},
@@ -53,7 +57,7 @@ const GAMEDATA=Object.assign({classes:[],items:[],skills:[],passives:[],monsters
 const PROJ={calc:PROJETO.mundo?.calc||{},map:{trees:PROJETO.mundo?.arvores,elements:PROJETO.mundo?.elementos},portalDefs:PROJETO.mundo?.portais,spawns:PROJETO.mundo?.spawns,
  art:PROJETO.artes||{},mapArt:PROJETO.artesMapa||{},pixel:PROJETO.biblioteca||{},audio:PROJETO.sons||{}};
 Object.assign(CALC,PROJ.calc);
-const T=16,N=64,W=N*T,CX=W/2,CY=W/2;
+const T=16,N=96,W=N*T,CX=W/2,CY=W/2; // ilha de 96×96 ladrilhos (era 64×64: js/chao.js migrarIlha desloca projetos antigos)
 const cv=document.getElementById('g'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
 let S=3;
 let ZM=1;function setZoom(z){ZM=Math.max(.6,Math.min(2.4,Math.round(z*20)/20));rs()}

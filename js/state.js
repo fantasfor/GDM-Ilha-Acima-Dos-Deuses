@@ -29,7 +29,8 @@ function withWeaponDamageRoll(action){
  }finally{weaponDamageRolls=null}
 }
 const heroC={};
-function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};let key=p.cls+p.sex+dir+ph+'w'+E.swing;for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
+function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};let key=p.cls+p.sex+dir+ph+'w'+E.swing;for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
+ key+=chaveEquipAnim(Object.values(E),dir,E.swing?'attack':an&&an.mv?'walk':'idle');if(Object.keys(heroC).length>600)for(const k in heroC)delete heroC[k];return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
 /* Os 6 primeiros espaços são a barra de atalhos (teclas 1–6) e só aceitam consumíveis.
    A bolsa não tem limite: sem espaço livre, ela cresce. */
 const QUICK_N=6,ehConsumivel=id=>!!(ITEMS[id]&&ITEMS[id].use);
@@ -101,36 +102,39 @@ function monsterLevel(){return Math.max(1,p.lvl-10)+Math.floor(Math.random()*(p.
 function configureMonster(e,type,level){
  const template=MONSTER_TYPES[type],growth=level-1;
  e.ty=type;e.lvl=level;
- e.attributeStats=template.attributeStats||{};e.attributeBuffs=[];e.st=null;
+ // mesmo esquema da classe: atributos iniciais + "por nível" × (nível-1); sem "por nível", +1 de F/A/I por nível
+ const per=template.perLevel,grow=k=>per?(+per[k]||0)*growth:['F','A','I'].includes(k)?growth:0,base=template.attributeStats||{};
+ e.attributeStats=Object.fromEntries([...new Set([...Object.keys(base),...Object.keys(per||{})])].map(k=>[k,(+base[k]||0)+grow(k)]));e.attributeBuffs=[];e.st=null;
  e.size=Math.max(.25,(+template.size||100)/100);
  if(template.custom&&template.sprite){e.img=template.sprite;e.sp=template.sp}
  else if(type=='boss'&&SP.boss){e.img=SP.boss.d;e.sp=SP.boss}
  const attrScale=template.bossType=='grandboss'?1.5:template.bossType=='boss'?1.25:1;
- e.stats={F:Math.round((template.stats.F+growth)*attrScale),A:Math.round((template.stats.A+growth)*attrScale),I:Math.round((template.stats.I+growth)*attrScale)};
- e.bossType=template.bossType||'normal';e.skill=template.skill;e.skillCd=0;e.skillWindup=false;e.mp=35+(e.stats.I-3)*5;
- e.max+=(e.stats.F-template.stats.F)*CALC.monHpPerF;e.dmg+=(e.stats.F-template.stats.F)*5;
- e.ac=Math.max(.25,e.ac*(1-(e.stats.A-template.stats.A)*.005));
+ e.stats={F:Math.round((template.stats.F+grow('F'))*attrScale),A:Math.round((template.stats.A+grow('A'))*attrScale),I:Math.round((template.stats.I+grow('I'))*attrScale)};
+ e.bossType=template.bossType||'normal';e.skill=template.skill;e.skillCd=0;e.skillWindup=false;e.mp=monMana(e.stats.I);e.armor=e.magicArmor=undefined;
+ // fórmulas dos monstros: Engine › Fórmulas › Monstros
+ e.max+=(e.stats.F-template.stats.F)*CALC.monHpPerF;e.dmg+=(e.stats.F-template.stats.F)*monPhysPerF();
+ e.ac=Math.max(.25,e.ac*(1-(e.stats.A-template.stats.A)*CALC.monAtkSpdPerA));
  e.spd*=1+(e.stats.A-template.stats.A)*.005;
  e.weaponRanges=[];e.weaponDamageMultiplier=1;e.weaponDamageBase=null;
  if(template.custom){
   const c=CL[template.classId]||CL.war,eq=template.equipment||{},stats=eq.stats||{},weapon=eq.weapon;
-  e.stats.F=Math.round((template.stats.F+growth+(stats.F||0))*attrScale);
-  e.stats.A=Math.round((template.stats.A+growth+(stats.A||0))*attrScale);
-  e.stats.I=Math.round((template.stats.I+growth+(stats.I||0))*attrScale);
-  const maxBase=CALC.monHp0+e.stats.F*CALC.monHpPerF+(stats.hp||0),power=weapon&&weapon.damageType=='magic'?e.stats.I*CALC.magPerI+(stats.magicDmg||0):e.stats.F*CALC.physPerF+(stats.physicalDmg||0);
+  e.stats.F=Math.round((template.stats.F+grow('F')+(stats.F||0))*attrScale);
+  e.stats.A=Math.round((template.stats.A+grow('A')+(stats.A||0))*attrScale);
+  e.stats.I=Math.round((template.stats.I+grow('I')+(stats.I||0))*attrScale);
+  const maxBase=CALC.monHp0+e.stats.F*CALC.monHpPerF+(stats.hp||0),power=weapon&&weapon.damageType=='magic'?e.stats.I*monMagPerI()+(stats.magicDmg||0):e.stats.F*monPhysPerF()+(stats.physicalDmg||0);
   e.max=Math.round(maxBase*(e.bossType=='grandboss'?2:e.bossType=='boss'?1.5:1)*(template.hpMult||1));
-  e.weaponDamageBase=(stats.dmg||0)+power;e.dmg=Math.round(e.weaponDamageBase*(template.dmgMult||1));e.armor=e.stats.A*5+(stats.arm||0);e.magicArmor=e.stats.F+e.stats.A+e.stats.I+(stats.magicArm||0);
+  e.weaponDamageBase=(stats.dmg||0)+power;e.dmg=Math.round(e.weaponDamageBase*(template.dmgMult||1));e.armor=e.stats.A*CALC.monArmPerA+(stats.arm||0);e.magicArmor=monMagArm(e.stats.F,e.stats.A,e.stats.I)+(stats.magicArm||0);
   e.attackMagic=!!(weapon&&weapon.damageType=='magic');e.weaponBasic=weapon&&weapon.basic;e.weaponFx=weapon&&weapon.effects||[];
   e.weaponRanges=eq.weaponRanges||[];e.weaponDamageMultiplier=template.dmgMult||1;
-  e.spd=(template.moveSpeed||Math.max(18,28+e.stats.A*.45))*(1+((stats.spd||0)+(stats.moveSpeed||0))/100);e.ac=Math.max(.25,(template.attackSpeed||c.attackSpeed||1)*(1-e.stats.A*.005)*(1-(stats.attackSpeed||0)/100));
+  e.spd=(template.moveSpeed||Math.max(18,CALC.monMove0+e.stats.A*CALC.monMovePerA))*(1+((stats.spd||0)+(stats.moveSpeed||0))/100);e.ac=Math.max(.25,(template.attackSpeed||c.attackSpeed||1)*Math.max(.1,1-e.stats.A*CALC.monAtkSpdPerA)*(1-(stats.attackSpeed||0)/100));
   e.skill=template.skills&&template.skills.length?{...template.skills[0],damage:template.skills[0].damage+template.skills[0].per*level}:{name:'Ataque',cost:999999,cd:999,range:e.weaponBasic?e.weaponBasic.rng:22,windup:.4,damage:0};
-  e.equipmentStats=stats;e.dropIds=template.drops||[];e.dropBonus=e.bossType=='grandboss'?.4:e.bossType=='boss'?.2:0;
+  e.equipmentStats=stats;
  }
  const own=e.attributeStats;
  // balanceamento: vida × multiplicador e +X% por nível (Cálculos › Monstros), para as lutas durarem mais golpes
- e.max=Math.max(1,Math.round((e.max+(+own.hp||0))*(CALC.monHpMul??6)*(1+(CALC.monHpLevel??.08)*(level-1))));e.maxMp=Math.max(0,35+(e.stats.I-3)*5+(e.equipmentStats?.mp||0)+(+own.mp||0));e.mp=e.maxMp;
- e.armor=(e.armor??e.stats.A*5)+(+own.arm||0);e.magicArmor=(e.magicArmor??e.stats.F+e.stats.A+e.stats.I)+(+own.magicArm||0);
- e.spd*=Math.max(0,1+attributeValue(own,'moveSpeed'));e.ac=Math.max(CALC.minInterval,e.ac*(1-Math.min(.9,attributeValue(own,'attackSpeed'))));
+ e.max=Math.max(1,Math.round((e.max+(+own.hp||0))*(CALC.monHpMul??6)*(1+(CALC.monHpLevel??.08)*(level-1))));e.maxMp=Math.max(0,monMana(e.stats.I)+(e.equipmentStats?.mp||0)+(+own.mp||0));e.mp=e.maxMp;
+ e.armor=(e.armor??e.stats.A*CALC.monArmPerA)+(+own.arm||0);e.magicArmor=(e.magicArmor??monMagArm(e.stats.F,e.stats.A,e.stats.I))+(+own.magicArm||0);
+ e.spd*=Math.max(0,1+attributeValue(own,'moveSpeed'));e.ac=Math.max(CALC.monMinInterval,e.ac*(1-Math.min(.9,attributeValue(own,'attackSpeed'))));
 }
 const MB={sl:{max:40,dmg:5,spd:28,xp:10,g:3,aggro:60,wu:.35,ac:1.1,base:'sl'},sk:{max:90,dmg:12,spd:36,xp:25,g:8,aggro:75,wu:.45,ac:1.5,base:'sk'},gob:{max:130,dmg:15,spd:34,xp:55,g:24,aggro:90,wu:.45,ac:1.25,base:'goblin'}};
 function pickType(far){return far?'sk':'sl'}

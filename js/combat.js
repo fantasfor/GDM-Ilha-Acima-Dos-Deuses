@@ -23,7 +23,7 @@ function tickAttributeBuffs(entity,dt){
 const monsterAttribute=(entity,key)=>attributeValue(entity.attributeStats,key)+attributeValue(entity.equipmentStats,key)+statusAttributeBonus(entity,key);
 const monsterAttributes=entity=>Object.fromEntries(['F','A','I'].map(k=>[k,Math.max(0,(entity.stats?.[k]||0)+statusAttributeBonus(entity,k))]));
 const monsterMaxHp=entity=>Math.max(1,entity.max+statusAttributeBonus(entity,'hp')+statusAttributeBonus(entity,'F')*CALC.monHpPerF);
-const monsterMaxMp=entity=>Math.max(0,(entity.maxMp??35+(entity.stats.I-3)*5)+statusAttributeBonus(entity,'mp')+statusAttributeBonus(entity,'I')*5);
+const monsterMaxMp=entity=>Math.max(0,(entity.maxMp??monMana(entity.stats.I))+statusAttributeBonus(entity,'mp')+statusAttributeBonus(entity,'I')*CALC.monMpPerI);
 const areaMultiplier=entity=>Math.sqrt(Math.max(.01,1+(entity===p?bonus('area'):monsterAttribute(entity,'area'))));
 const cooldownMultiplier=entity=>1-Math.max(0,Math.min(.9,entity===p?bonus('cooldownReduction'):monsterAttribute(entity,'cooldownReduction')));
 // tempo de conjuração da habilidade: Velocidade de conjuração +100% = metade do tempo
@@ -58,7 +58,7 @@ const fxKind=k=>FX_INFO[k]&&FX_INFO[k].kind;
 function vulnMult(t){let m=0;if(t.st)for(const k in t.st)if(fxKind(k)=='vuln')m=Math.max(m,t.st[k].pw*(t.st[k].n||1));return 1+m/100}
 const charDamage=t=>typedPower(t)+bonus('dmg');
 const monsterWeaponDamageDelta=e=>(e.weaponRanges||[]).reduce((sum,range)=>sum+rollWeaponDamage(range)-(range.min+range.max)/2,0);
-function monsterCtx(e,weaponDelta=0){const s=monsterAttributes(e),equipmentDamage=monsterAttribute(e,'dmg')+weaponDelta,ph=s.F*CALC.physPerF+monsterAttribute(e,'physicalDmg')+equipmentDamage,mg=s.I*CALC.magPerI+monsterAttribute(e,'magicDmg')+equipmentDamage;return{phys:ph,mag:mg,entity:e,attr:k=>k=='none'||!k?0:k=='physicalPower'?ph-equipmentDamage:k=='magicPower'?mg-equipmentDamage:k=='dmg'?equipmentDamage:k=='weaponPower'||k=='charDamage'?(e.attackMagic?mg:ph):s[k]||0}}
+function monsterCtx(e,weaponDelta=0){const s=monsterAttributes(e),equipmentDamage=monsterAttribute(e,'dmg')+weaponDelta,ph=s.F*monPhysPerF()+monsterAttribute(e,'physicalDmg')+equipmentDamage,mg=s.I*monMagPerI()+monsterAttribute(e,'magicDmg')+equipmentDamage;return{phys:ph,mag:mg,entity:e,attr:k=>k=='none'||!k?0:k=='physicalPower'?ph-equipmentDamage:k=='magicPower'?mg-equipmentDamage:k=='dmg'?equipmentDamage:k=='weaponPower'||k=='charDamage'?(e.attackMagic?mg:ph):s[k]||0}}
 function resolveFx(list,cd,ctx){ctx=ctx||{phys:charDamage('physical'),mag:charDamage('magic'),entity:p,attr:k=>k=='none'||!k?0:scaleBase(k,'physical')};return(Array.isArray(list)?list:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const dot=fxKind(f.type)=='dot',src=f.src=='physical'?ctx.phys:f.src=='magic'?ctx.mag:cd;return{caster:ctx.entity||p,self:f.target=='self',type:f.type,chance:f.chance==null||f.chance===''?100:+f.chance,dur:Math.max(.5,+f.dur||FX_INFO[f.type].dur||3),pw:(+f.power||FX_INFO[f.type].power||0)+(dot?(+f.pct||0)/100*src+(+f.attrPct||0)/100*ctx.attr(f.attr):0)}})}
 function applyFx(t,fx){if(!fx||!fx.length)return;let k=0;for(const f of fx){if(Math.random()*100>=f.chance)continue;const tg=f.self?f.caster||p:t;tg.st=tg.st||{};const o=tg.st[f.type];tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,n:Math.min(FX_INFO[f.type].stacks||1,(o?o.n||1:0)+1)};ft(tg.x,tg.y-36-k++*7,FX_INFO[f.type].n,FX_INFO[f.type].c)}}
 function tickStatus(t,dt){
@@ -85,9 +85,9 @@ function tickStatus(t,dt){
  }
 }
 const statusSpeed=t=>{const s=t.st;if(!s)return 1;let v=1;for(const k in s){const q=fxKind(k);if(q=='stun')return 0;if(q=='slow')v=Math.min(v,Math.max(.1,1-s[k].pw*(s[k].n||1)/100))}for(const k in s)if(fxKind(k)=='haste')v*=1+s[k].pw*(s[k].n||1)/100;return v};
-function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;e.foraCombate=0;e.resetando=false;const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
- const physicalDefense=(e.armor??e.stats?.A*5??0)+statusAttributeBonus(e,'arm')+statusAttributeBonus(e,'A')*5;
- const magicalDefense=(e.magicArmor??(e.stats?e.stats.F+e.stats.A+e.stats.I:0))+statusAttributeBonus(e,'magicArm')+['F','A','I'].reduce((sum,k)=>sum+statusAttributeBonus(e,k),0);
+function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(window.ARENA)ARENA.golpe(e,d,magic,fx,dot);return}e.foraCombate=0;e.resetando=false;const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
+ const physicalDefense=(e.armor??(e.stats?e.stats.A*CALC.monArmPerA:0))+statusAttributeBonus(e,'arm')+statusAttributeBonus(e,'A')*CALC.monArmPerA;
+ const magicalDefense=(e.magicArmor??(e.stats?monMagArm(e.stats.F,e.stats.A,e.stats.I):0))+statusAttributeBonus(e,'magicArm')+monMagArm(...['F','A','I'].map(k=>statusAttributeBonus(e,k)));
  // a defesa do monstro não reduz o golpe abaixo de CALC.armorFloor (30%) do dano
  let magicShare=mg?1:0;const piso=CALC.armorFloor??.3,depois=(v,def)=>Math.max(1,v*piso,v-def);
  if(d&&typeof d=='object'){const phys=+d.physical||0,mag=+d.magic||0,pp=phys>0?depois(phys,physicalDefense):0,mp=mag>0?depois(mag,magicalDefense):0;magicShare=mp/((pp+mp)||1);d=pp+mp;if(!dot)d*=vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)}
@@ -139,7 +139,7 @@ const attributes=()=>{const c=CL[p.cls],growth=c.perLevel||{},x=k=>c.pa?c.pa(k):
 const mhp=()=>Math.max(1,Math.round((CALC.hp0+(attributes().F-3)*CALC.hpPerF)*(1+(CL[p.cls].passiveHp||0)))+bonus('hp'));
 const mmp=()=>Math.max(0,Math.round((CALC.mp0+(attributes().I-3)*CALC.mpPerI)*(1+(CL[p.cls].pMp||0)))+bonus('mp'));
 const armor=()=>Math.round(attributes().A*CALC.armPerA+bonus('arm')*(1+(CL[p.cls].pArm||0)));
-const magicArmor=()=>Math.round(attributes().F+attributes().A+attributes().I+bonus('magicArm')*(1+(CL[p.cls].pMagicArm||0)));
+const magicArmor=()=>Math.round(attributes().I*CALC.magArmPerI+bonus('magicArm')*(1+(CL[p.cls].pMagicArm||0)));
 const attackInterval=()=>Math.max(CALC.minInterval,(CL[p.cls].attackSpeed||1)*(1-attributes().A*CALC.atkSpdPerA)*(1-(CL[p.cls].pAttackSpeed||0))*(1-bonus('attackSpeed')));
 const spdB=()=>Math.max(-1,bonus('spd')+bonus('moveSpeed')+attributes().A*CALC.spdPerA+(CL[p.cls].pSpd||0)+(CL[p.cls].pMoveSpeed||0));
 const magicPower=()=>attributes().I*CALC.magPerI+bonus('magicDmg');
@@ -164,8 +164,8 @@ p.hp=mhp();p.mp=mmp();
 const heal=n=>{p.hp=Math.min(mhp(),p.hp+n);ft(p.x,p.y-24,'+'+n,'#6f6');ring(p.x,p.y,24,'#6f6',.4)};
 const withWeaponDamage=(d,flat)=>d&&typeof d=='object'||flat?d:d+weaponPower();
 const pr=(dm,col,hl,opt={})=>{const f=(w,t)=>{const a=Math.atan2(t.y-8-p.y,t.x-p.x),d=dm();proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:withWeaponDamage(d,opt.flat),magic:opt.magic??(basic().damageType=='magic'),c:col,hl,tg:t,fx:opt.fx&&opt.fx()})};f.tg=1;return f};
-const blink=(dm,opt={})=>w=>{let d=Math.min(80,dist(p,w)),a=Math.atan2(w.y-p.y,w.x-p.x);while(d>0&&(!walk(p.x+Math.cos(a)*d,p.y+Math.sin(a)*d)||!campWallSegmentClear(p,{x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d})))d=Math.max(0,d-4);ring(p.x,p.y,16,'#9cf');p.x+=Math.cos(a)*d;p.y+=Math.sin(a)*d;p.dest=null;ring(p.x,p.y,16,'#9cf');if(dm)en.forEach(e=>{if(e.hp>0&&dist(e,p)<32*areaMultiplier(p))hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())})};
-const nova=(r,dm,col,hl,opt={})=>()=>{const radius=r*areaMultiplier(p);ring(p.x,p.y,radius,col,.35);en.forEach(e=>{if(e.hp>0&&dist(e,p)<radius)hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())});if(hl)heal(hl())};
+const blink=(dm,opt={})=>w=>{let d=Math.min(80,dist(p,w)),a=Math.atan2(w.y-p.y,w.x-p.x);while(d>0&&(!walk(p.x+Math.cos(a)*d,p.y+Math.sin(a)*d)||!campWallSegmentClear(p,{x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d})))d=Math.max(0,d-4);ring(p.x,p.y,16,'#9cf');p.x+=Math.cos(a)*d;p.y+=Math.sin(a)*d;p.dest=null;ring(p.x,p.y,16,'#9cf');if(dm)en.forEach(e=>{if(e.hp>0&&dist(e,p)<32*areaMultiplier(p)&&linhaLivre(p,e))hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())})};
+const nova=(r,dm,col,hl,opt={})=>()=>{const radius=r*areaMultiplier(p);ring(p.x,p.y,radius,col,.35);en.forEach(e=>{if(e.hp>0&&dist(e,p)<radius&&linhaLivre(p,e))hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())});if(hl)heal(hl())};
 function SKI(k,a,b){const c=mkCanvas(24,24),x=c.getContext('2d'),{R,disc}=kit(x),D=shade(a,.35),L=shade(a,1.35);
  for(let y=0;y<24;y++){x.fillStyle=shade(a,.16+.14*(1-y/24));x.fillRect(0,y,24,1)}
  R(0,0,24,1,shade(a,.55));R(0,0,1,24,shade(a,.45));R(0,23,24,1,'#05070a');R(23,0,1,24,'#05070a');
@@ -204,7 +204,7 @@ war:[{n:'Arremesso',mana:10,cd:2.5,ic:SKI('blade','#8a94a8','#fff'),f:pr(()=>25+
 mag:[{n:'Bola de fogo',mana:15,cd:2,ic:SKI('orb','#d9501a','#ffd84a'),f:pr(()=>25+p.lvl*6),d:()=>'Dispara uma bola de fogo no alvo: '+(25+p.lvl*6+pw())+' de dano.'},
  {n:'Salto',mana:20,cd:6,ic:SKI('dash','#3a8ab8','#bfefff'),f:blink(),d:()=>'Teletransporta você até 80 px na direção do mouse.'},
  {n:'Nova',mana:30,cd:8,ic:SKI('burst','#2f62c0','#cfe8ff'),f:nova(48,()=>30+p.lvl*8,'#7cf'),d:()=>'Explosão de energia ao redor: '+(30+p.lvl*8+pw())+' de dano.'},
- {n:'Meteoro',mana:70,cd:25,ic:SKI('meteor','#a02010','#ffd84a'),f:w=>mets.push({x:w.x,y:w.y,t:.9,dmg:120+p.lvl*12+magicPower()}),d:()=>'Chama um meteoro no local do mouse: '+(120+p.lvl*12+magicPower())+' de dano em área.'},
+ {n:'Meteoro',mana:70,cd:25,ic:SKI('meteor','#a02010','#ffd84a'),f:Object.assign(w=>mets.push({x:w.x,y:w.y,t:.9,dmg:120+p.lvl*12+magicPower()}),{mira:1}),d:()=>'Chama um meteoro no local do mouse: '+(120+p.lvl*12+magicPower())+' de dano em área.'},
  {n:'Raio de gelo',mana:20,cd:3,ic:SKI('snow','#3a7ab8','#e0f6ff'),f:pr(()=>40+p.lvl*8,'#9ef'),d:()=>'Lança gelo teleguiado no alvo: '+(40+p.lvl*8+pw())+' de dano.'},
  {n:'Escudo arcano',mana:30,cd:18,ic:SKI('shield','#6a4ab8','#e0d0ff'),f:guard,d:()=>'Por 6 s você recebe metade do dano.'}],
 hea:[{n:'Raio sagrado',mana:12,cd:2,ic:SKI('orb','#c9a020','#fff6b0'),f:pr(()=>18+p.lvl*4,'#ffe66b',()=>8),d:()=>'Dispara luz no alvo: '+(18+p.lvl*4+pw())+' de dano e cura 8 de vida.'},
@@ -372,10 +372,11 @@ window.darKit=darKit;
 // barra de conjuração embaixo do herói (desenhada pelo render.js e pelo dungeon.js)
 window.desenharConj=()=>{const c=p.conj;if(!c)return; // barrinha fina embaixo do herói: 12 px de largura, 1 px de altura
  const k=Math.max(0,Math.min(1,1-c.r/c.total)),x=Math.round(p.x)-6,y=Math.round(p.y)+5;ctx.fillStyle='#000a';ctx.fillRect(x-.5,y-.5,13,2);ctx.fillStyle=c.s.vfxColor||'#ffd84a';ctx.fillRect(x,y,12*k,1)};
-function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana||p.conj)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const equipped=EQ[s.weaponSlot||'sw'];if(!skillWeaponAllowed(s,equipped&&ITEMS[equipped.id])){ft(p.x,p.y-24,'Precisa de uma tag: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}if(dist(p,t)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{p.fx=w.x-p.x;p.fy=w.y-p.y}
+function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana||p.conj)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const equipped=EQ[s.weaponSlot||'sw'];if(!skillWeaponAllowed(s,equipped&&ITEMS[equipped.id])){ft(p.x,p.y-24,'Precisa de uma tag: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}if(dist(p,t)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}if(!linhaLivre(p,t)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{if(s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=w.x-p.x;p.fy=w.y-p.y}
  // com tempo de conjuração o jogador para e a habilidade sai no fim da barra (update.js); andar cancela
  const ct=tempoConj(s);if(ct>0){p.conj={s,w,t,total:ct,r:ct};p.dest=null;p.path=[];p.tgt=null;return}
  lancar(s,w,t)}
 function lancar(s,w,t){
+ if(s.f.tg&&t&&!linhaLivre(p,t)||s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return} // o alvo pode ter ido para trás da parede durante a conjuração
  const style=s.vfx||'arcane';if(style!='none'){const f={x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style};fxs.push(f)}
  p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(window.somDoJogador)somDoJogador('c.'+s.id);if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound('magic')}

@@ -53,7 +53,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    exitDungeon(false);
    ft(CX,CY-30,'VOCÊ FOI DERROTADO E EXPULSO DA MASMORRA!','#ff4444');
   }
-  p.dead-=dt;if(p.dead<=0){p.x=CX;p.y=CY+34;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');saveGame()}
+  p.dead-=dt;if(p.dead<=0&&window.inArena&&window.ARENA)ARENA.renascer();else if(p.dead<=0){p.x=CX;p.y=CY+34;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');saveGame()}
  }
  else{
   tickAttributeBuffs(p,dt);SK.forEach(s=>s.t=Math.max(0,s.t-dt));p.guard=Math.max(0,(p.guard||0)-dt);p.acd-=dt;tickStatus(p,dt);const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
@@ -61,8 +61,8 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
   if(p.conj){const c=p.conj,andando=['mover_direita','mover_esquerda','mover_baixo','mover_cima'].some(k=>held.has(k))||Math.hypot(p.joy.x,p.joy.y)>.08;
    if(pst==0||p.dest||p.tgt||p.npcT||andando){p.conj=null;ft(p.x,p.y-24,'Conjuração interrompida','#ccc')}
    else if((c.r-=dt)<=0){p.conj=null;if(c.t&&c.t.hp<=0)ft(p.x,p.y-24,'Sem alvo','#ccc');else if(p.mp<c.s.mana)ft(p.x,p.y-24,'Sem mana','#ccc');else lancar(c.s,c.w,c.t)}}
-  if(p.aw>0){p.aw-=dt;p.dest=null;if(p.aw<=0){const t=p.wt,b=p.attackBasic||basicForDistance(t?dist(p,t):Infinity),landed=!!(t&&t.hp>0&&dist(p,t)-targetReach(t)<b.rng+8);if(landed){const {damage,bfx}=withWeaponDamageRoll(()=>({damage:basicAttackDamage(b),bfx:resolveFx(b.effects,charDamage(b.damageType))}));if(b.proj){const a=Math.atan2(t.y-8-p.y,t.x-p.x);proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:damage,magic:b.damageType=='magic',c:b.proj,tg:t,fx:bfx})}else{hurtE(t,damage,b.damageType=='magic',bfx);ring(t.x,t.y-8,10,'#fff',.15)}if(p.basicMode=='alternate'&&b.weaponSlot)p.basicNext=b.weaponSlot=='sw'?'sh':'sw'}p.wt=null;p.attackBasic=null}}
-  else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d);if(d>b.rng)approach(p,p.tgt,Math.max(8,b.rng-3)+reach);else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}}}}
+  if(p.aw>0){p.aw-=dt;p.dest=null;if(p.aw<=0){const t=p.wt,b=p.attackBasic||basicForDistance(t?dist(p,t):Infinity),landed=!!(t&&t.hp>0&&dist(p,t)-targetReach(t)<b.rng+8&&linhaLivre(p,t));if(landed){const {damage,bfx}=withWeaponDamageRoll(()=>({damage:basicAttackDamage(b),bfx:resolveFx(b.effects,charDamage(b.damageType))}));if(b.proj){const a=Math.atan2(t.y-8-p.y,t.x-p.x);proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:damage,magic:b.damageType=='magic',c:b.proj,tg:t,fx:bfx})}else{hurtE(t,damage,b.damageType=='magic',bfx);ring(t.x,t.y-8,10,'#fff',.15)}if(p.basicMode=='alternate'&&b.weaponSlot)p.basicNext=b.weaponSlot=='sw'?'sh':'sw'}p.wt=null;p.attackBasic=null}}
+  else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d),livre=linhaLivre(p,p.tgt);if(d>b.rng||!livre)approach(p,p.tgt,livre?Math.max(8,b.rng-3)+reach:6+reach);/* parede no meio: contorna até ver o alvo */else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}}}}
   if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(window.MP&&MP.soDono&&MP.soDono()){}else if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Guardião Esqueleto primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
   if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))toggleCampGate()}
   if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))showDungeonMenu()}
@@ -76,14 +76,15 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
   if(window.inDungeon&&window.updateDungeon)updateDungeon(dt);
  }
  for(const e of en){
+  if(e.pvp)continue; // jogadores e boneco da arena (js/arena.js)
   if(e.hp<=0){if(!e.boss&&(e.rt-=dt)<=0)e.gone=1;continue}
   // monstro de outro jogador (multijogador): só acompanha a posição enviada pelo dono da sala
   if(e.mpProxy){if(window.MP)MP.moverProxy(e,dt);continue}
-  tickAttributeBuffs(e,dt);e.cd-=dt;e.hit-=dt;e.alert=Math.max(0,(e.alert||0)-dt);e.giveUp=Math.max(0,(e.giveUp||0)-dt);tickStatus(e,dt);if(e.hp<=0)continue;e.skillCd=Math.max(0,e.skillCd-dt);const ea=monsterAttributes(e);e.hp=Math.min(monsterMaxHp(e),e.hp+(ea.F*.05+monsterAttribute(e,'regenHp'))*dt);e.mp=Math.min(monsterMaxMp(e),e.mp+(ea.I*.05+monsterAttribute(e,'regenMp'))*dt);
+  tickAttributeBuffs(e,dt);e.cd-=dt;e.hit-=dt;e.alert=Math.max(0,(e.alert||0)-dt);e.giveUp=Math.max(0,(e.giveUp||0)-dt);tickStatus(e,dt);if(e.hp<=0)continue;e.skillCd=Math.max(0,e.skillCd-dt);const ea=monsterAttributes(e);e.hp=Math.min(monsterMaxHp(e),e.hp+(ea.F*CALC.monRegenPerF+monsterAttribute(e,'regenHp'))*dt);e.mp=Math.min(monsterMaxMp(e),e.mp+(ea.I*CALC.monRegenPerI+monsterAttribute(e,'regenMp'))*dt);
   // reset: CALC.monsterReset s fora de combate (sem perseguir nem apanhar) e o monstro volta para casa recuperando toda a vida
   if(e.chasing)e.foraCombate=0;else e.foraCombate=(e.foraCombate||0)+dt;
   if(e.foraCombate>=(CALC.monsterReset||10)){const mx=monsterMaxHp(e),mm=monsterMaxMp(e);
-   if(e.hp<mx||e.mp<mm){if(!e.resetando){e.resetando=true;e.st=null;ring(e.x,e.y,14,'#7fe08a',.45)}e.hp=Math.min(mx,e.hp+mx*.6*dt);e.mp=Math.min(mm,e.mp+mm*.6*dt)}
+   if(e.hp<mx||e.mp<mm){if(!e.resetando){e.resetando=true;e.st=null;ring(e.x,e.y,14,'#7fe08a',.45);if(e.mec&&window.CHEFES)CHEFES.reset(e)}e.hp=Math.min(mx,e.hp+mx*.6*dt);e.mp=Math.min(mm,e.mp+mm*.6*dt)}
    else e.resetando=false}
   if(e.st&&statusSpeed(e)==0){e.dest=null;e.aw=0;e.skillWindup=false;continue}
   const a=monsterTarget(e),d=dist(e,a),home={x:e.hx,y:e.hy};
@@ -93,28 +94,29 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
     const weaponDelta=monsterWeaponDamageDelta(e),attackDamage=e.weaponRanges?.length?Math.round(((e.weaponDamageBase??e.dmg)+weaponDelta)*(e.weaponDamageMultiplier||1)):e.dmg;
     if(e.skillWindup){
      const skill=e.skill;e.skillWindup=false;
-     if(d<=((skill.radius?skill.radius*areaMultiplier(e):skill.range))){let damage,skillFx=skill.fxs?resolveFx(skill.fxs,attackDamage,monsterCtx(e,weaponDelta)):null;
+     if(d<=((skill.radius?skill.radius*areaMultiplier(e):skill.range))&&linhaLivre(e,a)){let damage,skillFx=skill.fxs?resolveFx(skill.fxs,attackDamage,monsterCtx(e,weaponDelta)):null;
       if(skill.flatDamage){const context=monsterCtx(e,weaponDelta),power=skill.magic?context.mag:context.phys,cd=power,stat=skill.scaleStat||'none',source=context.attr(stat);
        const legacy=skill.damage+skill.per*e.lvl+cd*(skill.charPercent||0)/100+source*(skill.scalePercent??100)/100;
        if(skill.damageModel=='split'||hasSplitDamage(skill)){damage={physical:Math.max(0,(skill.physicalFlat||0)+(+skill.actionStats?.physicalDmg||0)+(skill.physicalPercent||0)*context.phys/100),magic:Math.max(0,(skill.magicFlat||0)+(+skill.actionStats?.magicDmg||0)+(skill.magicPercent||0)*context.mag/100)};
         if(skill.damageModel!='split')damage[skill.magic?'magic':'physical']+=legacy}
        else damage=legacy;skillFx=resolveFx(skill.effects,cd,monsterCtx(e,weaponDelta))}
-      else damage=skill.magic?skill.damage+e.stats.I*5:attackDamage*(skill.multiplier||1);
+      else damage=skill.magic?skill.damage+e.stats.I*monMagPerI():attackDamage*(skill.multiplier||1);
       if(['heal','buff','guard'].includes(skill.effect)){
        if(skill.effect==='heal')e.hp=Math.min(monsterMaxHp(e),e.hp+Math.max(0,skill.damage+skill.per*e.lvl));
        const action=skill.actionStats||{};if(action.physicalDmg||action.magicDmg)hitTarget(a,{physical:Math.max(0,+action.physicalDmg||0),magic:Math.max(0,+action.magicDmg||0)},false,skillFx,null,e);
       }else hitTarget(a,damage,skill.magic,skillFx,null,e);
       ring(a.x,a.y,(skill.radius||18)*areaMultiplier(e),skill.magic?'#9cf':'#f90',.3);if(skill.vfx&&skill.vfx!='none')fxs.push({x:a.x,y:a.y,r:Math.max(16,Math.min(52,skill.radius||24)),c:skill.vfxColor||'#9bd4ff',t:0,d:.55,style:skill.vfx})}
     }else if(e.castOnly){e.castOnly=false}
-    else if(d<(e.weaponBasic?e.weaponBasic.rng:30)){const extra=k=>attributeValue(e.attributeStats,k)+statusAttributeBonus(e,k),damage=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:attackDamage+extra('magicDmg')+statusAttributeBonus(e,'I')*CALC.magPerI}:{physical:attackDamage+extra('physicalDmg')+statusAttributeBonus(e,'F')*CALC.physPerF,magic:monsterAttribute(e,'magicDmg')};hitTarget(a,damage,!!e.attackMagic,resolveFx(e.weaponFx,attackDamage,monsterCtx(e,weaponDelta)),null,e)}
+    else if(d<(e.weaponBasic?e.weaponBasic.rng:30)&&linhaLivre(e,a)){const extra=k=>attributeValue(e.attributeStats,k)+statusAttributeBonus(e,k),damage=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:attackDamage+extra('magicDmg')+statusAttributeBonus(e,'I')*monMagPerI()}:{physical:attackDamage+extra('physicalDmg')+statusAttributeBonus(e,'F')*monPhysPerF(),magic:monsterAttribute(e,'magicDmg')};hitTarget(a,damage,!!e.attackMagic,resolveFx(e.weaponFx,attackDamage,monsterCtx(e,weaponDelta)),null,e)}
    }
   }
   else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;if(a===p)marcarCombate();e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
-   const hasSkill=e.skill&&e.skill.cost<999999,attackRange=hasSkill?e.skill.range*(e.skill.radius?areaMultiplier(e):1):(e.weaponBasic?e.weaponBasic.rng:20);
-   if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);
-   else if(hasSkill&&d<=attackRange&&e.mp>=e.skill.cost&&e.skillCd<=0){e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;e.aw=e.skill.windup/Math.max(.1,1+monsterAttribute(e,'castSpeed'));e.noAtk=0;e.skillWindup=true;e.mp-=e.skill.cost;applyActionAttributes(e,e.skill);e.skillCd=e.skill.cd*cooldownMultiplier(e);if(!(window.playEntitySound&&playEntitySound('skills',e.skill.id,'cast'))&&window.playEntitySound)playEntitySound('monsters',e.ty,'skill');ft(e.x,e.y-24,e.skill.name,'#f9c')}
-   else if(d>attackRange){if(e.bossType=='grandboss')approach(e,a,Math.max(12,attackRange-4));else flank(e,Math.max(12,attackRange-4),a)}
-   else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*.005)/Math.max(.05,1-e.stats.A*.005);e.cd=Math.max(CALC.minInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))));if(window.playEntitySound)playEntitySound('monsters',e.ty,'attack')}}
+   const hasSkill=e.skill&&e.skill.cost<999999,attackRange=hasSkill?e.skill.range*(e.skill.radius?areaMultiplier(e):1):(e.weaponBasic?e.weaponBasic.rng:20),ve=linhaLivre(e,a);
+   if(window.CHEFES&&CHEFES.tick(e,dt,a,d)){e.noAtk=0} // mecânica de chefe (js/chefes.js)
+   else if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);
+   else if(hasSkill&&d<=attackRange&&ve&&e.mp>=e.skill.cost&&e.skillCd<=0){e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;e.aw=e.skill.windup/Math.max(.1,1+monsterAttribute(e,'castSpeed'));e.noAtk=0;e.skillWindup=true;e.mp-=e.skill.cost;applyActionAttributes(e,e.skill);e.skillCd=e.skill.cd*cooldownMultiplier(e);if(!(window.playEntitySound&&playEntitySound('skills',e.skill.id,'cast'))&&window.playEntitySound)playEntitySound('monsters',e.ty,'skill');ft(e.x,e.y-24,e.skill.name,'#f9c')}
+   else if(d>attackRange||!ve){if(!ve)approach(e,a,8);else if(e.bossType=='grandboss')approach(e,a,Math.max(12,attackRange-4));else flank(e,Math.max(12,attackRange-4),a)}
+   else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*CALC.monAtkSpdPerA)/Math.max(.05,1-e.stats.A*CALC.monAtkSpdPerA);e.cd=Math.max(CALC.monMinInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))));if(window.playEntitySound)playEntitySound('monsters',e.ty,'attack')}}
   }
   else{
    if(e.chasing){e.dest=null;e.path=[];e.pathKey='';e.chasing=false;e.fa=undefined;e.alert=0;e.noAtk=0}
@@ -132,7 +134,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    }
   }
   moveAlong(e,e.spd*statusSpeed(e)*Math.max(0,1+statusAttributeBonus(e,'moveSpeed')+statusAttributeBonus(e,'A')*.005),dt)}
- for(let i=proj.length;i--;){const q=proj[i];if(q.tg){if(q.tg.hp<=0){proj.splice(i,1);continue}const tx=q.tg.x,ty=q.tg.y-wh(q.tg.img)/2,a=Math.atan2(ty-q.y,tx-q.x);q.vx=Math.cos(a)*190;q.vy=Math.sin(a)*190;if(dist(q,{x:tx,y:ty})<10){hurtE(q.tg,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());ring(q.x,q.y,14,'#f93',.25);proj.splice(i,1);continue}}q.x+=q.vx*dt;q.y+=q.vy*dt;q.t-=dt;if(q.tg){if(q.t<=0)proj.splice(i,1);continue}
+ for(let i=proj.length;i--;){const q=proj[i];if(q.tg){if(q.tg.hp<=0){proj.splice(i,1);continue}const tx=q.tg.x,ty=q.tg.y-wh(q.tg.img)/2,a=Math.atan2(ty-q.y,tx-q.x);q.vx=Math.cos(a)*190;q.vy=Math.sin(a)*190;if(dist(q,{x:tx,y:ty})<10){hurtE(q.tg,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());ring(q.x,q.y,14,'#f93',.25);proj.splice(i,1);continue}}q.x+=q.vx*dt;q.y+=q.vy*dt;q.t-=dt;if(q.tg){if(q.t<=0||bloqueiaTiro(q.x,q.y+8))proj.splice(i,1);continue}
   const h=en.find(e=>e.hp>0&&(dist(e,q)<14||dist({x:e.x,y:e.y-wh(e.img)/2},q)<14));if(h){hurtE(h,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());ring(q.x,q.y,14,'#f93',.25);proj.splice(i,1)}else if(q.t<=0||!walk(q.x,q.y))proj.splice(i,1)}
- for(let i=mets.length;i--;){const m=mets[i];m.t-=dt;if(m.t<=0){const radius=m.radius||36*areaMultiplier(p);ring(m.x,m.y,radius,'#f60',.5);en.forEach(e=>{if(e.hp>0&&dist(e,m)<radius)hurtE(e,m.dmg||120+p.lvl*12,m.magic!==false,m.fx)});mets.splice(i,1)}}
+ for(let i=mets.length;i--;){const m=mets[i];m.t-=dt;if(m.t<=0){const radius=m.radius||36*areaMultiplier(p);ring(m.x,m.y,radius,'#f60',.5);en.forEach(e=>{if(e.hp>0&&dist(e,m)<radius&&linhaLivre(m,e))hurtE(e,m.dmg||120+p.lvl*12,m.magic!==false,m.fx)});mets.splice(i,1)}}
 }

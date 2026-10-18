@@ -85,7 +85,7 @@
           "$id": { ".validate": "newData.hasChildren(['id', 't'])" }
         },
         "tg": {
-          ".write": "auth != null && $sala.beginsWith('dg:' + auth.uid + ':')",
+          ".write": "auth != null && ($sala === 'ilha:' + auth.uid || $sala.beginsWith('dg:' + auth.uid + ':'))",
           "$id": { ".validate": "newData.hasChildren(['type', 'x', 'y', 'maxT', 't'])" }
         },
         "golpes": {
@@ -108,10 +108,32 @@
             }
           }
         },
+        "pvp": {
+          "$id": {
+            ".write": "auth != null && $sala.beginsWith('arena') && ((!data.exists() && newData.child('de').val() === auth.uid) || (!newData.exists() && data.child('de').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['de', 'tipo', 't']) && newData.child('tipo').val().matches(/^(golpe|morte)$/) && newData.child('t').val() === now"
+          }
+        },
         "fx": {
           "$id": {
             ".write": "auth != null && $sala === 'taverna' && ((!data.exists() && newData.child('de').val() === auth.uid) || (!newData.exists() && data.child('de').val() === auth.uid))",
             ".validate": "newData.hasChildren(['de', 'tipo', 'x', 'y', 't']) && newData.child('tipo').val().matches(/^(cura|bencao|impacto)$/) && newData.child('t').val() === now"
+          }
+        }
+      }
+    },
+    "arenas": {
+      "$lider": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $lider",
+        "membros": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || auth.uid === $lider)"
+          }
+        },
+        "mortos": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
           }
         }
       }
@@ -122,7 +144,7 @@
         ".write": "auth != null && auth.uid === $para && !newData.exists()",
         "$de": {
           ".write": "auth != null && (auth.uid === $de || auth.uid === $para)",
-          ".validate": "newData.hasChildren(['tipo', 'nome', 't']) && newData.child('tipo').val().matches(/^(ilha|grupo|amizade)$/) && newData.child('nome').isString() && newData.child('nome').val().length <= 18 && newData.child('t').val() === now"
+          ".validate": "newData.hasChildren(['tipo', 'nome', 't']) && newData.child('tipo').val().matches(/^(ilha|grupo|amizade|arena)$/) && newData.child('nome').isString() && newData.child('nome').val().length <= 18 && newData.child('t').val() === now"
         }
       }
     },

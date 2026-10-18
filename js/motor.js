@@ -39,8 +39,10 @@
   /* terreno original da ilha, ignorando a pintura (a Engine combina com a pintura atual) */
   terrenoLivreBase(x,y){const i=Math.floor(x/T),j=Math.floor(y/T);if(i<0||j<0||i>=N||j>=N||V(i,j)>=28.5)return false;return !(inRiver(x,y)&&!onBridge(x,y))},
   terrenoLivre:(x,y)=>groundFree(x,y),
-  tipoTerreno(x,y){x=Math.floor(x);y=Math.floor(y);if(!(x>=0&&y>=0&&x<W&&y<W))return 'fora';const k=islandTerrainMask[y*W+x];return k===6?(CHAO_GRID[Math.floor(y/T)*N+Math.floor(x/T)]?.name||'chão pintado'):['grama','areia','água','acampamento','rio','ponte'][k]},
-  tipoTerrenoBase(x,y){x=Math.floor(x);y=Math.floor(y);if(!(x>=0&&y>=0&&x<W&&y<W))return 'fora';const v=V(x/T|0,y/T|0);return inRiver(x,y)&&v<28.6?(onBridge(x,y)?'ponte':'rio'):v>28.6?'água':v>26.2?'areia':Math.hypot(x/T-32,y/T-32)<5.9?'acampamento':'grama'},
+  tipoTerreno(x,y){x=Math.floor(x);y=Math.floor(y);if(!(x>=0&&y>=0&&x<W&&y<W))return 'fora';const k=islandTerrainMask[y*W+x];return k===6?(CHAO_GRID[Math.floor(y/T)*N+Math.floor(x/T)]?.name||'chão pintado'):['grama','areia','vazio','terra','rio','ponte'][k]},
+  tipoTerrenoBase(x,y){x=Math.floor(x);y=Math.floor(y);if(!(x>=0&&y>=0&&x<W&&y<W))return 'fora';const v=V(x/T|0,y/T|0);return v>28.6?'vazio':inRiver(x,y)?(onBridge(x,y)?'ponte':'rio'):v>26.2?'areia':Math.hypot((x-CX)/T,(y-CY)/T)<5.9||caminhoDist(x,y)<6?'terra':'grama'},
+  /* árvores dos bosques da borda nova (a Engine grava no projeto ao converter uma ilha antiga) */
+  arvoresDoAnel:existentes=>arvoresDoAnel(existentes),
   npcs:()=>NPCS.filter(n=>n.x>-1000).map(n=>({nome:n.nm,cls:n.cls,x:n.x,y:n.y,sprite:(CL[n.cls]&&CL[n.cls].sprite)||HS[n.cls]?.d||null})),
   tiposElemento:()=>Object.entries(MAP_ELEMENT_TYPES).filter(([id])=>!id.startsWith('px:')).map(([id,t])=>({id,nome:t.name,raio:t.radius,solido:!!t.blocks,variantes:sceneryVariants(id)})),
   arteArvore:(x,y)=>(window.TREEV&&TREEV[treeVar({x,y})])||TREE,
@@ -51,6 +53,42 @@
   monstroPadrao:base=>(SP[base]||SP.sl).d,
   monstrosEmbutidos:()=>Object.keys(MONSTER_TYPES).filter(id=>!GAMEDATA.monsters.some(m=>m.id==id)).map(id=>({id,nome:MONSTER_TYPES[id].name||id,bossType:MONSTER_TYPES[id].bossType||'normal'})),
   calcPadrao:()=>({...CALC_DEF}),
+  /* Prévia de balanceamento (Engine › Prévia): monta o herói e o monstro com as regras do jogo e calcula a luta.
+     o = {calc, cls, lvl, rank, itens:[id], qualidade, monstro, nivelMon, elite}. Tudo é restaurado no fim. */
+  previa(o){
+   const salva={cls:p.cls,lvl:p.lvl,cp:p.classProgress,st:p.st,buffs:p.attributeBuffs,bf:p.bf,eq:{...EQ},calc:{...CALC},tb:p.attackBasic};
+   const media=f=>{let s=0,n=24;for(let i=0;i<n;i++)s+=f();return s/n},soma=d=>d&&typeof d=='object'?(d.physical||0)+(d.magic||0):+d||0;
+   try{
+    Object.assign(CALC,CALC_DEF,o.calc||{});
+    if(CL[o.cls])p.cls=o.cls;p.lvl=Math.max(1,Math.floor(+o.lvl||1));p.classProgress={[p.cls]:{rank:Math.max(1,Math.min(10,Math.floor(+o.rank||1))),xp:0}};
+    p.st=null;p.attributeBuffs=[];p.bf=0;p.attackBasic=null;for(const s of SLOTS)EQ[s]=null;
+    for(const id of o.itens||[]){const t=gearType[id];if(!t)continue;const sl=t=='ri'?(!EQ.r1?'r1':'r2'):t=='sw'&&EQ.sw&&!ITEMS[id].th?'sh':t;if(!EQ[sl])EQ[sl]={id,n:1,q:o.qualidade??50}}
+    applySkills();
+    const a=attributes(),b=basic(),golpeMedio={physical:media(()=>basicAttackDamage(b).physical||0),magic:media(()=>basicAttackDamage(b).magic||0)};
+    const heroi={F:a.F,A:a.A,I:a.I,vida:mhp(),mana:mmp(),poderFisico:Math.round(physicalPower()),poderMagico:Math.round(magicPower()),golpe:Math.round(soma(golpeMedio)),tipo:b.damageType=='magic'?'mágico':'físico',
+     defesaFisica:armor(),defesaMagica:magicArmor(),intervalo:+attackInterval().toFixed(2),velocidade:Math.round(CALC.move*(1+spdB())),regenVida:+regenHp().toFixed(2),regenMana:+regenMp().toFixed(2),
+     critico:Math.round(bonus('critChance')*100),danoCritico:Math.round(150+bonus('critDamage')*100),equipamentos:Object.entries(EQ).filter(([,s])=>s).map(([sl,s])=>sl+':'+s.id)};
+    let mon=null,luta=null;
+    if(MONSTER_TYPES[o.monstro]&&window.spawnAt){
+     const e=spawnAt(0,0,o.monstro,Math.max(1,Math.floor(+o.nivelMon||1)));if(o.elite)makeElite(e);
+     const base=e.weaponRanges?.length?(e.weaponDamageBase??e.dmg)*(e.weaponDamageMultiplier||1):e.dmg,extra=k=>attributeValue(e.attributeStats,k);
+     const golpeMon=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:base+extra('magicDmg')}:{physical:base+extra('physicalDmg'),magic:monsterAttribute(e,'magicDmg')};
+     mon={nome:MONSTER_TYPES[o.monstro].name||o.monstro,nivel:e.lvl,elite:!!e.elite,F:e.stats.F,A:e.stats.A,I:e.stats.I,vida:Math.round(monsterMaxHp(e)),mana:Math.round(monsterMaxMp(e)),golpe:Math.round(soma(golpeMon)),tipo:e.attackMagic?'mágico':'físico',
+      defesaFisica:Math.round(e.armor),defesaMagica:Math.round(e.magicArmor),intervalo:+e.ac.toFixed(2),velocidade:Math.round(e.spd),xp:e.xp,ouro:e.g,habilidade:e.skill&&e.skill.cost<999999?e.skill.name:null};
+     // mesmas contas do hurtE (defesa do monstro com piso) e do hurtP (defesa do herói)
+     const piso=CALC.armorFloor??.3,noMon=(v,def)=>v>0?Math.max(1,v*piso,v-def):0,noHeroi=(v,def)=>v>0?Math.max(1,v-def):0;
+     const heroiBate=noMon(golpeMedio.physical,e.armor)+noMon(golpeMedio.magic,e.magicArmor),monBate=noHeroi(golpeMon.physical,armor())+noHeroi(golpeMon.magic,magicArmor());
+     const golpesH=Math.ceil(mon.vida/Math.max(1,heroiBate)),golpesM=Math.ceil(heroi.vida/Math.max(1,monBate));
+     luta={heroiBate:Math.round(heroiBate),monBate:Math.round(monBate),golpesParaMatar:golpesH,segundosParaMatar:+(golpesH*heroi.intervalo).toFixed(1),golpesParaMorrer:golpesM,segundosParaMorrer:+(golpesM*mon.intervalo).toFixed(1),
+      dpsHeroi:+(heroiBate/heroi.intervalo).toFixed(1),dpsMonstro:+(monBate/mon.intervalo).toFixed(1)};
+     luta.vence=luta.segundosParaMatar<=luta.segundosParaMorrer;
+    }
+    return {heroi,monstro:mon,luta};
+   }finally{
+    Object.assign(CALC,salva.calc);p.cls=salva.cls;p.lvl=salva.lvl;p.classProgress=salva.cp;p.st=salva.st;p.attributeBuffs=salva.buffs;p.bf=salva.bf;p.attackBasic=salva.tb;Object.assign(EQ,salva.eq);
+    try{applySkills()}catch(e){}
+   }
+  },
   bases:()=>Object.keys(SP).filter(k=>SP[k]&&SP[k].d),
   item:id=>ITEMS[id]?.c||null,
   itemChao:id=>ITEMS[id]?.itemSprite||ITEMS[id]?.c||null,

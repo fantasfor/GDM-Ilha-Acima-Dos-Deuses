@@ -5,6 +5,7 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 let opt={zoom:1,mm:170};try{Object.assign(opt,JSON.parse(ls.get(OPT)||'{}'))}catch(e){}
 window.autoTargetAfterKill=opt.autoTargetAfterKill!==false;
 window.modoDesempenho=!!opt.desempenho;
+window.segurarMira=!!opt.segurarMira;
 window.MMR=opt.mm;setZoom(opt.zoom);
 const saveOpt=()=>ls.set(OPT,JSON.stringify(opt));
 const zoom=z=>{setZoom(z);opt.zoom=ZM;saveOpt()},mmz=f=>{window.MMR=opt.mm=Math.max(90,Math.min(380,Math.round(opt.mm*f)));saveOpt()};
@@ -48,7 +49,8 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   const caixa=(texto,get,set)=>{const r=$$('label','mrow','<span>'+texto+'</span><input type="checkbox">'),c=r.querySelector('input');c.checked=get();c.onchange=()=>set(c.checked);return r};
   // desempenho e rede
   const r4=caixa('Modo desempenho (menos luzes e névoa mais leve, para computadores fracos)',()=>!!window.modoDesempenho,v=>{window.modoDesempenho=opt.desempenho=v;saveOpt()});
-  box.append(r1,r2,r3,r4);
+  const r5=caixa('Segurar a tecla da habilidade para mirar (mostra a área e lança ao soltar)',()=>!!window.segurarMira,v=>{window.segurarMira=opt.segurarMira=v;saveOpt()});
+  box.append(r1,r2,r3,r4,r5);
   if(window.REDE)box.append(caixa('Mostrar ping e FPS no canto da tela',()=>REDE.mostrar,v=>{REDE.mostrar=v}));
   // som: volume, saída (alto-falante/fone) e, com conta, a voz
   if(window.SOM){

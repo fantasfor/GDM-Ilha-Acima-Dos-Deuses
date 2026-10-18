@@ -23,17 +23,17 @@ const clonePortalDefs=list=>list.map((q,i)=>{
   const min=m.min!==undefined?Math.max(0,Math.floor(+m.min||0)):Math.max(1,Math.round(cMin*parte));
   const max=Math.max(min,m.max!==undefined?Math.floor(+m.max||0):Math.round(cMax*parte));
   return{id:m.id,chance,min,max,elite:Math.max(0,Math.min(100,m.elite!==undefined?+m.elite||0:elite0))/100}});
- return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),monsters}});
+ return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),grupo:!!q.grupo,monsters}});
 const portalDefs=clonePortalDefs(Array.isArray(PROJ.portalDefs)?PROJ.portalDefs:DEFAULT_PORTAL_DEFS);
 window.PORTAL_DEFS=portalDefs;
 function spawnAt(x,y,type,level=monsterLevel()){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
  configureMonster(e,type,level);Object.assign(e,{x,y,hx:x,hy:y,hp:e.max,st:null,fx:0,fy:1,aw:0,cd:0,hit:0,rt:0,dest:null,path:[],pathI:0,pathKey:'',roamT:3,roamRadius:rnd(38,70)});return e}
 window.spawnAt=spawnAt;
 /* Elite: +50% de vida, +35% de dano, +25% de defesas e +50% de XP e ouro. */
-function makeElite(e){e.elite=true;e.max=Math.round(e.max*1.5);e.hp=e.max;e.dmg=Math.round(e.dmg*1.35);e.armor=Math.round((e.armor||e.stats.A*5)*1.25);e.magicArmor=Math.round((e.magicArmor||e.stats.F+e.stats.A+e.stats.I)*1.25);e.xp=Math.round(e.xp*1.5);e.g=Math.round(e.g*1.5);return e}
+function makeElite(e){e.elite=true;e.max=Math.round(e.max*1.5);e.hp=e.max;e.dmg=Math.round(e.dmg*1.35);e.armor=Math.round((e.armor||e.stats.A*CALC.monArmPerA)*1.25);e.magicArmor=Math.round((e.magicArmor||monMagArm(e.stats.F,e.stats.A,e.stats.I))*1.25);e.xp=Math.round(e.xp*1.5);e.g=Math.round(e.g*1.5);return e}
 window.makeElite=makeElite;
 /* áreas: grade 3x3; no máximo 5 inimigos por área (contando os que ainda vão sair dos portais) */
-const PORTAL_REFILL=.7,PORTAL_DURATION=2,PORTAL_OPEN=.3,PORTAL_CLOSE=.35,PORTAL_FIRST_SPAWN=.4,PORTAL_LAST_SPAWN=1.55;
+const PORTAL_BORDA=18.5,PORTAL_REFILL=.7,PORTAL_DURATION=2,PORTAL_OPEN=.3,PORTAL_CLOSE=.35,PORTAL_FIRST_SPAWN=.4,PORTAL_LAST_SPAWN=1.55;
 const portals=[],AR=W/3,areaOf=(x,y)=>Math.min(2,x/AR|0)+3*Math.min(2,y/AR|0);let pid=0;
 const cnt=a=>en.reduce((n,e)=>n+(e.hp>0&&e.area==a?1:0),0)+portals.reduce((n,q)=>n+(q.a==a?q.left:0),0);
 let timer=2;
@@ -73,7 +73,8 @@ function openPortal(){
  const positions=[];
  for(let y=8;y<W-8;y+=16)for(let x=8;x<W-8;x+=16){
   const a=areaOf(x,y),available=availableByArea[a];
-  if(available>0&&walk(x,y)&&longeDeArvores(x,y)&&V(x/T|0,y/T|0)<=25&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
+  const borda=V(x/T|0,y/T|0); // portais só na faixa perto da borda da ilha (28,6 = beira do vazio)
+  if(available>0&&walk(x,y)&&longeDeArvores(x,y)&&borda<=25&&borda>=PORTAL_BORDA&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
  }
  const candidates=portalOptions.filter(def=>positions.some(pos=>pos.available>=minPack(def)));
  if(!candidates.length)return;
@@ -82,21 +83,40 @@ function openPortal(){
  const validPositions=positions.filter(pos=>pos.available>=minPack(site)),position=validPositions[Math.floor(Math.random()*validPositions.length)];
  const a=position.a,plan=planPack(site,position.available);
  if(!plan.length)return;
- portals.push({x:position.x,y:position.y,t:0,a,n0:plan.length,left:plan.length,plan,next:PORTAL_FIRST_SPAWN,interval:(PORTAL_LAST_SPAWN-PORTAL_FIRST_SPAWN)/Math.max(1,plan.length-1),fin:0,id:++pid,siteId:site.id,ang:Math.atan2(CY-position.y,CX-position.x)+rnd(-.8,.8)});
+ portals.push({x:position.x,y:position.y,t:0,a,n0:plan.length,left:plan.length,plan,next:PORTAL_FIRST_SPAWN,interval:(PORTAL_LAST_SPAWN-PORTAL_FIRST_SPAWN)/Math.max(1,plan.length-1),fin:0,id:++pid,siteId:site.id,grupo:site.grupo,ang:Math.atan2(CY-position.y,CX-position.x)+rnd(-.8,.8)});
 }
 /* A composição segue as chances e quantidades configuradas para o portal escolhido. */
 function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,1.1),r=rnd(16,34),px=q.x+Math.cos(a)*r,py=q.y+Math.sin(a)*r;if(walk(px,py)&&!insideCamp(px,py)&&longeDeArvores(px,py)){ox=px;oy=py;break}}
  const entry=q.plan.shift();if(!entry)return;const e=spawnAt(q.x,q.y,entry.type);Object.assign(e,{hx:ox,hy:oy,dest:{x:ox,y:oy},area:q.a,pack:q.id});
  if(entry.elite)makeElite(e);
+ // saem da borda e vão se espalhando para o centro; em grupo, seguem o primeiro que saiu (o líder)
+ e.migra=true;e.migraT=rnd(3,6);
+ if(q.grupo){const g=grupos.get(q.id);if(!g)grupos.set(q.id,{lider:e,migra:true});else{const a=rnd(0,6.283),r=rnd(9,17);e.seguidor=g;e.offx=Math.cos(a)*r;e.offy=Math.sin(a)*r;e.migra=false}}
  if(entry.type=='gob'&&questMonsterRequested('gob')&&!sawGoblin){
   e.sawGoblin=true;sawGoblin=e
  }
  ring(q.x,q.y-8,14,'#b98cff',.3);en.push(e);q.left--}
+/* Espalhar para o centro: a cada poucos segundos a "casa" do monstro anda 40–80 px em direção ao acampamento,
+   até parar a uma distância segura dele. Grupo: os seguidores têm a casa colada no líder. */
+const grupos=new Map(),PARADA=CAMP_SAFE_HALF_SIZE+110;
+/* grupo (portais da ilha e da DG): o seguidor tem a casa colada no líder; se o líder morrer, o primeiro seguidor vivo assume */
+function seguirLider(){
+ for(const e of en){if(e.hp<=0||e.mpProxy||!e.seguidor)continue;const g=e.seguidor,L=g.lider;
+  if(!L||L.hp<=0||!en.includes(L)){g.lider=e;e.seguidor=null;e.roamRadius=rnd(38,70);if(g.migra){e.migra=true;e.migraT=rnd(2,4)}continue}
+  if(!e.chasing){e.hx=L.x+e.offx;e.hy=L.y+e.offy;e.roamRadius=10}}
+}
+function espalhar(dt){
+ for(const e of en){if(e.hp<=0||e.mpProxy||e.chasing||e.seguidor)continue;
+  if(!e.migra||(e.migraT-=dt)>0)continue;e.migraT=rnd(5,9);
+  if(campDistance(e.hx,e.hy)<PARADA){e.migra=false;continue}
+  const a=Math.atan2(CY-e.hy,CX-e.hx)+rnd(-.6,.6),r=rnd(40,80);
+  for(let t=0;t<6;t++){const x=e.hx+Math.cos(a)*r*(1-t*.12),y=e.hy+Math.sin(a)*r*(1-t*.12);if(walk(x,y)&&!insideCamp(x,y,40)&&longeDeArvores(x,y)){e.hx=x;e.hy=y;break}}}
+}
 /* um alerta: os da mesma matilha vêm ajudar */
 const h0=hurtE;hurtE=function(e){const r=h0.apply(this,arguments);if(e&&e.pack&&!e.boss)en.forEach(o=>{if(o!==e&&o.pack===e.pack&&o.hp>0){if(!(o.alert>0))ft(o.x,o.y-30,'!','#f66');o.alert=8}});return r};
 /* colisão entre entidades (herói, NPCs, monstros): ninguém fica em cima do outro */
 function separate(){const U=[];if(p.dead<=0)U.push({o:p,r:5,m:1.6,c:1});if(!window.inDungeon&&!window.inTaverna)NPCS.forEach(n=>U.push({o:n,r:5,m:1e9,c:1}));
- en.forEach(e=>{if(e.hp>0)U.push({o:e,r:entityRadius(e),m:1})});
+ en.forEach(e=>{if(e.hp>0)U.push(e.pvp?{o:e,r:5,m:1e9}:{o:e,r:entityRadius(e),m:1})});
  const ok=(u,x,y)=>walk(x,y)&&(u.c||!insideCamp(x,y));
  for(let i=0;i<U.length;i++)for(let j=i+1;j<U.length;j++){const a=U[i],b=U[j],R=a.r+b.r,dx=b.o.x-a.o.x,dy=b.o.y-a.o.y;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;
   let d=Math.hypot(dx,dy);if(d>=R)continue;let nx,ny;if(d<.01){const g=Math.random()*6.283;nx=Math.cos(g);ny=Math.sin(g);d=0}else{nx=dx/d;ny=dy/d}
@@ -106,7 +126,7 @@ function separate(){const U=[];if(p.dead<=0)U.push({o:p,r:5,m:1.6,c:1});if(!wind
 const upd0=upd;upd=function(dt){upd0(dt);
  sawGoblin=questMonsterRequested('gob')?questMonsterTarget('gob'):null;
  // portais só na própria ilha: na taverna não há monstros e, visitando outra ilha, quem solta os monstros é o dono
- if(!window.inDungeon&&!window.inTaverna&&!window.mpEspelho){
+ if(!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.mpEspelho){
   // abaixo do mínimo de monstros na ilha, os portais abrem bem mais rápido até completar; depois, no intervalo normal
   const naIlha=en.reduce((n,e)=>n+(e.hp>0&&!e.boss&&!e.mpProxy?1:0),0)+portals.reduce((n,q)=>n+q.left,0),minimo=CALC.islandMinMonsters??20;
   timer-=dt;if(timer<=0){timer=naIlha<minimo?PORTAL_REFILL:CALC.portalInterval;if(CALC.randomPortals!==false)openPortal()}
@@ -114,8 +134,10 @@ const upd0=upd;upd=function(dt){upd0(dt);
   for(let i=portals.length;i--;){const q=portals[i];q.t+=dt;
    while(q.left>0&&q.t>=q.next){emit(q);q.next+=q.interval}
    q.fin=Math.max(0,q.t-(PORTAL_DURATION-PORTAL_CLOSE));
-   if(q.t>=PORTAL_DURATION)portals.splice(i,1)}
+   if(q.t>=PORTAL_DURATION){portals.splice(i,1);grupos.delete(q.id)}}
+  espalhar(dt);
  }
+ if(!window.mpEspelho)seguirLider();
  separate();for(let i=en.length;i--;)if(en[i].gone)en.splice(i,1)};
 /* Fenda retangular vertical: moldura com runas, energia interna e faiscas em pixel art. */
 function drawSpawnPortal(q,target,original=false){

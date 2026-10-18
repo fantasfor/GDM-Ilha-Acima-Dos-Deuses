@@ -212,6 +212,7 @@
   const base=CL[o.cls]?.base||(HS[o.cls]?o.cls:'war');
   let key=base+o.sex+dir+ph+'w'+swing;const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw')};
   for(const [slot,id] of Object.entries(o.eq))if(ITEMS[id]&&gearType[id]){E[slot]=ITEMS[id];key+=slot+id}
+  key+=chaveEquipAnim(Object.values(E),dir,swing?'attack':ph?'walk':'idle');
   if(!looks.has(key)){if(looks.size>400)looks.clear();looks.set(key,human(base,dir,ph,E))}
   return looks.get(key);
  }
@@ -265,8 +266,7 @@
  }
  window.onlineMinimap=(g,ox,oy,k,size)=>{
   for(const o of others.values()){
-   // só quem está no campo de visão (como os monstros)
-   if(!visivel(o)||o.tx==null||(typeof canSee==='function'&&!window.inDungeon&&!window.inTaverna&&!canSee(o.x,o.y)))continue;const x=(o.x-ox)*k,y=(o.y-oy)*k;if(x<0||y<0||x>size||y>size)continue;
+   if(!visivel(o)||o.tx==null)continue;const x=(o.x-ox)*k,y=(o.y-oy)*k;if(x<0||y<0||x>size||y>size)continue;
    g.fillStyle='#000';g.fillRect(Math.round(x)-3,Math.round(y)-3,6,6);g.fillStyle='#5fd4ff';g.fillRect(Math.round(x)-2,Math.round(y)-2,4,4);
   }
  };

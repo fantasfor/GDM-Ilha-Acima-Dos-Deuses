@@ -21,13 +21,14 @@
   nomeDe:id=>MP.nomes.get(id)||'Aventureiro'
  };
  const ref=path=>db.ref(path);
- const hostDe=s=>!s||s==='taverna'?null:s.split(':')[1];
+ const hostDe=s=>!s||s==='taverna'||s.startsWith('arena')?null:s.split(':')[1];
  const souHost=()=>!!uid&&hostDe(MP.sala)===uid;
  const outros=()=>window.ONLINE_NUVEM?ONLINE_NUVEM.outros:new Map();
  function aviso(texto,cor){ft(p.x,p.y-30,texto,cor||'#ffd84a');if(window.onlineSystem)onlineSystem(texto)}
 
  /* ---------- sala atual ---------- */
  function salaAtual(){
+  if(window.inArena)return (window.ARENA&&ARENA.sala())||'arena'; // cada partida tem sala própria (arena:{lider}:{t})
   if(window.inTaverna)return 'taverna';
   if(window.inDungeon)return MP.dgSala||('dg:'+uid+':solo');
   return 'ilha:'+(MP.visitando||uid);
@@ -131,7 +132,7 @@
   aplicarIlha(v);
  }
  // só o dono mexe no carpinteiro, no ferreiro, no portão e no portal da ilha
- MP.soDono=()=>{if(!MP.visitando||window.inDungeon||window.inTaverna)return false;aviso('Só o dono da ilha pode fazer isso.','#c0ae91');return true};
+ MP.soDono=()=>{if(!MP.visitando||window.inDungeon||window.inTaverna||window.inArena)return false;aviso('Só o dono da ilha pode fazer isso.','#c0ae91');return true};
 
  /* ---- participação e divisão da recompensa ----
     Na ilha, XP e ouro de cada monstro são divididos em partes iguais entre quem participou da batalha:
@@ -140,7 +141,7 @@
  const apoios=new Map();
  MP.participou=e=>{if(souHost())(e.mpQuem||(e.mpQuem=new Set())).add(uid)};
  MP.apoiou=()=>{
-  if(!uid||!MP.sala||MP.sala==='taverna')return;
+  if(!uid||!MP.sala||MP.sala==='taverna'||MP.sala.startsWith('arena'))return;
   if(souHost())apoios.set(uid,Date.now());
   else if(hostDe(MP.sala))ref('salas/'+MP.sala+'/apoio').push({de:uid,t:firebase.database.ServerValue.TIMESTAMP});
  };
@@ -162,7 +163,7 @@
  };
  MP.telegrafo=tg=>{
   if(!souHost()||!MP.remotos.size)return;
-  ref('salas/'+MP.sala+'/tg').push({type:tg.type,x:Math.round(tg.x),y:Math.round(tg.y),r:tg.r||0,angle:tg.angle||0,w:tg.w||0,length:tg.length||0,atraso:tg.t||0,maxT:tg.maxT,pct:tg.pct||.5,label:tg.label||'',src:tg.source&&tg.source.mpId||null,t:firebase.database.ServerValue.TIMESTAMP});
+  ref('salas/'+MP.sala+'/tg').push({type:tg.type,x:Math.round(tg.x),y:Math.round(tg.y),r:tg.r||0,r0:tg.r0||0,angle:tg.angle||0,w:tg.w||0,length:tg.length||0,atraso:tg.t||0,maxT:tg.maxT,pct:tg.pct||.5,label:tg.label||'',src:tg.src&&tg.src.mpId||null,t:firebase.database.ServerValue.TIMESTAMP});
  };
  function receberGolpe(g){
   const e=en.find(q=>q.mpId===g.id);if(!e||e.hp<=0||!(g.d>0))return;
@@ -227,9 +228,9 @@
   hurtP(d.d,!!d.m,fx,null,atacante);
  }
  function receberTelegrafo(tg){
-  if(!window.inDungeon||!window.bossTelegraphs)return;
+  if(!window.TELEGRAFOS)return;
   if(Date.now()+(N.offset||0)-(tg.t||0)>3000)return;
-  bossTelegraphs.push({type:tg.type,x:tg.x,y:tg.y,r:tg.r,angle:tg.angle,w:tg.w,length:tg.length,t:tg.atraso||0,maxT:tg.maxT||1.5,pct:tg.pct,label:tg.label,source:tg.src&&en.find(q=>q.mpId===tg.src)||null});
+  TELEGRAFOS.push({type:tg.type,x:tg.x,y:tg.y,r:tg.r,r0:tg.r0||0,angle:tg.angle,w:tg.w,length:tg.length,t:tg.atraso||0,maxT:tg.maxT||1.5,pct:tg.pct,label:tg.label,src:tg.src&&en.find(q=>q.mpId===tg.src)||null});
  }
  function receberPortas(s){
   if(!window.inDungeon||!window.DUNGEON_DOORS||typeof s!=='string')return;
@@ -307,6 +308,7 @@
   if(pessoasNaIlha(dono)>=MAX_ILHA){aviso('A ilha de '+MP.nomeDe(dono)+' está cheia ('+MAX_ILHA+'/'+MAX_ILHA+').','#f87171');return}
   if(window.inDungeon)exitDungeon(true);
   if(window.sairTaverna&&window.inTaverna)sairTaverna(true);
+  if(window.inArena&&window.ARENA)ARENA.sair(true);
   if(!MP.visitando){enLocal=en.splice(0,en.length)}else{en.length=0}
   MP.visitando=dono;
   const o=outros().get(dono);
@@ -362,6 +364,7 @@
   if(window.inDungeon){if(MP.dgSala===g.dg.sala)return;exitDungeon(true)}
   if(MP.visitando)voltarParaCasa();
   if(window.inTaverna&&window.sairTaverna)sairTaverna(true);
+  if(window.inArena&&window.ARENA)ARENA.sair(true);
   window.currentDungeonId=g.dg.id;MP.dgSala=g.dg.sala;MP.tamanhoGrupo=g.dg.n||2;
   entrandoComoMembro=true;window.mpEspelho=true;
   enterGoblinDungeon();
@@ -420,7 +423,7 @@
  MP.sairDoGrupo=sairDoGrupo;
 
  /* ---------- convites ---------- */
- async function convidar(para,tipo){
+ async function convidar(para,tipo,extra={}){
   if(para===uid)return;
   if(tipo==='ilha'&&pessoasNaIlha(uid)>=MAX_ILHA){aviso('Sua ilha já tem '+MAX_ILHA+' pessoas.','#f87171');return}
   if(tipo==='amizade'&&MP.amigos[para]){aviso(MP.nomeDe(para)+' já é seu amigo.','#c0ae91');return}
@@ -429,7 +432,7 @@
    await criarGrupo();
    if(Object.keys((MP.grupo&&MP.grupo.membros)||{}).length>=MAX_GRUPO){aviso('O grupo já tem '+MAX_GRUPO+' jogadores.','#f87171');return}
   }
-  await ref('convites/'+para+'/'+uid).set({tipo,nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP});
+  await ref('convites/'+para+'/'+uid).set({...extra,tipo,nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP});
   aviso('Convite enviado para '+MP.nomeDe(para)+'.','#9fe3ff');
  }
  MP.convidar=convidar;
@@ -443,10 +446,10 @@
  /* ---------- correio: solicitações pendentes (convites/{eu}/{quem enviou}) ----------
     Chegam como aviso no topo e ficam no Correio até aceitar, recusar ou vencer:
     amizade vale 7 dias; convite de ilha ou de grupo, 10 minutos. */
- const VALIDADE={amizade:7*86400000,ilha:600000,grupo:600000};
+ const VALIDADE={amizade:7*86400000,ilha:600000,grupo:600000,arena:600000};
  const pendentes=new Map(); // de -> {tipo,nome,t,toast}
- const TEXTO={ilha:n=>n+' convidou você para a ilha dele(a).',amizade:n=>n+' quer ser seu amigo.',grupo:n=>n+' convidou você para o grupo.'};
- const ROTULO_ACEITAR={ilha:'Ir',amizade:'Aceitar',grupo:'Entrar'};
+ const TEXTO={ilha:n=>n+' convidou você para a ilha dele(a).',amizade:n=>n+' quer ser seu amigo.',grupo:n=>n+' convidou você para o grupo.',arena:(n,c)=>n+' chamou você para a arena ('+((c&&c.modo)||1)+'x'+((c&&c.modo)||1)+').'};
+ const ROTULO_ACEITAR={ilha:'Ir',amizade:'Aceitar',grupo:'Entrar',arena:'Lutar'};
  const vencido=c=>Date.now()+(N.offset||0)-(c.t||0)>(VALIDADE[c.tipo]||CONVITE_S*1000);
  function recusarConvite(de){const c=pendentes.get(de);if(c&&c.toast)c.toast.remove();pendentes.delete(de);ref('convites/'+uid+'/'+de).remove().catch(()=>{});atualizarCorreio()}
  // as regras do banco só deixam entrar no grupo / virar amigo enquanto o convite existe: age primeiro, apaga depois
@@ -464,16 +467,16 @@
    if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
    try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
    catch(e){aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
-  }
+  }else if(c.tipo==='arena'&&window.ARENA)await ARENA.aceitarConvite(de,c);
  }
  function receberConvite(s){
   const de=s.key,c=s.val();if(!c||!c.tipo||!TEXTO[c.tipo])return;
   if(vencido(c)){s.ref.remove().catch(()=>{});return}
   MP.nomes.set(de,c.nome);
   const antigo=pendentes.get(de);if(antigo&&antigo.toast)antigo.toast.remove();
-  const item={tipo:c.tipo,nome:c.nome,t:c.t};pendentes.set(de,item);
+  const item={tipo:c.tipo,nome:c.nome,t:c.t,modo:c.modo,equipe:c.equipe};pendentes.set(de,item);
   // o aviso some sozinho; a solicitação continua no Correio
-  item.toast=toast(TEXTO[c.tipo](c.nome),[[ROTULO_ACEITAR[c.tipo],()=>aceitarConvite(de),'mpBtn ok'],['Recusar',()=>recusarConvite(de)],['Depois',null]],CONVITE_S*1000);
+  item.toast=toast(TEXTO[c.tipo](c.nome,c),[[ROTULO_ACEITAR[c.tipo],()=>aceitarConvite(de),'mpBtn ok'],['Recusar',()=>recusarConvite(de)],['Depois',null]],CONVITE_S*1000);
   atualizarCorreio();if(window.playGameSound)playGameSound('quest',.5);
  }
  const correio=el('section','mpPainel mpCorreio');correio.hidden=true;correio.setAttribute('aria-label','Correio');
@@ -494,7 +497,7 @@
   const lista=[...pendentes].sort((a,b)=>(b[1].t||0)-(a[1].t||0));
   if(!lista.length)ul.append(el('li','mpNota','Nenhuma solicitação. Pedidos de amizade e convites de ilha e de grupo aparecem aqui.'));
   for(const [de,c] of lista){
-   const li=el('li');li.append(el('span','mpNome',TEXTO[c.tipo](c.nome)));
+   const li=el('li');li.append(el('span','mpNome',TEXTO[c.tipo](c.nome,c)));
    const resta=(VALIDADE[c.tipo]-(Date.now()+(N.offset||0)-(c.t||0)))/60000;
    li.append(el('small','',c.tipo==='amizade'?'Pedido de amizade':'Vence em '+Math.max(1,Math.ceil(resta))+' min'));
    const acoes=el('div','mpAcoes');acoes.append(btn(ROTULO_ACEITAR[c.tipo],()=>aceitarConvite(de),'mpBtn ok'),btn('Recusar',()=>recusarConvite(de),'mpBtn perigo'));
