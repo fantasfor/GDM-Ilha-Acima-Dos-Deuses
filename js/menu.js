@@ -32,7 +32,7 @@ const B=(t,fn,c)=>{const b=$$('button','mb '+(c||''),t);b.onclick=fn;return b};
 function show(){const box=$$('div','mbox');menu.replaceChildren(box);
  const h=(t)=>{box.append($$('h1','',t||'Ilha do<br>Acampamento'),$$('div','sub','AVENTURA RPG'))},back=()=>box.append(B('← Voltar',()=>{view='main';show()}));
  if(view=='main'){h(started?'Pausa':null);
-  box.append(started?B('▶ Voltar ao jogo',toggle):B(hasSave()?'▶ Continuar':'▶ Novo jogo',()=>{started=true;toggle();if(window.saveGame)saveGame()}));
+  box.append(started?B('▶ Voltar ao jogo',toggle,'primario'):B(hasSave()?'▶ Continuar':'▶ Novo jogo',()=>{started=true;toggle();if(window.saveGame)saveGame()},'primario'));
   box.append(B('⚙ Opções',()=>{view='opt';show()}),B('⌨ Controles',()=>{view='help';show()}));
   box.append($$('p','msave','O jogo salva automaticamente.'));
   // excluir fica escondido no fim, pequeno e vermelho: com conta exclui a conta; sem conta apaga o progresso

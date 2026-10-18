@@ -1,5 +1,9 @@
 /* ---------- update ---------- */
 function entityRadius(e){return e&&e.img?Math.min(9,Math.max(4,(e.img.width||12)*.3))*(e.bossType=='grandboss'?1.8:e.boss||e.bossType=='boss'?1.5:e.elite?1.25:1)*(e.size||1):0}
+// monstro resetando (fora de combate) recupera esta fração da vida e da mana máximas por segundo
+const RESET_REGEN=.05;
+// chefe da DG só luta com quem está dentro da sala dele (dungeonRoomBounds, com 10 px de folga); fora da DG, sempre
+function naSalaDoChefe(e,a){const r=window.inDungeon&&e.boss&&e.dungeonRoomBounds;return !r||(a.x>=r.x-10&&a.x<=r.x+r.w+10&&a.y>=r.y-10&&a.y<=r.y+r.h+10)}
 // alcance extra contra alvos grandes (bosses): só o que excede o corpo de um monstro comum
 function targetReach(t){return Math.max(0,entityRadius(t)-9)}
 function move(e,d,sp,dt){const dx=d.x-e.x,dy=d.y-e.y,L=Math.hypot(dx,dy);if(L<.001)return true;const st=Math.min(sp*dt,L),nx=e.x+dx/L*st,ny=e.y+dy/L*st,oldX=e.x,oldY=e.y,room=e.dungeonRoomBounds;
@@ -81,10 +85,10 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
   // monstro de outro jogador (multijogador): só acompanha a posição enviada pelo dono da sala
   if(e.mpProxy){if(window.MP)MP.moverProxy(e,dt);continue}
   tickAttributeBuffs(e,dt);e.cd-=dt;e.hit-=dt;e.alert=Math.max(0,(e.alert||0)-dt);e.giveUp=Math.max(0,(e.giveUp||0)-dt);tickStatus(e,dt);if(e.hp<=0)continue;e.skillCd=Math.max(0,e.skillCd-dt);const ea=monsterAttributes(e);e.hp=Math.min(monsterMaxHp(e),e.hp+(ea.F*CALC.monRegenPerF+monsterAttribute(e,'regenHp'))*dt);e.mp=Math.min(monsterMaxMp(e),e.mp+(ea.I*CALC.monRegenPerI+monsterAttribute(e,'regenMp'))*dt);
-  // reset: CALC.monsterReset s fora de combate (sem perseguir nem apanhar) e o monstro volta para casa recuperando toda a vida
+  // reset: CALC.monsterReset s fora de combate (sem perseguir nem apanhar) e o monstro volta para casa recuperando 5% da vida máxima por segundo
   if(e.chasing)e.foraCombate=0;else e.foraCombate=(e.foraCombate||0)+dt;
   if(e.foraCombate>=(CALC.monsterReset||10)){const mx=monsterMaxHp(e),mm=monsterMaxMp(e);
-   if(e.hp<mx||e.mp<mm){if(!e.resetando){e.resetando=true;e.st=null;ring(e.x,e.y,14,'#7fe08a',.45);if(e.mec&&window.CHEFES)CHEFES.reset(e)}e.hp=Math.min(mx,e.hp+mx*.6*dt);e.mp=Math.min(mm,e.mp+mm*.6*dt)}
+   if(e.hp<mx||e.mp<mm){if(!e.resetando){e.resetando=true;e.st=null;ring(e.x,e.y,14,'#7fe08a',.45);if(e.mec&&window.CHEFES)CHEFES.reset(e)}e.hp=Math.min(mx,e.hp+mx*RESET_REGEN*dt);e.mp=Math.min(mm,e.mp+mm*RESET_REGEN*dt)}
    else e.resetando=false}
   if(e.st&&statusSpeed(e)==0){e.dest=null;e.aw=0;e.skillWindup=false;continue}
   const a=monsterTarget(e),d=dist(e,a),home={x:e.hx,y:e.hy};
@@ -110,7 +114,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
     else if(d<(e.weaponBasic?e.weaponBasic.rng:30)&&linhaLivre(e,a)){const extra=k=>attributeValue(e.attributeStats,k)+statusAttributeBonus(e,k),damage=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:attackDamage+extra('magicDmg')+statusAttributeBonus(e,'I')*monMagPerI()}:{physical:attackDamage+extra('physicalDmg')+statusAttributeBonus(e,'F')*monPhysPerF(),magic:monsterAttribute(e,'magicDmg')};hitTarget(a,damage,!!e.attackMagic,resolveFx(e.weaponFx,attackDamage,monsterCtx(e,weaponDelta)),null,e)}
    }
   }
-  else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;if(a===p)marcarCombate();e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
+  else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&naSalaDoChefe(e,a)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;if(a===p)marcarCombate();e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
    const hasSkill=e.skill&&e.skill.cost<999999,attackRange=hasSkill?e.skill.range*(e.skill.radius?areaMultiplier(e):1):(e.weaponBasic?e.weaponBasic.rng:20),ve=linhaLivre(e,a);
    if(window.CHEFES&&CHEFES.tick(e,dt,a,d)){e.noAtk=0} // mecânica de chefe (js/chefes.js)
    else if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);
@@ -119,7 +123,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*CALC.monAtkSpdPerA)/Math.max(.05,1-e.stats.A*CALC.monAtkSpdPerA);e.cd=Math.max(CALC.monMinInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))));if(window.playEntitySound)playEntitySound('monsters',e.ty,'attack')}}
   }
   else{
-   if(e.chasing){e.dest=null;e.path=[];e.pathKey='';e.chasing=false;e.fa=undefined;e.alert=0;e.noAtk=0}
+   if(e.chasing){e.dest=null;e.path=[];e.pathKey='';e.chasing=false;e.fa=undefined;e.alert=0;e.noAtk=0;if(e.boss&&window.inDungeon)e.foraCombate=CALC.monsterReset||10/* chefe da DG: saiu da sala, reseta na hora */}
    if(e.boss){if(dist(e,home)>3)navigate(e,home.x,home.y);else{e.dest=null;e.path=[];e.pathKey=''}}
    else if(Math.hypot(e.x-home.x,e.y-home.y)>e.roamRadius)navigate(e,home.x,home.y);
    else{

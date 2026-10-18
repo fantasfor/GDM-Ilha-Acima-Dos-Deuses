@@ -96,6 +96,10 @@
   classe:id=>CL[id]?.sprite||classDefault(id),
   classeBase:base=>(HS[base]||HS.war).d,
   heroi:(cls,sex,eq)=>{const E={nude:1,sex:sex||'m',swing:0,shWeapon:!!(eq&&eq.sh&&gearType[eq.sh]=='sw')};for(const [s,id] of Object.entries(eq||{}))if(ITEMS[id])E[s]=ITEMS[id];return human(CL[cls]?.base||cls||'war','d',0,E)},
+  aparenciaCorpo:(sex,dir,ph)=>APARENCIA.corpoPadrao(sex,dir,ph),
+  aparenciaCabelo:(estilo,dir)=>APARENCIA.cabeloPadrao(estilo,dir),
+  aparenciaHeroi:(sex,look,dir)=>human('war',dir||'d',0,{nude:1,sex,look:APARENCIA.normalizar(look,sex)}),
+  aparenciaPadrao:()=>({estilos:APARENCIA.ESTILOS,cores:APARENCIA.CORES,ref:APARENCIA.REF}),
   habilidade:id=>skillIcon(id),
   passiva:id=>{const d=[...GAMEDATA.passives,...GAMEDATA.skills].find(p=>p.id==id);return d?passIcon(d):null},
   efeito:id=>FX_INFO[id]?fxIcon(id):null,
@@ -118,6 +122,10 @@
    }
    for(const [id,m] of Object.entries(MONSTER_TYPES))add('monstros',id,m.sprite||monsterDefault(id),m.name,{monsterId:id});
    for(const [id,c] of Object.entries(CL))add('classes',id,c.sprite||classDefault(id),c.n);
+   // aparência do personagem (js/aparencia.js): corpo por sexo, direção e passo; cabelo por estilo e direção
+   if(window.APARENCIA){const A=APARENCIA,DN={d:'frente',ds:'diagonal frente',s:'lado',us:'diagonal costas',u:'costas'};
+    for(const sex of ['m','f'])for(const dir of A.DIRS)for(const ph of A.FASES)add('aparencia','corpo-'+sex+'-'+dir+'-'+ph,A.corpoArte(sex,dir,ph),'Corpo '+(sex=='f'?'feminino':'masculino')+' · '+DN[dir]+' · '+(ph?'passo '+ph:'parado'));
+    for(const e of A.estilos())for(const dir of A.DIRS)add('aparencia','cabelo-'+e.id+'-'+dir,A.cabeloArte(e.id,dir),'Cabelo '+e.nome+' · '+DN[dir])}
    for(const [group,sets] of [['sprites',SP],['personagens',HS]])for(const [id,set] of Object.entries(sets))for(const dir of DIRS){add(group,id+'-'+dir,set[dir],id+' '+dir);(set.w&&set.w[dir]||[]).forEach((c,i)=>add(group,id+'-'+dir+'-'+(i+1),c,id+' '+dir+' '+(i+1)))}
    for(const d of GAMEDATA.skills){const ic=d.sprite?pixelArt(d.sprite):skillIcon(d.id);add('habilidades',d.id,typeof ic=='string'?await image(ic):ic,d.name)}
    for(const [id,f] of Object.entries(FX_INFO))add('efeitos',id,await image(fxIcon(id)),f.n);

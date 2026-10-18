@@ -7,6 +7,7 @@
         "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 18" },
         "cls": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{1,24}$/)" },
         "sex": { ".validate": "newData.val() === 'm' || newData.val() === 'f'" },
+        "ap": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-f]{6}\\.[0-9a-f]{6}\\.[0-9a-f]{6}\\.[A-Za-z0-9_-]{1,24}$/)" },
         "lvl": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 999" },
         "x": { ".validate": "newData.isNumber() && newData.val() >= -2000 && newData.val() <= 6000" },
         "y": { ".validate": "newData.isNumber() && newData.val() >= -2000 && newData.val() <= 6000" },

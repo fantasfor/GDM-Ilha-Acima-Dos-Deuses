@@ -151,7 +151,7 @@
  /* ---- sincronização com o servidor ---- */
  function snapshot(){
   const eq={};for(const slot of ['he','ch','le','bo','ca','ne','sw','sh'])if(EQ[slot])eq[slot]=EQ[slot].id;
-  return {id:myId,name:cfg.name,cls:p.cls,sex:p.sex,lvl:p.lvl,x:Math.round(p.x),y:Math.round(p.y),fx:Math.sign(p.fx||0),fy:Math.sign(p.fy||0),
+  return {id:myId,name:cfg.name,cls:p.cls,sex:p.sex,ap:window.APARENCIA?APARENCIA.codificar(APARENCIA.normalizar(p.look,p.sex)):'',lvl:p.lvl,x:Math.round(p.x),y:Math.round(p.y),fx:Math.sign(p.fx||0),fy:Math.sign(p.fy||0),
    hp:Math.max(0,Math.min(1,p.hp/Math.max(1,mhp()))),mp:Math.max(0,Math.min(1,p.mp/Math.max(1,mmp()))),dead:p.dead>0,dg:!!window.inDungeon,eq,sala:minhaSala(),
    ping:window.REDE?REDE.ping:0,sons:filaSons.splice(0)};
  }
@@ -189,7 +189,7 @@
    if(!o){o={x:j.x,y:j.y,fx:0,fy:1};others.set(j.id,o)}
    // trocou de lugar (ilha, DG, taverna): as coordenadas são de outro mapa
    if(o.sala!==j.sala){o.x=j.x;o.y=j.y}
-   Object.assign(o,{id:j.id,name:j.name,cls:j.cls,sex:j.sex,lvl:j.lvl,tx:j.x,ty:j.y,hp:j.hp,mp:j.mp,dead:j.dead,dg:j.dg,sala:j.sala,eq:j.eq||{},ping:j.ping||0,left:false,at:now});
+   Object.assign(o,{id:j.id,name:j.name,cls:j.cls,sex:j.sex,ap:j.ap||'',lvl:j.lvl,tx:j.x,ty:j.y,hp:j.hp,mp:j.mp,dead:j.dead,dg:j.dg,sala:j.sala,eq:j.eq||{},ping:j.ping||0,left:false,at:now});
    if(Math.hypot(o.x-j.x,o.y-j.y)>140){o.x=j.x;o.y=j.y}
    if(j.fx||j.fy){o.fx=j.fx;o.fy=j.fy}
    const agora=visivel(o);
@@ -210,7 +210,8 @@
  function lookOf(o,dir,ph,swing=0){
   const own=CL[o.cls]&&CL[o.cls].sprite;if(own)return own;
   const base=CL[o.cls]?.base||(HS[o.cls]?o.cls:'war');
-  let key=base+o.sex+dir+ph+'w'+swing;const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw')};
+  let key=base+o.sex+dir+ph+'w'+swing+(o.ap||'');const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw')};
+  if(window.APARENCIA)E.look=APARENCIA.decodificar(o.ap,E.sex); // aparência escolhida na criação (pele, cabelo, olhos, estilo)
   for(const [slot,id] of Object.entries(o.eq))if(ITEMS[id]&&gearType[id]){E[slot]=ITEMS[id];key+=slot+id}
   key+=chaveEquipAnim(Object.values(E),dir,swing?'attack':ph?'walk':'idle');
   if(!looks.has(key)){if(looks.size>400)looks.clear();looks.set(key,human(base,dir,ph,E))}

@@ -36,7 +36,7 @@ const fxTip=k=>()=>{const s=(p.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return
 function passives(){const c=CL[p.cls];if(!c)return[];const out=[],cd=(GAMEDATA.classes||[]).find(x=>x.id==p.cls)||{},pool=[...(GAMEDATA.passives||[]),...(GAMEDATA.skills||[]).filter(s=>s.category=='passive')];
  if(c.passive&&c.passive.n)out.push({n:c.passive.n,desc:c.passive.d||'',raw:cd.passive||{},lv:1});
  (c.plist||[]).forEach(r=>{const g=pool.find(x=>x.name==r.d.n);out.push({n:r.d.n,desc:(g&&g.desc)||'',raw:r.d,lv:r.lv})});return out}
-const pasTip=r=>()=>'<b style="color:#e8cb78">'+r.n+'</b> <span class=tm>passiva — sempre ativa</span>'+(r.desc?'<div>'+r.desc+'</div>':'')+ORD.filter(k=>+r.raw[k]).map(k=>'<div style="color:#9fdc9f">'+(r.raw[k]>0?'+':'')+r.raw[k]+PLB[k]+'</div>').join('')+(p.lvl<r.lv?'<div class=tm style="color:#f99">Desbloqueia no nível '+r.lv+'</div>':'');
+const pasTip=r=>()=>'<b style="color:#d9d0c7">'+r.n+'</b> <span class=tm>passiva — sempre ativa</span>'+(r.desc?'<div>'+r.desc+'</div>':'')+ORD.filter(k=>+r.raw[k]).map(k=>'<div style="color:#9fdc9f">'+(r.raw[k]>0?'+':'')+r.raw[k]+PLB[k]+'</div>').join('')+(p.lvl<r.lv?'<div class=tm style="color:#f99">Desbloqueia no nível '+r.lv+'</div>':'');
 function upd(){const st=p.st||{},ks=Object.keys(st).filter(k=>FX_INFO[k]&&st[k].t>0),bad=ks.filter(k=>!FX_INFO[k].good).sort(),good=ks.filter(k=>FX_INFO[k].good).sort(),ps=passives(),s2=bad.join()+'|'+good.join()+'|'+p.cls+'|'+p.lvl+'|'+ps.map(r=>r.n).join();
  if(s2!==sig){sig=s2;bar.replaceChildren();
   bad.forEach(k=>mk(fxIcon(k),'bad',fxTip(k)).dataset.k=k);good.forEach(k=>mk(fxIcon(k),'good',fxTip(k)).dataset.k=k);

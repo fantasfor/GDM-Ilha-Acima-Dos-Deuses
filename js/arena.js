@@ -87,12 +87,12 @@
   ctx.textAlign='center';const cx=cv.width/2;
   if(partida){
    const vivos=e=>Object.entries(partida.membros).filter(([id,m])=>m.equipe===e&&!partida.mortos.has(id)).length,resta=Math.max(0,DURACAO-(agora()-partida.inicio)),mm=Math.floor(resta/60000),ss=Math.floor(resta/1000)%60;
-   texto('Equipe A  '+vivos('a')+' vivo(s)   ×   '+vivos('b')+' vivo(s)  Equipe B',cx,23,'#ffd84a','bold 14px monospace');
-   texto(mm+':'+String(ss).padStart(2,'0'),cx,42,resta<30000?'#f87171':'#f2e8d2','bold 16px monospace');
+   texto('Equipe A  '+vivos('a')+' vivo(s)   ×   '+vivos('b')+' vivo(s)  Equipe B',cx,23,'#d9d0c7','bold 14px monospace');
+   texto(mm+':'+String(ss).padStart(2,'0'),cx,42,resta<30000?'#f87171':'#d9d0c7','bold 16px monospace');
    texto('Você está na Equipe '+partida.equipe.toUpperCase(),cx,60,partida.equipe==='a'?'#ff9a8a':'#9ac0ff','12px monospace');
-  }else texto('ARENA · TREINO · '+p.pvp.abates+' abates · '+p.pvp.mortes+' mortes',cx,23,'#ffd84a','bold 13px monospace');
+  }else texto('ARENA · TREINO · '+p.pvp.abates+' abates · '+p.pvp.mortes+' mortes',cx,23,'#d9d0c7','bold 13px monospace');
   ctx.font='12px monospace';feed.forEach((m,i)=>{ctx.globalAlpha=Math.min(1,m.t);texto(m.txt,cx,(partida?82:42)+i*16,m.cor,'12px monospace')});ctx.globalAlpha=1;
-  if(resultado){ctx.fillStyle='#000a';ctx.fillRect(0,cv.height/2-50,cv.width,90);texto(resultado.titulo,cx,cv.height/2,resultado.cor,'bold 40px monospace');texto(resultado.sub,cx,cv.height/2+28,'#f2e8d2','14px monospace')}
+  if(resultado){ctx.fillStyle='#000a';ctx.fillRect(0,cv.height/2-50,cv.width,90);texto(resultado.titulo,cx,cv.height/2,resultado.cor,'bold 40px monospace');texto(resultado.sub,cx,cv.height/2+28,'#d9d0c7','14px monospace')}
   else if(p.dead>0){ctx.fillStyle='#0007';ctx.fillRect(0,0,cv.width,cv.height);texto(partida?'Você caiu. Assistindo até o fim da partida…':'Você caiu... volta em '+Math.ceil(p.dead)+'s',cx,cv.height/2,'#fff','24px monospace')}
  }
 
@@ -105,6 +105,7 @@
  const agora=()=>Date.now()+((window.NUVEM&&NUVEM.offset)||0);
  const refL=l=>NUVEM.db.ref('arenas/'+l);
  const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+ const erro=(e,oque)=>{if(window.MP&&MP.falhou)MP.falhou(e,oque);else ft(p.x,p.y-24,'Não foi possível '+oque+'.','#f87171')};
 
  /* ---- lobby: arenas/{lider} = {modo, estado:'espera'|'luta'|'fim', membros:{uid:{nome,equipe,nivel}}, sala, inicio, mortos, fim} ---- */
  function seguirLobby(lider){
@@ -119,7 +120,7 @@
  }
  async function criarLobby(modo){
   if(!nuvemOk())return;
-  await refL(eu()).set({modo,estado:'espera',membros:{[eu()]:{nome:NUVEM.nome(),equipe:'a',nivel:p.lvl}},t:TS()});
+  try{await refL(eu()).set({modo,estado:'espera',membros:{[eu()]:{nome:NUVEM.nome(),equipe:'a',nivel:p.lvl}},t:TS()})}catch(e){erro(e,'criar a partida');return}
   enviados.clear();seguirLobby(eu());
  }
  async function sairDoLobby(){
@@ -131,12 +132,12 @@
   if(!nuvemOk())return;
   if(partida){ft(p.x,p.y-24,'Termine a partida atual primeiro.','#f87171');return}
   if(lobbyLider&&lobbyLider!==de)await sairDoLobby();
-  const s=await refL(de).once('value'),v=s.val();
+  let v;try{v=(await refL(de).once('value')).val()}catch(e){erro(e,'abrir a partida');return}
   if(!v||v.estado!=='espera'){ft(p.x,p.y-24,'Essa partida já começou ou acabou.','#f87171');return}
   const cap=v.modo||1,equipe=['a','b'].includes(c.equipe)?c.equipe:'b',naEquipe=Object.values(v.membros||{}).filter(m=>m.equipe===equipe).length;
   const outra=equipe==='a'?'b':'a',vagaOutra=Object.values(v.membros||{}).filter(m=>m.equipe===outra).length<cap;
   const final=naEquipe<cap?equipe:vagaOutra?outra:null;if(!final){ft(p.x,p.y-24,'A partida está cheia.','#f87171');return}
-  await refL(de).child('membros/'+eu()).set({nome:NUVEM.nome(),equipe:final,nivel:p.lvl});
+  try{await refL(de).child('membros/'+eu()).set({nome:NUVEM.nome(),equipe:final,nivel:p.lvl})}catch(e){erro(e,'a entrada na partida');return}
   seguirLobby(de);abrirPainel();
  }
  async function trocarModo(modo){
@@ -144,12 +145,12 @@
   // quem não couber no modo novo sai do lobby
   const membros={...lobby.membros},cont={a:0,b:0};
   for(const [id,m] of Object.entries(membros)){if(cont[m.equipe]>=modo&&id!==eu())delete membros[id];else cont[m.equipe]++}
-  await refL(eu()).update({modo,membros});
+  await refL(eu()).update({modo,membros}).catch(e=>erro(e,'a troca de modo'));
  }
  async function comecar(){
   if(lobbyLider!==eu()||!lobby)return;
   const sala='arena:'+eu()+':'+Date.now().toString(36);
-  await refL(eu()).update({estado:'luta',sala,inicio:TS(),mortos:null,fim:null});
+  await refL(eu()).update({estado:'luta',sala,inicio:TS(),mortos:null,fim:null}).catch(e=>erro(e,'o começo da partida'));
  }
 
  /* ---- partida ---- */
@@ -255,7 +256,7 @@
    const cand=window.MP&&MP.candidatosDg?MP.candidatosDg().filter(c=>!lobby.membros[c.id]).slice(0,10):[];
    if(!cand.length)conv.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
    for(const c of cand){const li=E('div','dgm-cand');li.append(E('span','',c.nome+' · Nv '+c.nivel+(c.amigo?' · amigo':'')),E('small','',c.onde));
-    const b=B(enviados.has(c.id)?'Enviado':'Convidar',async()=>{b.disabled=true;await MP.convidar(c.id,'arena',{modo,equipe:convidarEquipe});enviados.set(c.id,{nome:c.nome,equipe:convidarEquipe});convidarEquipe=null;painel()},'dgm-convite');b.disabled=enviados.has(c.id);li.append(b);conv.append(li)}
+    const b=B(enviados.has(c.id)?'Enviado':'Convidar',async()=>{b.disabled=true;if(await MP.convidar(c.id,'arena',{modo,equipe:convidarEquipe}))enviados.set(c.id,{nome:c.nome,equipe:convidarEquipe});convidarEquipe=null;painel()},'dgm-convite');b.disabled=enviados.has(c.id);li.append(b);conv.append(li)}
    box.append(conv);
   }
   const cheio=slotsA.length>=modo&&slotsB.length>=modo;
@@ -310,7 +311,9 @@
    if(!partida||!partida.membros[r.uid]||partida.membros[r.uid].equipe===partida.equipe)continue;
    vistos.add(r.uid);let e=en.find(o=>o.pvp&&o.uid===r.uid);
    if(!e){e={pvp:true,uid:r.uid,max:100,hit:0,stats:{F:0,A:0,I:0}};en.push(e)}
-   e.x=r.x;e.y=r.y;e.hp=r.dead||partida.mortos.has(r.uid)?0:Math.max(1,(+r.hp||0)*100);e.name=r.name;e.lvl=r.lvl;e.hit-=dt}
+   // mesma posição interpolada em que o jogador é desenhado (o alvo e os golpes batem com o boneco na tela)
+   const q=window.ONLINE_NUVEM&&ONLINE_NUVEM.posicao?ONLINE_NUVEM.posicao(r.uid):null;
+   e.x=q?q.x:r.x;e.y=q?q.y:r.y;e.hp=r.dead||partida.mortos.has(r.uid)?0:Math.max(1,(+r.hp||0)*100);e.name=r.name;e.lvl=r.lvl;e.hit-=dt}
   for(let i=en.length;i--;){const e=en[i];if(e.pvp&&e.uid&&!vistos.has(e.uid)){if(p.tgt===e)p.tgt=null;en.splice(i,1)}}
   if(partida){if((tJuiz-=dt)<=0){tJuiz=.5;juiz()}
    // sem notícia do líder muito depois do fim do tempo, a partida acaba empatada para não prender ninguém

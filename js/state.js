@@ -29,7 +29,7 @@ function withWeaponDamageRoll(action){
  }finally{weaponDamageRolls=null}
 }
 const heroC={};
-function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};let key=p.cls+p.sex+dir+ph+'w'+E.swing;for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
+function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);let key=p.cls+p.sex+dir+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
  key+=chaveEquipAnim(Object.values(E),dir,E.swing?'attack':an&&an.mv?'walk':'idle');if(Object.keys(heroC).length>600)for(const k in heroC)delete heroC[k];return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
 /* Os 6 primeiros espaços são a barra de atalhos (teclas 1–6) e só aceitam consumíveis.
    A bolsa não tem limite: sem espaço livre, ela cresce. */

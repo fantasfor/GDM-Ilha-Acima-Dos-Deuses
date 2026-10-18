@@ -24,13 +24,17 @@
  function telegrafar(tg){TG.push(tg);if(window.MP&&MP.telegrafo)MP.telegrafo(tg)}
  const tremer=v=>{if(window.inDungeon&&window.tremerDG)tremerDG(v)};
  function gritar(e,txt,cor='#ff7a5a'){ft(e.x,e.y-38,txt,cor);if(window.playEntitySound)playEntitySound('monsters',e.ty,'skill')}
+ /* o chefe só anda (e avança na investida) por chão livre e dentro da sala dele (dungeonRoomBounds) */
+ function livre(e,x,y){const r=window.inDungeon&&e.dungeonRoomBounds;return walk(x,y)&&!bloqueiaTiro(x,y)&&(!r||(x>=r.x+6&&x<=r.x+r.w-6&&y>=r.y+6&&y<=r.y+r.h-6))}
+ // até onde dá para avançar em linha reta antes de bater em parede ou na borda da sala
+ function alcanceLivre(e,ang,L){const c=Math.cos(ang),s=Math.sin(ang);let d=0;while(d+4<=L&&livre(e,e.x+c*(d+4),e.y+s*(d+4)))d+=4;return d}
  /* ---- executar uma mecânica ---- */
  function executar(e,m,a){
   const area=areaMultiplier(e),aviso=Math.max(.3,val(m,'aviso')||1.5),pct=Math.max(0,val(m,'danoPct')||0)/100,nome=m.nome||'',base={src:e,t:0,maxT:aviso,pct,label:nome};
   e.dest=null;e.path=[];e.fx=a.x-e.x;e.fy=a.y-e.y;
   if(m.tipo==='impacto')telegrafar({...base,type:'circle',x:a.x,y:a.y,r:val(m,'raio')*area});
   else if(m.tipo==='chuva'){const n=Math.max(1,Math.round(val(m,'qtd'))),sp=val(m,'espalhar');for(let k=0;k<n;k++)telegrafar({...base,type:'circle',x:a.x+(k?(Math.random()-.5)*2*sp:0),y:a.y+(k?(Math.random()-.5)*2*sp:0),r:val(m,'raio')*area,t:-k*.22,label:k?'':nome})}
-  else if(m.tipo==='investida'){const ang=Math.atan2(a.y-e.y,a.x-e.x),L=val(m,'comprimento')*area;telegrafar({...base,type:'rect',x:e.x,y:e.y,angle:ang,w:val(m,'largura')*area,length:L,investida:true})}
+  else if(m.tipo==='investida'){const ang=Math.atan2(a.y-e.y,a.x-e.x),L=alcanceLivre(e,ang,val(m,'comprimento')*area);if(L<24)return;telegrafar({...base,type:'rect',x:e.x,y:e.y,angle:ang,w:val(m,'largura')*area,length:L,investida:true})}
   else if(m.tipo==='explosao')telegrafar({...base,type:'circle',x:e.x,y:e.y,r:val(m,'raio')*area,segue:true});
   else if(m.tipo==='anel')telegrafar({...base,type:'ring',x:e.x,y:e.y,r:val(m,'raio')*area,r0:val(m,'raioSeguro')*area,segue:true});
   else if(m.tipo==='raios'){const n=Math.max(2,Math.round(val(m,'qtd'))),giro=(e.mec.giro=(e.mec.giro||0)+Math.PI/n);for(let k=0;k<n;k++)telegrafar({...base,type:'rect',x:e.x,y:e.y,angle:giro+k*2*Math.PI/n,w:val(m,'largura')*area,length:val(m,'comprimento')*area,label:k?'':nome,segue:true})}
@@ -78,14 +82,14 @@
   tremer(tg.type==='circle'&&tg.r<40?.15:.3);if(window.playGameSound)playGameSound('magicHit');
   if(p.dead<=0&&dentro(tg,p))hurtP(tg.dmg!=null?tg.dmg:Math.max(1,Math.round(mhp()*(tg.pct||.3))),false,null,null,tg.src||null);
   // investida: o chefe atravessa a faixa
-  if(tg.investida&&tg.src&&tg.src.hp>0&&!tg.src.mpProxy){const e=tg.src;e.dash={x0:e.x,y0:e.y,x1:tg.x+Math.cos(tg.angle)*tg.length,y1:tg.y+Math.sin(tg.angle)*tg.length,t:0}}
+  if(tg.investida&&tg.src&&tg.src.hp>0&&!tg.src.mpProxy){const e=tg.src,L=alcanceLivre(e,tg.angle,Math.hypot(tg.x+Math.cos(tg.angle)*tg.length-e.x,tg.y+Math.sin(tg.angle)*tg.length-e.y));e.dash={x0:e.x,y0:e.y,x1:e.x+Math.cos(tg.angle)*L,y1:e.y+Math.sin(tg.angle)*L,t:0}}
  }
  function atualizar(dt){
   for(let i=TG.length;i--;){const tg=TG[i];tg.t+=dt;
    if(tg.segue&&tg.src&&tg.src.hp>0&&tg.t<tg.maxT*.6){tg.x=tg.src.x;tg.y=tg.src.y}
    if(tg.t>=tg.maxT){TG.splice(i,1);impacto(tg)}}
   for(const e of en){
-   if(e.dash){const D=e.dash;D.t+=dt/.28;const f=Math.min(1,D.t);let x=D.x0+(D.x1-D.x0)*f,y=D.y0+(D.y1-D.y0)*f;if(walk(x,y)){e.x=x;e.y=y}if(f>=1)e.dash=null;if(Math.random()<.6)fxs.push({x:e.x,y:e.y,r:10,c:'#c8a070',t:0,d:.4,style:'ring'})}
+   if(e.dash){const D=e.dash;D.t+=dt/.28;let f=Math.min(1,D.t);let x=D.x0+(D.x1-D.x0)*f,y=D.y0+(D.y1-D.y0)*f;if(livre(e,x,y)&&linhaLivre(e,{x,y})){e.x=x;e.y=y}else f=1;if(f>=1)e.dash=null;if(Math.random()<.6)fxs.push({x:e.x,y:e.y,r:10,c:'#c8a070',t:0,d:.4,style:'ring'})}
    if(e.mec){if(e.mec.furiaT>0)e.mec.furiaT-=dt;if(e.mec.conjurando>0)e.mec.conjurando-=dt}
   }
  }

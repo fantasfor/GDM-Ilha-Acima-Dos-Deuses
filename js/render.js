@@ -363,7 +363,7 @@ function anim(u,wu,slime){
  }
  if(u.hit>0)a.dx=Math.sin(t*90)*1.2;
  return a}
-const wh=img=>img.height/(img.q||1);
+const wh=img=>img?img.height/(img.q||1):16; // sem imagem (jogador inimigo na arena, boneco): altura de um personagem
 /* Clique em monstro: caixa do tamanho do sprite desenhado (com folga de 5 px para os lados e em cima),
    mínimo de 22×26 px para os pequenos; com vários sobrepostos, vence o mais perto do cursor. */
 function pick(w){

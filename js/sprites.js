@@ -140,6 +140,10 @@ function human(cl,dir,ph=0,E={}){
   if(N){B=S;L=S;A='#f0e6d2';H=fem?'#8a3b1c':'#4a2c14'}
  gearPre(E,dir,box,R);
  if(dir!='u')drawEquipmentLayers(equipment,['ca'],visualDir,cx);
+ // jogador: corpo e cabelo vêm de js/aparencia.js (pixel art editável na Engine, com as cores escolhidas)
+ let cabeloAp=null; // camada do cabelo: vai por cima da roupa e embaixo do capacete
+ if(N&&window.APARENCIA){const sx=fem?'f':'m',look=E.look||APARENCIA.padrao(sx);cabeloAp=APARENCIA.cabelo(look,visualDir);cx.drawImage(APARENCIA.corpo(sx,visualDir,ph,look),0,0)}
+ else{
  if(robe){box(sd?9:8,14,sd?10:12,15,B);R(sd?9:8,27,sd?10:12,2,A);
   if(ph==1)box(sd?7:9,29,4,3,'#3a2a1a');if(ph==2)box(sd?15:15,29,4,3,'#3a2a1a')}
  else if(sd){const a=ph==1?-3:ph==2?3:0;box(10+a,22,4,7,L);box(14-a,22,4,7,shade(L,.85));box(9+a,28,6,3,BT);box(14-a,28,6,3,N?shade(S,.85):'#2a1c10')}
@@ -163,8 +167,10 @@ function human(cl,dir,ph=0,E={}){
   else{R(11,8,2,2,'#111111');R(15,8,2,2,'#111111');R(13,11,2,1,shade(S,.65))}
  }
  if(N&&fem){if(bk)box(9,12,10,9,H);else if(sd)box(15,8,5,12,H);else{box(7,6,3,13,H);box(18,6,3,13,H)}}
+ }
  gearBody(E,dir,robe?0:ph,box,R);
  drawEquipmentLayers(equipment,['le','bo','ch','ne','r1','r2'],visualDir,cx);
+ if(cabeloAp)cx.drawImage(cabeloAp,0,0);
  if(cl=='war'){
   if(!equipment.he&&!N){box(8,2,12,5,'#aab4c4');if(!sd&&!bk)R(13,6,2,5,'#8896a8');R(13,0,2,2,A)}
   if(!N){if(dir=='d')box(1,14,6,10,'#7a4a25'),R(2,18,4,2,'#d9a62e');

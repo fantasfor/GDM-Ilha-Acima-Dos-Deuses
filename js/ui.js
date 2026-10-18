@@ -187,7 +187,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0}},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0}},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -209,6 +209,7 @@ function loadGame(){
   p.basicMode=BASIC_MODES.includes(d.p.basicMode)?d.p.basicMode:'sw';p.basicNext=d.p.basicNext=='sh'?'sh':'sw';
   lootMode=Object.prototype.hasOwnProperty.call(LOOT_MODES,d.lootMode)?d.lootMode:'manual';
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
+  if(d.p.look&&typeof d.p.look=='object')p.look=window.APARENCIA?APARENCIA.normalizar(d.p.look,p.sex):d.p.look;
   // kits iniciais já recebidos; saves de antes dos kits contam as classes que o jogador já tinha
   p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=true}else for(const c in p.classProgress)p.kits[c]=true;
   const pv=d.p.pvp||{};p.pvp={};for(const k of ['abates','mortes','vitorias','derrotas','empates'])p.pvp[k]=Math.max(0,Math.floor(+pv[k]||0)); // placar da arena

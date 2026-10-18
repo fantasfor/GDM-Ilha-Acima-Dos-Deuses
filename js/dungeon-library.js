@@ -141,7 +141,7 @@
     if(!cand.length)conv.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
     for(const cnd of cand){const li=E('div','dgm-cand');li.append(E('span','',cnd.nome+' · Nv '+cnd.nivel+(cnd.amigo?' · amigo':'')),E('small','',cnd.onde));
      const b=E('button','dgm-convite',enviados.has(cnd.id)?'Enviado':'Convidar');b.type='button';b.disabled=enviados.has(cnd.id);
-     b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';await MP.convidar(cnd.id,'grupo');enviados.set(cnd.id,cnd.nome);abertoConvite=false;render();conv.hidden=true};
+     b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';if(await MP.convidar(cnd.id,'grupo'))enviados.set(cnd.id,cnd.nome);abertoConvite=false;render();conv.hidden=true};
      li.append(b);conv.append(li)}
    }
    render();comecar.focus();

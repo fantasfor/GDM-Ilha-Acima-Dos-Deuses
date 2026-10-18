@@ -25,6 +25,13 @@
  const souHost=()=>!!uid&&hostDe(MP.sala)===uid;
  const outros=()=>window.ONLINE_NUVEM?ONLINE_NUVEM.outros:new Map();
  function aviso(texto,cor){ft(p.x,p.y-30,texto,cor||'#ffd84a');if(window.onlineSystem)onlineSystem(texto)}
+ /* gravação recusada pelo Firebase: avisa em vez de falhar calado (o caso comum é o console com as regras antigas) */
+ function falhou(e,oque){
+  const negado=/permission[_ ]denied/i.test(String((e&&(e.code||e.message))||e));
+  aviso(negado?'O servidor recusou '+oque+'. Publique as regras novas do Firebase (ferramentas/regras-firebase.json).':'Não foi possível '+oque+' agora. Tente de novo.','#f87171');
+  if(window.console)console.warn('[online] '+oque,e);
+ }
+ MP.falhou=falhou;
 
  /* ---------- sala atual ---------- */
  function salaAtual(){
@@ -357,7 +364,7 @@
  // o líder avisa o grupo da DG em que está (os membros recebem o convite para entrar)
  function publicarDgDoGrupo(){
   if(!window.inDungeon||!MP.dgSala||hostDe(MP.dgSala)!==uid)return;
-  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'}).catch(()=>{});
+  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'}).catch(e=>falhou(e,'chamar o grupo para a masmorra'));
  }
  function entrarDgDoGrupo(){
   const g=MP.grupo;if(!g||!g.dg)return;
@@ -428,12 +435,13 @@
   if(tipo==='ilha'&&pessoasNaIlha(uid)>=MAX_ILHA){aviso('Sua ilha já tem '+MAX_ILHA+' pessoas.','#f87171');return}
   if(tipo==='amizade'&&MP.amigos[para]){aviso(MP.nomeDe(para)+' já é seu amigo.','#c0ae91');return}
   if(tipo==='grupo'){
-   if(MP.grupoLider&&MP.grupoLider!==uid){aviso('Só o líder do grupo convida.','#f87171');return}
-   await criarGrupo();
-   if(Object.keys((MP.grupo&&MP.grupo.membros)||{}).length>=MAX_GRUPO){aviso('O grupo já tem '+MAX_GRUPO+' jogadores.','#f87171');return}
+   if(MP.grupoLider&&MP.grupoLider!==uid){aviso('Só o líder do grupo convida.','#f87171');return false}
+   try{await criarGrupo()}catch(e){falhou(e,'criar o grupo');return false}
+   if(Object.keys((MP.grupo&&MP.grupo.membros)||{}).length>=MAX_GRUPO){aviso('O grupo já tem '+MAX_GRUPO+' jogadores.','#f87171');return false}
   }
-  await ref('convites/'+para+'/'+uid).set({...extra,tipo,nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP});
-  aviso('Convite enviado para '+MP.nomeDe(para)+'.','#9fe3ff');
+  try{await ref('convites/'+para+'/'+uid).set({...extra,tipo,nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP})}
+  catch(e){falhou(e,'enviar o convite');return false}
+  aviso('Convite enviado para '+MP.nomeDe(para)+'.','#9fe3ff');return true;
  }
  MP.convidar=convidar;
  const toasts=el('div','mpToasts');document.body.append(toasts);
@@ -466,7 +474,7 @@
   }else if(c.tipo==='grupo'){
    if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
    try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
-   catch(e){aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
+   catch(e){if(/permission[_ ]denied/i.test(String(e&&(e.code||e.message))))falhou(e,'a entrada no grupo');else aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
   }else if(c.tipo==='arena'&&window.ARENA)await ARENA.aceitarConvite(de,c);
  }
  function receberConvite(s){

@@ -145,6 +145,8 @@
    if(agora-this.ultimoPos>=1500||this.enviado.sala!==sala){dados.x=me.x;dados.y=me.y}
    const mudou={};for(const k in dados)if(JSON.stringify(dados[k])!==JSON.stringify(this.enviado[k]))mudou[k]=dados[k];
    if(Object.keys(mudou).length&&(agora-this.ultimoLento>=1000||'sala' in mudou)){this.ultimoLento=agora;if('x' in mudou)this.ultimoPos=agora;Object.assign(this.enviado,mudou);eu.update(mudou)}
+   // aparência numa gravação separada: com as regras antigas do Firebase ela é recusada sem derrubar o resto
+   if(me.ap&&me.ap!==this.enviado.ap){this.enviado.ap=me.ap;eu.update({ap:me.ap}).catch(()=>{})}
    if(agora-this.ultimoT>20000){this.ultimoT=agora;eu.update({t:firebase.database.ServerValue.TIMESTAMP})}
    for(const m of chat){
     // canal global ('g') para todos; local ('l') só para quem está na mesma sala
@@ -248,11 +250,11 @@
  }
 
  /* ---- criação de personagem: nome, classe e sexo, com prévia do sprite ---- */
- function spritePersonagem(cls,sex){
+ function spritePersonagem(cls,sex,look,dir='d'){
   const c=CL[cls];if(c&&c.sprite)return c.sprite;
-  const E={nude:1,sex,swing:0,shWeapon:false};
+  const E={nude:1,sex,swing:0,shWeapon:false,look};
   for(const s of Object.keys(EQ))if(EQ[s]&&ITEMS[EQ[s].id])E[s]=ITEMS[EQ[s].id];
-  return human((c&&c.base)||cls,'d',0,E);
+  return human((c&&c.base)||cls,dir,0,E);
  }
  // desenha o sprite ampliado só em múltiplos inteiros: os pixels continuam quadrados e a proporção não muda
  function desenharPrevia(cv,img){
@@ -287,7 +289,24 @@
    const bc={};for(const id of ids){const b=botao(CL[id].n,()=>{cls=id;atualizar()},'criarOpcao');bc[id]=b;gc.append(b)}
    // sexo
    const ls2=el('div','criarCampo');ls2.append(el('span','','Sexo'));const gs=el('div','criarOpcoes');ls2.append(gs);f.append(ls2);
-   const bs={m:botao('Masculino',()=>{sex='m';atualizar()},'criarOpcao'),f:botao('Feminino',()=>{sex='f';atualizar()},'criarOpcao')};gs.append(bs.m,bs.f);
+   // trocar o sexo leva junto a aparência padrão dele, se o jogador ainda não mexeu nela
+   const trocarSexo=s=>{if(AP&&APARENCIA.codificar(look)===APARENCIA.codificar(APARENCIA.padrao(sex)))look=APARENCIA.padrao(s);sex=s;atualizar()};
+   const bs={m:botao('Masculino',()=>trocarSexo('m'),'criarOpcao'),f:botao('Feminino',()=>trocarSexo('f'),'criarOpcao')};gs.append(bs.m,bs.f);
+   // aparência (js/aparencia.js): estilo de cabelo e cores de pele, cabelo e olhos (sugestões ou qualquer cor)
+   const AP=window.APARENCIA;let look=AP?AP.normalizar(p.look,sex):null,dirPrevia='d';const be={},linhasCor={};
+   if(AP){
+    const le=el('div','criarCampo');le.append(el('span','','Cabelo'));const ge=el('div','criarOpcoes');le.append(ge);f.append(le);
+    for(const e of AP.estilos()){const b=botao(e.nome,()=>{look.estilo=e.id;atualizar()},'criarOpcao');be[e.id]=b;ge.append(b)}
+    const sug=AP.cores();
+    for(const [k,rot] of [['pele','Cor da pele'],['cabelo','Cor do cabelo'],['olhos','Cor dos olhos']]){
+     const lc2=el('div','criarCampo');lc2.append(el('span','',rot));const linha=el('div','criarCores');
+     const amostras=sug[k].map(cor=>{const b=botao('',()=>{look[k]=cor;atualizar()},'criarCor');b.style.background=cor;b.title=cor;b.setAttribute('aria-label',rot+' '+cor);b.dataset.cor=cor;linha.append(b);return b});
+     const livre=el('input','criarCorLivre');livre.type='color';livre.title='Qualquer cor';livre.setAttribute('aria-label',rot+': qualquer cor');livre.oninput=()=>{look[k]=livre.value;atualizar()};
+     linha.append(livre);lc2.append(linha);f.append(lc2);linhasCor[k]={amostras,livre};
+    }
+    prev.title='Clique para girar o personagem';prev.style.cursor='pointer';
+    prev.onclick=()=>{dirPrevia={d:'s',s:'u',u:'d'}[dirPrevia];atualizar()};
+   }
    const ok=botao('Começar a aventura',null);ok.type='submit';f.append(ok);
    box.append(f);
    const msg=el('p','contaMsg');box.append(msg);
@@ -295,7 +314,11 @@
     for(const id in bc){bc[id].classList.toggle('on',id===cls);bc[id].setAttribute('aria-pressed',String(id===cls))}
     for(const id in bs){bs[id].classList.toggle('on',id===sex);bs[id].setAttribute('aria-pressed',String(id===sex))}
     nomeCls.textContent=CL[cls].n+' · '+(sex==='f'?'Feminino':'Masculino');
-    try{desenharPrevia(prev,spritePersonagem(cls,sex))}catch(e){}
+    if(AP){look=AP.normalizar(look,sex);
+     for(const id in be){be[id].classList.toggle('on',id===look.estilo);be[id].setAttribute('aria-pressed',String(id===look.estilo))}
+     for(const k in linhasCor){const {amostras,livre}=linhasCor[k];let marcada=false;for(const b of amostras){const on=b.dataset.cor===look[k];marcada=marcada||on;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))}
+      livre.value=look[k];livre.classList.toggle('on',!marcada)}}
+    try{desenharPrevia(prev,spritePersonagem(cls,sex,look,dirPrevia))}catch(e){}
    }
    // nome: confere se está livre enquanto digita
    async function conferir(){
@@ -310,7 +333,7 @@
     e.preventDefault();ok.disabled=true;msg.classList.remove('erro');msg.textContent='Criando personagem…';
     if(!await reservarNome(nome.value)){ok.disabled=false;msg.classList.add('erro');msg.textContent=nomeValido(nome.value)?'Esse nome já está em uso. Escolha outro.':'Use de 3 a 18 letras ou números.';conferir();return}
     // aplica classe e sexo ao herói e salva
-    p.sex=sex;p.classProgress=p.classProgress||{};if(!p.classProgress[cls])p.classProgress[cls]={rank:1,xp:0};
+    p.sex=sex;if(look)p.look={...look};p.classProgress=p.classProgress||{};if(!p.classProgress[cls])p.classProgress[cls]={rank:1,xp:0};
     // personagem novo: troca o kit dado na abertura do jogo pelo kit da classe escolhida
     if(window.personagemNovo&&window.darKit&&CL[cls].kit&&CL[cls].kit.length){I.fill(null);for(const k in EQ)EQ[k]=null;p.kits={}}
     p.cls=cls;if(window.darKit)darKit(cls,{salvar:false});p.hp=mhp();p.mp=mmp();if(window.applySkills)applySkills();if(window.setPortrait)setPortrait();if(window.renderSkillMenu)renderSkillMenu();

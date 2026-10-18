@@ -889,6 +889,9 @@
   });
   window.dungeonChests = dungeonChests;
 
+  /* sala do chefe: a área (ou sala) em que ele foi colocado; sem área (chão pintado), um quadrado de 120 px em volta dele.
+     O chefe não sai dela e só luta com quem está dentro (update.js naSalaDoChefe) */
+  const salaDoChefe = (room, mon) => room ? { x: room.x, y: room.y, w: room.w, h: room.h } : { x: mon.x - 120, y: mon.y - 120, w: 240, h: 240 };
   // Spawna monstros fixos configurados no editor (100% fixos sem respawn)
   const mobsList = cfg.mobs || [];
   dungeonBosses = [];
@@ -918,9 +921,9 @@
     en.push(mon);
    }
    const mobRoom = CAVE_ROOMS.find(room => String(room.id) === String(m.roomId)) || dungeonRoomAt(m.x, m.y);
-   const bossRoom = isBoss ? (mobRoom || (DUNGEON_CHAO ? null : nearestDungeonRoom(m.x, m.y))) : mobRoom; // chão pintado: chefe fora de área anda livre
+   const bossRoom = isBoss ? (mobRoom || (DUNGEON_CHAO ? null : nearestDungeonRoom(m.x, m.y))) : mobRoom;
    mon.dungeonRoomId = bossRoom && bossRoom.id;
-   if(isBoss && bossRoom) mon.dungeonRoomBounds = { x: bossRoom.x, y: bossRoom.y, w: bossRoom.w, h: bossRoom.h };
+   if(isBoss) mon.dungeonRoomBounds = salaDoChefe(bossRoom, mon);
    if(m.animation && typeof m.animation === 'object'){
     mon.dungeonAnimation = {};
     for(const action of ['idle', 'walk', 'attack']){
@@ -954,7 +957,7 @@
    const fallbackBoss = spawnDungeonBoss();
    const fallbackRoom = dungeonRoomAt(fallbackBoss.x, fallbackBoss.y) || nearestDungeonRoom(fallbackBoss.x, fallbackBoss.y);
    fallbackBoss.dungeonRoomId = fallbackRoom && fallbackRoom.id;
-   if(fallbackRoom) fallbackBoss.dungeonRoomBounds = { x: fallbackRoom.x, y: fallbackRoom.y, w: fallbackRoom.w, h: fallbackRoom.h };
+   fallbackBoss.dungeonRoomBounds = salaDoChefe(fallbackRoom, fallbackBoss);
    dungeonBosses.push(fallbackBoss);
   }
   // Pontos de spawn da DG (ondas); precisam existir antes de decidir quais portas começam trancadas
