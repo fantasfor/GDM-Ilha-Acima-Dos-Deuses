@@ -187,13 +187,33 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .dgm-enter:hover:not(:disabled){background:linear-gradient(#e0701c,#9b3608)!important;outline-color:#ffe08a}
 .dgm-enter:disabled{filter:grayscale(.8);opacity:.6;cursor:not-allowed}
 .dgm-empty{color:var(--muted)}
-/* jogar em grupo (menu do portal) */
-.dgm-grupo{display:flex;flex-direction:column;gap:6px;padding:8px;background:#15110d;border:1px solid var(--line2)}
-.dgm-grupoTopo{display:flex;justify-content:space-between;align-items:baseline}.dgm-grupoTopo .dgm-label{margin:0}
-.dgm-membros{display:flex;flex-wrap:wrap;gap:4px}
-.dgm-membro{padding:2px 7px;font:bold 10px monospace;color:#9fe3ff;border:1px solid #2f5a6a;background:#0d1418}.dgm-membro.lider{color:#ffe699;border-color:#8a6a3a;background:#1a140c}
-.dgm-dif{margin:0!important;font:11px monospace!important;color:#f0a52e}.dgm-dif b{display:inline!important;margin:0!important;font:bold 11px monospace!important;color:#ffcf8a!important}
-.dgm-convidar{display:flex;flex-direction:column;gap:3px;max-height:150px;overflow:auto}
+#sbtns>#socialBtn::after{display:none}
+/* cartinha do Correio: canto superior direito da barra do personagem, em cima do ouro */
+.mpCarta{position:absolute;right:10px;top:-15px;z-index:3;display:grid;place-items:center;width:34px;height:26px;padding:0;background:linear-gradient(#2a2117,#15110c);border:2px solid #0a0806;outline:1px solid var(--line);outline-offset:-3px;cursor:pointer}
+.mpCarta img{width:28px;height:20px;image-rendering:pixelated}
+.mpCarta:hover{outline-color:#f0cf7a;background:linear-gradient(#49391f,#241b12)}
+.mpCarta b{position:absolute;right:-6px;top:-7px;min-width:14px;height:14px;padding:0 3px;box-sizing:border-box;border-radius:7px;background:#d93a2b;color:#fff;font:bold 9px/14px monospace;text-align:center;box-shadow:0 0 0 2px #0a0806}
+.mpCarta b:empty{display:none}
+.mpCarta.temCorreio{outline-color:#f0cf7a;animation:mpCorreio 1.6s ease-in-out infinite}
+/* espaço de habilidade da arma vazio (Z/X) */
+.sk.skVazio{background:#0e0c0a!important;box-shadow:inset 0 0 8px #000!important;cursor:default}
+.sk.skVazio em,.sk.skVazio u,.sk.skVazio span{display:none}
+/* montar grupo da DG: 5 espaços com a fotinha de cada jogador */
+.dgp-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:4px 0}
+.dgp-slot{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;min-height:132px;padding:8px 4px;box-sizing:border-box;background:radial-gradient(#2a2117,#0d0b09 75%);border:2px solid #0a0806;outline:1px solid var(--line2);outline-offset:-4px;font:11px monospace;color:var(--text)}
+.dgp-slot img{width:auto;height:78px;max-width:100%;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 2px #000a)}
+.dgp-slot b{display:block;margin:0!important;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:bold 11px monospace!important;color:#9fe3ff!important}
+.dgp-slot.lider{outline-color:#d4ad60}.dgp-slot.lider b{color:#ffe699!important}
+.dgp-slot small{color:var(--muted);font-size:10px}
+.dgp-semFoto{font:bold 34px monospace;color:#5a4a32;margin-bottom:auto;margin-top:18px}
+.dgp-slot.vazio{justify-content:center;cursor:pointer;background:#0b0a08;outline-style:dashed;outline-color:#5a4a32}
+.dgp-slot.vazio:hover:not(:disabled){outline-color:#f0cf7a;background:#16120d}.dgp-slot.vazio:disabled{cursor:default;opacity:.55}
+.dgp-mais{font:bold 34px/1 monospace;color:#b8964f}.dgp-slot.vazio:hover:not(:disabled) .dgp-mais{color:#ffe699}
+.dgp-slot.esperando .dgp-mais{color:#9fe3ff}
+.dgp-dif{margin:0!important;font:11px monospace!important;color:#f0a52e}.dgp-dif b{display:inline!important;margin:0!important;font:bold 11px monospace!important;color:#ffcf8a!important}
+.dgp-convidar{display:flex;flex-direction:column;gap:3px;max-height:170px;overflow:auto;padding:8px;background:#15110d;border:1px solid var(--line2)}.dgp-convidar[hidden]{display:none}
+.dgp-voltar{padding:8px 14px;font:bold 12px monospace;color:#d9c79e;background:linear-gradient(#2a2117,#15110c);border:2px solid #0a0806;outline:1px solid var(--line2);outline-offset:-4px;cursor:pointer}
+@media(max-width:620px){.dgp-slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .dgm-cand{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dotted #3a2e1c;font:11px monospace;color:var(--text)}
 .dgm-cand span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dgm-cand small{color:var(--muted);white-space:nowrap}
 .dgm-convite{flex:none;padding:3px 9px;font:bold 10px monospace;color:#9be7a8;background:linear-gradient(#21301f,#121a10);border:1px solid #4f8a5a;cursor:pointer}

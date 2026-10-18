@@ -88,9 +88,10 @@ const statusSpeed=t=>{const s=t.st;if(!s)return 1;let v=1;for(const k in s){cons
 function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;e.foraCombate=0;e.resetando=false;const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  const physicalDefense=(e.armor??e.stats?.A*5??0)+statusAttributeBonus(e,'arm')+statusAttributeBonus(e,'A')*5;
  const magicalDefense=(e.magicArmor??(e.stats?e.stats.F+e.stats.A+e.stats.I:0))+statusAttributeBonus(e,'magicArm')+['F','A','I'].reduce((sum,k)=>sum+statusAttributeBonus(e,k),0);
- let magicShare=mg?1:0;
- if(d&&typeof d=='object'){const phys=+d.physical||0,mag=+d.magic||0,pp=phys>0?Math.max(1,phys-physicalDefense):0,mp=mag>0?Math.max(1,mag-magicalDefense):0;magicShare=mp/((pp+mp)||1);d=pp+mp;if(!dot)d*=vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)}
- else{const defense=tr?0:mg?magicalDefense:physicalDefense;d=Math.max(1,(d-defense)*(dot?1:vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)))}
+ // a defesa do monstro não reduz o golpe abaixo de CALC.armorFloor (30%) do dano
+ let magicShare=mg?1:0;const piso=CALC.armorFloor??.3,depois=(v,def)=>Math.max(1,v*piso,v-def);
+ if(d&&typeof d=='object'){const phys=+d.physical||0,mag=+d.magic||0,pp=phys>0?depois(phys,physicalDefense):0,mp=mag>0?depois(mag,magicalDefense):0;magicShare=mp/((pp+mp)||1);d=pp+mp;if(!dot)d*=vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)}
+ else{const defense=tr?0:mg?magicalDefense:physicalDefense;d=Math.max(1,depois(d,defense)*(dot?1:vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)))}
  const roll=dot?{damage:d,lifeSteal:0,magicLifeSteal:0}:combatRoll(p,d);d=roll.damage;drainLife(p,Math.min(e.hp,d),stealRatio(roll,magicShare));
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
@@ -263,8 +264,8 @@ const skill=classSlotOptions(index).find(s=>s.id==id);if(!skill)return;
 p.skillSlots=p.skillSlots||{};const row=p.skillSlots[p.cls]||(p.skillSlots[p.cls]=[]);
 const own0=skillEntries(p.cls),prev=row[index]||(own0[index]||{}).id;for(let i=0;i<6;i++){if(i===index)continue;const cur=row[i]||(own0[i]||{}).id;if(cur===skill.id){const back=classSlotOptions(i).find(s=>s.id===prev&&s.id!==skill.id);row[i]=back?prev:(own0[i]||{}).id}}row[index]=skill.id;applySkills();if(window.renderSkillMenu)renderSkillMenu();if(window.saveGame)saveGame()}
 function applySkills(){
-const weaponSkills=[['sw',EQ.sw],['sh',EQ.sh]].filter(([,item])=>item&&gearType[item.id]=='sw').map(([slot,item])=>({skill:(WSK[item.id]||[])[0],slot})).filter(x=>x.skill);
-const weaponSlots=weaponSkills.length?weaponSkills.map(x=>({...x.skill,w:1,weaponSlot:x.slot})):((WSK.none||[]).slice(0,2).map(skill=>({...skill,w:1})));
+// espaços Z e X: as habilidades das armas equipadas (até duas, primeiro as da Mão 1); sem habilidade, o espaço fica vazio
+const weaponSlots=[['sw',EQ.sw],['sh',EQ.sh]].filter(([,item])=>item&&gearType[item.id]=='sw').flatMap(([slot,item])=>(WSK[item.id]||[]).filter(Boolean).map(skill=>({...skill,w:1,weaponSlot:slot}))).slice(0,2);
 const own=skillEntries(p.cls),slots=p.skillSlots&&p.skillSlots[p.cls]||[];
 const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
  const current=own[i],selected=slots[i],options=classSlotOptions(i);
@@ -272,7 +273,7 @@ const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
 }).concat([0,1].map(i=>weaponSlots[i]||null));
 L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
  const weapon=EQ[o.weaponSlot||'sw'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!skillWeaponAllowed(o,weapon&&ITEMS[weapon.id]);
- if(o.el){o.el.style.backgroundImage='url('+o.ic+')';o.el.classList.toggle('wk',!!o.w);o.el.style.visibility=o.n?'':'hidden';o.el.querySelector('em').textContent=o.mana}});
+ if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=o.n||i>5?'':'hidden';o.el.querySelector('em').textContent=o.n?o.mana:''}});
 if(window.renderSkillMenu)renderSkillMenu()}
 applySkills();const carpenter={cls:'war',nm:'Carpinteiro',x:CX+290,y:CY-180,carpenter:true},blacksmith={cls:'war',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
 function placeCarpenter(){carpenter.x=carpenterHelped?CX+34:CX+290;carpenter.y=carpenterHelped?CY-48:CY-180}

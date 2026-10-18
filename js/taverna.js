@@ -217,11 +217,32 @@
   const box=$('dialogue');box.classList.remove('dgModal');
   box.innerHTML='<b>Taverneira Bete</b><p>Bem-vindo ao Javali Dourado! Aqui todo mundo se encontra.</p>'+
    '<p>Suas habilidades funcionam com os outros: curas curam quem está perto ou o amigo que você mirar, bênçãos e proteções fortalecem o grupo e ataques só empurram. Ninguém se machuca aqui dentro.</p>'+
-   '<button type="button" data-tav-bebida>Pedir uma bebida (5 de ouro): vida e mana cheias</button><button type="button" data-close-dialog>Até mais</button>';
+   '<button type="button" data-tav-bebida>Pedir uma bebida (5 de ouro): vida e mana cheias</button><button type="button" data-tav-vender>Vender itens</button><button type="button" data-close-dialog>Até mais</button>';
   box.classList.add('open');
+  box.querySelector('[data-tav-vender]').onclick=abrirVenda;
   const b=box.querySelector('[data-tav-bebida]');
   if(b)b.onclick=()=>{if(p.gold<5){ft(p.x,p.y-24,'Ouro insuficiente','#f87171');return}p.gold-=5;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,24,'#ffd84a',.5);ft(p.x,p.y-24,'Saúde!','#ffd84a');box.classList.remove('open');if(window.playGameSound)playGameSound('coin')};
  }
+ /* venda de itens da bolsa (preço em state.js precoVenda; configurável na Engine). Itens de missão não entram. */
+ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ function abrirVenda(){
+  const box=$('dialogue');box.classList.remove('dgModal');
+  const itens=I.map((s,i)=>[s,i]).filter(([s])=>s&&ITEMS[s.id]&&!(window.ehMissao&&ehMissao(s.id)));
+  const linha=([s,i])=>{const nome=ITEMS[s.id].n.split(' (')[0],pr=precoVenda(s.id,s.q),cor=gearType[s.id]&&s.q!=null?QCOL[qi(s.q)]:'#e7dcc4';
+   return '<div class="tavItem"><img src="'+ITEMS[s.id].ic+'" alt=""><span style="color:'+cor+'">'+esc(nome)+(s.n>1?' ×'+s.n:'')+(gearType[s.id]&&s.q!=null?' <small>'+s.q+'%</small>':'')+'</span>'
+    +'<b>'+pr+' ouro</b><button type="button" data-vender="'+i+'" data-qtd="1">Vender</button>'+(s.n>1?'<button type="button" data-vender="'+i+'" data-qtd="'+s.n+'">Todos ('+pr*s.n+')</button>':'')+'</div>'};
+  box.innerHTML='<b>Taverneira Bete · Vender</b><p>Você tem <b class="tavOuro">'+(p.gold|0).toLocaleString('pt-BR')+'</b> de ouro. Itens equipados e de missão não aparecem aqui.</p>'+
+   '<div class="tavVenda">'+(itens.length?itens.map(linha).join(''):'<p class="dgm-muted">Nada para vender na bolsa.</p>')+'</div>'+
+   '<button type="button" data-tav-voltar>Voltar</button><button type="button" data-close-dialog>Até mais</button>';
+  box.classList.add('open');
+  box.querySelector('[data-tav-voltar]').onclick=falarTaverneira;
+  box.querySelectorAll('[data-vender]').forEach(b=>b.onclick=()=>{
+   const i=+b.dataset.vender,s=I[i];if(!s)return;const qtd=Math.min(s.n,+b.dataset.qtd||1),total=precoVenda(s.id,s.q)*qtd;
+   s.n-=qtd;if(s.n<=0)I[i]=null;p.gold+=total;dirtyInv=true;
+   ft(p.x,p.y-24,'+'+total+' ouro','#ffd84a');if(window.playGameSound)playGameSound('coin');saveGame();abrirVenda();
+  });
+ }
+ window.abrirVendaTaverna=abrirVenda;
  // a porta também funciona ao chegar nela andando
  const upd0=upd;upd=function(dt){upd0(dt);
   if(!window.inTaverna)return;

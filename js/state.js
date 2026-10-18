@@ -1,8 +1,9 @@
 /* ---------- estado ---------- */
 const I=Array(40).fill(null);let dirtyInv=true;
-// itens de missão: aparecem em dourado com "!" quando caem
-const ITENS_MISSAO=new Set(['saw','wood','magicWood']);
-window.ehMissao=(id,quest)=>!!(quest||ITENS_MISSAO.has(id)||(ITEMS[id]&&ITEMS[id].quest));
+// itens de missão: aparecem em dourado com "!" só enquanto a missão que pede o item está em andamento
+// (Serrote e Madeira: até a paliçada ficar pronta; Madeira Mágica: até o portal do acampamento)
+const ITENS_MISSAO={saw:()=>!wallBuilt,wood:()=>!wallBuilt,magicWood:()=>!campPortalBuilt};
+window.ehMissao=(id,quest)=>!!(ITENS_MISSAO[id]?ITENS_MISSAO[id]():quest||(ITEMS[id]&&ITEMS[id].quest));
 /* bestiário (enciclopédia): quantos de cada monstro o jogador matou e quais itens cada um já deixou cair */
 const BESTIARIO={k:{},d:{}};window.BESTIARIO=BESTIARIO;
 window.anotarMorte=ty=>{if(ty)BESTIARIO.k[ty]=(BESTIARIO.k[ty]||0)+1};
@@ -36,6 +37,17 @@ function livre(id){const de=ehConsumivel(id)?0:QUICK_N;let i=I.indexOf(null,de);
 // tira dos atalhos o que não é consumível (saves antigos)
 function arrumarAtalhos(){for(let i=0;i<QUICK_N&&i<I.length;i++){const s=I[i];if(s&&!ehConsumivel(s.id)){I[i]=null;I[livre(s.id)]=s;dirtyInv=true}}}
 window.ehConsumivel=ehConsumivel;
+/* preço de venda (taverna): o configurado no item ou um calculado pelos atributos.
+   Equipamento vale de 50% a 150% conforme a qualidade (0 a 100). Itens de missão não são vendidos. */
+function precoBase(id){
+ const it=ITEMS[id];if(!it)return 0;if(it.price!=null)return it.price;
+ if(it.use)return 5;if(it.material)return 3;
+ const v=k=>Math.max(0,+it[k]||0),pct=k=>Math.max(0,+it[k]||0)*100;
+ return Math.round((10+2*(v('dmg')+v('arm')+v('magicArm')+v('physicalDmg')+v('magicDmg'))+.25*(v('hp')+v('mp'))+3*(v('F')+v('A')+v('I'))+2*(v('regenHp')+v('regenMp'))
+  +.5*(pct('spd')+pct('moveSpeed')+pct('attackSpeed')+pct('castSpeed')+pct('area')+pct('cooldownReduction')+pct('critChance')+pct('critDamage')+pct('lifeSteal')+pct('magicLifeSteal')))*(it.th?1.2:1));
+}
+function precoVenda(id,q){const b=precoBase(id);return gearType[id]?Math.max(1,Math.round(b*(.5+(q==null?50:q)/100))):b}
+window.precoVenda=precoVenda;
 function addItem(id,q,count=1){if(!ITEMS[id]||!Number.isInteger(count)||count<1)return false;const pilha=ITEMS[id].use||ITEMS[id].stackable;if(pilha){const s=I.find(s=>s&&s.id==id);if(s){s.n+=count;dirtyInv=true;return true}}for(let n=0;n<count;n++){const i=livre(id);I[i]={id,n:pilha?count:1};if(gearType[id])I[i].q=q==null?rollQ():q;if(pilha)break}dirtyInv=true;return true}
 const itemCount=id=>I.reduce((n,s)=>n+(s&&s.id==id?s.n:0),0);
 function consumeItems(id,count){
@@ -115,7 +127,8 @@ function configureMonster(e,type,level){
   e.equipmentStats=stats;e.dropIds=template.drops||[];e.dropBonus=e.bossType=='grandboss'?.4:e.bossType=='boss'?.2:0;
  }
  const own=e.attributeStats;
- e.max=Math.max(1,e.max+(+own.hp||0));e.maxMp=Math.max(0,35+(e.stats.I-3)*5+(e.equipmentStats?.mp||0)+(+own.mp||0));e.mp=e.maxMp;
+ // balanceamento: vida × multiplicador e +X% por nível (Cálculos › Monstros), para as lutas durarem mais golpes
+ e.max=Math.max(1,Math.round((e.max+(+own.hp||0))*(CALC.monHpMul??6)*(1+(CALC.monHpLevel??.08)*(level-1))));e.maxMp=Math.max(0,35+(e.stats.I-3)*5+(e.equipmentStats?.mp||0)+(+own.mp||0));e.mp=e.maxMp;
  e.armor=(e.armor??e.stats.A*5)+(+own.arm||0);e.magicArmor=(e.magicArmor??e.stats.F+e.stats.A+e.stats.I)+(+own.magicArm||0);
  e.spd*=Math.max(0,1+attributeValue(own,'moveSpeed'));e.ac=Math.max(CALC.minInterval,e.ac*(1-Math.min(.9,attributeValue(own,'attackSpeed'))));
 }

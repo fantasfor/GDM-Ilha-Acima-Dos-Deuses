@@ -370,7 +370,10 @@
  MP.entrarDgDoGrupo=entrarDgDoGrupo;
  /* para o menu do portal (dungeon-library.js): o grupo atual e quem dá para chamar */
  MP.grupoDg=()=>{
-  const g=MP.grupo,membros=g&&g.membros?Object.entries(g.membros).map(([id,nome])=>({id,nome:typeof nome==='string'?nome:MP.nomeDe(id),lider:id===MP.grupoLider,voce:id===uid})):[{id:uid,nome:N?N.nome():'Você',lider:true,voce:true}];
+  const nivel=id=>id===uid?p.lvl:((outros().get(id)||{}).lvl||1),online=id=>id===uid||!!(outros().get(id)||{}).sala;
+  const g=MP.grupo,membros=g&&g.membros?Object.entries(g.membros).map(([id,nome])=>({id,nome:typeof nome==='string'?nome:MP.nomeDe(id),lider:id===MP.grupoLider,voce:id===uid,nivel:nivel(id),online:online(id)})):[{id:uid,nome:N?N.nome():'Você',lider:true,voce:true,nivel:p.lvl,online:true}];
+  // o líder (ou você, sem grupo) primeiro
+  membros.sort((a,b)=>b.lider-a.lider||b.voce-a.voce);
   return{membros,max:MAX_GRUPO,podeConvidar:!MP.grupoLider||MP.grupoLider===uid,cheio:membros.length>=MAX_GRUPO};
  };
  MP.candidatosDg=()=>{
@@ -475,11 +478,16 @@
  }
  const correio=el('section','mpPainel mpCorreio');correio.hidden=true;correio.setAttribute('aria-label','Correio');
  correio.addEventListener('keydown',e=>e.stopPropagation());document.body.append(correio);
- const correioBtn=btn('Correio',()=>{correio.hidden=!correio.hidden;if(!correio.hidden)painel.hidden=true;atualizarCorreio()},'mpBtn mpAbrir mpCorreioBtn');correioBtn.title='Correio: pedidos de amizade e convites de ilha e de grupo';
+ // cartinha em pixel art no canto superior direito da barra do personagem, com o número de pedidos
+ const CARTA=spr(["kkkkkkkkkkkkkk","kywwwwwwwwwwyk","kwywwwwwwwwywk","kwwywwwwwwywwk","kwwwywwwwywwwk","kwwwwywwywwwwk","kwwwwwrrwwwwwk","kssssssssssssk","kssssssssssssk","kkkkkkkkkkkkkk"],{k:'#3a2410',w:'#f2e6c8',s:'#d8c9a0',y:'#a8842a',r:'#c8302a'});
+ const correioBtn=el('button','mpCarta');correioBtn.type='button';const cartaImg=el('img');cartaImg.src=CARTA.toDataURL();cartaImg.alt='';const cartaN=el('b');correioBtn.append(cartaImg,cartaN);
+ correioBtn.title='Correio: pedidos de amizade e convites de ilha e de grupo';correioBtn.setAttribute('aria-label',correioBtn.title);
+ correioBtn.onclick=e=>{e.stopPropagation();correio.hidden=!correio.hidden;if(!correio.hidden){painel.hidden=true;if(window.MP&&MP.fecharSocial)MP.fecharSocial()}atualizarCorreio()};
+ { const dock=$('dock');if(dock)dock.append(correioBtn) }
  MP.botaoCorreio=correioBtn;MP.fecharCorreio=()=>{correio.hidden=true};
  function atualizarCorreio(){
   for(const [de,c] of pendentes)if(vencido(c)){if(c.toast)c.toast.remove();pendentes.delete(de);ref('convites/'+uid+'/'+de).remove().catch(()=>{})}
-  const n=pendentes.size;correioBtn.textContent=n?'Correio ('+n+')':'Correio';correioBtn.classList.toggle('temCorreio',n>0);
+  const n=pendentes.size;cartaN.textContent=n?String(n):'';correioBtn.title=n?'Correio: '+n+' pedido(s) esperando':'Correio: pedidos de amizade e convites de ilha e de grupo';correioBtn.classList.toggle('temCorreio',n>0);
   if(correio.hidden)return;
   const box=[];const h=el('div','mpTopo');h.append(el('b','','Correio'),btn('Fechar',()=>{correio.hidden=true}));box.push(h);
   const ul=el('ul','mpLista');
@@ -568,26 +576,7 @@
    gr.append(btn(MP.grupoLider===uid?'Desfazer grupo':'Sair do grupo',sairDoGrupo,'mpBtn perigo'));
   }else gr.append(el('p','mpNota','Sem grupo. Convide alguém abaixo para montar um grupo de DG (até '+MAX_GRUPO+').'));
   box.push(gr);
-  // amigos (online primeiro)
-  const ids=Object.keys(MP.amigos),online=id=>{const o=outros().get(id);return !!(o&&o.x!=null&&o.sala)};
-  ids.sort((a,b)=>online(b)-online(a)||MP.nomeDe(a).localeCompare(MP.nomeDe(b)));
-  const ula=el('ul','mpLista');
-  if(!ids.length)ula.append(el('li','mpNota','Nenhum amigo ainda. Use "Adicionar amigo" em quem está online.'));
-  for(const id of ids){
-   const o=outros().get(id),on=online(id);
-   const li=el('li',on?'':'offline');
-   const nm=el('span','mpNome',(typeof MP.amigos[id]==='string'?MP.amigos[id]:MP.nomeDe(id))+(on?' · Nv '+(o.lvl||1):''));if(on)pingDe(nm,o);
-   li.append(nm,el('small','',on?onde(Object.assign({id},o)):'offline'));
-   const acoes=el('div','mpAcoes');
-   if(on&&o.sala==='ilha:'+id&&MP.visitando!==id)acoes.append(btn('Visitar',()=>visitar(id),'mpBtn ok'));
-   if(on&&o.sala==='taverna'&&!window.inTaverna&&window.entrarTaverna)acoes.append(btn('Ir à taverna',()=>entrarTaverna(),'mpBtn ok'));
-   if(on&&!(g&&g.membros&&g.membros[id])&&!(MP.grupoLider&&MP.grupoLider!==uid))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
-   if(on&&o.sala!=='ilha:'+uid)acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
-   acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));
-   acoes.append(btn('Remover',()=>{if(confirm('Remover '+MP.nomeDe(id)+' dos amigos?'))removerAmigo(id)},'mpBtn perigo'));
-   li.append(acoes);ula.append(li);
-  }
-  box.push(el('b','mpSub','Amigos ('+ids.filter(online).length+'/'+ids.length+' online)'),ula);
+  // os amigos ficam no Social (botão acima da Enciclopédia)
   // lista de jogadores
   const lista=el('ul','mpLista');let n=0;
   for(const [id,o] of outros()){
@@ -606,6 +595,40 @@
   painel.replaceChildren(...box);
  }
  MP.atualizarPainel=atualizarPainel;
+
+ /* ---------- Social: só os amigos (online primeiro), com as ações de cada um ---------- */
+ const social=el('section','mpPainel mpSocial');social.hidden=true;social.setAttribute('aria-label','Social');
+ social.addEventListener('keydown',e=>e.stopPropagation());document.body.append(social);
+ const socialBtn=el('button','','Social');socialBtn.type='button';socialBtn.id='socialBtn';socialBtn.title='Social: seus amigos';
+ socialBtn.onclick=e=>{e.stopPropagation();social.hidden=!social.hidden;if(!social.hidden){painel.hidden=true;correio.hidden=true}atualizarSocial()};
+ { const col=$('sbtns');if(col)col.prepend(socialBtn) }
+ function atualizarSocial(){
+  const ids=Object.keys(MP.amigos),online=id=>{const o=outros().get(id);return !!(o&&o.x!=null&&o.sala)},on=ids.filter(online).length;
+  socialBtn.textContent=on?'Social ('+on+')':'Social';
+  if(social.hidden)return;
+  const g=MP.grupo;
+  ids.sort((a,b)=>online(b)-online(a)||MP.nomeDe(a).localeCompare(MP.nomeDe(b)));
+  const h=el('div','mpTopo');h.append(el('b','','Social'),btn('Fechar',()=>{social.hidden=true}));
+  const ula=el('ul','mpLista');
+  if(!ids.length)ula.append(el('li','mpNota','Nenhum amigo ainda. Em Jogadores, use "Adicionar amigo" em quem está online; o pedido chega no Correio da pessoa.'));
+  for(const id of ids){
+   const o=outros().get(id),on=online(id);
+   const li=el('li',on?'':'offline');
+   const nm=el('span','mpNome',(typeof MP.amigos[id]==='string'?MP.amigos[id]:MP.nomeDe(id))+(on?' · Nv '+(o.lvl||1):''));if(on)pingDe(nm,o);
+   li.append(nm,el('small','',on?onde(Object.assign({id},o)):'offline'));
+   const acoes=el('div','mpAcoes');
+   if(on&&o.sala==='ilha:'+id&&MP.visitando!==id)acoes.append(btn('Visitar',()=>visitar(id),'mpBtn ok'));
+   if(on&&o.sala==='taverna'&&!window.inTaverna&&window.entrarTaverna)acoes.append(btn('Ir à taverna',()=>entrarTaverna(),'mpBtn ok'));
+   if(on&&!(g&&g.membros&&g.membros[id])&&!(MP.grupoLider&&MP.grupoLider!==uid))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
+   if(on&&o.sala!=='ilha:'+uid)acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
+   acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));
+   acoes.append(btn('Remover',()=>{if(confirm('Remover '+MP.nomeDe(id)+' dos amigos?'))removerAmigo(id)},'mpBtn perigo'));
+   li.append(acoes);ula.append(li);
+  }
+  social.replaceChildren(h,el('b','mpSub','Amigos ('+on+'/'+ids.length+' online)'),ula);
+ }
+ MP.atualizarSocial=atualizarSocial;MP.fecharSocial=()=>{social.hidden=true};
+ setInterval(atualizarSocial,2000);
  setInterval(()=>{if(!painel.hidden)atualizarPainel()},2000);
 
  /* ---------- início: depois do login ---------- */
@@ -614,7 +637,7 @@
   const caixa=ref('convites/'+uid);
   caixa.on('child_added',receberConvite);caixa.on('child_changed',receberConvite);
   caixa.on('child_removed',s=>{const c=pendentes.get(s.key);if(c){if(c.toast)c.toast.remove();pendentes.delete(s.key);atualizarCorreio()}});
-  ref('amigos/'+uid).on('value',s=>{MP.amigos=s.val()||{};for(const [id,n] of Object.entries(MP.amigos))if(typeof n==='string'&&!MP.nomes.has(id))MP.nomes.set(id,n);atualizarPainel()});
+  ref('amigos/'+uid).on('value',s=>{MP.amigos=s.val()||{};for(const [id,n] of Object.entries(MP.amigos))if(typeof n==='string'&&!MP.nomes.has(id))MP.nomes.set(id,n);atualizarPainel();atualizarSocial()});
   ref('sussurros/'+uid).on('child_added',s=>{
    const m=s.val();s.ref.remove().catch(()=>{});
    if(!m||typeof m.text!=='string'||Date.now()+(N.offset||0)-(m.t||0)>86400000)return;

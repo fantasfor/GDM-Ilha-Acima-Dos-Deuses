@@ -31,9 +31,7 @@
   for(const [id,rotulo,dica] of [['l','Local','Só quem está no mesmo lugar (ilha, DG ou taverna)'],['g','Global','Todos os jogadores online']]){
    const b=el('button','onlineTab',rotulo);b.type='button';b.title=dica;b.onclick=()=>{canal=id;refreshTabs();openChat()};tabs[id]=b;bar.append(b);
   }
-  if(window.MP&&MP.botaoPainel)bar.append(MP.botaoPainel);
-  if(window.MP&&MP.botaoCorreio)bar.append(MP.botaoCorreio);
- }
+  if(window.MP&&MP.botaoPainel)bar.append(MP.botaoPainel); }
  function refreshTabs(){for(const id in tabs){tabs[id].classList.toggle('on',canal===id);tabs[id].setAttribute('aria-pressed',String(canal===id))}input.placeholder=(nuvem?(canal==='g'?'[Global] ':'[Local] '):'')+'Mensagem (Enter envia, Esc fecha) · /nome NovoNome'}
  refreshTabs();
  form.append(input);box.append(bar,lines,form);document.body.append(box);
@@ -217,6 +215,8 @@
   if(!looks.has(key)){if(looks.size>400)looks.clear();looks.set(key,human(base,dir,ph,E))}
   return looks.get(key);
  }
+ // sprite de frente de outro jogador (retratos do grupo da DG e do Social)
+ window.spriteDeJogador=id=>{const o=window.ONLINE_NUVEM&&ONLINE_NUVEM.outros&&ONLINE_NUVEM.outros.get(id);if(!o||!o.cls)return null;try{return lookOf({...o,eq:o.eq||{}},'d',0)}catch(e){return null}};
  function bubble(x,y,text){
   ctx.font='5px monospace';ctx.textAlign='center';
   const words=text.split(' '),rows=[];let row='';

@@ -63,7 +63,9 @@
   if(!library.dungeons.some(d=>d.id===selected))selected=library.dungeons[0].id;
   const list=E('div','dgm-list'),detail=E('section','dgm-detail'),body=E('div','dgm-body');list.setAttribute('role','listbox');
   body.append(list,detail);root.append(body);box.append(root);
-  const enter=entry=>{const i=info(entry);if(i.minLevel&&p.lvl<i.minLevel)return;window.currentDungeonId=entry.id;close();window.enterGoblinDungeon()};
+  const entrar=entry=>{window.currentDungeonId=entry.id;close();window.enterGoblinDungeon()};
+  // online: antes de entrar, a tela de montar o grupo; offline: entra direto
+  const enter=entry=>{const i=info(entry);if(i.minLevel&&p.lvl<i.minLevel)return;if(window.MP&&MP.grupoDg)montarGrupo(entry);else entrar(entry)};
   function renderList(){
    list.replaceChildren();
    for(const entry of library.dungeons){
@@ -96,31 +98,65 @@
    if(i.drops.length)for(const id of i.drops){const d=E('div','dgm-drop'),im=E('img');im.src=ITEMS[id].ic;im.alt='';d.append(im);d._tip=()=>window.itemTip?itemTip(id,null):ITEMS[id].n;icons.append(d)}
    else icons.append(E('span','dgm-muted','Equipamentos aleatórios conforme a cor dos baús.'));
    dr.append(icons);detail.append(dr);
-   if(window.MP&&MP.grupoDg){const gs=E('div','dgm-grupo');detail.append(gs);renderGrupo(gs)}
    const foot=E('div','dgm-foot');
    foot.append(E('span','dgm-rec',rec?'Concluída '+rec.clears+'×'+(rec.best?' · melhor tempo '+fmtTime(rec.best):''):'Ainda não concluída'));
    const go=E('button','dgm-enter',locked?'Requer nível '+i.minLevel:'Entrar na masmorra');go.type='button';go.disabled=!!locked;go.onclick=()=>enter(entry);
    foot.append(go);detail.append(foot);
   }
-  /* Jogar em grupo (online): convida para o grupo; ao entrar, o grupo é chamado para a mesma DG.
-     Os inimigos ficam mais fortes conforme cada um entra (multiplicador do grupo). */
-  const enviados=new Set();
-  function renderGrupo(gs){
-   const g=MP.grupoDg(),n=g.membros.length;gs.replaceChildren();
-   const topo=E('div','dgm-grupoTopo');topo.append(E('span','dgm-label','Jogar em grupo'),E('small','dgm-muted',n+'/'+g.max));gs.append(topo);
-   const chips=E('div','dgm-membros');for(const m of g.membros)chips.append(E('span','dgm-membro'+(m.lider?' lider':''),(m.lider?'★ ':'')+m.nome+(m.voce?' (você)':'')));gs.append(chips);
-   const dif=E('p','dgm-dif');dif.append(E('b','',n>1?'Dificuldade com '+n+': ':'Sozinho: '),document.createTextNode(n>1?'inimigos com '+MP.escalaTexto(n)+'.':'dificuldade normal. Cada jogador a mais: '+MP.escalaTexto(2)+'.'));gs.append(dif);
-   if(!g.podeConvidar){gs.append(E('p','dgm-muted','Só o líder do grupo convida. Quando o líder entrar, você recebe o chamado.'));return}
-   const cand=MP.candidatosDg().slice(0,8),ul=E('div','dgm-convidar');
-   if(!cand.length)ul.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
-   for(const c of cand){const li=E('div','dgm-cand');li.append(E('span','',c.nome+' · Nv '+c.nivel+(c.amigo?' · amigo':'')),E('small','',c.onde));
-    const b=E('button','dgm-convite',enviados.has(c.id)?'Enviado':'Convidar');b.type='button';b.disabled=g.cheio||enviados.has(c.id);
-    b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';try{await MP.convidar(c.id,'grupo');enviados.add(c.id);b.textContent='Enviado'}catch(e){b.disabled=false;b.textContent='Convidar'}};
-    li.append(b);ul.append(li)}
-   gs.append(ul,E('p','dgm-muted','O convite chega no Correio. Quando você entrar, o grupo é chamado para esta masmorra; a dificuldade sobe a cada um que entra.'));
+  /* ---------- montar grupo: 5 espaços com a fotinha de cada jogador; os vazios têm "+" para convidar.
+     Ao começar, o grupo é chamado para a mesma DG e os inimigos ficam mais fortes a cada um que entra. ---------- */
+  const enviados=new Map(); // id -> nome (convite enviado, ainda não entrou)
+  // fotinha: o sprite de frente recortado até a borda do personagem
+  function foto(sprite){
+   if(!sprite)return '';const t=document.createElement('canvas');t.width=sprite.width;t.height=sprite.height;const g=t.getContext('2d');g.drawImage(sprite,0,0);
+   const d=g.getImageData(0,0,t.width,t.height).data;let x0=t.width,y0=t.height,x1=-1,y1=-1;
+   for(let y=0;y<t.height;y++)for(let x=0;x<t.width;x++)if(d[(y*t.width+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+   if(x1<0)return '';const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;o.getContext('2d').drawImage(t,x0,y0,o.width,o.height,0,0,o.width,o.height);return o.toDataURL();
   }
-  // atualiza o grupo enquanto o menu está aberto (alguém aceitou, saiu ou ficou online)
-  const vivo=setInterval(()=>{if(!box.classList.contains('open')||!box.contains(root)){clearInterval(vivo);return}const gs=detail.querySelector('.dgm-grupo');if(gs&&!gs.contains(document.activeElement))renderGrupo(gs)},2000);
+  function montarGrupo(entry){
+   const c=entry.config;let abertoConvite=false;
+   root.replaceChildren();
+   const head=E('header','dgm-head');head.append(E('b','dgm-title','Montar grupo · '+(c.name||'Masmorra')),E('small','dgm-sub','Até 5 jogadores. Clique em + para convidar ou comece sozinho.'));
+   const slots=E('div','dgp-slots'),conv=E('div','dgp-convidar'),dif=E('p','dgp-dif'),nota=E('p','dgm-muted');
+   const foot=E('div','dgm-foot'),voltar=E('button','dgp-voltar','Voltar'),comecar=E('button','dgm-enter','Começar');voltar.type=comecar.type='button';
+   voltar.onclick=()=>{root.replaceChildren(head0,body);renderList();renderDetail()};
+   comecar.onclick=()=>entrar(entry);
+   foot.append(voltar,comecar);conv.hidden=true;
+   root.append(head,slots,dif,conv,nota,foot);
+   function render(){
+    const g=MP.grupoDg(),n=g.membros.length;
+    for(const m of g.membros)enviados.delete(m.id);
+    slots.replaceChildren();
+    for(let k=0;k<g.max;k++){
+     const m=g.membros[k];
+     if(m){const card=E('div','dgp-slot cheio'+(m.lider?' lider':''));const src=foto(m.voce?heroImg('d'):window.spriteDeJogador&&spriteDeJogador(m.id));
+      if(src){const im=E('img');im.src=src;im.alt='';card.append(im)}else card.append(E('span','dgp-semFoto','?'));
+      card.append(E('b','',(m.lider?'★ ':'')+m.nome),E('small','',(m.voce?'Você · ':'')+'Nv '+m.nivel));slots.append(card);continue}
+     const esperando=[...enviados.values()][k-n];
+     const b=E('button','dgp-slot vazio'+(esperando?' esperando':''));b.type='button';
+     b.append(E('span','dgp-mais',esperando?'…':'+'),E('small','',esperando?'Aguardando '+esperando:g.podeConvidar?'Convidar':'Vazio'));
+     b.disabled=!g.podeConvidar||g.cheio;b.onclick=()=>{abertoConvite=!abertoConvite;renderConvite()};slots.append(b);
+    }
+    dif.replaceChildren(E('b','',n>1?'Dificuldade com '+n+': ':'Sozinho: '),document.createTextNode(n>1?'inimigos com '+MP.escalaTexto(n)+'.':'dificuldade normal. Cada jogador a mais: '+MP.escalaTexto(2)+'.'));
+    nota.textContent=g.podeConvidar?'O convite chega no Correio de quem você chamar. Ao começar, o grupo recebe o chamado para esta masmorra; a dificuldade sobe a cada um que entra.':'Só o líder do grupo convida e começa. Quando o líder entrar, você recebe o chamado.';
+    comecar.disabled=!g.podeConvidar;
+    if(abertoConvite)renderConvite();
+   }
+   function renderConvite(){
+    conv.hidden=!abertoConvite;if(!abertoConvite)return;
+    conv.replaceChildren(E('span','dgm-label','Convidar jogador'));
+    const cand=MP.candidatosDg().slice(0,10);
+    if(!cand.length)conv.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
+    for(const cnd of cand){const li=E('div','dgm-cand');li.append(E('span','',cnd.nome+' · Nv '+cnd.nivel+(cnd.amigo?' · amigo':'')),E('small','',cnd.onde));
+     const b=E('button','dgm-convite',enviados.has(cnd.id)?'Enviado':'Convidar');b.type='button';b.disabled=enviados.has(cnd.id);
+     b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';await MP.convidar(cnd.id,'grupo');enviados.set(cnd.id,cnd.nome);abertoConvite=false;render();conv.hidden=true};
+     li.append(b);conv.append(li)}
+   }
+   render();comecar.focus();
+   // atualiza enquanto a tela está aberta (alguém aceitou, saiu ou ficou online)
+   const vivo=setInterval(()=>{if(!box.classList.contains('open')||!root.contains(slots)){clearInterval(vivo);return}if(!conv.contains(document.activeElement))render()},1500);
+  }
+  const head0=head;
   renderList();renderDetail();
   root.addEventListener('keydown',e=>{const ids=library.dungeons.map(d=>d.id),k=ids.indexOf(selected);
    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selected=ids[(k+(e.key==='ArrowDown'?1:-1)+ids.length)%ids.length];renderList();renderDetail();list.querySelector('.on')?.focus()}

@@ -61,6 +61,14 @@ canvas#g{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixela
 #dialogue p{margin:0 0 12px}
 #dialogue button{padding:7px 10px;border:1px solid #9e8044;background:#332719;color:#ffe28a;font:12px monospace;cursor:pointer}
 #dialogue button:hover{background:#514024}
+/* venda na taverna */
+#dialogue .tavOuro{display:inline;margin:0;font-size:13px;color:#ffd84a}
+.tavVenda{max-height:min(330px,50vh);overflow:auto;margin:0 0 12px;border:1px solid #5a472d;background:#0d0b09}
+.tavItem{display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #2a2117;font:12px monospace}
+.tavItem img{width:22px;height:22px;flex:none;image-rendering:pixelated}
+.tavItem span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tavItem small{color:#a99a78}
+#dialogue .tavItem b{display:inline;margin:0;font:bold 11px monospace;color:#ffd84a;white-space:nowrap}
+#dialogue .tavItem button{flex:none;padding:3px 7px;font-size:11px}
 #skillBtn{align-self:flex-end;background:#2b3b53;border:1px solid #8a7a52;color:#ffe28a;padding:7px 9px;cursor:pointer}
 #skillPanel{display:none;position:fixed;z-index:22;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 24px));max-height:75vh;overflow:auto;padding:12px;background:#111820f5;border:2px solid #8a7a52;box-shadow:0 8px 28px #000c}
 #skillPanel.open{display:block}

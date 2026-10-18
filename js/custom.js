@@ -59,23 +59,23 @@ L('items').forEach(it=>{
   const b=basicSkill?{...basicSkill,ranged:!!basicSkill.isRanged,rng:basicSkill.basicRange,proj:basicSkill.projectileColor}
    :{...b0,base:b0.base??b0.flat,charPercent:b0.charPercent??b0.pct,scaleStat:b0.scaleStat||b0.attr,scalePercent:b0.scalePercent??b0.attrPct};
   const ranged=!!b.ranged;
-  const damageType=['physical','magic'].includes(b.damageType)?b.damageType:it.damageType=='magic'?'magic':'physical';
+  const damageType=it.damageType=='magic'?'magic':'physical';
   const basicFx=[...(Array.isArray(b.effects)?b.effects:[]),...(Array.isArray(it.effects)?it.effects:[])];
-  const splitDamage=b.damageModel=='split'||hasSplitDamage(b);
-  const hasBasicFormula=!!basicSkill||splitDamage||n(b.base)||n(b.per)||n(b.charPercent)||n(b.scalePercent);
-  const formula=hasBasicFormula?{...b,id:basicSkill?basicSkill.id:it.id,base:n(b.base),per:n(b.per),charPercent:n(b.charPercent),scaleStat:b.scaleStat||'none',scalePercent:n(b.scalePercent),damageType}:null;
-  const basicSprite=pixelArt(b.sprite);
-  BASIC[it.id]={n:b.name||'Ataque básico',rng:n(b.rng,22),dm:basicSkill?1:n(b.dm,1),damageType,formula,splitDamage,effects:basicFx,
-   ic:basicSprite?basicSprite.toDataURL():SKI(b.icon||(ranged?'orb':style==1?'axe':'blade'),b.c1||c[0],b.c2||c[1]),
-   t:(b.desc||'Ataque básico da arma.')+' Dano '+(damageType=='magic'?'mágico':'físico')+'.'+fxText(basicFx),
+  // o golpe usa só o dano da arma (sem fórmula própria de ataque básico); da configuração antiga valem alcance e projétil
+  BASIC[it.id]={n:nm,rng:n(b.rng,22),dm:1,damageType,formula:null,splitDamage:false,effects:basicFx,
+   ic:o.c.toDataURL(),
+   t:'Golpe com '+nm+(ranged?', à distância':'')+'. Dano '+(damageType=='magic'?'mágico':'físico')+' da arma.'+fxText(basicFx),
    // som do golpe: o da arma (Sons › Ataque básico); projetos antigos usam o da habilidade
    som:basicSkill?['skills',basicSkill.id,'cast']:['items',it.id,'attack'],
    ...(ranged?{proj:b.proj||'#fff'}:{})};
-  WSK[it.id]=tags(it.skills).slice(0,1).map(id=>SDEF[id]).filter(s=>s&&s.category=='ability').map(s=>({...s}))}
+  // até duas habilidades por arma (espaços Z e X)
+  WSK[it.id]=tags(it.skills).slice(0,2).map(id=>SDEF[id]).filter(s=>s&&s.category=='ability').map(s=>({...s}))}
  else{
   const slot=['he','ch','le','bo','ca','ne','ri','sh'].includes(it.slot)?it.slot:'ch';
   o={n:nm+' ('+statTxt(st)+')',...st,c:pixelArt(it.sprite)||(slot=='sh'?ITEMS.sh.c:gearIcon(slot,c,Math.min(style,slot=='ri'||slot=='ne'?0:2))),g:1,v:{c,st:slot=='sh'?0:style}};gearType[it.id]=slot;o.fx=Array.isArray(it.effects)?it.effects:[]}
  o.bonuses=it.stats;o.bonusDuration=n(it.bonusDuration,5);
+ // preço de venda na taverna (Engine › Item › Preço de venda); vazio = calculado pelos atributos
+ if(it.price!==undefined&&it.price!==''&&it.price!==null&&Number.isFinite(+it.price))o.price=Math.max(0,Math.round(+it.price));
  o.itemSprite=pixelArt(it.itemSprite);
  o.equippedSprites=Object.fromEntries(Object.entries(it.equippedSprites||{}).map(([dir,art])=>[dir,pixelArt(art)]));
  o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL();
