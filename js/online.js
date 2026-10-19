@@ -104,27 +104,45 @@
  if(nuvem&&typeof lancar==='function'){
   const cast0=lancar;
   lancar=function(s){
-   const t0=s.t,px=p.x,py=p.y,nf=fxs.length,np=proj.length,nm=mets.length;
+   const t0=s.t,px=p.x,py=p.y,nf=fxs.length,np=proj.length,nm=mets.length,ng=window.EFX?EFX.total:0,nv=window.VFX?VFX.total:0;
    const r=cast0.apply(this,arguments);
    if(s&&s.t>t0&&!window.inTaverna){
     const R=Math.round,partes=['e:'+nomeLimpo(s.effect||'x')+':'+hex(s.vfxColor||'#9bd4ff')+':'+R(+s.radius||40)+':'+R(px)+':'+R(py)+':'+R(p.x)+':'+R(p.y)];
     for(const f of fxs.slice(nf,nf+4))partes.push('f:'+R(f.x)+':'+R(f.y)+':'+R(f.r)+':'+hex(f.c)+':'+R((f.d||.4)*100)+':'+nomeLimpo(f.style));
-    for(const q of proj.slice(np,np+3)){const tx=q.tg?q.tg.x:q.x+q.vx*q.t,ty=q.tg?q.tg.y-8:q.y+q.vy*q.t;partes.push('p:'+R(q.x)+':'+R(q.y)+':'+R(tx)+':'+R(ty)+':'+hex(q.c))}
+    for(const q of proj.slice(np,np+3)){const tx=q.tg?q.tg.x:q.x+q.vx*q.t,ty=q.tg?q.tg.y-8:q.y+q.vy*q.t;partes.push('p:'+R(q.x)+':'+R(q.y)+':'+R(tx)+':'+R(ty)+':'+hex(q.c)+(q.seta?':s':''))}
     for(const m of mets.slice(nm,nm+2))partes.push('m:'+R(m.x)+':'+R(m.y));
+    // animações do pacote de efeitos (g:folha.linha.grupo:x:y:ângulo×100:escala×10:duração×100)
+    // logo depois do 'e' (antes dos círculos simples) para não cair no corte de 200 caracteres
+    const kv=window.VFX?Math.min(2,VFX.total-nv):0;if(kv>0)partes.splice(1,0,...VFX.recentes.slice(-kv).map(v=>'v:'+v.tipo+':'+R(v.x)+':'+R(v.y)+':'+R((v.ang||0)*100)+':'+R(v.raio||0)+':'+R((v.arco||0)*100)+':'+hex(v.cor||'')));
+    if(p.canal&&p.canal.visual)partes.splice(1,0,'r:'+R(p.canal.r*10)+':'+p.canal.visual.raio+':'+hex(p.canal.visual.cor));
+    const kg=window.EFX?Math.min(2,EFX.total-ng):0;if(kg>0)partes.splice(1,0,...EFX.recentes.slice(-kg).map(g=>'g:'+g.id+':'+R(g.x)+':'+R(g.y)+':'+R(g.ang*100)+':'+R(g.esc*10)+':'+R(g.dur*100)));
+    // grito/aura: os efeitos chegam aos aliados perto de quem lançou (a:tipo:força:duração×10:raio), logo depois do 'e' para não cair no corte de 200 caracteres
+    if(s.effect==='aura'&&Array.isArray(s.efs))for(const f of s.efs.slice(0,2))partes.splice(1,0,'a:'+nomeLimpo(f.type)+':'+R(+f.power||0)+':'+R((+f.dur||3)*10)+':'+R((+s.radius||40)*(typeof areaMultiplier==='function'?areaMultiplier(p):1)));
     let tok='k;'+partes.join(';');while(tok.length>200&&tok.includes(';'))tok=tok.slice(0,tok.lastIndexOf(';'));
     if(filaSons.length>=6)filaSons.shift();filaSons.push(tok);
    }
    return r;
   };
  }
- function habilidadeRemota(tok){
-  const n=v=>Number(v)||0,cor=c=>c?'#'+c:null;
+ /* aura de um aliado (Grito de Guerra): quem estiver no raio fica com aura e contorno na minha tela (js/vfx-habilidades.js) */
+ window.marcarAura=(x,y,r,cor,dur)=>{const ate=performance.now()/1000+dur;for(const o of others.values())if(o.x!=null&&Math.hypot(o.x-x,o.y-y)<=r)o.vfxAura={ate,cor}};
+ function habilidadeRemota(tok,quem){
+  const n=v=>Number(v)||0,cor=c=>c?'#'+c:null;let ox=null,oy=null;
   for(const parte of tok.split(';').slice(1)){
    const a=parte.split(':');
+   if(a[0]==='e'){ox=n(a[6]);oy=n(a[7])}
+   // aura de um aliado (ex.: Grito de Guerra): vale para mim se eu estiver no raio; na arena não vale (lá são adversários)
+   if(a[0]==='a'){if(ox!=null&&!window.inArena&&FX_INFO[a[1]]){const dur=Math.max(.5,n(a[3])/10);if(FX_INFO[a[1]].aura)marcarAura(ox,oy,n(a[4]),FX_INFO[a[1]].c,dur);
+     if(p.hp>0&&!(p.dead>0)&&Math.hypot(p.x-ox,p.y-oy)<=n(a[4]))applyFx(p,[{caster:p,self:true,type:a[1],chance:100,dur,pw:n(a[2])}])}continue}
+   // efeitos desenhados (js/vfx-habilidades.js): v:tipo:x:y:ângulo×100:raio:arco×100:cor
+   if(a[0]==='v'&&window.VFX){VFX.tocar(a[1],{x:n(a[2]),y:n(a[3]),ang:n(a[4])/100,raio:n(a[5]),arco:n(a[6])/100,cor:cor(a[7])||undefined});continue}
+   // giro de um aliado: r:duração×10:raio:cor (a lâmina roda em volta dele)
+   if(a[0]==='r'&&quem){quem.vfxGiro={ate:performance.now()/1000+n(a[1])/10,raio:n(a[2]),cor:cor(a[3])||'#d8e6ff'};continue}
    if(a[0]==='e'&&window.efeitoVisualHabilidade)efeitoVisualHabilidade(a[1],cor(a[2])||'#9bd4ff',n(a[3])||40,n(a[6]),n(a[7]),n(a[4]),n(a[5]));
    else if(a[0]==='f')fxs.push({x:n(a[1]),y:n(a[2]),r:Math.min(80,n(a[3])),c:cor(a[4])||'#9bd4ff',t:0,d:Math.max(.1,Math.min(2,n(a[5])/100)),...(a[6]?{style:a[6]}:{})});
-   else if(a[0]==='p'&&window.projetilVisual)projetilVisual(n(a[1]),n(a[2]),n(a[3]),n(a[4]),cor(a[5]));
+   else if(a[0]==='p'&&window.projetilVisual)projetilVisual(n(a[1]),n(a[2]),n(a[3]),n(a[4]),cor(a[5]),a[6]==='s');
    else if(a[0]==='m'&&window.meteoroVisual)meteoroVisual(n(a[1]),n(a[2]));
+   else if(a[0]==='g'&&window.EFX)EFX.tocar(a[1],n(a[2]),n(a[3]),{ang:n(a[4])/100,esc:Math.max(.2,n(a[5])/10),dur:Math.max(.1,n(a[6])/100)});
   }
  }
  function tocarSomRemoto(token,vol){
@@ -141,7 +159,7 @@
   let atraso=0;
   for(const t of tokens.slice(0,6)){
    let m;
-   if(t.startsWith('k;')){if(d<SOM_ALCANCE*1.5)habilidadeRemota(t)}
+   if(t.startsWith('k;')){if(d<SOM_ALCANCE*1.5)habilidadeRemota(t,o)}
    else if((m=t.match(/^a\.(-?\d+)\.(-?\d+)$/))){if(o){o.aw=.25;o.wt={x:+m[1],y:+m[2]};o.fx=o.wt.x-r.x;o.fy=o.wt.y-r.y}}
    else if((m=t.match(/^v\.([a-z]+)\.([0-9a-fA-F]{3,8})\.(\d+)\.(-?\d+)\.(-?\d+)$/))){if(d<SOM_ALCANCE*1.5)fxs.push({x:+m[4],y:+m[5],r:Math.min(52,+m[3]),c:'#'+m[2],t:0,d:.55,style:m[1]})}
    else if(d<=SOM_ALCANCE)setTimeout(()=>tocarSomRemoto(t,vol),(atraso++)*60); // mais baixo com a distância
@@ -210,7 +228,7 @@
  function lookOf(o,dir,ph,swing=0){
   const own=CL[o.cls]&&CL[o.cls].sprite;if(own)return own;
   const base=CL[o.cls]?.base||(HS[o.cls]?o.cls:'war');
-  let key=base+o.sex+dir+ph+'w'+swing+(o.ap||'');const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw')};
+  let key=base+o.sex+dir+ph+'w'+swing+(o.ap||'')+(window.HEROI_MANA?'m'+HEROI_MANA.versao():'');const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw')};
   if(window.APARENCIA)E.look=APARENCIA.decodificar(o.ap,E.sex); // aparência escolhida na criação (pele, cabelo, olhos, estilo)
   for(const [slot,id] of Object.entries(o.eq))if(ITEMS[id]&&gearType[id]){E[slot]=ITEMS[id];key+=slot+id}
   key+=chaveEquipAnim(Object.values(E),dir,swing?'attack':ph?'walk':'idle');
@@ -244,11 +262,15 @@
    list.push([o.y,()=>{
     // golpe: mesma animação do próprio jogador (avanço na direção do alvo e balanço da arma)
     const f=face(o),an=anim(o,.25),lg=lunge(o,o.wt,o.aw,.25);ctx.globalAlpha=o.dead?.35:1;
-    dr(lookOf(o,f.d,an.ph||0,an.sw||0),o.x+lg[0],o.y+lg[1],f.fl,1,an);ctx.globalAlpha=1;
+    // aliado girando: roda o desenho e a lâmina junto (js/vfx-habilidades.js)
+    if(o.vfxGiro&&o.vfxGiro.ate>t){const ang=t*Math.PI*2*2.2;o.fx=Math.cos(ang);o.fy=Math.sin(ang);o.fk=undefined}
+    const f2=o.vfxGiro&&o.vfxGiro.ate>t?face(o):f;
+    dr.ent=o;dr(lookOf(o,f2.d,an.ph||0,an.sw||0),o.x+lg[0],o.y+lg[1],f2.fl,1,an);ctx.globalAlpha=1;
+    if(o.vfxGiro&&o.vfxGiro.ate>t&&window.VFX)VFX.lamina(ctx,o.x,o.y-8,o.vfxGiro.raio,t*Math.PI*2*2.2,o.vfxGiro.cor);
     // nome na fonte dos rótulos do jogo; barras de vida e mana iguais às do jogador, com o nível à esquerda
     ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
-    ctx.fillStyle='#000';ctx.fillText(o.name,o.x+.4,o.y-27.6);ctx.fillStyle='#9fe3ff';ctx.fillText(o.name,o.x,o.y-28);
-    const barW=28,tt=1/S,bx=Math.round(o.x-barW/2),by=Math.round(o.y-25),hp=Math.max(0,Math.min(1,+o.hp||0)),mp=Math.max(0,Math.min(1,+o.mp||0));
+    ctx.fillStyle='#000';ctx.fillText(o.name,o.x+.4,o.y-27.6-ACIMA_HEROI());ctx.fillStyle='#9fe3ff';ctx.fillText(o.name,o.x,o.y-28-ACIMA_HEROI());
+    const barW=28,tt=1/S,bx=Math.round(o.x-barW/2),by=Math.round(o.y-25-ACIMA_HEROI()),hp=Math.max(0,Math.min(1,+o.hp||0)),mp=Math.max(0,Math.min(1,+o.mp||0));
     ctx.fillStyle='#3a3a3a';ctx.fillRect(bx-tt,by-tt,barW+2*tt,3+3*tt);
     ctx.fillStyle='#173d1c';ctx.fillRect(bx,by,barW,2);ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hp,2);
     ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+tt,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+tt,barW*mp,1);

@@ -1,4 +1,4 @@
-/* ---------- cenário: pixel art procedural em alta resolução (2x), com variantes únicas e cercas que se conectam ---------- */
+/* ---------- cenário: pixel art procedural em 1:1 (1 pixel = 1 pixel do mundo, como os personagens), com variantes únicas e cercas que se conectam ---------- */
 (function(){
 const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
 const ih=(x,y,s)=>{let h=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,2147483647);h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967296};
@@ -32,7 +32,7 @@ const GL={cb:'116,212,224',cp:'181,140,242',cg:'126,232,180',cr:'245,128,140',ca
 class B{constructor(w,h){this.w=w;this.h=h;this.d=new Uint8ClampedArray(w*h*4)}
  set(x,y,c,a=255){x|=0;y|=0;if(x<0||y<0||x>=this.w||y>=this.h)return;const i=(y*this.w+x)*4;this.d[i]=c[0];this.d[i+1]=c[1];this.d[i+2]=c[2];this.d[i+3]=a}
  solid(x,y){return x>=0&&y>=0&&x<this.w&&y<this.h&&this.d[(y*this.w+x)*4+3]>200}}
-function cvs(b,glow){const c=document.createElement('canvas');c.width=b.w;c.height=b.h;c.q=2;const x=c.getContext('2d');x.putImageData(new ImageData(b.d,b.w,b.h),0,0);
+function cvs(b,glow){const c=document.createElement('canvas');c.width=b.w;c.height=b.h;const x=c.getContext('2d');x.putImageData(new ImageData(b.d,b.w,b.h),0,0);
  if(glow){x.globalCompositeOperation='destination-over';const g=x.createRadialGradient(b.w/2,b.h*.6,2,b.w/2,b.h*.6,b.w*.62);g.addColorStop(0,'rgba('+glow+',.38)');g.addColorStop(1,'rgba('+glow+',0)');x.fillStyle=g;x.fillRect(0,0,b.w,b.h)}return c}
 const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]].map(r=>r.map(v=>(v+.5)/16));
 function shape(b,hf,ramp,o={}){
@@ -201,7 +201,7 @@ function buildTree(v){const w=48,h=52,b=new B(w,h),sd=v*61+9,tx=24;shadow(b,tx,4
  else{ramp=R.leaf2;tr=R.birch;trW=2.5;trTop=30;canopy=(x,y)=>{let z=-1;[[24,15,9],[16,22,8],[32,22,8],[24,24,7]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.4,sd)-.5)*.34;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
  shape(b,(x,y)=>{let z=cap(x,y,tx,46,tx,trTop,trW);const f=Math.max(0,(y-43)/4);if(y>=42&&y<=47){const q=Math.abs(x+.5-tx)/(trW+3.2*f);if(q<1)z=Math.max(z,trW*Math.sqrt(1-q*q))}return z},tr,{k:1,tex:(x,y,t)=>{t+=(noise(x*1.4,y*.3,1,sd)-.5)*.5;if(canopy(x,y-3)>=0||canopy(x,y-5)>=0)t-=.32;if(v==3&&ih(x,y,sd)>.9&&(y%5<2))return{t:.0,ramp:R.birch};return t}});
  shape(b,(x,y)=>{const z=canopy(x,y);return z<0?-1:z+noise(x,y,3.4,sd+4)*2.2},ramp,{k:1,tex:(x,y,t)=>{const s=ih(x,y,sd);return t+(noise(x,y,4,sd+9)-.5)*.36+(s>.95?.2:s<.04?-.18:0)}});
- outline(b,ramp[0]);const c=half(cvs(b));c.pad=0;return c}
+ outline(b,ramp[0]);const c=cvs(b);c.pad=0;return c}
 for(let i=0;i<4;i++)TREEV.push(buildTree(i));
 /* arte do mapa editada pelo GM: PROJ.mapArt[tipo][variante] = pixel art (null = desenho padrão) */
 const artOv=(t,vi)=>{const o=PROJ.mapArt&&PROJ.mapArt[t],d=o&&o[vi];return d&&d.pixels?d:null};
@@ -214,7 +214,8 @@ window.TREEV=TREEV;window.treeVar=t=>Math.floor(ih(Math.round(t.x),Math.round(t.
 let fv=0;window.sceneryDirty=()=>{fv++;for(const key of Object.keys(cache))delete cache[key]};
 function linksOf(e){if(e._fv===fv)return e._lk;const lk=[];for(const n of mapElements){if(n===e||n.type!==e.type)continue;const dx=n.x-e.x,dy=n.y-e.y;if(Math.hypot(dx,dy)>20)continue;if(dy>0||(dy===0&&dx>0))lk.push([Math.round(dx),Math.round(dy)])}
  lk.sort((a,b)=>a[1]-b[1]||a[0]-b[0]);e._fv=fv;e._lk=lk;return lk}
-function fenceSprite(kind,vi,links){const wall=kind=='stonewall',k=2,ph=wall?24:vi==1?28:30,pr=wall?5.2:3,pad=8,
+// k: pixels do desenho por pixel do mundo nas ligações (1:1); a altura dos postes acompanha o herói
+function fenceSprite(kind,vi,links){const wall=kind=='stonewall',k=1,ph=wall?24:vi==1?28:30,pr=wall?5.2:3,pad=8,
   rails=wall?[8,15]:[9,20],ramp=R[wall?(vi?'granite':'stone'):(vi?'drift':'wood')];
  let mnx=-pad,mxx=pad,mny=-ph-pad,mxy=pad;links.forEach(([dx,dy])=>{mnx=Math.min(mnx,dx*k-pad);mxx=Math.max(mxx,dx*k+pad);mny=Math.min(mny,dy*k-ph-pad);mxy=Math.max(mxy,dy*k+pad)});
  const w=Math.ceil(mxx-mnx),h=Math.ceil(mxy-mny),ox=-mnx,oy=-mny,b=new B(w,h),sd=vi*3+(wall?50:7),pid=new Uint8Array(w*h);

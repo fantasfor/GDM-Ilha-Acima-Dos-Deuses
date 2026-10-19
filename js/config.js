@@ -1,6 +1,6 @@
 /* constantes de cálculo (editáveis pelo GM na Enciclopédia > Cálculos) */
-const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:3,magPerI:5,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,monHpMul:6,monHpLevel:.08,armorFloor:.3,
- magArmPerI:1,monMp0:35,monMpPerI:5,monArmPerA:5,monMagArmPerI:1,monPhysPerF:3,monMagPerI:5,monRegenPerF:.05,monRegenPerI:.05,monMove0:28,monMovePerA:.45,monMinInterval:.25,monAtkSpdPerA:.005};
+const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:.2,magPerI:.2,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,armorFloor:.3,
+ magArmPerI:1,monMp0:35,monMpPerI:5,monArmPerA:5,monMagArmPerI:1,monPhysPerF:.2,monMagPerI:.2,monRegenPerF:.05,monRegenPerI:.05,monMove0:28,monMovePerA:.005,monMinInterval:.25,monAtkSpdPerA:.005};
 const CALC_DEF={...CALC};
 /* fórmulas dos monstros: separadas das do personagem (Engine › Fórmulas › Monstros) */
 const monPhysPerF=()=>CALC.monPhysPerF,monMagPerI=()=>CALC.monMagPerI;

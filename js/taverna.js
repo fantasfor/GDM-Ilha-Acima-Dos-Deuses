@@ -14,7 +14,7 @@
  const LANCEIRO={x:OX+214,y:OY+100,fx:0,fy:1,nm:'Lanceiro Aldric'};
  // montado como os outros personagens (mesma escala de pixel): placas de ferro, grevas e botas de aço, capa, escudo e a lança do pacote de armas
  const LANCA_NPC=(()=>{const a=window.PACOTE_ARMAS&&PACOTE_ARMAS.ARMAS.lanca;return{v:{c:['#9aa7b8','#7a4a25'],st:0},equippedSprite:a?pixelArt(a.mao):null,ataque:'estocada',pega:a?a.pega:.72,escalaMao:2,wt:'lanca'}})();
- const looksLanceiro={},spriteLanceiro=dir=>looksLanceiro[dir]||(looksLanceiro[dir]=human('war',dir,0,{nude:1,sex:'m',he:ITEMS.he1,ch:ITEMS.ch1,le:ITEMS.le2,bo:ITEMS.bo2,ca:ITEMS.ca1,sh:ITEMS.sh,sw:LANCA_NPC}));
+ const looksLanceiro={},spriteLanceiro=d=>{const dir=d,k=d+(window.HEROI_MANA?HEROI_MANA.versao():'');return looksLanceiro[k]||(looksLanceiro[k]=human('war',dir,0,{nude:1,sex:'m',he:ITEMS.he1,ch:ITEMS.ch1,le:ITEMS.le2,bo:ITEMS.bo2,ca:ITEMS.ca1,sh:ITEMS.sh,sw:LANCA_NPC}))};
  /* mestres de classe: um por classe do projeto; aprender uma classe nova custa PRECO_CLASSE de ouro
     (voltar para uma classe que o jogador já aprendeu é grátis) */
  const PRECO_CLASSE=2000;
@@ -121,7 +121,7 @@
   BARRIS.forEach(b=>L.push([b.y,()=>barril(b)]));
   L.push([BARKEEP.y,()=>{
    const f=face(BARKEEP),spr=(HS.sty||HS.war)[f.d];dr(spr,BARKEEP.x,BARKEEP.y,f.fl,1,anim(BARKEEP,0));
-   ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(BARKEEP.nm,BARKEEP.x+.5,BARKEEP.y-21.5);ctx.fillStyle='#ffe28a';ctx.fillText(BARKEEP.nm,BARKEEP.x,BARKEEP.y-22);
+   ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(BARKEEP.nm,BARKEEP.x+.5,BARKEEP.y-21.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(BARKEEP.nm,BARKEEP.x,BARKEEP.y-22-ACIMA_HEROI());
    ctx.fillStyle='#ffd84a';ctx.fillText('!',BARKEEP.x,BARKEEP.y-28+Math.round(Math.sin(time*4)*1.5));
   }]);
   // mestres de classe
@@ -131,18 +131,18 @@
    if(mestreSob===m)circ(m.x,m.y,12,'#ff5');
    dr(spr,m.x,m.y,f.fl,1,anim(m,0));
    ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
-   ctx.fillStyle='#000';ctx.fillText(m.nm,m.x+.4,m.y-21.6);ctx.fillStyle='#ffe28a';ctx.fillText(m.nm,m.x,m.y-22);
+   ctx.fillStyle='#000';ctx.fillText(m.nm,m.x+.4,m.y-21.6-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(m.nm,m.x,m.y-22-ACIMA_HEROI());
    if(m.cls!==p.cls){ctx.fillStyle='#ffd84a';ctx.font='6px monospace';ctx.fillText('!',m.x,m.y-28+Math.round(Math.sin(time*4+m.x)*1.5))}
   }]);
   L.push([LANCEIRO.y,()=>{const x=LANCEIRO.x,y=LANCEIRO.y,f=face(LANCEIRO);
    if(lanceiroSob)circ(x,y,12,'#ff5');
    dr(spriteLanceiro(f.d),x,y,f.fl,1,anim(LANCEIRO,0));
-   ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#000';ctx.fillText(LANCEIRO.nm,x+.4,y-21.6);ctx.fillStyle='#ffe28a';ctx.fillText(LANCEIRO.nm,x,y-22);
+   ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#000';ctx.fillText(LANCEIRO.nm,x+.4,y-21.6-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(LANCEIRO.nm,x,y-22-ACIMA_HEROI());
    ctx.fillStyle='#f87171';ctx.font='bold 6px monospace';ctx.fillText('PvP',x,y-28+Math.round(Math.sin(time*4)*1.5))}]);
   // o balcão fica na frente da taverneira
   L.push([OY+91,()=>ctx.drawImage(fundo,8,66,186,26,OX+8,OY+66,186,26)]);
-  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
-   const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
+  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
+   const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25-ACIMA_HEROI()),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
   if(window.onlineDrawables)onlineDrawables(L);
   L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());

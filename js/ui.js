@@ -18,7 +18,11 @@ function drawPortrait(){const W=96,H=80,g=pt.createLinearGradient(0,0,0,H);g.add
  const mv=time-(p.mvAt||-9)<.2,ph=mv?[1,0,2,0][Math.floor(time*8)%4]:0,atk=p.aw>0?Math.min(3,1+Math.floor((1-p.aw/.25)*3)):0,
   br=Math.sin(time*2.5),bob=mv?-(Math.floor(time*8)%2)*2:0,h=Math.round(72+br*1.5),w=Math.round(63-br*.8);
  const hi=heroImg('d',{ph,sw:atk});
- pt.drawImage(hi,11+(hi.ox||0),2+(hi.oy||0),18,16,Math.round((W-w*18/14)/2),H-4-h+bob,Math.round(w*18/14),h)}
+ // personagem Mana Seed (quadro 64×64, js/heroi-mana.js): cabeça e tronco
+ if(hi.width===64&&hi.height===64){const sh=Math.round(h*1.05),sw=Math.round(sh*26/30);pt.imageSmoothingEnabled=false;pt.drawImage(hi,19,12,26,30,Math.round((W-sw)/2),H-4-sh+bob+6,sw,sh);return}
+ // cabeça e tronco do herói (grade 16×26 no quadro 40×32: cabeça a partir da linha 2)
+ const sh2=Math.round(h*1.15),sw2=Math.round(sh2*16/20);pt.imageSmoothingEnabled=false;
+ pt.drawImage(hi,12+(hi.ox||0),1+(hi.oy||0),16,20,Math.round((W-sw2)/2),H-4-sh2+bob+8,sw2,sh2)}
 const INV_CATEGORIES=[['all','Todos'],['consumables','Consumíveis'],['materials','Materiais'],['sw','Armas'],['he','Capacete'],['ch','Peito'],['le','Calça'],['bo','Bota'],['ca','Capa'],['ne','Colar'],['ri','Anel']];
 /* ícones 16×16 dos filtros da mochila: contorno escuro, três tons e um brilho */
 const INV_CATEGORY_ICONS={
@@ -211,7 +215,7 @@ function loadGame(){
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
   if(d.p.look&&typeof d.p.look=='object')p.look=window.APARENCIA?APARENCIA.normalizar(d.p.look,p.sex):d.p.look;
   // kits iniciais já recebidos; saves de antes dos kits contam as classes que o jogador já tinha
-  p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=true}else for(const c in p.classProgress)p.kits[c]=true;
+  p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=Array.isArray(d.p.kits[c])?d.p.kits[c]:true}else for(const c in p.classProgress)p.kits[c]=true;
   const pv=d.p.pvp||{};p.pvp={};for(const k of ['abates','mortes','vitorias','derrotas','empates'])p.pvp[k]=Math.max(0,Math.floor(+pv[k]||0)); // placar da arena
   BESTIARIO.k={};BESTIARIO.d={};const best=d.bestiario||{};
   if(best.k&&typeof best.k=='object')for(const ty in best.k)if(Number.isFinite(best.k[ty])&&best.k[ty]>0)BESTIARIO.k[ty]=Math.floor(best.k[ty]);
@@ -245,7 +249,7 @@ const ap=document.createElement('div');ap.id='ap';document.querySelector('#invp 
 function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,d=0)=>Number(v).toFixed(d),value=(total,initial,d=0)=>{const delta=total-initial,sign=delta<0?' - ':' + ';return fmt(initial,d)+(Math.abs(delta)>0.0001?'<span class="statBonus">'+sign+fmt(Math.abs(delta),d)+'</span>':'')},row=(l,v,col)=>'<div><span'+(col?' style="color:'+col+'"':'')+'>'+l+'</span><i>'+v+'</i></div>';
  const passiveAttr=k=>c.pa?c.pa(k):0,baseF=a.F-passiveAttr('F'),baseA=a.A-passiveAttr('A'),baseI=a.I-passiveAttr('I');
  const effectSum=kind=>Object.keys(p.st||{}).reduce((sum,k)=>{const s=p.st[k];return FX_INFO[k]&&FX_INFO[k].kind==kind&&s.t>0?sum+s.pw*(s.n||1):sum},0);
- const hpBase=Math.round(CALC.hp0+(baseF-3)*CALC.hpPerF)+bonus('hp'),mpBase=Math.round(CALC.mp0+(baseI-3)*CALC.mpPerI)+bonus('mp');
+ const hpBase=Math.round(CALC.hp0+baseF*CALC.hpPerF)+bonus('hp'),mpBase=Math.round(CALC.mp0+(baseI-3)*CALC.mpPerI)+bonus('mp');
  const regenHpBase=baseF*CALC.regenPerF+campB()+bonus('regenHp'),regenMpBase=baseI*CALC.regenPerI+campB()+bonus('regenMp'),hpRegenEffect=effectSum('hot');
  const damageFactor=(1+(c.pDmg||0))*(p.bf>0?1.5:1)*(1+effectSum('dmgup')/100);
  const hasteFactor=Object.keys(p.st||{}).reduce((factor,k)=>{const s=p.st[k];return FX_INFO[k]&&FX_INFO[k].kind=='haste'&&s.t>0?factor*(1+s.pw*(s.n||1)/100):factor},1);
@@ -257,7 +261,7 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
   row('Força',value(a.F,baseF),'#f55')+row('Agilidade',value(a.A,baseA),'#5ee05a')+row('Inteligência',value(a.I,baseI),'#5aa8ff')+'<hr>'+
   row('Vida máx.',value(mhp(),hpBase))+row('Mana máx.',value(mmp(),mpBase))+
   row('Reg. vida',value(regenHp()+hpRegenEffect,regenHpBase,2)+'/s')+row('Reg. mana',value(regenMp(),regenMpBase,2)+'/s')+'<hr>'+
-  row('Dano físico',Math.round((physicalPower()+bonus('dmg'))*damageFactor))+row('Dano mágico',Math.round((magicPower()+bonus('dmg'))*damageFactor))+
+  row('Dano físico',Math.round((physicalPower()+danoArma())*damageFactor*multDano('physical')))+row('Dano mágico',Math.round((magicPower()+danoArma())*damageFactor*multDano('magic')))+
   row('Def. física',value(armor(),armorBase))+row('Def. mágica',value(magicArmor(),magicArmorBase))+
   (protection?row('Proteção','<span class="statBonus">'+protection+'%</span>'):'')+
   row('Int. de ataque',value(attackInterval(),intervalBase,2)+'s')+row('Vel. movimento',value(moveWithEffects,moveBase))+

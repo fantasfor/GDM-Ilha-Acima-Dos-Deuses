@@ -628,11 +628,8 @@
   // Itens saltando para fora com raio de luz
   items.forEach((id, idx) => {
    const it = ITEMS[id];
-   let img = it && it.itemSprite || null;
-   if(!img && it && it.ic){
-    img = new Image();
-    img.src = it.ic;
-   }
+   // mesmo desenho dos itens no chão (js/loot.js): próprio do item ou o ícone reduzido a 8×8, em tamanho real
+   const img = it && (it.itemSprite || (it.c && it.c.getContext ? reduzirArte(it.c, 8, 8) : null)) || null;
    const q = gearType[id] ? Math.floor(rnd(qualityRange[0], qualityRange[1] + 1)) : null;
    const itemRarityColors = ['#9a9a9a', '#f0f0f0', '#4fd860', '#4f9af0', '#c060f0', '#ffb830'];
    const qualityIndex = q == null ? -1 : q < 20 ? 0 : q < 45 ? 1 : q < 70 ? 2 : q < 90 ? 3 : q < 100 ? 4 : 5;
@@ -1625,7 +1622,7 @@
    if(e.hp <= 0 && (!e.deathFade || e.deathFade <= 0)) return;
    renderList.push([e.y, () => {
     const f = face(e);
-    const scale = (e.boss ? 1.5 : 1) * (window.MSCALE || .7) * (e.size || 1);
+    const scale = ESCALA_MUNDO;
     const spriteH = wh(e.img) * scale;
     const labelY = e.y - spriteH - 1;
 
@@ -1656,11 +1653,11 @@
     ctx.globalAlpha = p.hit > 0 ? .5 : 1;
     const f = face(p);
     const an = anim(p, .25);
-    dr(heroImg(f.d, an), p.x + o[0], p.y + o[1], f.fl, 1, an);
+    dr.ent = p; dr(heroImg(f.d, an), p.x + o[0], p.y + o[1], f.fl, 1, an);
     ctx.globalAlpha = 1;
 
     // Barra de vida e mana acima do jogador
-    const barW = 28, t = 1 / S, barX = Math.round(p.x - barW / 2), barY = Math.round(p.y - 25);
+    const barW = 28, t = 1 / S, barX = Math.round(p.x - barW / 2), barY = Math.round(p.y - 25 - ACIMA_HEROI());
     const maxHp = mhp(), maxMp = mmp();
     const hpRatio = Math.max(0, Math.min(1, p.hp / maxHp)), mpRatio = Math.max(0, Math.min(1, p.mp / maxMp));
     ctx.fillStyle = '#3a3a3a'; ctx.fillRect(barX - t, barY - t, barW + 2 * t, 3 + 3 * t);
@@ -1697,7 +1694,7 @@
      ctx.fillRect(Math.round(fl.x - 6), Math.round(fl.y - 6), 12, 12);
      ctx.strokeStyle = ctx.shadowColor;
      ctx.strokeRect(Math.round(fl.x - 6), Math.round(fl.y - 6), 12, 12);
-     if(fl.img) ctx.drawImage(fl.img, Math.round(fl.x - 4), Math.round(fl.y - 4), 8, 8);
+     if(fl.img) ctx.drawImage(fl.img, Math.round(fl.x - fl.img.width / 2), Math.round(fl.y - fl.img.height / 2));
      ctx.restore();
     }
    }

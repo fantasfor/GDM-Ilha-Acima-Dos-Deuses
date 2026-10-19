@@ -27,7 +27,7 @@ const monsterMaxMp=entity=>Math.max(0,(entity.maxMp??monMana(entity.stats.I))+st
 const areaMultiplier=entity=>Math.sqrt(Math.max(.01,1+(entity===p?bonus('area'):monsterAttribute(entity,'area'))));
 const cooldownMultiplier=entity=>1-Math.max(0,Math.min(.9,entity===p?bonus('cooldownReduction'):monsterAttribute(entity,'cooldownReduction')));
 // tempo de conjuração da habilidade: Velocidade de conjuração +100% = metade do tempo
-const tempoConj=s=>{const base=+s.castTime||0;return base>0?base/Math.max(.1,1+bonus('castSpeed')):0};
+const tempoConj=s=>{if(s.conjAtaque>0)return attackInterval()*s.conjAtaque/100; /* conjuração = % do intervalo do ataque básico (ex.: Corte Horizontal, 50%) */const base=+s.castTime||0;return base>0?base/Math.max(.1,1+bonus('castSpeed')):0};
 function combatRoll(entity,damage){
  const value=k=>entity===p?bonus(k):monsterAttribute(entity,k),crit=Math.random()<Math.max(0,Math.min(1,value('critChance')));
  return {damage:damage*(crit?Math.max(1,1.5+value('critDamage')):1),crit,lifeSteal:Math.max(0,Math.min(1,value('lifeSteal'))),magicLifeSteal:Math.max(0,Math.min(1,value('magicLifeSteal')))};
@@ -47,7 +47,7 @@ function applyActionAttributes(entity,source){
  entity.mp=Math.min(entity===p?mmp():monsterMaxMp(entity),(entity.mp||0)+(+action.mp||0));
 }
 const campB=()=>insideCamp(p.x,p.y)?CALC.camp:0,regenHp=()=>attributes().F*CALC.regenPerF+campB()+bonus('regenHp'),regenMp=()=>attributes().I*CALC.regenPerI+campB()+bonus('regenMp');
-const dmgP=()=>Math.round((bonus('dmg')+weaponPower())*(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0)));
+const dmgP=()=>Math.round((danoArma()+weaponPower())*(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0))*multDano((p.attackBasic||basic()).damageType));
 function gainPlayerXp(value){
  p.xp+=Math.max(0,value);
  while(p.lvl<CALC.maxLevel&&p.xp>=p.lvl*CALC.xpPerLevel){p.xp-=p.lvl*CALC.xpPerLevel;p.lvl++;applySkills();p.hp=mhp();p.mp=mmp();ring(p.x,p.y,50,'#ffd84a',.8);if(window.playGameSound)playGameSound('levelUp');ft(p.x,p.y-24,'NÍVEL '+p.lvl+'!','#ffd84a')}
@@ -56,9 +56,9 @@ function gainPlayerXp(value){
 const FX_INFO={poison:{n:'Veneno',c:'#7d3',kind:'dot',tick:1,dtype:'true'},burn:{n:'Queimadura',c:'#f83',kind:'dot',tick:1,dtype:'true'},bleed:{n:'Sangramento',c:'#d33',kind:'dot',tick:1,dtype:'true'},slow:{n:'Lentidão',c:'#6bf',kind:'slow'},stun:{n:'Atordoado',c:'#fd4',kind:'stun'}};
 const fxKind=k=>FX_INFO[k]&&FX_INFO[k].kind;
 function vulnMult(t){let m=0;if(t.st)for(const k in t.st)if(fxKind(k)=='vuln')m=Math.max(m,t.st[k].pw*(t.st[k].n||1));return 1+m/100}
-const charDamage=t=>typedPower(t)+bonus('dmg');
+const charDamage=t=>typedPower(t)+danoArma();
 const monsterWeaponDamageDelta=e=>(e.weaponRanges||[]).reduce((sum,range)=>sum+rollWeaponDamage(range)-(range.min+range.max)/2,0);
-function monsterCtx(e,weaponDelta=0){const s=monsterAttributes(e),equipmentDamage=monsterAttribute(e,'dmg')+weaponDelta,ph=s.F*monPhysPerF()+monsterAttribute(e,'physicalDmg')+equipmentDamage,mg=s.I*monMagPerI()+monsterAttribute(e,'magicDmg')+equipmentDamage;return{phys:ph,mag:mg,entity:e,attr:k=>k=='none'||!k?0:k=='physicalPower'?ph-equipmentDamage:k=='magicPower'?mg-equipmentDamage:k=='dmg'?equipmentDamage:k=='weaponPower'||k=='charDamage'?(e.attackMagic?mg:ph):s[k]||0}}
+function monsterCtx(e,weaponDelta=0){const s=monsterAttributes(e),equipmentDamage=monsterAttribute(e,'dmg')+weaponDelta,ph=(monsterAttribute(e,'physicalDmg')+equipmentDamage)*(1+s.F*monPhysPerF()/100),mg=(monsterAttribute(e,'magicDmg')+equipmentDamage)*(1+s.I*monMagPerI()/100);return{phys:ph,mag:mg,entity:e,attr:k=>k=='none'||!k?0:k=='physicalPower'?monsterAttribute(e,'physicalDmg'):k=='magicPower'?monsterAttribute(e,'magicDmg'):k=='dmg'?equipmentDamage:k=='weaponPower'||k=='charDamage'?(e.attackMagic?mg:ph):s[k]||0}}
 function resolveFx(list,cd,ctx){ctx=ctx||{phys:charDamage('physical'),mag:charDamage('magic'),entity:p,attr:k=>k=='none'||!k?0:scaleBase(k,'physical')};return(Array.isArray(list)?list:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const dot=fxKind(f.type)=='dot',src=f.src=='physical'?ctx.phys:f.src=='magic'?ctx.mag:cd;return{caster:ctx.entity||p,self:f.target=='self',type:f.type,chance:f.chance==null||f.chance===''?100:+f.chance,dur:Math.max(.5,+f.dur||FX_INFO[f.type].dur||3),pw:(+f.power||FX_INFO[f.type].power||0)+(dot?(+f.pct||0)/100*src+(+f.attrPct||0)/100*ctx.attr(f.attr):0)}})}
 function applyFx(t,fx){if(!fx||!fx.length)return;let k=0;for(const f of fx){if(Math.random()*100>=f.chance)continue;const tg=f.self?f.caster||p:t;tg.st=tg.st||{};const o=tg.st[f.type];tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,n:Math.min(FX_INFO[f.type].stacks||1,(o?o.n||1:0)+1)};ft(tg.x,tg.y-36-k++*7,FX_INFO[f.type].n,FX_INFO[f.type].c)}}
 function tickStatus(t,dt){
@@ -84,24 +84,28 @@ function tickStatus(t,dt){
   if(s.t<=0)delete t.st[k];
  }
 }
-const statusSpeed=t=>{const s=t.st;if(!s)return 1;let v=1;for(const k in s){const q=fxKind(k);if(q=='stun')return 0;if(q=='slow')v=Math.min(v,Math.max(.1,1-s[k].pw*(s[k].n||1)/100))}for(const k in s)if(fxKind(k)=='haste')v*=1+s[k].pw*(s[k].n||1)/100;return v};
+const statusSpeed=t=>{if(t===p&&p.dash)return 0; /* correndo na investida: o movimento é da habilidade */const s=t.st;if(!s)return 1;let v=1;for(const k in s){const q=fxKind(k);if(q=='stun')return 0;if(q=='slow')v=Math.min(v,Math.max(.1,1-s[k].pw*(s[k].n||1)/100))}for(const k in s)if(fxKind(k)=='haste')v*=1+s[k].pw*(s[k].n||1)/100;return v};
 function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(window.ARENA)ARENA.golpe(e,d,magic,fx,dot);return}e.foraCombate=0;e.resetando=false;const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  const physicalDefense=(e.armor??(e.stats?e.stats.A*CALC.monArmPerA:0))+statusAttributeBonus(e,'arm')+statusAttributeBonus(e,'A')*CALC.monArmPerA;
  const magicalDefense=(e.magicArmor??(e.stats?monMagArm(e.stats.F,e.stats.A,e.stats.I):0))+statusAttributeBonus(e,'magicArm')+monMagArm(...['F','A','I'].map(k=>statusAttributeBonus(e,k)));
  // a defesa do monstro não reduz o golpe abaixo de CALC.armorFloor (30%) do dano
  let magicShare=mg?1:0;const piso=CALC.armorFloor??.3,depois=(v,def)=>Math.max(1,v*piso,v-def);
- if(d&&typeof d=='object'){const phys=+d.physical||0,mag=+d.magic||0,pp=phys>0?depois(phys,physicalDefense):0,mp=mag>0?depois(mag,magicalDefense):0;magicShare=mp/((pp+mp)||1);d=pp+mp;if(!dot)d*=vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)}
- else{const defense=tr?0:mg?magicalDefense:physicalDefense;d=Math.max(1,depois(d,defense)*(dot?1:vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)))}
+ const fis=dot?1:1+stSum(p,'physup')/100;
+ if(d&&typeof d=='object'){const phys=(+d.physical||0)*fis,mag=+d.magic||0,pp=phys>0?depois(phys,physicalDefense):0,mp=mag>0?depois(mag,magicalDefense):0;magicShare=mp/((pp+mp)||1);d=pp+mp;if(!dot)d*=vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)}
+ else{const defense=tr?0:mg?magicalDefense:physicalDefense;d=Math.max(1,depois(d*(mg||tr?1:fis),defense)*(dot?1:vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)))}
  const roll=dot?{damage:d,lifeSteal:0,magicLifeSteal:0}:combatRoll(p,d);d=roll.damage;drainLife(p,Math.min(e.hp,d),stealRatio(roll,magicShare));
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
  if(!dot&&window.somDoJogador)somDoJogador('h.'+e.ty+'.'+(magic?1:0)); // os outros jogadores da sala ouvem o golpe
  if(window.marcarCombate)marcarCombate();
- if(e.mpProxy){e.hp=Math.max(1,e.hp-d);if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx)applyFx(e,fx.filter(f=>f.self));if(window.MP)MP.golpe(e,d,fx&&fx.filter(f=>!f.self));return}
- e.hp-=d;if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d),dot?FX_INFO[dot].c:'#fff');if(fx&&e.hp>0)applyFx(e,fx);
+ if(e.mpProxy){e.hp=Math.max(1,e.hp-d);if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d)+(roll.crit?'!':''),dot?FX_INFO[dot].c:roll.crit?'#ffd84a':'#fff');if(fx)applyFx(e,fx.filter(f=>f.self));if(window.MP)MP.golpe(e,d,fx&&fx.filter(f=>!f.self));return}
+ e.hp-=d;if(!dot){e.hit=.15;if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'hurt'))&&window.playGameSound)playGameSound(magic?'magicHit':'sword')}ft(e.x,e.y-22,Math.round(d)+(roll.crit?'!':''),dot?FX_INFO[dot].c:roll.crit?'#ffd84a':'#fff');if(fx&&e.hp>0)applyFx(e,fx);
  if(e.hp<=0)killMonster(e)}
 /* Morte de um monstro: XP, ouro, missões e itens. No multijogador o dono da sala avisa os outros,
    e cada um recebe a própria recompensa chamando esta mesma função com a cópia local do monstro. */
+/* equipamentos do plano de balanceamento de um nível (itens com nivel e pacote equip-v1) */
+
+
 function killMonster(e){
  {
   if(window.MP)MP.morreu(e);
@@ -120,6 +124,8 @@ function killMonster(e){
   if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar('saw',true)}
   // cada item da lista do monstro tem a sua chance (%) e é sorteado sozinho; sem lista, não cai nada
   for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&Math.random()*100<d.chance)largar(d.id);
+  // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível
+
  }}
 function hurtP(d,magic=false,fx=null,dot=null,attacker=null){if(window.marcarCombate)marcarCombate();const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  let magicShare=mg?1:0;
@@ -136,39 +142,49 @@ function gainClassXp(value){
  if(progress.rank>=10)progress.xp=0;
  if(window.renderSkillMenu)renderSkillMenu();if(window.saveGame)saveGame()}
 const attributes=()=>{const c=CL[p.cls],growth=c.perLevel||{},x=k=>c.pa?c.pa(k):0;return{F:3+(c.F||0)+(growth.F||0)*(p.lvl-1)+x('F')+bonus('F'),A:3+(c.A||0)+(growth.A||0)*(p.lvl-1)+x('A')+bonus('A'),I:3+(c.I||0)+(growth.I||0)*(p.lvl-1)+x('I')+bonus('I')}};
-const mhp=()=>Math.max(1,Math.round((CALC.hp0+(attributes().F-3)*CALC.hpPerF)*(1+(CL[p.cls].passiveHp||0)))+bonus('hp'));
+const mhp=()=>Math.max(1,Math.round((CALC.hp0+attributes().F*CALC.hpPerF)*(1+(CL[p.cls].passiveHp||0)))+bonus('hp'));
 const mmp=()=>Math.max(0,Math.round((CALC.mp0+(attributes().I-3)*CALC.mpPerI)*(1+(CL[p.cls].pMp||0)))+bonus('mp'));
 const armor=()=>Math.round(attributes().A*CALC.armPerA+bonus('arm')*(1+(CL[p.cls].pArm||0)));
 const magicArmor=()=>Math.round(attributes().I*CALC.magArmPerI+bonus('magicArm')*(1+(CL[p.cls].pMagicArm||0)));
 const attackInterval=()=>Math.max(CALC.minInterval,(CL[p.cls].attackSpeed||1)*(1-attributes().A*CALC.atkSpdPerA)*(1-(CL[p.cls].pAttackSpeed||0))*(1-bonus('attackSpeed')));
 const spdB=()=>Math.max(-1,bonus('spd')+bonus('moveSpeed')+attributes().A*CALC.spdPerA+(CL[p.cls].pSpd||0)+(CL[p.cls].pMoveSpeed||0));
-const magicPower=()=>attributes().I*CALC.magPerI+bonus('magicDmg');
-const physicalPower=()=>attributes().F*CALC.physPerF+bonus('physicalDmg');
+/* Força e Inteligência aumentam o dano em %: cada ponto dá physPerF % (Força, dano físico) ou magPerI % (Inteligência,
+   dano mágico) — com 0,1, 10 pontos = +1%. O poder é só o dano fixo dos atributos Dano físico / Dano mágico. */
+const multDano=t=>1+(t=='magic'?attributes().I*CALC.magPerI:attributes().F*CALC.physPerF)/100;
+// dano das armas e itens (a maior parte do golpe): não cresce com o nível, depende da arma equipada
+const danoArma=()=>bonus('dmg');
+// dano de uma mão: o total dos equipamentos sem a arma da outra mão (o golpe é dado por uma arma só)
+const danoMao=mao=>{const s=EQ[mao=='sh'?'sw':'sh'];if(!s||gearType[s.id]!=='sw')return danoArma();const v=weaponDamageRolls&&weaponDamageRolls.has(s)?weaponDamageRolls.get(s):qStats(s.id,s.q).dmg||0;return danoArma()-v};
+// habilidades usam só o dano da arma da mão principal: a arma da mão 2 (ex.: escudo) fica de fora
+const danoPrimaria=()=>danoMao('sw');
+const danoHabilidade=t=>typedPower(t)+danoPrimaria();
+const magicPower=()=>bonus('magicDmg');
+const physicalPower=()=>bonus('physicalDmg');
 const weaponPower=()=>{const b=p.attackBasic||basic();return b.damageType=='magic'?magicPower():physicalPower()};
-const scaleValue=s=>({weaponPower:weaponPower(),physicalPower:physicalPower(),magicPower:magicPower(),dmg:bonus('dmg'),F:attributes().F,A:attributes().A,I:attributes().I}[s]||0);
+const scaleValue=s=>({weaponPower:weaponPower(),physicalPower:physicalPower(),magicPower:magicPower(),dmg:danoPrimaria(),F:attributes().F,A:attributes().A,I:attributes().I}[s]||0);
 const typedPower=t=>t=='magic'?magicPower():t=='physical'?physicalPower():weaponPower();
-const scaleBase=(st,t)=>st=='weaponPower'?typedPower(t):st=='charDamage'?typedPower(t)+bonus('dmg'):scaleValue(st);
+const scaleBase=(st,t)=>st=='weaponPower'?typedPower(t):st=='charDamage'?typedPower(t)+danoPrimaria():scaleValue(st);
 /* dano = fixo + por nível + % do dano do personagem + % de um atributo/poder */
 const scaledDamage=s=>{const st=s.scaleStat||'none',ap=s.scalePercent==null?100:+s.scalePercent||0;
- return Math.round((+s.base||0)+(+s.per||0)*p.lvl+(+s.charPercent||0)/100*charDamage(s.damageType)+(st=='none'?0:scaleBase(st,s.damageType)*ap/100))};
-const splitSkillDamage=s=>({physical:Math.max(0,(+s.physicalFlat||0)+(+s.actionStats?.physicalDmg||0)+(+s.physicalPercent||0)*charDamage('physical')/100),magic:Math.max(0,(+s.magicFlat||0)+(+s.actionStats?.magicDmg||0)+(+s.magicPercent||0)*charDamage('magic')/100)});
+ return Math.round(((+s.base||0)+(+s.per||0)*p.lvl+(+s.charPercent||0)/100*danoHabilidade(s.damageType)+(st=='none'?0:scaleBase(st,s.damageType)*ap/100))*multDano(skillMagic(s)?'magic':'physical'))};
+const splitSkillDamage=s=>({physical:Math.max(0,((+s.physicalFlat||0)+(+s.actionStats?.physicalDmg||0)+(+s.physicalPercent||0)*danoHabilidade('physical')/100)*multDano('physical')),magic:Math.max(0,((+s.magicFlat||0)+(+s.actionStats?.magicDmg||0)+(+s.magicPercent||0)*danoHabilidade('magic')/100)*multDano('magic'))});
 const hasSplitDamage=s=>['physicalFlat','physicalPercent','magicFlat','magicPercent'].some(k=>+s[k]>0)||+s.actionStats?.physicalDmg>0||+s.actionStats?.magicDmg>0,
  skillDamage=s=>{if(s.damageModel=='split')return splitSkillDamage(s);if(!hasSplitDamage(s))return scaledDamage(s);
   const d=splitSkillDamage(s),old=scaledDamage(s),magic=s.damageType=='magic'||s.damageType!='physical'&&basic().damageType=='magic';d[magic?'magic':'physical']+=old;return d};
 const damageText=d=>d&&typeof d=='object'?Math.round(d.physical||0)+' físico + '+Math.round(d.magic||0)+' mágico':Math.round(d);
 const skillMagic=s=>s.damageType=='magic'||(s.damageType!='physical'&&basic().damageType=='magic');
 const basicAttackDamage=b=>withWeaponDamageRoll(()=>{if(b&&b.formula){applyActionAttributes(p,b.formula);const damage=b.splitDamage?skillDamage(b.formula):scaledDamage(b.formula),factor=(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0))*(b.dm||1);return damage&&typeof damage=='object'?{physical:Math.round((damage.physical||0)*factor),magic:Math.round((damage.magic||0)*factor)}:Math.round(damage*factor)}
- const factor=(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0))*(b.dm||1),primary=Math.round((bonus('dmg')+weaponPower())*factor),off=bonus(b&&b.damageType=='magic'?'physicalDmg':'magicDmg')*factor;
+ const factor=(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0))*(b.dm||1),mg=!!(b&&b.damageType=='magic'),primary=Math.round((danoMao(b&&b.weaponSlot||'sw')+weaponPower())*factor*multDano(mg?'magic':'physical')),off=bonus(mg?'physicalDmg':'magicDmg')*factor*multDano(mg?'physical':'magic');
  return b&&b.damageType=='magic'?{physical:off,magic:primary}:{physical:primary,magic:off}});
 p.hp=mhp();p.mp=mmp();
 const heal=n=>{p.hp=Math.min(mhp(),p.hp+n);ft(p.x,p.y-24,'+'+n,'#6f6');ring(p.x,p.y,24,'#6f6',.4)};
 const withWeaponDamage=(d,flat)=>d&&typeof d=='object'||flat?d:d+weaponPower();
-const pr=(dm,col,hl,opt={})=>{const f=(w,t)=>{const a=Math.atan2(t.y-8-p.y,t.x-p.x),d=dm();proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:withWeaponDamage(d,opt.flat),magic:opt.magic??(basic().damageType=='magic'),c:col,hl,tg:t,fx:opt.fx&&opt.fx()})};f.tg=1;return f};
+const pr=(dm,col,hl,opt={})=>{const f=(w,t)=>{const a=Math.atan2(t.y-8-p.y,t.x-p.x),d=dm();proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:withWeaponDamage(d,opt.flat),magic:opt.magic??(basic().damageType=='magic'),c:col,hl,tg:t,fx:opt.fx&&opt.fx(),seta:!(opt.magic??(basic().damageType=='magic'))&&typeof armaDeTiro=='function'&&armaDeTiro()})};f.tg=1;return f};
 const blink=(dm,opt={})=>w=>{let d=Math.min(80,dist(p,w)),a=Math.atan2(w.y-p.y,w.x-p.x);while(d>0&&(!walk(p.x+Math.cos(a)*d,p.y+Math.sin(a)*d)||!campWallSegmentClear(p,{x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d})))d=Math.max(0,d-4);ring(p.x,p.y,16,'#9cf');p.x+=Math.cos(a)*d;p.y+=Math.sin(a)*d;p.dest=null;ring(p.x,p.y,16,'#9cf');if(dm)en.forEach(e=>{if(e.hp>0&&dist(e,p)<32*areaMultiplier(p)&&linhaLivre(p,e))hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())})};
 const nova=(r,dm,col,hl,opt={})=>()=>{const radius=r*areaMultiplier(p);ring(p.x,p.y,radius,col,.35);en.forEach(e=>{if(e.hp>0&&dist(e,p)<radius&&linhaLivre(p,e))hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())});if(hl)heal(hl())};
+/* Ícone de habilidade no padrão de 16×16 (js/proporcao.js): o símbolo é desenhado em 24×24 e reduzido sem borrar;
+   fundo e moldura são feitos direto em 16×16 */
 function SKI(k,a,b){const c=mkCanvas(24,24),x=c.getContext('2d'),{R,disc}=kit(x),D=shade(a,.35),L=shade(a,1.35);
- for(let y=0;y<24;y++){x.fillStyle=shade(a,.16+.14*(1-y/24));x.fillRect(0,y,24,1)}
- R(0,0,24,1,shade(a,.55));R(0,0,1,24,shade(a,.45));R(0,23,24,1,'#05070a');R(23,0,1,24,'#05070a');
  const ln=(x0,y0,x1,y1,w,col)=>{const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));for(let i=0;i<=n;i++)R(Math.round(x0+(x1-x0)*i/n),Math.round(y0+(y1-y0)*i/n),w,w,col)};
  if(k=='orb'||k=='meteor'){const big=k=='meteor',cx=big?15:14,cy=big?15:10,r=big?6:6;
   for(let i=1;i<=(big?9:6);i++){disc(cx-i*(big?1.6:1.4)|0,cy-i*(big?1.6:1.4)|0,Math.max(1,r-1-i*.5|0),shade(a,1.25-i*.1))}
@@ -191,7 +207,11 @@ function SKI(k,a,b){const c=mkCanvas(24,24),x=c.getContext('2d'),{R,disc}=kit(x)
   for(let y=3;y<=21;y++){const hw=(y<13?9:Math.max(0,9-(y-13)*1.0))-1.5;if(hw>0)R(Math.round(12-hw),y,Math.round(hw*2),1,a)}
   R(11,4,2,16,b);R(5,9,14,2,b);R(6,5,4,3,L);R(11,9,2,2,'#fff')}
  else if(k=='fist'){R(5,8,15,12,D);R(6,9,13,10,a);for(let i=0;i<4;i++){R(6+i*3+0,6,3,4,D);R(7+i*3,7,2,3,L)}R(4,13,4,6,D);R(5,14,2,4,a);R(17,11,2,6,shade(a,.7));R(8,12,8,1,b)}
- return c.toDataURL()}
+ const o=mkCanvas(16,16),g=o.getContext('2d');
+ for(let y=0;y<16;y++){g.fillStyle=shade(a,.16+.14*(1-y/16));g.fillRect(0,y,16,1)}
+ g.fillStyle=shade(a,.55);g.fillRect(0,0,16,1);g.fillStyle=shade(a,.45);g.fillRect(0,0,1,16);g.fillStyle='#05070a';g.fillRect(0,15,16,1);g.fillRect(15,0,1,16);
+ g.drawImage(typeof reduzirArte==='function'?reduzirArte(c,16,16):c,0,0,16,16);
+ return o.toDataURL()}
 const pw=()=>weaponPower();
 const guard=()=>{p.guard=6;ring(p.x,p.y,30,'#9cf',.5);ft(p.x,p.y-24,'Escudo!','#9cf')};
 const SKS={
@@ -362,21 +382,36 @@ const wpos=()=>({x:(mx-cv.width/2)/S+p.x,y:(my-cv.height/2)/S+p.y});
 /* kit inicial da classe (Engine › Classes › Kit inicial): entregue uma vez por classe.
    Equipamento vai para o espaço se ele estiver vazio; o resto vai para a bolsa. */
 function darKit(c,{salvar=true}={}){
- const kit=CL[c]&&CL[c].kit;p.kits=p.kits||{};if(!kit||!kit.length||p.kits[c])return false;p.kits[c]=true;
- for(const r of kit){if(!ITEMS[r.id])continue;const t=gearType[r.id];
+ /* p.kits[c]: true (kit inteiro, saves antigos) ou a lista de itens já dados; item novo no kit (ex.: escudo do
+    Guerreiro) chega depois, uma vez, mesmo para quem já recebeu o kit */
+ const kit=CL[c]&&CL[c].kit;p.kits=p.kits||{};if(!kit||!kit.length)return false;
+ const antes=p.kits[c],dados=Array.isArray(antes)?antes:antes?kit.map(r=>r.id).filter(id=>id!=='arma_escudo'):[]; /* save antigo (true): já tinha tudo, menos o escudo que entrou depois */
+ const novos=kit.filter(r=>ITEMS[r.id]&&!dados.includes(r.id));p.kits[c]=[...new Set([...dados,...kit.map(r=>r.id)])];if(!novos.length)return false;
+ for(const r of novos){const t=gearType[r.id];
   if(!t){addItem(r.id,undefined,r.n);continue}
-  for(let k=0;k<r.n;k++){const sl=t=='ri'?(!EQ.r1?'r1':!EQ.r2?'r2':null):t,th=EQ.sw&&ITEMS[EQ.sw.id].th;
+  for(let k=0;k<r.n;k++){let sl=t=='ri'?(!EQ.r1?'r1':!EQ.r2?'r2':null):t;const th=EQ.sw&&ITEMS[EQ.sw.id].th;if(sl=='sw'&&EQ.sw&&!ITEMS[r.id].th&&!EQ.sh&&!th)sl='sh'; // segunda arma (escudo) vai para a mão 2
    if(sl&&!EQ[sl]&&!(sl=='sh'&&th)&&!(sl=='sw'&&ITEMS[r.id].th&&EQ.sh))EQ[sl]={id:r.id,n:1,q:50};else addItem(r.id,50)}}
  dirtyInv=true;if(window.setPortrait)setPortrait();ft(p.x,p.y-30,'Kit inicial: '+CL[c].n,'#ffd84a');if(salvar)saveGame();return true}
 window.darKit=darKit;
 // barra de conjuração embaixo do herói (desenhada pelo render.js e pelo dungeon.js)
 window.desenharConj=()=>{const c=p.conj;if(!c)return; // barrinha fina embaixo do herói: 12 px de largura, 1 px de altura
  const k=Math.max(0,Math.min(1,1-c.r/c.total)),x=Math.round(p.x)-6,y=Math.round(p.y)+5;ctx.fillStyle='#000a';ctx.fillRect(x-.5,y-.5,13,2);ctx.fillStyle=c.s.vfxColor||'#ffd84a';ctx.fillRect(x,y,12*k,1)};
-function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana||p.conj)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const equipped=EQ[s.weaponSlot||'sw'];if(!skillWeaponAllowed(s,equipped&&ITEMS[equipped.id])){ft(p.x,p.y-24,'Precisa de uma tag: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}if(dist(p,t)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}if(!linhaLivre(p,t)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{if(s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=w.x-p.x;p.fy=w.y-p.y}
+/* canal (Girar): um golpe em área a cada intervalo enquanto dura; dá para andar, mas sem ataque básico nem outra habilidade.
+   Atordoado ou morto, para. Chamado pelo update.js a cada quadro. */
+window.tickCanal=dt=>{const c=p.canal;if(!c)return;if(p.dead>0||statusSpeed(p)==0){p.canal=null;return}
+ p.acd=Math.max(p.acd,.1);p.aw=0;c.r-=dt;c.prox-=dt;
+ // giro visual: o herói roda (2,2 voltas/s) e a lâmina acompanha o mesmo ângulo (js/vfx-habilidades.js)
+ if(c.visual){c.ang+=dt*Math.PI*2*2.2;p.fx=Math.cos(c.ang);p.fy=Math.sin(c.ang);p.fk=undefined}while(c.prox<=0&&c.n>0){c.prox+=c.tick;c.n--;c.golpe()}if(c.n<=0||c.r<=0)p.canal=null};
+/* investida: o herói corre do ponto inicial ao final em d.dur segundos (sem teleporte); sem controle durante a corrida */
+window.tickDash=dt=>{const d=p.dash;if(!d)return;if(p.dead>0){p.dash=null;return}
+ d.t+=dt;const k=Math.min(1,d.t/d.dur);p.x=d.x0+(d.x1-d.x0)*k;p.y=d.y0+(d.y1-d.y0)*k;p.dest=null;p.path=[];p.acd=Math.max(p.acd,.05);
+ if(d.rastro&&window.VFX&&(d.g=(d.g||0)+dt)>=.02){d.g=0;const f=face(p);VFX.fantasma(heroImg(f.d),p.x,p.y,f.fl,d.dir)}
+ if(k>=1){p.dash=null;d.fim()}};
+function cast(s){if(p.dead>0||s.t>0||!s.f||p.mp<s.mana||p.conj||p.canal||p.dash)return;if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const maos=s.weaponSlot?[s.weaponSlot]:['sw','sh'],armaOk=maos.some(sl=>EQ[sl]&&skillWeaponAllowed(s,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(s,null);if(!armaOk){ft(p.x,p.y-24,'Precisa de: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}const lim=typeof s.alcance=='function'?s.alcance():200;if(dist(p,t)-(s.alcance&&typeof targetReach=='function'?targetReach(t):0)>lim){ft(p.x,p.y-24,'Longe demais','#ccc');return}if(!linhaLivre(p,t)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{if(s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=w.x-p.x;p.fy=w.y-p.y}
  // com tempo de conjuração o jogador para e a habilidade sai no fim da barra (update.js); andar cancela
- const ct=tempoConj(s);if(ct>0){p.conj={s,w,t,total:ct,r:ct};p.dest=null;p.path=[];p.tgt=null;return}
+ const ct=tempoConj(s);if(ct>0){p.conj={s,w,t,total:ct,r:ct,volta:p.tgt&&p.tgt.hp>0?p.tgt:null};p.dest=null;p.path=[];p.tgt=null;return}
  lancar(s,w,t)}
 function lancar(s,w,t){
  if(s.f.tg&&t&&!linhaLivre(p,t)||s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return} // o alvo pode ter ido para trás da parede durante a conjuração
- const style=s.vfx||'arcane';if(style!='none'){const f={x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style};fxs.push(f)}
+ const style=s.vfx||'arcane';if(style!='none'&&!['corte','investida','aura','giro'].includes(style)){const f={x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style};fxs.push(f)}
  p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(window.somDoJogador)somDoJogador('c.'+s.id);if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound('magic')}

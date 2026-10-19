@@ -29,7 +29,7 @@ function withWeaponDamageRoll(action){
  }finally{weaponDamageRolls=null}
 }
 const heroC={};
-function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);let key=p.cls+p.sex+dir+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
+function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const mana=window.HEROI_MANA&&HEROI_MANA.jogador(dir,an);if(mana)return mana; /* personagem Mana Seed (js/heroi-mana.js) */const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);let key=p.cls+p.sex+dir+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
  key+=chaveEquipAnim(Object.values(E),dir,E.swing?'attack':an&&an.mv?'walk':'idle');if(Object.keys(heroC).length>600)for(const k in heroC)delete heroC[k];return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
 /* Os 6 primeiros espaços são a barra de atalhos (teclas 1–6) e só aceitam consumíveis.
    A bolsa não tem limite: sem espaço livre, ela cresce. */
@@ -112,30 +112,35 @@ function configureMonster(e,type,level){
  e.stats={F:Math.round((template.stats.F+grow('F'))*attrScale),A:Math.round((template.stats.A+grow('A'))*attrScale),I:Math.round((template.stats.I+grow('I'))*attrScale)};
  e.bossType=template.bossType||'normal';e.skill=template.skill;e.skillCd=0;e.skillWindup=false;e.mp=monMana(e.stats.I);e.armor=e.magicArmor=undefined;
  // fórmulas dos monstros: Engine › Fórmulas › Monstros
- e.max+=(e.stats.F-template.stats.F)*CALC.monHpPerF;e.dmg+=(e.stats.F-template.stats.F)*monPhysPerF();
- e.ac=Math.max(.25,e.ac*(1-(e.stats.A-template.stats.A)*CALC.monAtkSpdPerA));
+ e.max+=(e.stats.F-template.stats.F)*CALC.monHpPerF;e.dmg=Math.round(e.dmg*(1+e.stats.F*monPhysPerF()/100)); /* Força: +% de dano */
+ e.ac=Math.max(CALC.monMinInterval,e.ac*(1-(e.stats.A-template.stats.A)*CALC.monAtkSpdPerA));
  e.spd*=1+(e.stats.A-template.stats.A)*.005;
  e.weaponRanges=[];e.weaponDamageMultiplier=1;e.weaponDamageBase=null;
  if(template.custom){
-  const c=CL[template.classId]||CL.war,eq=template.equipment||{},stats=eq.stats||{},weapon=eq.weapon;
+  const eq=template.equipment||{},weapon=eq.weapon;let stats=eq.stats||{},faixas=eq.weaponRanges||[];
+  // ataque básico pelo nível (plano de balanceamento, js/balanceamento.js): faixa mín–máx do nível em que o monstro nasce
+  if(template.ataqueDoNivel&&window.BALANCEAMENTO){const r=BALANCEAMENTO.ataqueMonstro(level,CALC,PLANO_CLASSES());stats={...stats,dmg:(stats.dmg||0)+(r.min+r.max)/2};faixas=[...faixas,{min:r.min,max:r.max}]}
   e.stats.F=Math.round((template.stats.F+grow('F')+(stats.F||0))*attrScale);
   e.stats.A=Math.round((template.stats.A+grow('A')+(stats.A||0))*attrScale);
   e.stats.I=Math.round((template.stats.I+grow('I')+(stats.I||0))*attrScale);
-  const maxBase=CALC.monHp0+e.stats.F*CALC.monHpPerF+(stats.hp||0),power=weapon&&weapon.damageType=='magic'?e.stats.I*monMagPerI()+(stats.magicDmg||0):e.stats.F*monPhysPerF()+(stats.physicalDmg||0);
+  const maxBase=CALC.monHp0+e.stats.F*CALC.monHpPerF+(stats.hp||0),magica=weapon&&weapon.damageType=='magic',power=magica?(stats.magicDmg||0):(stats.physicalDmg||0),multAtr=1+(magica?e.stats.I*monMagPerI():e.stats.F*monPhysPerF())/100; // Força/Inteligência: +% de dano (como o personagem)
   e.max=Math.round(maxBase*(e.bossType=='grandboss'?2:e.bossType=='boss'?1.5:1)*(template.hpMult||1));
-  e.weaponDamageBase=(stats.dmg||0)+power;e.dmg=Math.round(e.weaponDamageBase*(template.dmgMult||1));e.armor=e.stats.A*CALC.monArmPerA+(stats.arm||0);e.magicArmor=monMagArm(e.stats.F,e.stats.A,e.stats.I)+(stats.magicArm||0);
+  e.weaponDamageBase=(stats.dmg||0)+power;e.dmg=Math.round(e.weaponDamageBase*(template.dmgMult||1)*multAtr);e.armor=e.stats.A*CALC.monArmPerA+(stats.arm||0);e.magicArmor=monMagArm(e.stats.F,e.stats.A,e.stats.I)+(stats.magicArm||0);
   e.attackMagic=!!(weapon&&weapon.damageType=='magic');e.weaponBasic=weapon&&weapon.basic;e.weaponFx=weapon&&weapon.effects||[];
-  e.weaponRanges=eq.weaponRanges||[];e.weaponDamageMultiplier=template.dmgMult||1;
-  e.spd=(template.moveSpeed||Math.max(18,CALC.monMove0+e.stats.A*CALC.monMovePerA))*(1+((stats.spd||0)+(stats.moveSpeed||0))/100);e.ac=Math.max(.25,(template.attackSpeed||c.attackSpeed||1)*Math.max(.1,1-e.stats.A*CALC.monAtkSpdPerA)*(1-(stats.attackSpeed||0)/100));
+  e.weaponRanges=faixas;e.weaponDamageMultiplier=(template.dmgMult||1)*multAtr;
+  e.spd=(template.moveSpeed||CALC.monMove0*Math.max(0,1+e.stats.A*CALC.monMovePerA))*(1+((stats.spd||0)+(stats.moveSpeed||0))/100);e.ac=Math.max(CALC.monMinInterval,(template.attackSpeed||1)*(1-e.stats.A*CALC.monAtkSpdPerA)*(1-(stats.attackSpeed||0)/100));
   e.skill=template.skills&&template.skills.length?{...template.skills[0],damage:template.skills[0].damage+template.skills[0].per*level}:{name:'Ataque',cost:999999,cd:999,range:e.weaponBasic?e.weaponBasic.rng:22,windup:.4,damage:0};
   e.equipmentStats=stats;
  }
  const own=e.attributeStats;
- // balanceamento: vida × multiplicador e +X% por nível (Cálculos › Monstros), para as lutas durarem mais golpes
- e.max=Math.max(1,Math.round((e.max+(+own.hp||0))*(CALC.monHpMul??6)*(1+(CALC.monHpLevel??.08)*(level-1))));e.maxMp=Math.max(0,monMana(e.stats.I)+(e.equipmentStats?.mp||0)+(+own.mp||0));e.mp=e.maxMp;
- e.armor=(e.armor??e.stats.A*CALC.monArmPerA)+(+own.arm||0);e.magicArmor=(e.magicArmor??monMagArm(e.stats.F,e.stats.A,e.stats.I))+(+own.magicArm||0);
+ // vida: só a das fórmulas (vida inicial + Força × vida por Força) e a do atributo do monstro
+ // mana e defesas arredondadas como as do personagem (mmp, armor, magicArmor em js/combat.js)
+ e.max=Math.max(1,Math.round(e.max+(+own.hp||0)));e.maxMp=Math.max(0,Math.round(monMana(e.stats.I)+(e.equipmentStats?.mp||0)+(+own.mp||0)));e.mp=e.maxMp;
+ e.armor=Math.round((e.armor??e.stats.A*CALC.monArmPerA)+(+own.arm||0));e.magicArmor=Math.round((e.magicArmor??monMagArm(e.stats.F,e.stats.A,e.stats.I))+(+own.magicArm||0));
  e.spd*=Math.max(0,1+attributeValue(own,'moveSpeed'));e.ac=Math.max(CALC.monMinInterval,e.ac*(1-Math.min(.9,attributeValue(own,'attackSpeed'))));
 }
+// classes de referência do plano de balanceamento (js/balanceamento.js): Guerreiro (físico) e Mago (mágico) do projeto
+const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};
 const MB={sl:{max:40,dmg:5,spd:28,xp:10,g:3,aggro:60,wu:.35,ac:1.1,base:'sl'},sk:{max:90,dmg:12,spd:36,xp:25,g:8,aggro:75,wu:.45,ac:1.5,base:'sk'},gob:{max:130,dmg:15,spd:34,xp:55,g:24,aggro:90,wu:.45,ac:1.25,base:'goblin'}};
 function pickType(far){return far?'sk':'sl'}
 function spawn(e){let x,y,t=0;do{x=rnd(0,W);y=rnd(0,W);t++}while(t<500&&(!walk(x,y)||V(x/T|0,y/T|0)>25||insideCamp(x,y,8)));

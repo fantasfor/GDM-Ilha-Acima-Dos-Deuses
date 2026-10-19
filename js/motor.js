@@ -17,17 +17,15 @@
  const monsterBase=id=>{const d=GAMEDATA.monsters.find(m=>m.id==id);return (MB[id]&&MB[id].base)||(d&&d.base)||id};
  const monsterDefault=id=>(SP[monsterBase(id)]||SP[id]||SP.sl).d;
  const classDefault=id=>(HS[CL[id]?.base]||HS[id]||HS.war).d;
- function defaultEquippedWeapon(d){
-  const c=mkCanvas(32,32),x=c.getContext('2d'),R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)},it=ITEMS[d.id],v=it&&it.v||{};
-  drawWeapon(R,v.st==null?Math.max(0,Math.min(2,+d.style||0)):v.st,v.c||[d.c1||'#9aa7b8',d.c2||'#c9a227'],16,29,-90,22,2);
-  return c
- }
+ // arma sem desenho da mão: o jogo empunha o próprio ícone (mesma escala)
+ function defaultEquippedWeapon(d){const it=ITEMS[d.id];return it&&(it.equippedSprite||it.c)||null}
+ // roupa padrão na grade do herói 16×26 (js/sprites.js), pintada nas regiões do molde e contornada
  function defaultEquippedArmor(d,dir){
-  const c=mkCanvas(28,32),x=c.getContext('2d'),{box,R}=kit(x),slot=d.slot=='ri'?'r1':d.slot||'ch';
-  const item=ITEMS[d.id]||{v:{c:[d.c1||'#9aa7b8',d.c2||'#c9a227'],st:+d.style||0}},equipment={[slot]:item};
-  gearPre(equipment,dir,box,R);gearBody(equipment,dir,0,box,R);gearHead(equipment,dir,box,R);
-  if(slot=='sh')gearWeapon(equipment,dir,0,box,R,x);
-  return c
+  const c=mkCanvas(HT.W,HT.H),x=c.getContext('2d'),R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)},P=(a,b,col)=>R(a,b,1,1,col),slot=d.slot=='ri'?'r1':d.slot||'ch';
+  const item=ITEMS[d.id]||{v:{c:[d.c1||'#9aa7b8',d.c2||'#c9a227'],st:+d.style||0}},equipment={[slot]:item},dd=(dir||'d')[0],dg=(dir||'').length>1,G=moldeDe(dir||'d',0);
+  gearPre(equipment,dd,R);gearBody(equipment,dd,dg,R,P,G);gearHead(equipment,dd,dg,R,P,G);
+  if(slot=='sh'&&dd=='d'){const [m,a]=item.v.c;R(1,14,4,6,m);R(1,14,4,1,a);R(2,15,2,1,a);R(2,16,1,3,a);R(1,19,4,1,shade(m,.75))}
+  return contornar(c)
  }
  const skillIcon=id=>{const entry=Object.keys(CL).flatMap(c=>skillEntries(c)).find(s=>s.id==id),d=GAMEDATA.skills.find(s=>s.id==id);return entry&&entry.ic||(d?SKI(d.icon||'orb',d.c1||'#4a6a96',d.c2||'#fff'):null)};
  window.MOTOR={
@@ -57,7 +55,8 @@
      o = {calc, cls, lvl, rank, itens:[id], qualidade, monstro, nivelMon, elite}. Tudo é restaurado no fim. */
   previa(o){
    const salva={cls:p.cls,lvl:p.lvl,cp:p.classProgress,st:p.st,buffs:p.attributeBuffs,bf:p.bf,eq:{...EQ},calc:{...CALC},tb:p.attackBasic};
-   const media=f=>{let s=0,n=24;for(let i=0;i<n;i++)s+=f();return s/n},soma=d=>d&&typeof d=='object'?(d.physical||0)+(d.magic||0):+d||0;
+   // média exata do golpe: os sorteios (dano entre mínimo e máximo) passam por valores espalhados por igual, sem acaso
+   const media=f=>{const n=24,sorteio=Math.random;let s=0;try{for(let i=0;i<n;i++){Math.random=()=>(i+.5)/n;s+=f()}}finally{Math.random=sorteio}return s/n},soma=d=>d&&typeof d=='object'?(d.physical||0)+(d.magic||0):+d||0;
    try{
     Object.assign(CALC,CALC_DEF,o.calc||{});
     if(CL[o.cls])p.cls=o.cls;p.lvl=Math.max(1,Math.floor(+o.lvl||1));p.classProgress={[p.cls]:{rank:Math.max(1,Math.min(10,Math.floor(+o.rank||1))),xp:0}};
@@ -81,7 +80,8 @@
      const golpesH=Math.ceil(mon.vida/Math.max(1,heroiBate)),golpesM=Math.ceil(heroi.vida/Math.max(1,monBate));
      luta={heroiBate:Math.round(heroiBate),monBate:Math.round(monBate),golpesParaMatar:golpesH,segundosParaMatar:+(golpesH*heroi.intervalo).toFixed(1),golpesParaMorrer:golpesM,segundosParaMorrer:+(golpesM*mon.intervalo).toFixed(1),
       dpsHeroi:+(heroiBate/heroi.intervalo).toFixed(1),dpsMonstro:+(monBate/mon.intervalo).toFixed(1)};
-     luta.vence=luta.segundosParaMatar<=luta.segundosParaMorrer;
+     // empate: os dois caem no mesmo instante (mesma conta de tempo, arredondada a 0,1 s)
+     luta.empate=luta.segundosParaMatar===luta.segundosParaMorrer;luta.vence=!luta.empate&&luta.segundosParaMatar<luta.segundosParaMorrer;
     }
     return {heroi,monstro:mon,luta};
    }finally{
@@ -99,6 +99,15 @@
   aparenciaCorpo:(sex,dir,ph)=>APARENCIA.corpoPadrao(sex,dir,ph),
   aparenciaCabelo:(estilo,dir)=>APARENCIA.cabeloPadrao(estilo,dir),
   aparenciaHeroi:(sex,look,dir)=>human('war',dir||'d',0,{nude:1,sex,look:APARENCIA.normalizar(look,sex)}),
+  /* herói usando um desenho em edição (editor de sprites › No personagem): 'arma' = na mão, 'vestido' = roupa (grade 16×26) */
+  /* o = {id, ataque, pega (%), slot, dir (direção do desenho vestido), passo (passo do golpe)}: usa a pose e a pega do item */
+  heroiComArte:(tipo,data,dir,o={})=>{const art=pixelArt(data);if(!art)return null;const base=o.id&&ITEMS[o.id]||null;
+   const E={nude:1,sex:'m',swing:o.passo||0,look:APARENCIA.padrao('m')};
+   if(tipo==='arma'){const ataque=POSES_ARMA[o.ataque]?o.ataque:base&&POSES_ARMA[base.ataque]?base.ataque:'corte';
+    const pega=o.pega!=null&&o.pega!==''?Math.max(0,Math.min(1,+o.pega/100)):base&&base.pega!=null?base.pega:.7;
+    E.sw={...(base||{v:{c:['#9aa7b8','#7a4a25'],st:0}}),equippedSprite:art,equippedSprites:null,equippedAnim:null,escalaMao:2,pega,ataque}}
+   else{const slot=o.slot||'ch';E[slot]={...(base||{v:{c:['#9aa7b8','#9aa7b8'],st:0}}),equippedAnim:null,equippedSprites:{...(base&&base.equippedSprites||{}),[o.dir||'d']:art}}}
+   return human('war',dir||'d',0,E)},
   aparenciaPadrao:()=>({estilos:APARENCIA.ESTILOS,cores:APARENCIA.CORES,ref:APARENCIA.REF}),
   habilidade:id=>skillIcon(id),
   passiva:id=>{const d=[...GAMEDATA.passives,...GAMEDATA.skills].find(p=>p.id==id);return d?passIcon(d):null},

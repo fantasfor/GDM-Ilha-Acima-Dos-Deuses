@@ -125,7 +125,7 @@ Os arquivos vão marcados com a versão, então os jogadores recebem a atualiza�
 | **Salvamento** | Automático, sem salvar ou carregar manual: o que você faz não tem volta. Para recomeçar do zero, use o link vermelho **Excluir conta** no fim do menu (Esc). Ele apaga o personagem, o progresso, o nome, os amigos e o login, e volta para a tela de entrada, onde dá para criar outro personagem. |
 | **Controles** | Menu › **Controles**: clique numa ação e aperte a nova tecla. Se a tecla já estiver em uso, as duas ações trocam. |
 
-**Ao atualizar de uma versão anterior, publique de novo as regras** de `regras-firebase.json` (passo 3). As regras novas cobrem salas, convites, grupos, voz, nomes, posições (`pos`), ping, as partidas da arena (`arenas` e `salas/arena:.../pvp`), o convite de arena e os avisos de mecânica de chefe na ilha (`tg`). Sem elas, os outros jogadores não aparecem.
+**Ao atualizar de uma versão anterior, publique de novo as regras** de `regras-firebase.json` (passo 3). As regras novas cobrem salas, convites, grupos, voz, nomes, posições (`pos`), ping, as partidas da arena (`arenas` e `salas/arena:.../pvp`), o convite de arena, os avisos de mecânica de chefe na ilha (`tg`) e a aparência do personagem (`online/{uid}/ap`: cores e estilo de cabelo). Sem elas, os outros jogadores não aparecem, o grupo e a arena não funcionam (o jogo avisa "O servidor recusou...") e os outros veem você com a aparência padrão.
 
 **A voz** vai direto entre os jogadores (WebRTC), sem passar pelo Firebase. Em muitas redes a conexão direta é bloqueada e ninguém se escuta: internet móvel (4G/5G), provedores de fibra com CGNAT e redes de empresa. Para essas redes é preciso um **servidor TURN**, que repassa o áudio. Veja a seção abaixo.
 

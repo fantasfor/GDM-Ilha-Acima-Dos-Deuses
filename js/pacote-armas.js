@@ -1,7 +1,7 @@
 /* ---------- Pacote de armas ----------
-   Uma arma de cada tipo. "arte" é o desenho detalhado que vira o ícone da mochila (girado 45°); "mao" é o desenho
-   empunhado, pequeno e na escala do herói (cada pixel = 1 pixel do herói; ponta para cima; "pega" = altura da mão,
-   de 0 no topo a 1 embaixo). "ataque" escolhe a pose e o golpe (js/sprites.js POSES_ARMA).
+   Uma arma de cada tipo. "mao" é o desenho da arma, na escala do herói (cada pixel = 1 pixel do herói; ponta para cima;
+   "pega" = altura da mão, de 0 no topo a 1 embaixo); o ícone da mochila é esse mesmo desenho girado 45°, sem mudar de
+   escala. "arte" é o desenho grande antigo (só serve para reconhecer ícones antigos). "ataque" escolhe a pose e o golpe (js/sprites.js POSES_ARMA).
    A Engine cria os itens arma_* no projeto (engine/js/project.js criarArmas); o Lanceiro da taverna usa a lança. */
 (function(root){
  const COR={o:'#16121c',w:'#f4f7fb',s:'#c9d2dc',S:'#8892a0',m:'#5a6270',g:'#e8b84a',G:'#a8742a',b:'#9a6436',B:'#5e3a1c',l:'#c08a52',
@@ -75,6 +75,11 @@
   escudo:[grade(5,6,(R,P)=>{R(0,0,5,4,'u');R(3,0,2,4,'U');R(1,4,3,1,'u');P(2,5,'u');R(2,0,1,5,'g');R(1,1,3,1,'g');R(0,0,5,1,'g')}),.5],
   orbe:[grade(4,4,(R,P)=>{R(1,0,2,4,'c');R(0,1,4,2,'c');P(1,1,'w');P(2,2,'C');P(3,2,'C');P(2,3,'C')}),.5]
  };
- for(const [k,a] of Object.entries(ARMAS)){a.icone=icone(a.arte,a.girarIcone!==false);a.mao=MAO[k][0];a.pega=MAO[k][1]}
- root.PACOTE_ARMAS={ARMAS,COR,icone};
+ /* ícone = o próprio desenho da mão, girado e sem mudar de escala: na mochila e na mão a arma tem o mesmo tamanho de pixel.
+    iconeAntigo (feito do desenho grande) fica só para a Engine reconhecer os itens criados antes e trocar o ícone. */
+ for(const [k,a] of Object.entries(ARMAS)){a.mao=MAO[k][0];a.pega=MAO[k][1];a.icone=icone(a.mao,a.girarIcone!==false);a.iconeAntigo=icone(a.arte,a.girarIcone!==false)}
+ /* flecha do arco e da besta (cores da Arrow01 do Tiny RPG Character Asset Pack), 11×3 em 1:1, ponta para a direita (render.js desenharSeta) */
+ const FLECHA={w:11,h:3,palette:['#22021d','#6e8897','#a0acb4','#425c6b','#7f909a','#8d675f','#af8f88','#c9c0be','#2b405f','#9badb7'],
+  pixels:'55-------3-'+'-5666666722'+'55-------3-'};
+ root.PACOTE_ARMAS={ARMAS,COR,icone,FLECHA};
 })(typeof window!=='undefined'?window:globalThis);

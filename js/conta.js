@@ -298,7 +298,8 @@
     const le=el('div','criarCampo');le.append(el('span','','Cabelo'));const ge=el('div','criarOpcoes');le.append(ge);f.append(le);
     for(const e of AP.estilos()){const b=botao(e.nome,()=>{look.estilo=e.id;atualizar()},'criarOpcao');be[e.id]=b;ge.append(b)}
     const sug=AP.cores();
-    for(const [k,rot] of [['pele','Cor da pele'],['cabelo','Cor do cabelo'],['olhos','Cor dos olhos']]){
+    // o personagem Mana Seed (js/heroi-mana.js) tem os olhos desenhados com o contorno: sem cor de olhos
+    for(const [k,rot] of [['pele','Cor da pele'],['cabelo','Cor do cabelo'],['olhos','Cor dos olhos']].filter(([k])=>!(k==='olhos'&&window.HEROI_MANA))){
      const lc2=el('div','criarCampo');lc2.append(el('span','',rot));const linha=el('div','criarCores');
      const amostras=sug[k].map(cor=>{const b=botao('',()=>{look[k]=cor;atualizar()},'criarCor');b.style.background=cor;b.title=cor;b.setAttribute('aria-label',rot+' '+cor);b.dataset.cor=cor;linha.append(b);return b});
      const livre=el('input','criarCorLivre');livre.type='color';livre.title='Qualquer cor';livre.setAttribute('aria-label',rot+': qualquer cor');livre.oninput=()=>{look[k]=livre.value;atualizar()};
@@ -307,6 +308,7 @@
     prev.title='Clique para girar o personagem';prev.style.cursor='pointer';
     prev.onclick=()=>{dirPrevia={d:'s',s:'u',u:'d'}[dirPrevia];atualizar()};
    }
+   addEventListener('heroi-pronto',()=>atualizar(),{once:true}); // as imagens do personagem chegaram: redesenha a prévia
    const ok=botao('Começar a aventura',null);ok.type='submit';f.append(ok);
    box.append(f);
    const msg=el('p','contaMsg');box.append(msg);

@@ -13,10 +13,11 @@
  const corDe=q=>q==null?COR_SEM:QCOL[qi(q)];
  // lugar atual: se o jogador mudar de mapa antes do item chegar, ele vai direto para os encontrados
  const lugar=()=>(window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
+ // no chão: o desenho próprio do item (Engine › Item no chão) ou o ícone reduzido a 8×8, sempre em tamanho real (1 pixel = 1 pixel do mundo)
  function imagem(id){
   const it=ITEMS[id];if(!it)return null;
   if(it.itemSprite)return it.itemSprite;
-  if(!imgs.has(id)){const im=new Image();im.src=it.ic;imgs.set(id,im)}
+  if(!imgs.has(id))imgs.set(id,it.c&&it.c.getContext?reduzirArte(it.c,8,8):null);
   return imgs.get(id);
  }
  window.soltarItem=(id,x,y,{questReward=false,q}={})=>{
@@ -75,7 +76,7 @@
    }
    ctx.save();ctx.shadowColor=cor;ctx.shadowBlur=r>=3?6:3;
    ctx.fillStyle='#0f0d0a';ctx.fillRect(x-6,y-6,12,12);ctx.strokeStyle=cor;ctx.lineWidth=1;ctx.strokeRect(x-5.5,y-5.5,11,11);ctx.restore();
-   const im=imagem(o.id);if(im&&(im.complete===undefined||im.complete))try{ctx.drawImage(im,x-4,y-4,8,8)}catch(e){}
+   const im=imagem(o.id);if(im)ctx.drawImage(im,x-Math.floor(im.width/2),y-Math.floor(im.height/2));
    // item de missão: "!" dourado pulando em cima
    if(window.ehMissao&&ehMissao(o.id,o.questReward)&&o.fase!=='voo'){const yy=y-10-Math.round(Math.abs(Math.sin(tt*5+o.bob))*3);ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('!',x+1,yy+1);ctx.fillStyle='#ffd84a';ctx.fillText('!',x,yy)}
    // brilhos girando nas raridades épica e lendária
