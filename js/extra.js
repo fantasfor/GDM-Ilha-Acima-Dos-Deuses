@@ -9,8 +9,7 @@ Object.assign(FX_INFO,{
  ward:{n:'Proteção',c:'#6af',kind:'guard',good:true},
  haste:{n:'Pressa',c:'#fd5',kind:'haste',good:true},
  grito:{n:'Grito de Guerra',c:'#ff3a2a',kind:'physup',good:true,aura:true}}); // aura: chamas e contorno na cor do efeito (js/vfx-habilidades.js)
-/* animação do pacote de efeitos em cima de quem está atordoado (js/efeitos-sprite.js); a Engine pode trocar em Efeitos */
-if(FX_INFO.stun&&!FX_INFO.stun.anim)FX_INFO.stun.anim='10A.3.2';
+/* atordoado: espiral desenhada girando em cima da cabeça (js/vfx-habilidades.js) */
 function stSum(t,kind){let m=0;if(t&&t.st)for(const k in t.st)if(FX_INFO[k]&&FX_INFO[k].kind==kind)m+=t.st[k].pw*(t.st[k].n||1);return m}
 function fxExtra(f){const k=FX_INFO[f.type].kind,w=+f.power||0;return k=='hot'?' ('+w+' de vida por segundo)':k=='dmgup'?' (+'+w+'% de dano)':k=='dmgdown'?' (-'+w+'% de dano)':k=='guard'?' (-'+w+'% de dano recebido)':k=='haste'?' (+'+w+'% de velocidade)':k=='physup'?' (+'+w+'% de dano físico)':''}
 /* efeitos: padrões de duração/dano e acúmulos */

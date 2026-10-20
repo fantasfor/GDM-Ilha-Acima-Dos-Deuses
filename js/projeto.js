@@ -189,39 +189,6 @@ window.PROJETO={
       "n": 2
      }
     ]
-   },
-   {
-    "id": "no_class",
-    "name": "No Class",
-    "base": "war",
-    "attackSpeed": 1,
-    "attrs": {
-     "F": 5,
-     "A": 5,
-     "I": 5
-    },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 1
-    },
-    "passive": {},
-    "passives": [],
-    "skills": [],
-    "kit": [
-     {
-      "id": "kit_espada_treino",
-      "n": 1
-     },
-     {
-      "id": "kit_gibao",
-      "n": 1
-     },
-     {
-      "id": "hp",
-      "n": 3
-     }
-    ]
    }
   ],
   "items": [
@@ -1292,7 +1259,7 @@ window.PROJETO={
     "c1": "#9aa1a8",
     "c2": "#8a5a30",
     "damageType": "physical",
-    "damageMax": 24,
+    "damageMax": 23,
     "stats": {
      "dmg": 4
     },
@@ -1310,7 +1277,58 @@ window.PROJETO={
      "icon": "blade",
      "desc": "Golpe simples de espada."
     },
-    "damageMin": 12
+    "damageMin": 11,
+    "sprite": {
+     "w": 16,
+     "h": 16,
+     "q": 1,
+     "palette": [
+      "#3b2a2f",
+      "#5b3a29",
+      "#211929",
+      "#251c2d",
+      "#100c14",
+      "#140f18",
+      "#1a1420",
+      "#4b353c",
+      "#543c43",
+      "#251a1d",
+      "#2d2024"
+     ],
+     "pixels": "-------------------------------------------322------------3015-----------30104----------30104----------30104-------3--30104--------2220104----------26104-----------7065-----------81a55----------819--22---------79--------------------------------------------"
+    },
+    "itemSprite": {
+     "w": 16,
+     "h": 16,
+     "q": 1,
+     "palette": [
+      "#3b2a2f",
+      "#5b3a29",
+      "#211929",
+      "#251c2d",
+      "#100c14",
+      "#140f18",
+      "#1a1420",
+      "#4b353c",
+      "#543c43",
+      "#251a1d",
+      "#2d2024"
+     ],
+     "pixels": "-------------------------------------------322------------3015-----------30104----------30104----------30104-------3--30104--------2220104----------26104-----------7065-----------81a55----------819--22---------79--------------------------------------------"
+    },
+    "equippedSprite": {
+     "w": 16,
+     "h": 16,
+     "q": 1,
+     "palette": [
+      "#3b2a2f",
+      "#1a1420",
+      "#5b3a29"
+     ],
+     "pixels": "-----------------------11-------------0001------------0201------------0201------------0201------------0201------------0201------------0201------------0201------------0001----------11111111---------110011------------0---------------0---------------0--------"
+    },
+    "escalaMao": 2,
+    "pega": 97
    },
    {
     "id": "kit_cajado_aprendiz",
@@ -27566,6 +27584,37 @@ window.PROJETO={
     },
     "effects": [],
     "tags": []
+   },
+   {
+    "id": "teste",
+    "name": "teste",
+    "kind": "weapon",
+    "wtype": "espada",
+    "twoHanded": false,
+    "style": 0,
+    "c1": "#9aa7b8",
+    "c2": "#c9a227",
+    "damageType": "physical",
+    "stats": {
+     "dmg": 5
+    },
+    "basic": {
+     "name": "Golpe",
+     "ranged": false,
+     "rng": 22,
+     "proj": "#ffffff",
+     "damageType": "",
+     "base": 0,
+     "per": 0,
+     "charPercent": 100,
+     "scaleStat": "none",
+     "scalePercent": 0,
+     "icon": "blade",
+     "desc": "Ataque automático da arma."
+    },
+    "skills": [],
+    "effects": [],
+    "tags": []
    }
   ],
   "skills": [
@@ -28312,7 +28361,6 @@ window.PROJETO={
     "heal": 0,
     "mpRestore": 0,
     "tags": [],
-    "vfx": "none",
     "radius": 0,
     "id": "war_corte_horizontal",
     "name": "Corte Horizontal",
@@ -28320,8 +28368,7 @@ window.PROJETO={
     "effect": "golpe",
     "mira": "direcao",
     "arc": 140,
-    "animLancar": "1C.14.2",
-    "animEscala": 2,
+    "vfx": "corte",
     "mana": 5,
     "cd": 3,
     "castTime": 0,
@@ -28350,14 +28397,14 @@ window.PROJETO={
     "heal": 0,
     "mpRestore": 0,
     "tags": [],
-    "vfx": "none",
     "radius": 0,
     "id": "war_investida_escudo",
     "name": "Investida com Escudo",
     "desc": "Avança até o inimigo, causa 50% da Força como dano e atordoa por 1 s.",
     "effect": "investida",
     "alcance": 120,
-    "animAcerto": "1C.13.2",
+    "velocidade": 420,
+    "vfx": "investida",
     "mana": 10,
     "cd": 10,
     "castTime": 0,
@@ -28389,14 +28436,12 @@ window.PROJETO={
     "heal": 0,
     "mpRestore": 0,
     "tags": [],
-    "vfx": "none",
     "radius": 80,
     "id": "war_grito",
     "name": "Grito de Guerra",
     "desc": "Aumenta o dano físico em 10% por 7 s; aliados na área ganham o efeito também.",
     "effect": "aura",
-    "animLancar": "4A.0.2",
-    "animEscala": 2,
+    "vfx": "aura",
     "mana": 15,
     "cd": 20,
     "castTime": 0,
@@ -28416,7 +28461,7 @@ window.PROJETO={
     "icon": "burst",
     "c1": "#c0501e",
     "c2": "#ffd8a0",
-    "color": "#ff9966"
+    "color": "#ff3a2a"
    },
    {
     "kind": "class",
@@ -28428,7 +28473,6 @@ window.PROJETO={
     "heal": 0,
     "mpRestore": 0,
     "tags": [],
-    "vfx": "none",
     "radius": 34,
     "id": "war_girar",
     "name": "Girar",
@@ -28436,11 +28480,10 @@ window.PROJETO={
     "effect": "canal",
     "duracao": 5,
     "intervalo": 1,
-    "animLancar": "1C.11.2",
-    "animEscala": 3,
+    "vfx": "giro",
     "mana": 20,
     "cd": 15,
-    "castTime": 0.2,
+    "castTime": 0.1,
     "charPercent": 80,
     "scaleStat": "none",
     "scalePercent": 0,
@@ -28453,7 +28496,7 @@ window.PROJETO={
     "icon": "spin",
     "c1": "#b8322a",
     "c2": "#ffd0c0",
-    "color": "#ee5555"
+    "color": "#d8e6ff"
    }
   ],
   "passives": [
@@ -40973,7 +41016,7 @@ window.PROJETO={
   "proporcaoV": 3,
   "formulasV": 3,
   "balanceV": 3,
-  "habilidadesV": 2
+  "habilidadesV": 3
  },
  "artes": {
   "monstros/sl": null,

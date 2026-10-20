@@ -12,6 +12,11 @@
  const hex=c=>{const m=/^#?([0-9a-f]{6})$/i.exec(c||'');const n=m?parseInt(m[1],16):0xffffff;return[n>>16&255,n>>8&255,n&255]};
  const mix=(a,b,k)=>{const x=hex(a),y=hex(b);return'#'+x.map((v,i)=>Math.round(v+(y[i]-v)*k).toString(16).padStart(2,'0')).join('')};
  const ACHATA=.8; // vista de cima em 3/4: círculos no chão ficam um pouco achatados
+ /* espiral de tontura: dois braços girando, achatados como um halo em cima da cabeça */
+ function espiral(g,x,y,rot){x=Math.round(x);y=Math.round(y);const feitos=new Set();
+  for(const braco of [0,Math.PI])for(let i=0;i<=22;i++){const a=rot+braco+i*.42,r=.8+i*.25,X=Math.round(x+Math.cos(a)*r*1.3),Y=Math.round(y+Math.sin(a)*r*.55),k=X+','+Y;if(feitos.has(k))continue;feitos.add(k);
+   px(g,X,Y,i<6?'#ffffff':i<14?'#ffe66b':'#f0a020',i>18?.6:1)}
+  g.globalAlpha=1}
 
  /* lâmina em arco: anel entre raio-T e raio, de 'de' até 'ate' (ângulos relativos a a0). força(off) 0..1 dá a espessura e o brilho */
  function lamina(g,cx,cy,raio,a0,de,ate,forca,cor,alfa){
@@ -105,6 +110,12 @@
    for(let i=faiscas.length;i--;){const f=faiscas[i];f.t+=dt;if(f.t>=f.dur){faiscas.splice(i,1);continue}const a=Q(1-f.t/f.dur);
     if(f.linha){const n=Math.max(1,Math.round(Math.hypot(f.vx,f.vy)));for(let j=0;j<n;j++)px(g,Math.round(f.x+f.vx*j/n),Math.round(f.y+f.vy*j/n),'#e8f2ff',a*(1-j/n))}
     else{f.x+=f.vx*dt;f.y+=f.vy*dt;px(g,Math.round(f.x),Math.round(f.y),f.cor||'#ff5a3a',a)}}
+   // atordoado: espiral girando em cima da cabeça
+   const fxi=typeof FX_INFO!=='undefined'?FX_INFO:{},rot=performance.now()/1000*7;
+   const tonto=t=>{if(!t||!t.st||t.hp<=0)return false;for(const k in t.st)if(fxi[k]&&fxi[k].kind==='stun'&&t.st[k].t>0)return true;return false};
+   const altura=t=>t===p?(typeof heroImg=='function'?wh(heroImg('d')):26):typeof wh=='function'?wh(t.img):20;
+   if(typeof p!=='undefined'&&tonto(p))espiral(g,p.x,p.y-altura(p)+5,rot);
+   if(typeof en!=='undefined')for(const e of en)if(tonto(e))espiral(g,e.x,e.y-altura(e)+5,rot);
    // giro: lâmina girando junto com o herói (a ponta está no ângulo para onde ele olha)
    if(typeof p!=='undefined'&&p.canal&&p.canal.visual){const v=p.canal.visual,span=Math.PI*1.4;
     lamina(g,p.x,p.y-8,v.raio,p.canal.ang,-span,0,off=>1+off/span,v.cor,1)}
