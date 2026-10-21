@@ -40932,6 +40932,71 @@ window.PROJETO={
       "elite": 10
      }
     ]
+   },
+   {
+    "id": "all",
+    "name": "all",
+    "minLevel": 1,
+    "targetLevel": 1,
+    "frequency": 1,
+    "monsters": [
+     {
+      "id": "soldado",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "monstro_sangue",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "demonio",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "colmeia",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "pedra_viva",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "bambu",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "toco_vivo",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     },
+     {
+      "id": "orc",
+      "chance": 25,
+      "min": 0,
+      "max": 2,
+      "elite": 5
+     }
+    ]
    }
   ],
   "calc": {
