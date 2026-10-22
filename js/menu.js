@@ -35,6 +35,8 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
  const h=(t)=>{box.append($$('h1','',t||'GDM<br>Ilha Acima dos Deuses'),$$('div','sub','AVENTURA RPG'))},back=()=>box.append(B('← Voltar',()=>{view='main';show()}));
  if(view=='main'){h(started?'Pausa':null);
   box.append(started?B('▶ Voltar ao jogo',toggle,'primario'):B(hasSave()?'▶ Continuar':'▶ Novo jogo',()=>{started=true;toggle();if(window.saveGame)saveGame()},'primario'));
+  // com conta: volta para a tela de personagens (conta.js abrirPersonagens)
+  if(started&&window.abrirPersonagens)box.append(B('◉ Personagens',()=>{paused=false;menu.classList.remove('open');if(abrirPersonagens()===false){ft(p.x,p.y-24,'Termine a partida antes.','#f87171')}}));
   box.append(B('⚙ Opções',()=>{view='opt';show()}),B('⌨ Controles',()=>{view='help';show()}));
   box.append($$('p','msave','O jogo salva automaticamente.'));
   // sem conta: apagar progresso fica escondido no fim. Com conta, o personagem é apagado na tela de seleção (conta.js)

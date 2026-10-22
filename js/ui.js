@@ -173,7 +173,7 @@ function compareEquipment(id,q,preferredSlot){
  const current=EQ[slot],candidate=qStats(id,q),equipped=current?qStats(current.id,current.q):{},names=Object.fromEntries(Object.entries(ITEM_STATS).map(([k,s])=>[k,s.label]));
  const rows=Object.keys(names).filter(k=>(candidate[k]||0)||(equipped[k]||0));
  const panel=(item,stats,label,quality)=>'<div class="compareCard '+label+'"><div class=compareLabel>'+label+'</div><div class=compareIcon><img src="'+item.ic+'" alt=""></div><div class=compareName>'+item.n.split(' (')[0]+'</div><div class=compareStats>'+
-  (rows.length?rows.map(k=>{const value=stats[k]||0,diff=(candidate[k]||0)-(equipped[k]||0),better=label=='Novo'?diff>0:diff<0,range=k==='dmg'&&qualityWeaponRange(item,quality),display=range?range.min+' - '+range.max:itemStatValue(k,value);return'<div class="compareStat '+(diff===0?'same':better?'better':'worse')+'"><span>'+names[k]+'</span><b>'+display+'</b></div>'}).join(''):'<div class=compareSame>Sem atributos</div>')+'</div></div>';
+  (rows.length?rows.map(k=>{const value=stats[k]||0,diff=(candidate[k]||0)-(equipped[k]||0),better=label=='Novo'?diff>0:diff<0,range=k==='dmg'&&item.damageMin!=null&&qualityWeaponRange(item,quality),r2=range&&qualityWeaponRange2(item,quality),mg=range&&((BASIC[item.id]&&BASIC[item.id].damageType||item.damageType)=='magic'),display=range?pintaDano(faixaTxt(range.min,range.max),mg?'magic':'physical')+(r2?' + '+pintaDano(faixaTxt(r2.min,r2.max),mg?'physical':'magic'):''):itemStatValue(k,value);return'<div class="compareStat '+(diff===0?'same':better?'better':'worse')+'"><span>'+names[k]+'</span><b>'+display+'</b></div>'}).join(''):'<div class=compareSame>Sem atributos</div>')+'</div></div>';
  const existing=current?ITEMS[current.id]:null,empty={ic:BLANK,n:'Vazio'};
  return'<div class=compareHead>Comparação — '+SLOT_LABEL[slot]+'</div><div class=compareGrid>'+panel(ITEMS[id],candidate,'Novo',q)+panel(existing||empty,equipped,'Equipado',current?.q)+'</div>'
 }
@@ -183,7 +183,7 @@ function itemTip(id,q,preferredSlot){const it=ITEMS[id],t=gearType[id],m=it.n.ma
  if(t)h+=tl('Qualidade',qq+'% ('+qName(qq)+')','tq',qcol);
  // arma com os dois tipos de dano (ex.: 26 - 36 físico + 12 - 22 mágico): o texto fica em degradê laranja → azul
  if(t=='sw'){const range=qualityWeaponRange(it,q),r2=qualityWeaponRange2(it,q),mg=(BASIC[id]&&BASIC[id].damageType||it.damageType)=='magic';
-  if(range)h+=tl('Dano',range.min+' - '+range.max+(mg?' mágico':' físico')+(r2?' + '+r2.min+' - '+r2.max+(mg?' físico':' mágico'):''),r2?'tdano tmisto'+(mg?' inv':''):'tdano')}
+  if(range)h+=tl('Dano',pintaDano(faixaTxt(range.min,range.max),mg?'magic':'physical')+(r2?' + '+pintaDano(faixaTxt(r2.min,r2.max),mg?'physical':'magic'):''),'tdano')}
  const stats=t?qStats(id,q):it,st=statTxt(t==='sw'&&weaponDamageRange(it)?{...stats,dmg:0}:stats);if(st)h+=tl('Atributos',st,'tatr');
  else if(it.use&&m)h+=tl('Efeito',m[1],'tefeito');
  if(!t&&attributeText(it.bonuses))h+=tl(it.use?'Bônus ('+it.bonusDuration+' s)':'Atributos',attributeText(it.bonuses),'tatr');
@@ -208,7 +208,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0},missao:p.missao||null,quadro:p.quadro||null},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0},missao:p.missao||null,quadro:p.quadro||null,tutorial:p.tutorial||null},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -231,7 +231,7 @@ function loadGame(){
   lootMode=Object.prototype.hasOwnProperty.call(LOOT_MODES,d.lootMode)?d.lootMode:'manual';
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
   // missão do quadro da taverna (js/taverna.js) e as ofertas do dia
-  p.missao=d.p.missao&&typeof d.p.missao=='object'&&d.p.missao.tipo?d.p.missao:null;p.quadro=d.p.quadro&&typeof d.p.quadro=='object'?d.p.quadro:null;
+  p.missao=d.p.missao&&typeof d.p.missao=='object'&&d.p.missao.tipo?d.p.missao:null;p.tutorial=d.p.tutorial&&typeof d.p.tutorial=='object'?d.p.tutorial:{etapa:0,feito:true}; /* save antigo: sem tutorial */p.quadro=d.p.quadro&&typeof d.p.quadro=='object'?d.p.quadro:null;
   if(d.p.look&&typeof d.p.look=='object')p.look=window.APARENCIA?APARENCIA.normalizar(d.p.look,p.sex):d.p.look;
   // kits iniciais já recebidos; saves de antes dos kits contam as classes que o jogador já tinha
   p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=Array.isArray(d.p.kits[c])?d.p.kits[c]:true}else for(const c in p.classProgress)p.kits[c]=true;
@@ -276,15 +276,15 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
  const armorBase=Math.round(baseA*CALC.armPerA+bonus('arm')),magicArmorBase=Math.round(baseI*CALC.magArmPerI+bonus('magicArm'));
  const intervalBase=Math.max(CALC.minInterval,(c.attackSpeed||1)*(1-baseA*CALC.atkSpdPerA)*(1-bonus('attackSpeed')));
  const guardEffect=Math.min(80,effectSum('guard')),protection=Math.round(guardEffect);
- const fb=faixaBasico(),f0=faixaBasico(basic(),false),fx=(f,k)=>{const a=Math.round(f.min[k]),b=Math.round(f.max[k]);return a===b?String(a):a+' - '+b};
- const danoTipo=(rot,k)=>{const com=fx(fb,k),sem=fx(f0,k);return row(rot,com===sem?com:'<span class="statBonus">'+com+'</span> <span class=tm>('+sem+' sem buffs)</span>')};
+ const fb=faixaBasico(),f0=faixaBasico(basic(),false),fx=(f,k)=>faixaTxt(f.min[k],f.max[k]);
+ const danoTipo=(rot,k)=>{const com=fx(fb,k),sem=fx(f0,k);return row(rot,pintaDano(com,k))}; // valor na cor do tipo de dano (já com os buffs ativos)
  ap.innerHTML='<h4>Atributos</h4>'+
   row('Força',value(a.F,baseF),'#f55')+row('Agilidade',value(a.A,baseA),'#5ee05a')+row('Inteligência',value(a.I,baseI),'#5aa8ff')+'<hr>'+
   row('Vida máx.',value(mhp(),hpBase))+row('Mana máx.',value(mmp(),mpBase))+
   row('Reg. vida',value(regenHp()+hpRegenEffect,regenHpBase,2)+'/s')+row('Reg. mana',value(regenMp(),regenMpBase,2)+'/s')+'<hr>'+
   // dano real do golpe por tipo (arma de cada tipo + Força/Inteligência + buffs); o aumento dos buffs aparece destacado
   danoTipo('Dano físico','physical')+danoTipo('Dano mágico','magic')+
-  row('Força no dano físico','+'+fmt((multDano('physical')-1)*100,1)+'%')+row('Inteligência no dano mágico','+'+fmt((multDano('magic')-1)*100,1)+'%')+
+  row('Bônus de dano físico','+'+fmt((multDano('physical')-1)*100,1)+'%')+row('Bônus de dano mágico','+'+fmt((multDano('magic')-1)*100,1)+'%')+
   row('Def. física',value(armor(),armorBase))+row('Def. mágica',value(magicArmor(),magicArmorBase))+
   (protection?row('Proteção','<span class="statBonus">'+protection+'%</span>'):'')+
   row('Int. de ataque',value(attackInterval(),intervalBase,2)+'s')+row('Vel. movimento',value(moveWithEffects,moveBase))+
@@ -337,9 +337,10 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  else if(!blacksmithSaved)objective='O portal está sintonizado com o Covil dos Goblins! Clique no portal ou abra o menu, entre na DG, derrote o Lorde Goblin Demoníaco e resgate o Ferreiro!';
  else objective='O Ferreiro foi salvo e está na forja do acampamento! Você pode explorar a DG novamente para caçar baús raros e lendários!';
  // visitando outra ilha: a missão mostrada é a sua, que continua quando voltar para casa
- if(window.MP&&MP.visitando&&!window.inDungeon&&!window.inTaverna){quest.classList.remove('done');quest.innerHTML='<b>VISITANDO</b>Você está na ilha de '+String(MP.nomeDe(MP.visitando)).replace(/[<>&]/g,'')+'. Sua missão continua quando voltar para a sua ilha.'}
+ if(window.inTutorial){} // tutorial: o quadro é do js/tutorial.js
+ else if(window.MP&&MP.visitando&&!window.inDungeon&&!window.inTaverna){quest.classList.remove('done');quest.innerHTML='<b>VISITANDO</b>Você está na ilha de '+String(MP.nomeDe(MP.visitando)).replace(/[<>&]/g,'')+'. Sua missão continua quando voltar para a sua ilha.'}
  else quest.innerHTML='<b>'+(wallBuilt?'RESGATE DO FERREIRO':'PRIMEIRO OBJETIVO')+'</b>'+objective;
- if(window.textoMissaoQuadro)quest.innerHTML+=textoMissaoQuadro(); // missão do quadro da taverna
+ if(window.textoMissaoQuadro&&!window.inTutorial)quest.innerHTML+=textoMissaoQuadro(); // missão do quadro da taverna
  if(dirtyInv)renderInv()}
 const mm=$('mm').getContext('2d');mm.imageSmoothingEnabled=false;
 

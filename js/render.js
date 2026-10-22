@@ -441,7 +441,7 @@ function drawCampGate(){
 }
 const fogMaskCv=document.createElement('canvas'),fogMask=fogMaskCv.getContext('2d'),VISAO_ILHA=200;
 let VISION_RANGE=VISAO_ILHA; /* à noite a visão cai 10% (js/tempo.js); na DG não muda */
-const visionTrees=()=>window.inArena||window.inTaverna?[]:trees.filter(t=>Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);
+const visionTrees=()=>window.inArena||window.inTaverna||window.inTutorial?[]:trees.filter(t=>Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);
 function treeHit(ox,oy,dx,dy,t){
  const x=(ox-t.x)/15,y=(oy-(t.y-17))/11,a=(dx/15)**2+(dy/11)**2,b=2*(x*dx/15+y*dy/11),c=x*x+y*y-1;
  if(c<=0)return Infinity;
@@ -455,7 +455,8 @@ function treeExit(ox,oy,dx,dy,t){
  const s=Math.sqrt(disc);return (-b-s)/(2*a)>0?(-b+s)/(2*a):Infinity
 }
 function canSee(x,y){
- const dx=x-p.x,dy=y-p.y,d=Math.hypot(dx,dy);if(!window.inDungeon&&!window.inArena&&Math.hypot(x-CX,y-CY)<110)return true; /* luz da fogueira */if(d>VISION_RANGE)return false;if(d<.001)return true;
+ if(window.inArena&&window.ARENA&&ARENA.ve)return ARENA.ve(x,y); // arena: visão sua e dos aliados, com as colunas
+ const dx=x-p.x,dy=y-p.y,d=Math.hypot(dx,dy);if(!window.inDungeon&&!window.inArena&&!window.inTutorial&&Math.hypot(x-CX,y-CY)<110)return true; /* luz da fogueira */if(d>VISION_RANGE)return false;if(d<.001)return true;
  return !visionTrees().some(t=>treeHit(p.x,p.y,dx,dy,t)<1)
 }
 function drawVision(){
@@ -547,10 +548,11 @@ window.desenharHeroiMorto=function(){
 const telaMorte=document.createElement('div');telaMorte.id='telaMorte';telaMorte.innerHTML='<b>Você caiu</b><small></small><button type="button">Reaparecer</button>';document.body.append(telaMorte);
 telaMorte.querySelector('button').onclick=e=>{e.stopPropagation();reaparecer()};
 function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&time-(p.morreuEm??time)>1.1;telaMorte.classList.toggle('on',on);
- if(on)telaMorte.querySelector('small').textContent=window.inArena?'Você volta para a arena.':'Você volta para o acampamento. Metade do ouro ficou para trás.'}function draw(){
+ if(on)telaMorte.querySelector('small').textContent=window.inArena?'Você volta para a arena.':window.inTutorial?'Você volta para o começo do santuário.':'Você volta para o acampamento. Metade do ouro ficou para trás.'}function draw(){
  atualizarTelaMorte();
  if(MODO.motor)return;
  VISION_RANGE=window.inDungeon||!window.TEMPO?VISAO_ILHA:Math.round(VISAO_ILHA*TEMPO.visao());
+ if(window.inTutorial&&window.drawTutorial){drawTutorial();return}
  if(window.inArena&&window.drawArena){drawArena();return}
  if(window.inTaverna&&window.drawTaverna){
   drawTaverna();

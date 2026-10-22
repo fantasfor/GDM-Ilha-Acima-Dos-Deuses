@@ -91,7 +91,7 @@
   if(!near&&def.activation=='near')return;
   if(wave(s)||def.respawnMode=='interval')s.timer=s.waves?def.respawn:def.startDelay;
  }
- const upd0=upd;upd=function(dt){upd0(dt);if(p.dead>0||window.inTaverna||window.inArena||window.mpEspelho)return;(window.inDungeon?dungeon:island).forEach(s=>tick(s,dt))};
+ const upd0=upd;upd=function(dt){upd0(dt);if(p.dead>0||window.inTaverna||window.inArena||window.inTutorial||window.mpEspelho)return;(window.inDungeon?dungeon:island).forEach(s=>tick(s,dt))};
  /* Na DG: cria os pontos da DG ativa; as portas de uma sala esperam as ondas finitas dos pontos ligados a ela. */
  window.SPAWNS={
   enterDungeon(cfg){dungeon=(Array.isArray(cfg&&cfg.spawns)?cfg.spawns:[]).map(d=>state(normalize(d,true)));

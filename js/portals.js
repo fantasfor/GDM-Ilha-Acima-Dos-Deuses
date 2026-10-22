@@ -26,7 +26,11 @@ const clonePortalDefs=list=>list.map((q,i)=>{
  return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),grupo:!!q.grupo,cor:/^#[0-9a-f]{6}$/i.test(q.cor||'')?q.cor:'#b06bff',monsters}});
 const portalDefs=clonePortalDefs(Array.isArray(PROJ.portalDefs)?PROJ.portalDefs:DEFAULT_PORTAL_DEFS);
 window.PORTAL_DEFS=portalDefs;
-function spawnAt(x,y,type,level=monsterLevel()){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
+/* nível de quem nasce num portal: perto do nível do jogador, dentro da faixa da criatura (Nível mínimo/máximo na Engine);
+   assim uma criatura de nível 5 ou 8 nunca aparece abaixo disso */
+function nivelDoMonstro(type){const s=SPAWN[type],min=s?s.min:1,max=s?Math.max(min,s.max):999;return Math.max(min,Math.min(max,monsterLevel()))}
+window.nivelDoMonstro=nivelDoMonstro;
+function spawnAt(x,y,type,level=nivelDoMonstro(type)){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
  configureMonster(e,type,level);Object.assign(e,{x,y,hx:x,hy:y,hp:e.max,st:null,fx:0,fy:1,aw:0,cd:0,hit:0,rt:0,dest:null,path:[],pathI:0,pathKey:'',roamT:3,roamRadius:rnd(38,70)});return e}
 window.spawnAt=spawnAt;
 /* Elite: +50% de vida, +35% de dano, +25% de defesas e +50% de XP e ouro. */
@@ -48,7 +52,7 @@ function resumeSawQuest(){
 }
 window.startSawQuest=startSawQuest;
 window.resumeSawQuest=resumeSawQuest;
-const eligibleMonsters=def=>def.monsters.filter(m=>m.chance>0&&m.max>0&&MONSTER_TYPES[m.id]&&!(m.id=='gob'&&(!sawQuestActive||sawObtained||wallBuilt||drops.some(d=>d.questReward))));
+const eligibleMonsters=def=>def.monsters.filter(m=>m.chance>0&&m.max>0&&MONSTER_TYPES[m.id]&&!(SPAWN[m.id]&&p.lvl<SPAWN[m.id].min)&&/* criatura de nível alto só aparece quando o jogador chega ao nível mínimo dela */!(m.id=='gob'&&(!sawQuestActive||sawObtained||wallBuilt||drops.some(d=>d.questReward))));
 const qtd=m=>m.min+Math.floor(Math.random()*(m.max-m.min+1));
 // menor matilha possível: o monstro garantido com a menor quantidade mínima
 const minPack=def=>Math.max(1,Math.min(...eligibleMonsters(def).map(m=>m.min)));
@@ -117,7 +121,7 @@ const h0=hurtE;hurtE=function(e){const r=h0.apply(this,arguments);if(e&&e.pack&&
 const upd0=upd;upd=function(dt){upd0(dt);
  sawGoblin=questMonsterRequested('gob')?questMonsterTarget('gob'):null;
  // portais só na própria ilha: na taverna não há monstros e, visitando outra ilha, quem solta os monstros é o dono
- if(!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.mpEspelho){
+ if(!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.inTutorial&&!window.mpEspelho){
   // abaixo do mínimo de monstros na ilha, os portais abrem bem mais rápido até completar; depois, no intervalo normal
   const naIlha=en.reduce((n,e)=>n+(e.hp>0&&!e.boss&&!e.mpProxy?1:0),0)+portals.reduce((n,q)=>n+q.left,0),minimo=CALC.islandMinMonsters??20;
   timer-=dt;if(timer<=0){timer=naIlha<minimo?PORTAL_REFILL:CALC.portalInterval;if(CALC.randomPortals!==false)openPortal()}

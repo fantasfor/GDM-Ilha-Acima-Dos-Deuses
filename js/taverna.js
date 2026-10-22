@@ -352,8 +352,8 @@
   const ps=c.passive&&c.passive.n?'<p>Passiva: <b>'+c.passive.n+'</b>'+(c.passive.d?' – '+c.passive.d:'')+'</p>':'';
   // classe nova: só vencendo o Mestre num duelo na arena (Mestre nível 10 com os atributos da classe); já aprendida: trocar é grátis
   box.innerHTML='<b>'+m.nm+'</b>'+
-   (atual?'<p>Você já é '+c.n+'. Continue treinando!</p>'
-    :aprendida?'<p>Você já aprendeu '+c.n+': trocar é grátis.</p>'+ps+'<button type="button" data-tav-classe>Trocar para '+c.n+'</button>'
+   (atual?'<p>Você já é '+c.n+'. Continue treinando! Quer medir forças de novo?</p><button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
+    :aprendida?'<p>Você já aprendeu '+c.n+': trocar é grátis.</p>'+ps+'<button type="button" data-tav-classe>Trocar para '+c.n+'</button><button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
     :'<p>Quer seguir o caminho de '+c.n+'? Prove o seu valor: vença-me num duelo na arena. Eu luto no <b>nível 10</b>, com a força de um '+c.n+'.</p>'+ps+
      '<p class=tm>Perder não custa nada: você volta para a taverna e pode tentar de novo.</p><button type="button" data-tav-duelo>Desafiar o Mestre</button>')+
    '<button type="button" data-close-dialog>Até mais</button>';

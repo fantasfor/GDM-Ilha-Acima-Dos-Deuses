@@ -11,7 +11,7 @@ const smoothT=t=>t*t*(3-2*t),vnoise=(x,y,s)=>{const a=x/s,b=y/s,i=Math.floor(a),
 const CAMP_SAFE_HALF_SIZE=132;
 const campDistance=(x,y)=>Math.max(Math.abs(x-CX),Math.abs(y-CY));
 // a taverna (js/taverna.js) inteira é área segura, como o acampamento
-const insideCamp=(x,y,margin=0)=>!!window.inTaverna||!window.inDungeon&&campDistance(x,y)<CAMP_SAFE_HALF_SIZE+margin;
+const insideCamp=(x,y,margin=0)=>!!window.inTaverna||!window.inDungeon&&!window.inTutorial&&campDistance(x,y)<CAMP_SAFE_HALF_SIZE+margin;
 const CAMP_WALL={built:false,gateOpen:true,halfGate:32,thickness:10};
 const campGate={x:CX,y:CY+CAMP_SAFE_HALF_SIZE};
 const campWallPosts=[];
@@ -23,12 +23,12 @@ for(let side=0;side<4;side++)for(let i=0;i<24;i++){
 }
 function campGateOccupied(x,y,margin=0){return Math.abs(x-campGate.x)<CAMP_WALL.halfGate+margin&&Math.abs(y-campGate.y)<CAMP_WALL.thickness+margin}
 function campWallBlocks(x,y){
- if(window.inDungeon||window.inTaverna||!CAMP_WALL.built)return false;
+ if(window.inDungeon||window.inTaverna||window.inTutorial||!CAMP_WALL.built)return false;
  if(y>CY&&Math.abs(x-CX)<CAMP_WALL.halfGate)return !CAMP_WALL.gateOpen&&campGateOccupied(x,y);
  return Math.abs(campDistance(x,y)-CAMP_SAFE_HALF_SIZE)<CAMP_WALL.thickness
 }
 function campWallSegmentClear(from,to){
- if(window.inDungeon||window.inTaverna||!CAMP_WALL.built)return true;
+ if(window.inDungeon||window.inTaverna||window.inTutorial||!CAMP_WALL.built)return true;
  const steps=Math.ceil(Math.hypot(to.x-from.x,to.y-from.y)/2);
  for(let i=1;i<=steps;i++){const f=i/steps;if(campWallBlocks(from.x+(to.x-from.x)*f,from.y+(to.y-from.y)*f))return false}
  return true
@@ -171,14 +171,14 @@ if(Array.isArray(PROJ.map&&PROJ.map.elements)){
 function groundFree(x,y){const i=Math.floor(x/T),j=Math.floor(y/T);if(i<0||j<0||i>=N||j>=N)return false;const ch=CHAO_GRID[j*N+i];if(ch)return !ch.liquido;return V(i,j)<28.5&&!(inRiver(x,y)&&!onBridge(x,y))}
 const walkRaw=(x,y,ig,exclude)=>{if(typeof NPCS!='undefined')for(const n of NPCS)if(Math.abs(n.x-x)<7&&Math.abs(n.y-y)<7&&Math.hypot(n.x-x,n.y-y)<6.5)return false;const i=Math.floor(x/T),j=Math.floor(y/T);if(i<0||j<0||i>=N||j>=N||!groundFree(x,y))return false;for(const t of trees)if(t!==exclude&&Math.abs(t.x-x)<6&&Math.abs(t.y-y)<5&&Math.hypot(t.x-x,(t.y-y)*1.4)<4.5)return false;for(const e of mapElements){if(e===exclude||ig&&e.type==ig)continue;const type=MAP_ELEMENT_TYPES[e.type];if(type&&type.blocks&&Math.hypot(e.x-x,e.y-y)<type.radius+4)return false}return true};
 let WG=null;const GW=W/2;
-const walk=(x,y)=>{if(window.inArena&&window.arenaWalk)return arenaWalk(x,y);if(window.inTaverna&&window.tavernaWalk)return tavernaWalk(x,y);if(window.inDungeon&&typeof dungeonWalk==='function')return dungeonWalk(x,y);if(campWallBlocks(x,y))return false;if(!WG)return walkRaw(x,y);const i=Math.floor(x/2),j=Math.floor(y/2);return i>=0&&j>=0&&i<GW&&j<GW&&WG[j*GW+i]===1};
+const walk=(x,y)=>{if(window.inTutorial&&window.tutorialWalk)return tutorialWalk(x,y);if(window.inArena&&window.arenaWalk)return arenaWalk(x,y);if(window.inTaverna&&window.tavernaWalk)return tavernaWalk(x,y);if(window.inDungeon&&typeof dungeonWalk==='function')return dungeonWalk(x,y);if(campWallBlocks(x,y))return false;if(!WG)return walkRaw(x,y);const i=Math.floor(x/2),j=Math.floor(y/2);return i>=0&&j>=0&&i<GW&&j<GW&&WG[j*GW+i]===1};
 /* paredes bloqueiam golpes e magias: na DG as paredes e portas fechadas; na ilha a paliçada (portão fechado) e muros de pedra.
    Água, árvores e pedras pequenas não bloqueiam. linhaLivre(a,b) confere o caminho em passos de 4 px. */
-const bloqueiaTiro=(x,y)=>{if(window.inArena)return !!(window.arenaParede&&arenaParede(x,y));if(window.inDungeon)return !!(window.dungeonParede&&dungeonParede(x,y));if(window.inTaverna)return false;if(campWallBlocks(x,y))return true;for(const e of mapElements)if(e.type=='stonewall'&&Math.hypot(e.x-x,e.y-y)<MAP_ELEMENT_TYPES.stonewall.radius)return true;return false};
+const bloqueiaTiro=(x,y)=>{if(window.inTutorial)return false;if(window.inArena)return !!(window.arenaParede&&arenaParede(x,y));if(window.inDungeon)return !!(window.dungeonParede&&dungeonParede(x,y));if(window.inTaverna)return false;if(campWallBlocks(x,y))return true;for(const e of mapElements)if(e.type=='stonewall'&&Math.hypot(e.x-x,e.y-y)<MAP_ELEMENT_TYPES.stonewall.radius)return true;return false};
 const linhaLivre=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,n=Math.ceil(Math.hypot(dx,dy)/4);for(let i=1;i<n;i++)if(bloqueiaTiro(a.x+dx*i/n,a.y+dy*i/n))return false;return true};
 window.linhaLivre=linhaLivre;window.bloqueiaTiro=bloqueiaTiro;
 // longe das árvores e dos elementos sólidos: ninguém nasce nem para escondido atrás da copa (mesma área em que a árvore fica transparente)
-const longeDeArvores=(x,y)=>{if(window.inDungeon||window.inTaverna||window.inArena)return true;for(const t of trees)if(Math.abs(t.x-x)<18&&y>t.y-30&&y<t.y+7)return false;for(const e of mapElements){const ty=MAP_ELEMENT_TYPES[e.type];if(ty&&ty.blocks&&Math.hypot(e.x-x,e.y-y)<ty.radius+12)return false}return true};
+const longeDeArvores=(x,y)=>{if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return true;for(const t of trees)if(Math.abs(t.x-x)<18&&y>t.y-30&&y<t.y+7)return false;for(const e of mapElements){const ty=MAP_ELEMENT_TYPES[e.type];if(ty&&ty.blocks&&Math.hypot(e.x-x,e.y-y)<ty.radius+12)return false}return true};
 window.longeDeArvores=longeDeArvores;
 for(let n=0;n<1200&&trees.length<72;n++){const x=rnd(0,W),y=rnd(0,W);if(V(x/T|0,y/T|0)<25.5&&Math.hypot(x-CX,y-CY)>95&&!inRiver(x,y,16))trees.push({x,y})}
 if(Array.isArray(PROJ.map&&PROJ.map.trees)){trees.splice(0,trees.length,...PROJ.map.trees.filter(t=>t&&Number.isFinite(t.x)&&Number.isFinite(t.y)&&t.x>=0&&t.x<W&&t.y>=0&&t.y<W).map(t=>({x:t.x,y:t.y})))}

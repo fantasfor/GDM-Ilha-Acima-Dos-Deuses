@@ -7,6 +7,7 @@ addEventListener('pointerup',()=>rdown=false);
 // mode 0 = toque (mover e atacar), 1 = botão esquerdo (inspecionar/NPC), 2 = botão direito (mover e atacar)
 function order(click,mode=0){if(p.dead>0)return;const w=wpos();
  if(window.inTaverna&&click&&window.tavernaClick&&tavernaClick(w,mode))return;
+ if(window.inTutorial&&click&&window.tutorialClick&&mode!=2&&tutorialClick(w,mode))return;
  if(window.inArena&&click&&window.ARENA&&mode!=2&&ARENA.clique(w,mode))return;
  if(window.inDungeon&&click&&window.handleDungeonClick){
   if(window.handleDungeonClick(w,mode))return;

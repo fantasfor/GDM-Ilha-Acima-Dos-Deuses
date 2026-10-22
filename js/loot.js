@@ -12,7 +12,7 @@
  const COR_SEM='#e7cb88';
  const corDe=q=>q==null?COR_SEM:QCOL[qi(q)];
  // lugar atual: se o jogador mudar de mapa antes do item chegar, ele vai direto para os encontrados
- const lugar=()=>(window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
+ const lugar=()=>(window.inTutorial?'u':window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
  // no chão: o desenho próprio do item (Engine › Item no chão) ou o ícone reduzido a 8×8, sempre em tamanho real (1 pixel = 1 pixel do mundo)
  function imagem(id){
   const it=ITEMS[id];if(!it)return null;

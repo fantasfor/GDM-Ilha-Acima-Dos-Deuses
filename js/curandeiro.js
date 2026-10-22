@@ -10,7 +10,7 @@
    parte 'h:'). custom.js makeSkill chama CURANDEIRO.criar; update.js chama tick; render.js e arena.js chamam desenhar. */
 window.CURANDEIRO=(()=>{
  const n=(v,d=0)=>Number.isFinite(+v)&&v!==''&&v!=null?+v:d;
- const zonas=[],agenda=[];let presenca=null;
+ const zonas=[],agenda=[],ondas=[];let presenca=null;
  const amp=()=>1+Math.max(0,bonus('healAmp'));
  const aliados=(x,y,r,lista)=>{if(window.efeitoAliados)efeitoAliados(lista.map(f=>({...f,x,y,r})))};
  const aliadoSob=w=>{if(!window.MP||!MP.remotos)return null;let m=null,bd=16;for(const o of MP.remotos.values()){if(o.x==null)continue;const d=Math.hypot(o.x-w.x,o.y-8-w.y);if(d<bd){bd=d;m=o}}return m};
@@ -39,7 +39,7 @@ window.CURANDEIRO=(()=>{
   }
   return null}
  function pulso(raio,pct,dano,emp,cor){
-  if(p.dead>0)return;if(window.VFX)VFX.tocar('grito',{x:p.x,y:p.y-4,raio:Math.round(raio),cor});
+  if(p.dead>0)return;ondas.push({x:p.x,y:p.y,t0:typeof time=='number'?time:0,raio,cor:cor||'#ffe9a0'});if(window.playGameSound)playGameSound('pulso');
   const cura=Math.round(mhp()*pct/100*amp());curarEu('curafixa',cura);aliados(p.x,p.y,raio,[{tipo:'curafixa',pw:cura}]);
   const d=mhp()*dano/100;
   for(const e of en){if(e.hp<=0||dist(e,p)>raio||!linhaLivre(p,e))continue;hurtE(e,{physical:0,magic:d},true);
@@ -66,8 +66,31 @@ window.CURANDEIRO=(()=>{
   ctx.globalAlpha=.85*a;ctx.strokeStyle=cor;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y,r,r*.8,0,0,7);ctx.stroke();
   ctx.globalAlpha=.35*a*(.6+.4*Math.sin(t*3));ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,y,r,r*.8,0,0,7);ctx.stroke();ctx.restore()}
  const hexA=(c,a)=>{const n=parseInt(String(c||'#ffffff').slice(1),16);return'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'};
- function desenhar(){
-  const t=typeof time=='number'?time:0;
+ /* Pulso de Luz (ultimate): círculo de runas girando sob o herói enquanto dura e, a cada pulso, clarão na tela, coluna de
+    luz, onda de choque dupla, raios saindo e faíscas voando — tudo somando luz (lighter) */
+ function desenharPulsos(t){
+  const ativo=agenda.some(a=>a.id&&/pulso/.test(a.id))||ondas.length;
+  if(ativo&&p.dead<=0){ctx.save();ctx.globalCompositeOperation='lighter';const rot=t*1.6;
+   for(const [r,a] of [[30,.55],[24,.35]]){ctx.globalAlpha=a;ctx.strokeStyle='#ffe9a0';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*.55,0,0,7);ctx.stroke()}
+   for(let k=0;k<8;k++){const a=rot+k*Math.PI/4,x=p.x+Math.cos(a)*27,y=p.y+Math.sin(a)*27*.55;ctx.globalAlpha=.8;ctx.fillStyle='#fff6c8';ctx.fillRect(Math.round(x)-1,Math.round(y)-2,2,4);ctx.fillRect(Math.round(x)-2,Math.round(y)-1,4,2)}
+   ctx.restore()}
+  for(let i=ondas.length;i--;){const o=ondas[i],q=(t-o.t0)/1;if(q>=1||q<0){ondas.splice(i,1);continue}
+   const e=1-Math.pow(1-q,3),fade=1-q,R=o.raio*e;ctx.save();ctx.globalCompositeOperation='lighter';
+   // clarão no chão
+   let g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,Math.max(4,R));g.addColorStop(0,hexA('#ffffff',.55*fade));g.addColorStop(.5,hexA(o.cor,.3*fade));g.addColorStop(1,hexA(o.cor,0));ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(o.x,o.y,Math.max(4,R),Math.max(3,R*.6),0,0,7);ctx.fill();
+   // coluna de luz descendo no herói
+   const w=Math.max(3,16*fade+3);g=ctx.createLinearGradient(0,o.y-110,0,o.y);g.addColorStop(0,hexA(o.cor,0));g.addColorStop(.6,hexA(o.cor,.5*fade));g.addColorStop(1,hexA('#ffffff',.9*fade));ctx.fillStyle=g;ctx.fillRect(o.x-w/2,o.y-110,w,110);
+   // onda de choque dupla
+   ctx.globalAlpha=fade;ctx.strokeStyle='#ffffff';ctx.lineWidth=1+3*fade;ctx.beginPath();ctx.ellipse(o.x,o.y,R,R*.6,0,0,7);ctx.stroke();
+   if(R>8){ctx.strokeStyle=o.cor;ctx.lineWidth=2;ctx.globalAlpha=fade*.8;ctx.beginPath();ctx.ellipse(o.x,o.y,R*.82,R*.82*.6,0,0,7);ctx.stroke()}
+   // raios saindo
+   ctx.strokeStyle='#fff3b0';ctx.lineWidth=1;ctx.globalAlpha=fade*.9;for(let k=0;k<16;k++){const a=k/16*Math.PI*2+o.t0;ctx.beginPath();ctx.moveTo(o.x+Math.cos(a)*R*.25,o.y-6+Math.sin(a)*R*.15);ctx.lineTo(o.x+Math.cos(a)*R*1.05,o.y-6+Math.sin(a)*R*.63);ctx.stroke()}
+   // faíscas voando e subindo
+   for(let k=0;k<26;k++){const a=k/26*Math.PI*2+k*.7,d=o.raio*e*(.6+.5*((k*.37)%1)),x=Math.round(o.x+Math.cos(a)*d),y=Math.round(o.y+Math.sin(a)*d*.6-q*22-(k%3)*4);ctx.globalAlpha=fade;ctx.fillStyle=k%3?'#ffe9a0':'#ffffff';ctx.fillRect(x,y,k%4?1:2,k%4?1:2)}
+   ctx.restore();
+   // clarão na tela no começo de cada pulso
+   if(q<.25){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=.22*(1-q/.25);ctx.fillStyle='#fff6d8';ctx.fillRect(0,0,cv.width,cv.height);ctx.restore()}}} function desenhar(){
+  const t=typeof time=='number'?time:0;desenharPulsos(t);
   for(const z of zonas){const a=Math.max(0,Math.min(1,z.t*2,(z.dur-z.t)*4));area(z.x,z.y,z.r,z.cor||'#fff3a0',a,t);
    ctx.save();for(let k=0;k<12;k++){const q=(t*.6+k/12)%1,ang=k*2.4,rr=z.r*.85*Math.sqrt((k*.37)%1),x=Math.round(z.x+Math.cos(ang)*rr),y=Math.round(z.y+Math.sin(ang)*rr*.8);ctx.globalAlpha=a*(1-q)*.8;ctx.fillStyle='#fff6c8';ctx.fillRect(x,y-Math.round(q*18),1,3)}ctx.restore()}
   if(presenca&&p.dead<=0)area(p.x,p.y,presenca.r*areaMultiplier(p),presenca.cor||'#7fe8a0',.8,t)} /* habilidade que saiu da barra (troca de espaço/classe): a aura desliga e as áreas e pulsos dela param */

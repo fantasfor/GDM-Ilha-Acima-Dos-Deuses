@@ -11,7 +11,10 @@ window.anotarDrop=(ty,id)=>{if(ty&&id)(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=
 const SLOTS=['he','ch','le','bo','ca','ne','r1','r2','sw','sh'];
 const EQ=Object.fromEntries(SLOTS.map(s=>[s,null]));
 const fits=(slot,id)=>!!gearType[id]&&(gearType[id]==slot||(gearType[id]=='ri'&&(slot=='r1'||slot=='r2'))||(slot=='sh'&&gearType[id]=='sw'&&!ITEMS[id].th));
-const rollQ=()=>Math.round(100*Math.pow(Math.random(),CALC.qualExp)),qMul=q=>CALC.qualBase+(q==null?50:q)/100,
+/* raridade (qualidade) de um item novo: sorteia a faixa pelas chances da Engine (Fórmulas › Drops) e depois um valor dentro
+   dela. Padrão: Ruim 0-19 35%, Comum 20-44 35%, Boa 45-69 20%, Rara 70-89 8%, Épica 90-99 1,9%, Perfeita 100 0,1% */
+const FAIXAS_Q=[['qualRuim',0,19],['qualComum',20,44],['qualBoa',45,69],['qualRara',70,89],['qualEpica',90,99],['qualPerfeita',100,100]];
+const rollQ=()=>{const w=FAIXAS_Q.map(([k])=>Math.max(0,+CALC[k]||0)),tot=w.reduce((a,b)=>a+b,0);if(!(tot>0))return Math.round(100*Math.pow(Math.random(),CALC.qualExp||2.2));let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<0||i===w.length-1){const [,a,b]=FAIXAS_Q[i];return a+Math.floor(Math.random()*(b-a+1))}}},qMul=q=>CALC.qualBase+(q==null?50:q)/100,
 qStats=(id,q)=>{const it=ITEMS[id],o={};for(const k of Object.keys(ITEM_STATS))if(it[k])o[k]=ITEM_STATS[k].percent||ITEM_STATS[k].fractional?it[k]*qMul(q):Math.max(1,Math.round(it[k]*qMul(q)));const range=gearType[id]==='sw'&&qualityWeaponRange(it,q);if(range)o.dmg=(range.min+range.max)/2;return o},
 qName=q=>q<20?'Ruim':q<45?'Comum':q<70?'Boa':q<90?'Rara':q<100?'Épica':'Perfeita',
 bonus=k=>Object.values(EQ).reduce((a,s)=>a+(s&&gearType[s.id]&&(k==='dmg'&&weaponDamageRolls?.has(s)?weaponDamageRolls.get(s):qStats(s.id,s.q)[k])||0),0)+playerAttributeBonus(k);
@@ -80,8 +83,12 @@ function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;c
  EQ[sl]=s;I[i]=null;if(old)I[i<QUICK_N?livre(old.id):i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){I[livre(EQ.sh.id)]=EQ.sh;EQ.sh=null}
  dirtyInv=true;setPortrait();saveGame();if(window.playEntitySound)playEntitySound('items',s.id,'use')}
 function unequip(sl){if(!EQ[sl])return;if(ehArma(EQ[sl])&&armaTravada())return;I[livre(EQ[sl].id)]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
+/* consumível: o herói bebe por castTime s (padrão 0,5; barra e som de gole) e só então faz efeito; atordoado cancela sem gastar */
 function useSlot(i,preferredSlot){const s=I[i];if(!s||p.dead>0)return;if(gearType[s.id]){equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
- const h=d.heal||{};if(h.hp){p.hp=Math.min(mhp(),p.hp+h.hp);ft(p.x,p.y-12,'+'+h.hp,'#6f6')}if(h.mp){p.mp=Math.min(mmp(),p.mp+h.mp);ft(p.x,p.y-12,'+'+h.mp,'#6cf')}
+ if(p.beber)return;const ct=+d.castTime||0;if(ct>0){p.beber={i,id:s.id,r:ct,total:ct};if(window.playGameSound)playGameSound('beber');return}
+ usarConsumivel(i)}
+function usarConsumivel(i){const s=I[i];if(!s)return;const d=ITEMS[s.id];if(!d||!d.use)return;
+ const h=d.heal||{},vh=Math.round((h.hp||0)+mhp()*(h.hpPct||0)/100),vm=Math.round((h.mp||0)+mmp()*(h.mpPct||0)/100);if(vh){p.hp=Math.min(mhp(),p.hp+vh);ft(p.x,p.y-12,'+'+vh,'#6f6')}if(vm){p.mp=Math.min(mmp(),p.mp+vm);ft(p.x,p.y-12,'+'+vm,'#6cf')}
  grantAttributeBuff(p,'item:'+s.id,d.bonuses,d.bonusDuration||5);
  if(--s.n<=0)I[i]=null;dirtyInv=true;saveGame();if(!(window.playEntitySound&&playEntitySound('items',s.id,'use'))&&window.playGameSound)playGameSound('item')}
 const p={x:CX,y:CY+34,hp:140,mp:35,lvl:1,xp:0,gold:0,dest:null,tgt:null,acd:0,dead:0,hit:0,fl:1,aw:0,wt:null,attackBasic:null,basicMode:'sw',basicNext:'sw',cls:'war',sex:'m',bf:0,npcT:null,fx:0,fy:1};
@@ -102,7 +109,8 @@ const MONSTER_TYPES={
  gob:{name:'Goblin do Serrote',stats:{F:17,A:10,I:5},skill:{name:'Corte de serrote',cost:999999,cd:999,range:24,windup:.4,damage:0}},
  boss:{name:'Guardião Esqueleto',stats:{F:25,A:8,I:10},skill:{name:'Rugido arcano',cost:25,cd:10,range:55,windup:.9,damage:25,magic:true,radius:48},bossType:'boss'}
 };
-function monsterLevel(){return Math.max(1,p.lvl-10)+Math.floor(Math.random()*(p.lvl+10-Math.max(1,p.lvl-10)+1))}
+/* nível de um monstro sem faixa própria: o do jogador, às vezes 1 abaixo ou 1 acima (antes era de −10 a +10: um herói nível 1 achava monstros nível 10) */
+function monsterLevel(){const r=Math.random();return Math.max(1,p.lvl+(r<.25?-1:r>.8?1:0))}
 function configureMonster(e,type,level){
  level=Math.max(1,Math.min(+CALC.maxLevel||10,level)); // ninguém passa do nível máximo do jogo
  const template=MONSTER_TYPES[type],growth=level-1;

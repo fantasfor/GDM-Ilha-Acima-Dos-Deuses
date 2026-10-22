@@ -17,7 +17,7 @@ window.TEMPO=(()=>{
  const hora=()=>{const m=Math.floor(((fase()*24+6)%24)*60);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
  const minutosAte=()=>{const f=fase();return Math.ceil(((f<.5?.5:1)-f)*60)};
  /* na ilha (fora de DG, arena e taverna) */
- const naIlha=e=>!window.inDungeon&&!window.inArena&&!window.inTaverna&&!(e&&(e.isDungeonMob||e.pvp||e.duelo));
+ const naIlha=e=>!window.inDungeon&&!window.inArena&&!window.inTaverna&&!window.inTutorial&&!(e&&(e.isDungeonMob||e.pvp||e.duelo));
  // o bônus da noite segue o relógio do jogo (igual para todos), não o dia/noite fixado no botão
  const noiteNaIlha=e=>(agora()%HORA)/HORA>=.5&&naIlha(e);
  return{agora,fase,ehNoite,escuro,hora,minutosAte,

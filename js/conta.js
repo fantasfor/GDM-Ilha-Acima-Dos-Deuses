@@ -388,6 +388,8 @@
    tela.append(painel);setTimeout(()=>slot.focus(),50);
   });
  }
+ // menu de pausa (Esc) › Personagens: salva e volta para a tela de seleção (o jogo para até escolher de novo)
+ window.abrirPersonagens=()=>{if(window.saveGame)saveGame();if(window.ONLINE_NUVEM&&window.inArena&&window.ARENA&&ARENA.emPartida&&ARENA.emPartida())return false;if(window.inDungeon&&window.exitDungeon)exitDungeon(true);if(window.inTaverna&&window.sairTaverna)sairTaverna(true);if(window.inArena&&window.ARENA)ARENA.sair(true);if(window.inTutorial&&window.TUTORIAL)TUTORIAL.sair();telaSelecao();return true};
  function confirmarApagarPersonagem(box){
   const c=el('div','contaApagar');
   c.append(el('p','','Apagar o personagem remove para sempre o progresso, os itens, o nome e os amigos dele. Não tem como desfazer. Depois você cria um personagem novo.'),

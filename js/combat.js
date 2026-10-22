@@ -114,7 +114,7 @@ const CRIT_ICON=['...y...','.y.Y.y.','..YWY..','yYWWWYy','..YWY..','.y.Y.y.','..
 const iconeCrit=f=>{const w=ctx.measureText(f.t).width,x0=Math.round(f.x-w/2)-9,y0=Math.round(f.y)-6;CRIT_ICON.forEach((r,j)=>{for(let i=0;i<7;i++){const c=CRIT_COR[r[i]];if(c){ctx.fillStyle=c;ctx.fillRect(x0+i,y0+j,1,1)}}})};
 const corFt=f=>{if(!f.c2)return f.c;const w=ctx.measureText(f.t).width||1,x=Math.round(f.x),g=ctx.createLinearGradient(x-w/2,0,x+w/2,0);g.addColorStop(0,f.c);g.addColorStop(1,f.c2);return g};
 const partesDano=(d,mg)=>d&&typeof d=='object'?{f:+d.physical||0,m:+d.magic||0}:mg?{f:0,m:+d||0}:{f:+d||0,m:0};
-function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(window.ARENA)ARENA.golpe(e,d,magic,fx,dot);return}e.foraCombate=0;e.resetando=false;const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
+function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(window.ARENA)ARENA.golpe(e,d,magic,fx,dot);return}e.foraCombate=0;e.resetando=false;e.giveUp=0;e.noAtk=0;e.alert=Math.max(e.alert||0,6); /* apanhando: não desiste, não volta para casa e não reseta */const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  const physicalDefense=(e.armor??(e.stats?e.stats.A*CALC.monArmPerA:0))+statusAttributeBonus(e,'arm')+statusAttributeBonus(e,'A')*CALC.monArmPerA;
  const magicalDefense=(e.magicArmor??(e.stats?monMagArm(e.stats.F,e.stats.A,e.stats.I):0))+statusAttributeBonus(e,'magicArm')+monMagArm(...['F','A','I'].map(k=>statusAttributeBonus(e,k)));
  /* dano recebido = (físico − defesa física) + (mágico − defesa mágica), cada parte nunca abaixo de 0; nada além disso.
@@ -158,7 +158,9 @@ function killMonster(e){
   if(gold>0&&window.soltarMoedas)soltarMoedas(e.x,e.y,gold);
   if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar('saw',true)}
   // cada item da lista do monstro tem a sua chance (%) e é sorteado sozinho; sem lista, não cai nada
-  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&Math.random()*100<d.chance*noite)largar(d.id);
+  // elite (tipo Elite ou monstro que nasceu elite): chance de drop × Fórmulas › Drops › Elite (1,5); chefe: só a lista dele, sem bônus
+  const eliteDrop=(e.bossType==='boss'||e.elite)&&e.bossType!=='grandboss'?Math.max(0,+(CALC.eliteDrop??1.5)):1;
+  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&Math.random()*100<d.chance*noite*eliteDrop)largar(d.id);
   // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível
 
  }}
@@ -172,7 +174,7 @@ function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window
   const pen=k=>Math.max(0,Math.min(1,perf?+perf[k==='physicalPen'?'f':'m']||0:attacker&&attacker!==p&&typeof monsterAttribute=='function'?monsterAttribute(attacker,k)||0:0));
   const fi=Math.max(0,pt.f-armor()*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicArmor()*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
  d=Math.round(d);if(roll&&attacker)drainLife(attacker,Math.min(p.hp,d),stealRatio(roll,share));
- p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;if(!window.inArena)p.gold=Math.floor(p.gold/2); /* cair na arena (duelo, treino) não custa ouro */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
+ p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;if(!window.inArena&&!window.inTutorial)p.gold=Math.floor(p.gold/2); /* cair na arena (duelo, treino) ou no tutorial não custa ouro */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
 const CL={war:{n:'Guerreiro',F:17,A:7,I:2,perLevel:{F:6,A:3,I:1},attackSpeed:1.25},mag:{n:'Mago',F:2,A:2,I:12,perLevel:{F:1,A:2,I:5},attackSpeed:1},hea:{n:'Curandeiro',F:4,A:4,I:10,perLevel:{F:2,A:2,I:4},attackSpeed:1.1}};
 p.classProgress=p.classProgress||{war:{rank:1,xp:0}};
 function gainClassXp(value){
@@ -187,8 +189,9 @@ const atrNivel=()=>{const k=+(CALC.atrPorNivel??2)||0;return{F:k,A:k,I:k}};
 const attributes=()=>{const c=CL[p.cls],growth=atrNivel(),x=k=>c.pa?c.pa(k):0;return{F:3+(c.F||0)+(growth.F||0)*(p.lvl-1)+x('F')+bonus('F'),A:3+(c.A||0)+(growth.A||0)*(p.lvl-1)+x('A')+bonus('A'),I:3+(c.I||0)+(growth.I||0)*(p.lvl-1)+x('I')+bonus('I')}};
 const mhp=()=>Math.max(1,Math.round((CALC.hp0+attributes().F*CALC.hpPerF)*(1+(CL[p.cls].passiveHp||0)))+bonus('hp'));
 const mmp=()=>Math.max(0,Math.round((CALC.mp0+(attributes().I-3)*CALC.mpPerI)*(1+(CL[p.cls].pMp||0)))+bonus('mp'));
-const armor=()=>Math.round(attributes().A*CALC.armPerA+bonus('arm')*(1+(CL[p.cls].pArm||0)));
-const magicArmor=()=>Math.round(attributes().I*CALC.magArmPerI+bonus('magicArm')*(1+(CL[p.cls].pMagicArm||0)));
+// passivas de defesa (ex.: Alma de Guerreiro +5%) valem sobre a defesa toda (atributo + equipamentos)
+const armor=()=>Math.round((attributes().A*CALC.armPerA+bonus('arm'))*(1+(CL[p.cls].pArm||0)));
+const magicArmor=()=>Math.round((attributes().I*CALC.magArmPerI+bonus('magicArm'))*(1+(CL[p.cls].pMagicArm||0)));
 const attackInterval=()=>(1/statusAtk(p))*Math.max(CALC.minInterval,(CL[p.cls].attackSpeed||1)*(1-attributes().A*CALC.atkSpdPerA)*(1-(CL[p.cls].pAttackSpeed||0))*(1-bonus('attackSpeed')));
 const spdB=()=>Math.max(-1,bonus('spd')+bonus('moveSpeed')+attributes().A*CALC.spdPerA+(CL[p.cls].pSpd||0)+(CL[p.cls].pMoveSpeed||0));
 /* Força e Inteligência aumentam o dano em %: cada ponto dá physPerF % (Força, dano físico) ou magPerI % (Inteligência,
@@ -313,7 +316,11 @@ const buffDano=t=>(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)
 const comBuffs=d=>d&&typeof d=='object'?{physical:(d.physical||0)*buffDano('physical'),magic:(d.magic||0)*buffDano('magic')}:d;
 /* faixa do ataque básico (mínimo e máximo das armas, com Força/Inteligência e buffs), sem defesa do alvo */
 function faixaBasico(b=basic(),buffs=true){const calc=pick=>{weaponDamageRolls=new Map();weaponDamage2Rolls=new Map();try{for(const sl of ['sw','sh']){const s=EQ[sl];if(!s||gearType[s.id]!=='sw')continue;const r=qualityWeaponRange(ITEMS[s.id],s.q),r2=qualityWeaponRange2(ITEMS[s.id],s.q);if(r)weaponDamageRolls.set(s,r[pick]);if(r2)weaponDamage2Rolls.set(s,r2[pick])}const d=basicAttackDamage(b),o=d&&typeof d=='object'?d:{physical:+d||0,magic:0};return buffs?comBuffs(o):o}finally{weaponDamageRolls=null;weaponDamage2Rolls=null}};return{min:calc('min'),max:calc('max')}}
-const textoFaixa=f=>{const parte=(k,n)=>{const a=Math.round(f.min[k]),b=Math.round(f.max[k]);return b>=1?(a===b?a:a+' - '+b)+' '+n:''};return[parte('physical','físico'),parte('magic','mágico')].filter(Boolean).join(' + ')||'0'};
+/* dano nos painéis: "10-18 + 1-2", cada parte na cor do tipo (físico laranja, mágico azul) */
+const corDoTipo=t=>t==='magic'?COR_DANO.magico:COR_DANO.fisico,pintaDano=(txt,t)=>'<span style="color:'+corDoTipo(t)+'">'+txt+'</span>';
+const faixaTxt=(a,b)=>{a=Math.round(a);b=Math.round(b);return a===b?String(a):a+'-'+b};
+const textoFaixa=f=>[['physical',f.min.physical,f.max.physical],['magic',f.min.magic,f.max.magic]].filter(([,,b])=>Math.round(b)>=1).map(([k,a,b])=>pintaDano(faixaTxt(a,b),k)).join(' + ')||'0';
+const danoHTML=d=>d&&typeof d=='object'?[['physical',d.physical],['magic',d.magic]].filter(([,v])=>v>=.5).map(([k,v])=>pintaDano(Math.round(v),k)).join(' + ')||'0':String(Math.round(+d||0));
 /* painel do ataque básico no mesmo formato das habilidades (rótulo: valor, com cores; ui.js) */
 const basicTip=()=>{const b=basic(),L=(r,v,c)=>'<div class=tlin><span class=tl>'+r+':</span> <span class='+c+'>'+v+'</span></div>';return '<div class=tlin><span class=tl>Nome:</span> <b class=tnome>Ataque básico · '+b.n+'</b></div>'+L('Descrição',b.t,'tdesc')+L('Dano',textoFaixa(faixaBasico(b)),'tdano')+'<div class=tlin><span class=tl>Alcance:</span> <span class=tarma>'+b.rng+'</span>  <span class=tl>Intervalo:</span> <span class=tcd>'+attackInterval().toFixed(2)+' s</span>  <span class=tl>Arma:</span> <span class=tarma>'+(b.weaponSlot=='sw'?'mão 1':b.weaponSlot=='sh'?'mão 2':'desarmado')+'</span></div><div class=tm>Modo: '+BASIC_MODE_LABEL[p.basicMode]+' · automático ao atacar</div>'};
 const SK=['q','w','e','r','t','y','z','x'].map(k=>({k,t:0,n:''}));
@@ -345,7 +352,8 @@ const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
  const pick=(selected&&options.find(s=>s.id==selected))||current||null;if(pick&&used.has(pick.id))return current&&!used.has(current.id)?(used.add(current.id),current):null;if(pick)used.add(pick.id);return pick
 }).concat([0,1].map(i=>weaponSlots[i]||null));
 L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
- const weapon=EQ[o.weaponSlot||'sw'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!skillWeaponAllowed(o,weapon&&ITEMS[weapon.id]);
+ // arma exigida: vale a arma de qualquer mão (escudo na mão 2), a mesma regra do cast
+ const maos=o.weaponSlot?[o.weaponSlot]:['sw','sh'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!(maos.some(sl=>EQ[sl]&&skillWeaponAllowed(o,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(o,null));
  if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q W E R T Y) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
 /* o que ainda está ativo de uma habilidade que saiu da barra para: aura, áreas, pulsos e canal (Girar, Chuva) */
 const naBarra=new Set(SK.filter(s=>s.n&&s.id).map(s=>s.id));if(window.CURANDEIRO)CURANDEIRO.sincronizar(naBarra);if(p.canal&&p.canal.id&&!naBarra.has(p.canal.id))p.canal=null;if(p.conj&&p.conj.s&&!naBarra.has(p.conj.s.id))p.conj=null;
@@ -449,7 +457,8 @@ function darKit(c,{salvar=true}={}){
  dirtyInv=true;if(window.setPortrait)setPortrait();ft(p.x,p.y-30,'Kit inicial: '+CL[c].n,'#ffd84a');if(salvar)saveGame();return true}
 window.darKit=darKit;
 // barra de conjuração embaixo do herói (desenhada pelo render.js e pelo dungeon.js)
-window.desenharConj=()=>{const c=p.conj;if(!c)return; // barrinha fina embaixo do herói: 12 px de largura, 1 px de altura
+window.desenharConj=()=>{if(p.beber){const b=p.beber,k=Math.max(0,Math.min(1,1-b.r/b.total)),x=Math.round(p.x)-6,y=Math.round(p.y)+5,h=ITEMS[b.id]&&ITEMS[b.id].heal||{};ctx.fillStyle='#000a';ctx.fillRect(x-.5,y-.5,13,2);ctx.fillStyle=(h.mp||h.mpPct)&&!(h.hp||h.hpPct)?'#5fb4ff':'#e04848';ctx.fillRect(x,y,12*k,1)} // bebendo poção
+ const c=p.conj;if(!c)return; // barrinha fina embaixo do herói: 12 px de largura, 1 px de altura
  const k=Math.max(0,Math.min(1,1-c.r/c.total)),x=Math.round(p.x)-6,y=Math.round(p.y)+5;ctx.fillStyle='#000a';ctx.fillRect(x-.5,y-.5,13,2);ctx.fillStyle=c.s.vfxColor||'#ffd84a';ctx.fillRect(x,y,12*k,1)};
 /* canal (Girar): um golpe em área a cada intervalo enquanto dura; dá para andar, mas sem ataque básico nem outra habilidade.
    Atordoado ou morto, para. Chamado pelo update.js a cada quadro. */
@@ -460,7 +469,7 @@ window.tickCanal=dt=>{const c=p.canal;if(!c)return;if(p.dead>0||atordoado(p)){p.
  // giro visual: o herói roda (2,2 voltas/s) e a lâmina acompanha o mesmo ângulo (js/vfx-habilidades.js)
  if(c.visual){c.ang+=dt*Math.PI*2*2.2;p.fx=Math.cos(c.ang);p.fy=Math.sin(c.ang);p.fk=undefined}while(c.prox<=0&&c.n>0){c.prox+=c.tick;c.n--;c.golpe()}if(c.n<=0||c.r<=0)p.canal=null};
 /* projétil acertou: dano no alvo e, com área, uma parte do dano nos inimigos em volta (Bola de Fogo / Gelo) */
-window.acertoProjetil=(q,alvo)=>{hurtE(alvo,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());
+window.acertoProjetil=(q,alvo)=>{if(q.vfx&&window.playGameSound)playGameSound(q.vfx==='gelo'?'gelo':'explosao',.7);hurtE(alvo,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());
  if(q.area){const raio=q.area.r*areaMultiplier(p),k=q.area.pct/100,dd=q.d&&typeof q.d=='object'?{physical:(q.d.physical||0)*k,magic:(q.d.magic||0)*k}:q.d*k;
   for(const e of en)if(e!==alvo&&e.hp>0&&dist(e,alvo)<raio&&linhaLivre(alvo,e))hurtE(e,dd,q.magic,null)}
  if(q.vfx&&window.VFX)VFX.tocar(q.vfx==='gelo'?'explosaoGelo':'explosaoFogo',{x:q.x,y:q.y,raio:q.area?Math.round(q.area.r*areaMultiplier(p)):8});else ring(q.x,q.y,14,'#f93',.25)};
@@ -477,4 +486,8 @@ function cast(s){if(p.canal&&p.canal.id&&p.canal.id===s.id){p.canal=null;ft(p.x,
 function lancar(s,w,t){
  if(s.f.tg&&t&&!linhaLivre(p,t)||s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return} // o alvo pode ter ido para trás da parede durante a conjuração
  const style=s.vfx||'arcane';if(style!='none'&&!['corte','investida','aura','giro'].includes(style)){const f={x:s.f.tg&&t?t.x:s.effect=='meteor'?w.x:p.x,y:s.f.tg&&t?t.y:s.effect=='meteor'?w.y:p.y,r:Math.max(16,Math.min(52,+s.radius||26)),c:s.vfxColor||'#9bd4ff',t:0,d:.55,style};fxs.push(f)}
- p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(window.somDoJogador)somDoJogador('c.'+s.id);if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound('magic')}
+ p.mp-=s.mana;applyActionAttributes(p,s);s.t=s.cd*cooldownMultiplier(p);withWeaponDamageRoll(()=>s.f(w,t));if(window.somDoJogador)somDoJogador('c.'+s.id);if(!(window.playEntitySound&&playEntitySound('skills',s.id,'cast'))&&window.playGameSound)playGameSound(somHabilidade(s))}
+/* som de cada habilidade pelo tipo (audio.js): corte, investida, brado, giro, fogo, gelo, meteoros, cura, luz, pulso… */
+function somHabilidade(s){const v=s.vfx||'',e=s.effect,k=s.efs&&s.efs[0]&&fxKind(s.efs[0].type);
+ return e==='pulso'?'pulso':e==='curar'||e==='heal'?'cura':e==='zonaCura'?'luzSagrada':e==='auraContinua'?'brilho':e==='aura'?(k==='physup'?'grito':'brilho'):e==='buff'||e==='guard'?'brilho':v==='corte'||e==='golpe'?'corte':v==='investida'||e==='investida'?'investida':v==='giro'?'giro':v==='fogo'?'fogo':v==='gelo'?'gelo':v==='meteoros'?'meteoros':e==='projectile'?'feitico':e==='nova'||e==='meteor'?'explosao':e==='blink'?'investida':'magic'}
+window.somHabilidade=somHabilidade;

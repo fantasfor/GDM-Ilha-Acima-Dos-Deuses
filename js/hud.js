@@ -138,7 +138,7 @@
   // aura ligada (Presença Curativa): borda dourada girando em volta do ícone
   const auraOn=!!(window.CURANDEIRO&&CURANDEIRO.ligada());SK.forEach(s=>{if(s.el)s.el.classList.toggle('auraAtiva',auraOn&&s.effect==='auraContinua')});
   SK.forEach(s=>{const was=ready.get(s);if(was>0&&!(s.t>0)&&s.el){s.el.classList.remove('readyFlash');void s.el.offsetWidth;s.el.classList.add('readyFlash')}ready.set(s,s.t)});
-  const loc=window.inArena?'Arena':window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
+  const loc=window.inTutorial?'Santuário Celeste':window.inArena?'Arena':window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
   // relógio do jogo (js/tempo.js): igual para todos, dia e noite de 30 min reais
   const rel=window.TEMPO?(TEMPO.ehNoite()?'Noite ':'Dia ')+TEMPO.hora():'',txt=loc+'|'+rel;
   if(txt!==lastLoc){lastLoc=txt;mmLabel.innerHTML='';mmLabel.append(loc);if(rel){const s=E('span');s.className='mmHora'+(TEMPO.ehNoite()?' noite':'');s.textContent=rel;s.title=(TEMPO.ehNoite()?'Amanhece':'Anoitece')+' em '+TEMPO.minutosAte()+' min';mmLabel.append(s)}}

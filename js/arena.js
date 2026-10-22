@@ -91,21 +91,24 @@
  /* ---- campo de visão: escuro fora do raio e atrás das colunas; inimigos fora da visão somem (aqui e no minimapa) ---- */
  const VISAO=150,visaoArena=()=>Math.round(VISAO*(window.TEMPO?TEMPO.visao():1)); // à noite −10% (js/tempo.js)
  const cortaPilar=(x0,y0,x1,y1)=>PILARES.some(q=>{const dx=x1-x0,dy=(y1-y0)*1.3,fx=x0-q.x,fy=(y0-q.y)*1.3,a=dx*dx+dy*dy,b=2*(fx*dx+fy*dy),c=fx*fx+fy*fy-100,D=b*b-4*a*c;if(D<0||a===0)return false;const s=Math.sqrt(D),t1=(-b-s)/(2*a),t2=(-b+s)/(2*a);return(t1>0&&t1<1)||(t2>0&&t2<1)});
- const ve=(x,y)=>Math.hypot(x-p.x,y-p.y)<=visaoArena()&&!cortaPilar(p.x,p.y-6,x,y-6);
+ // quem enxerga: você e os aliados vivos da sua equipe (a visão deles também vale para você)
+ const olhos=()=>{const r=[{x:p.x,y:p.y}];if(partida&&window.MP&&MP.remotos)for(const o of MP.remotos.values()){const m=partida.membros[o.uid];if(!m||m.equipe!==partida.equipe||o.dead||partida.mortos.has(o.uid))continue;const q=window.ONLINE_NUVEM&&ONLINE_NUVEM.posicao?ONLINE_NUVEM.posicao(o.uid):null;if(q||o.x!=null)r.push({x:q?q.x:o.x,y:q?q.y:o.y})}return r};
+ const ve=(x,y)=>{const R=visaoArena();return olhos().some(o=>Math.hypot(x-o.x,y-o.y)<=R&&!cortaPilar(o.x,o.y-6,x,y-6))};
  /* névoa no estilo LoL/Dota (render.js aplicarNevoa): máscara da visão em resolução reduzida, borda suave, colunas fazem sombra */
  const mascara=document.createElement('canvas');
  function nevoa(){
   const Q=window.modoDesempenho?.2:.35,W=Math.max(1,Math.ceil(cv.width*Q)),H=Math.max(1,Math.ceil(cv.height*Q));if(mascara.width!==W||mascara.height!==H){mascara.width=W;mascara.height=H}
   const g=mascara.getContext('2d'),k=S*Q;g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-over';g.filter='none';g.clearRect(0,0,W,H);
-  g.setTransform(k,0,0,k,W/2-p.x*k,H/2-p.y*k);g.beginPath();
-  const ox=p.x,oy=p.y-6,N=180,VR=visaoArena();
-  for(let i=0;i<=N;i++){const a=i/N*Math.PI*2,dx=Math.cos(a),dy=Math.sin(a);let r=VR;
-   for(const q of PILARES){const fx=ox-q.x,fy=(oy-q.y)*1.3,ddy=dy*1.3,A=dx*dx+ddy*ddy,B=2*(fx*dx+fy*ddy),C=fx*fx+fy*fy-100,D=B*B-4*A*C;if(D<0)continue;const tt=(-B-Math.sqrt(D))/(2*A);if(tt>0&&tt<r)r=tt+6}
-   const x=ox+dx*r,y=oy+dy*r;if(i)g.lineTo(x,y);else g.moveTo(x,y)}
-  g.closePath();g.fillStyle='#fff';g.filter='blur('+(4*k)+'px)';g.fill();g.filter='none';
-  const vis=g.createRadialGradient(ox,oy,Math.max(0,VR-40),ox,oy,VR);vis.addColorStop(0,'rgba(0,0,0,1)');vis.addColorStop(1,'rgba(0,0,0,0)');
-  g.globalCompositeOperation='destination-in';g.fillStyle=vis;g.fillRect(ox-VR-20,oy-VR-20,VR*2+40,VR*2+40);g.globalCompositeOperation='source-over';
-  if(window.aplicarNevoa)aplicarNevoa(mascara);
+  g.setTransform(k,0,0,k,W/2-p.x*k,H/2-p.y*k);g.globalCompositeOperation='lighter';
+  const VR=visaoArena(),N=180;
+  // um polígono de visão por quem enxerga (você e aliados), cada um com a borda suave; somados formam a área visível
+  for(const o of olhos()){const ox=o.x,oy=o.y-6;g.beginPath();
+   for(let i=0;i<=N;i++){const a=i/N*Math.PI*2,dx=Math.cos(a),dy=Math.sin(a);let r=VR;
+    for(const q of PILARES){const fx=ox-q.x,fy=(oy-q.y)*1.3,ddy=dy*1.3,A=dx*dx+ddy*ddy,B=2*(fx*dx+fy*ddy),C=fx*fx+fy*fy-100,D=B*B-4*A*C;if(D<0)continue;const tt=(-B-Math.sqrt(D))/(2*A);if(tt>0&&tt<r)r=tt+6}
+    const x=ox+dx*r,y=oy+dy*r;if(i)g.lineTo(x,y);else g.moveTo(x,y)}
+   g.closePath();const vis=g.createRadialGradient(ox,oy,Math.max(0,VR-40),ox,oy,VR);vis.addColorStop(0,'#fff');vis.addColorStop(1,'rgba(255,255,255,0)');
+   g.fillStyle=vis;g.filter='blur('+(4*k)+'px)';g.fill();g.filter='none'}
+  g.globalCompositeOperation='source-over';  if(window.aplicarNevoa)aplicarNevoa(mascara);
   ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))} /* ---- duelo com o Mestre de classe (taverna): NPC nível 10 com os atributos da classe; vencer libera a classe ---- */
  let duelo=null;
  function criarMestre(cls){
@@ -119,12 +122,13 @@
   return e}
  function comecarDuelo(cls){if(!CL[cls])return;entrar({duelo:cls})}
  function venceuDuelo(e){const cls=e.duelo;duelo=null;
-  p.classProgress=p.classProgress||{};if(!p.classProgress[cls])p.classProgress[cls]={rank:1,xp:0};
-  resultado={titulo:'VITÓRIA!',cor:'#8fe388',sub:'Você venceu o '+MONSTER_TYPES[e.ty].name+'. A classe '+CL[cls].n+' é sua!'};if(window.playGameSound)playGameSound('quest');
-  setTimeout(()=>{resultado=null;sair(true);if(typeof setClass==='function'&&p.cls!==cls)setClass(cls);if(window.saveGame)saveGame()},3500)}
+  p.classProgress=p.classProgress||{};const nova=!p.classProgress[cls];if(nova)p.classProgress[cls]={rank:1,xp:0};
+  // revanche (classe já aprendida): só a vitória, sem trocar de classe
+  resultado={titulo:'VITÓRIA!',cor:'#8fe388',sub:'Você venceu o '+MONSTER_TYPES[e.ty].name+'.'+(nova?' A classe '+CL[cls].n+' é sua!':' Revanche vencida!')};if(window.playGameSound)playGameSound('quest');
+  setTimeout(()=>{resultado=null;sair(true);if(nova&&typeof setClass==='function'&&p.cls!==cls)setClass(cls);if(window.saveGame)saveGame()},3500)}
  /* ---- o Mestre usa as habilidades da classe que ele ensina (as mesmas do jogador: projétil, golpe, investida, aura,
     canal, cura, nova, meteoro, salto), com o dano do próprio ataque × % da habilidade e os efeitos dela ---- */
- const tiros=[];
+ const tiros=[],efeitosM=[]; // efeitosM: área e pulsos do Mestre Curandeiro
  const habsDoMestre=e=>e._habs||(e._habs=(typeof skillEntries=='function'?skillEntries(e.duelo):[]).map(s=>(GAMEDATA.skills||[]).find(r=>r.id===s.id)).filter(r=>r&&r.effect&&(r.category||'ability')==='ability'));
  const danoBase=e=>(e.weaponDamageBase??e.dmg??10)*(e.weaponDamageMultiplier||1);
  const magicaDe=(e,s)=>s.damageType==='magic'||(s.damageType!=='physical'&&!!e.attackMagic);
@@ -146,7 +150,11 @@
    case 'heal':if(e.hp>monsterMaxHp(e)*.6)return false;e.hp=Math.min(monsterMaxHp(e),e.hp+Math.max(10,danoBase(e)*(+s.charPercent||100)/100+(+s.heal||0)));ring(e.x,e.y,24,'#6f6',.5);return true;
    case 'meteor':if(!ve||d>200)return false;{const x=a.x,y=a.y;if(window.VFX)VFX.tocar('meteoro',{x,y,raio:r,cor,dur:.6,fim:()=>{if(Math.hypot(a.x-x,a.y-y)<r)golpeDoMestre(e,a,s)}});else golpeDoMestre(e,a,s)}return true;
    case 'blink':if(d>45)return false;for(const o of [0,.6,-.6,1.2,-1.2]){const x=e.x-Math.cos(ang+o)*85,y=e.y-Math.sin(ang+o)*85;if(arenaWalk(x,y)){ring(e.x,e.y,16,cor,.4);e.x=x;e.y=y;e.dest=null;e.path=[];e.pathKey='';ring(x,y,16,cor,.4);return true}}return false;
-   case 'canal':{const mouse=s.local==='mouse',tick=Math.max(.3,+s.intervalo||1),porVez=Math.max(1,+s.porGolpe||1),rImp=+s.raioImpacto||22;
+   // Curandeiro (as mesmas da classe): cura a si, área que fere quem está perto, aura de fortalecimento e pulsos de luz
+   case 'curar':{if(e.hp>monsterMaxHp(e)*.7)return false;const v=Math.round(monsterMaxHp(e)*(+s.curaPct||3)/100);e.hp=Math.min(monsterMaxHp(e),e.hp+v);ft(e.x,e.y-30,'+'+v,'#6fe36f');if(window.VFX)VFX.tocar('grito',{x:e.x,y:e.y-4,raio:16,cor});return true}
+   case 'zonaCura':if(d>(+s.radius||50)+30)return false;efeitosM.push({e,a,s,cor,tipo:'zona',t:+s.duracao||5,dur:+s.duracao||5,prox:0,r:+s.radius||50});return true;
+   case 'auraContinua':{if(e.st&&e.st.presenca)return false;applyFx(e,[{type:'presenca',chance:100,pw:+s.danoPct||2,dur:12},{type:'regen',chance:100,pw:+s.regen||2,dur:12}]);if(window.VFX)VFX.tocar('grito',{x:e.x,y:e.y-4,raio:r,cor});return true}
+   case 'pulso':{if(d>r+10)return false;for(let k=0;k<Math.max(1,+s.pulsos||3);k++)efeitosM.push({e,a,s,cor,tipo:'pulso',t:k,r});return true}   case 'canal':{const mouse=s.local==='mouse',tick=Math.max(.3,+s.intervalo||1),porVez=Math.max(1,+s.porGolpe||1),rImp=+s.raioImpacto||22;
     if(mouse?(!ve||d>200):d>r+10)return false;const cx=a.x,cy=a.y;let n=+s.totalGolpes>0?Math.ceil(+s.totalGolpes/porVez):Math.round((+s.duracao||5)/tick);
     e.canalM={t:+s.duracao||5,tick,prox:mouse?.3:0,n,anda:!s.parado,area:mouse?{x:cx,y:cy,r}:null,golpe:()=>{
      if(!mouse){ring(e.x,e.y,r,cor,.3);if(window.VFX)VFX.tocar('corte',{x:e.x,y:e.y-8,ang:Math.random()*6.28,raio:r,arco:6.28,cor});if(dist(e,a)<r+8)golpeDoMestre(e,a,s);return}
@@ -157,13 +165,18 @@
   e.habCd=e.habCd||{};for(const k in e.habCd)e.habCd[k]-=dt;e.habGlobal=(e.habGlobal??1.5)-dt;
   if(e.canalM){const c=e.canalM;c.t-=dt;c.prox-=dt;if(c.prox<=0){c.prox=c.tick;c.n--;c.golpe()}if(c.n<=0||c.t<=0)e.canalM=null;if(!c.anda){e.dest=null;return true}}
   if(e.habGlobal>0)return false;
-  for(const s of habsDoMestre(e)){if((e.habCd[s.id]||0)>0)continue;if(usarHab(e,a,d,ve,s)){e.habCd[s.id]=Math.max(2,+s.cd||5);e.habGlobal=1.1;e.fx=a.x-e.x;e.fy=a.y-e.y;ft(e.x,e.y-32,s.name,'#f9c');return true}}
+  for(const s of habsDoMestre(e)){if((e.habCd[s.id]||0)>0)continue;if(usarHab(e,a,d,ve,s)){if(window.playGameSound&&window.somHabilidade)playGameSound(somHabilidade(s),.8);e.habCd[s.id]=Math.max(2,+s.cd||5);e.habGlobal=1.1;e.fx=a.x-e.x;e.fy=a.y-e.y;ft(e.x,e.y-32,s.name,'#f9c');return true}}
   return false}
- function moverTiros(dt){
+ function moverEfeitosM(dt){
+  for(let i=efeitosM.length;i--;){const f=efeitosM[i],e=f.e,a=f.a,mx=monsterMaxHp(e);if(e.hp<=0){efeitosM.splice(i,1);continue}
+   if(f.tipo==='pulso'){f.t-=dt;if(f.t>0)continue;efeitosM.splice(i,1);if(window.VFX)VFX.tocar('grito',{x:e.x,y:e.y-4,raio:Math.round(f.r),cor:f.cor});
+    e.hp=Math.min(mx,e.hp+mx*(+f.s.curaPct||3)/100);if(dist(e,a)<=f.r){hitTarget(a,{physical:0,magic:mx*(+f.s.danoVidaPct||20)/100},true,null,null,e);const ang=Math.atan2(a.y-e.y,a.x-e.x);for(let k=0;k<(+f.s.empurra||14);k++){const nx=a.x+Math.cos(ang),ny=a.y+Math.sin(ang);if(!arenaWalk(nx,ny))break;a.x=nx;a.y=ny}}continue}
+   f.t-=dt;f.prox-=dt;f.x=e.x;f.y=e.y;if(f.prox<=0&&f.t>0){f.prox=1;e.hp=Math.min(mx,e.hp+mx*(+f.s.curaPct||1)/100);if(Math.hypot(a.x-e.x,a.y-e.y)<=f.r)hitTarget(a,{physical:0,magic:mx*(+f.s.danoVidaPct||20)/100},true,null,null,e)}
+   if(f.t<=0)efeitosM.splice(i,1)}} function moverTiros(dt){
   for(let i=tiros.length;i--;){const q=tiros[i],dx=q.a.x-q.x,dy=q.a.y-8-q.y,dd=Math.hypot(dx,dy);q.vx=dx/(dd||1)*190;q.vy=dy/(dd||1)*190;
    if(dd<8||q.e.hp<=0){tiros.splice(i,1);if(q.e.hp>0){if(window.VFX)VFX.tocar(q.vfx==='gelo'?'explosaoGelo':'explosaoFogo',{x:q.x,y:q.y});golpeDoMestre(q.e,q.a,q.s)}continue}
    q.x+=q.vx*dt;q.y+=q.vy*dt}}
- function desenharTiros(){for(const q of tiros){if(window.VFX&&VFX.projetil(ctx,q))continue;R(ctx,q.x-3,q.y-3,6,6,q.cor);R(ctx,q.x-2,q.y-2,4,4,'#fff6d0')}
+ function desenharTiros(){for(const f of efeitosM)if(f.tipo==='zona'&&f.x!=null){const k=Math.max(0,Math.min(1,f.t*2,(f.dur-f.t)*4));ctx.save();ctx.globalAlpha=.3*k;ctx.fillStyle=f.cor;ctx.beginPath();ctx.ellipse(f.x,f.y,f.r,f.r*.8,0,0,7);ctx.fill();ctx.globalAlpha=.85*k;ctx.strokeStyle=f.cor;ctx.beginPath();ctx.ellipse(f.x,f.y,f.r,f.r*.8,0,0,7);ctx.stroke();ctx.restore()}for(const q of tiros){if(window.VFX&&VFX.projetil(ctx,q))continue;R(ctx,q.x-3,q.y-3,6,6,q.cor);R(ctx,q.x-2,q.y-2,4,4,'#fff6d0')}
   for(const e of en)if(e.canalM&&e.canalM.area){const A=e.canalM.area;ctx.save();ctx.globalAlpha=.45;ctx.strokeStyle='#ff7a1a';ctx.beginPath();ctx.ellipse(A.x,A.y,A.r,A.r*.8,0,0,7);ctx.stroke();ctx.restore()}} /* fundo do painel da arena: o coliseu com a torcida, a câmera passando devagar */
  function animarFundoPainel(cv){if(cv._vivo)return;cv._vivo=true;const t0=performance.now();
   const passo=now=>{if(!cv.isConnected||!cv.closest('.open')){cv._vivo=false;return}
@@ -178,7 +191,7 @@
   ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));ctx.imageSmoothingEnabled=false;
   ctx.drawImage(fundo,OX-MG,OY-MG);torcida(ctx);if(window.CURANDEIRO)CURANDEIRO.desenhar();
   const L=[];
-  for(const e of en)if(e.duelo&&e.hp>0&&window.desenharMonstro)L.push([e.y,()=>desenharMonstro(e)]);
+  for(const e of en)if(e.duelo&&e.hp>0&&window.desenharMonstro&&ve(e.x,e.y))L.push([e.y,()=>desenharMonstro(e)]); // fora da visão não aparece
   PILARES.forEach(q=>L.push([q.y,()=>pilar(q)]));
   if(boneco)L.push([boneco.y,()=>{if(p.tgt===boneco)circ(boneco.x,boneco.y,12,'#f55');desenharBoneco(boneco);const r=boneco.hp/boneco.max;R(ctx,boneco.x-14,boneco.y-22,28,1,'#4b121c');R(ctx,boneco.x-14,boneco.y-22,28*r,1,'#ed354e');ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('Boneco de treino',boneco.x+.4,boneco.y-24.6);ctx.fillStyle='#ffe28a';ctx.fillText('Boneco de treino',boneco.x,boneco.y-25)}]);
   // alvo marcado nos outros jogadores
@@ -201,10 +214,18 @@
   ctx.setTransform(1,0,0,1,0,0);
   const v=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.35,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);
   v.addColorStop(0,'rgba(10,5,2,0)');v.addColorStop(1,'rgba(10,5,2,.5)');ctx.fillStyle=v;ctx.fillRect(0,0,cv.width,cv.height);
-  hudArena();
+  hudArena();setasInimigos();
   minimapa();
  };
- function minimapa(){
+ /* 30 s sem ninguém causar nem levar dano na partida: setas na borda da tela apontando para cada inimigo vivo */
+ function setasInimigos(){
+  if(!partida||partida.acabou||agora()-ultimoDano<30000)return;
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2,m=46,t=performance.now()/1000;
+  for(const e of en){if(!e.pvp||!e.uid||e.hp<=0)continue;
+   const dx=(e.x-p.x)*S,dy=(e.y-p.y)*S;if(Math.abs(dx)<cx-m&&Math.abs(dy)<cy-m)continue;
+   const a=Math.atan2(dy,dx),k=Math.min((cx-m)/Math.abs(Math.cos(a)||1e-6),(cy-m)/Math.abs(Math.sin(a)||1e-6)),x=cx+Math.cos(a)*k,y=cy+Math.sin(a)*k,pul=1+.12*Math.sin(t*6);
+   ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.scale(pul,pul);ctx.fillStyle='#f87171';ctx.strokeStyle='#0d0d0d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-10,-12);ctx.lineTo(-4,0);ctx.lineTo(-10,12);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();
+   ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#000';const txt=(e.name||'Inimigo')+' · '+Math.round(Math.hypot(e.x-p.x,e.y-p.y))+' px';ctx.fillText(txt,x-Math.cos(a)*30+1,y-Math.sin(a)*30+1);ctx.fillStyle='#ffd0d0';ctx.fillText(txt,x-Math.cos(a)*30,y-Math.sin(a)*30)}} function minimapa(){
   const mm=$('mm').getContext('2d'),SZ=160,k=(SZ-16)/AW,ox=8,oy=(SZ-AH*k)/2;
   mm.setTransform(1,0,0,1,0,0);mm.fillStyle='#0b0806';mm.fillRect(0,0,SZ,SZ);mm.imageSmoothingEnabled=false;if(fundo)mm.drawImage(fundo,ox,oy,AW*k,AH*k);
   if(window.onlineMinimap)onlineMinimap(mm,OX-ox/k,OY-oy/k,k,SZ);
@@ -287,7 +308,7 @@
 
  /* ---- partida ---- */
  function iniciarPartida(v){
-  partida={lider:lobbyLider,sala:v.sala,modo:v.modo,membros:v.membros,equipe:v.membros[eu()].equipe,inicio:v.inicio||agora(),mortos:new Set(),acabou:false};
+  ultimoDano=agora();partida={lider:lobbyLider,sala:v.sala,modo:v.modo,membros:v.membros,equipe:v.membros[eu()].equipe,inicio:v.inicio||agora(),mortos:new Set(),acabou:false};
   fecharPainel();resultado=null;
   entrar({partida:true});
   // cada equipe começa numa ponta da arena
@@ -411,7 +432,9 @@
   e.hit=.15;if(window.playGameSound)playGameSound(magic?'magicHit':'sword');if(window.marcarCombate)marcarCombate();
   ftDano(e.x,e.y-22,total+(roll.crit?'!':''),null,roll.crit,mag/(total||1));
   if(e.boneco){e.hp-=total;if(e.hp<=0){e.hp=e.max;aviso('Boneco de treino derrubado!','#e7dcc4')}return}
-  enviar({tipo:'golpe',alvo:e.uid,d:fis,m:mag,pf:+bonus('physicalPen').toFixed(3),pm:+bonus('magicPen').toFixed(3)}); // perfuração vai junto
+  // perfuração e efeitos (atordoar, gelo, fogo…) vão junto: o alvo aplica em si; atordoado, ele perde a conjuração
+  const efs=(fx||[]).filter(f=>f&&!f.self&&FX_INFO[f.type]).slice(0,4).map(f=>[f.type,Math.round(f.chance??100),+(+f.dur||0).toFixed(1),+(+f.pw||0).toFixed(2)]);
+  ultimoDano=agora();enviar({tipo:'golpe',alvo:e.uid,d:fis,m:mag,pf:+bonus('physicalPen').toFixed(3),pm:+bonus('magicPen').toFixed(3),...(efs.length?{fx:efs}:{})});
  }
  function receber(f){
   if(!f||!window.inArena||!window.NUVEM)return;
@@ -421,9 +444,10 @@
    else if(f.alvo!==eu())aviso((f.nomeDe||'Alguém')+' derrotou '+(f.nomeAlvo||'alguém'),'#f87171');
    return;
   }
+  if(f.tipo==='golpe')ultimoDano=agora(); // qualquer golpe na partida zera o tempo sem combate (setas)
   if(f.tipo!=='golpe'||f.alvo!==eu()||f.de===eu()||p.dead>0||!partida||partida.acabou)return;
   // cair não custa ouro: o hurtP aplica as defesas; quem cai fica assistindo até o fim
-  const ouro=p.gold;hurtP({physical:+f.d||0,magic:+f.m||0},(+f.m||0)>(+f.d||0),null,null,null,{f:+f.pf||0,m:+f.pm||0});
+  const ouro=p.gold;hurtP({physical:+f.d||0,magic:+f.m||0},(+f.m||0)>(+f.d||0),Array.isArray(f.fx)?f.fx.filter(a=>Array.isArray(a)&&FX_INFO[a[0]]).map(a=>({type:a[0],chance:+a[1],dur:+a[2]||1,pw:+a[3]||0,caster:p})):null,null,null,{f:+f.pf||0,m:+f.pm||0});
   if(p.hp<=0){p.gold=ouro;p.dead=1e9;p.pvp.mortes++;marcarMorto();enviar({tipo:'morte',alvo:eu(),nomeAlvo:NUVEM.nome(),nomeDe:f.nome,matou:f.de});aviso((f.nome||'Alguém')+' derrotou você','#f87171');if(window.saveGame)saveGame()}
  }
  window.addEventListener('mp-sala',e=>{
@@ -435,8 +459,8 @@
  });
 
  /* ---- inimigos viram alvos (en com pvp:true); posição e vida vêm do online. Aliados não são alvo ---- */
- let tJuiz=0;
- const upd0=upd;upd=function(dt){upd0(dt);if(window.inArena)moverTiros(dt);else tiros.length=0;
+ let tJuiz=0,ultimoDano=0; // ultimoDano: hora do último golpe da partida (30 s sem golpes = setas para os inimigos)
+ const upd0=upd;upd=function(dt){upd0(dt);if(window.inArena){moverTiros(dt);moverEfeitosM(dt)}else{tiros.length=0;efeitosM.length=0}
   for(const m of feed)m.t-=dt*.25;while(feed.length&&feed[feed.length-1].t<=0)feed.pop();
   if(!window.inArena)return;
   if(boneco){boneco.hit-=dt}

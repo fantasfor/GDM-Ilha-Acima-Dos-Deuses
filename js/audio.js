@@ -205,7 +205,26 @@ const sounds={
   [60,64,67,72].forEach((m,i)=>nota(bus.efeitos,mtof(m+12),t+.5,1.6,{tipo:'sawtooth',vol:.014*escala,ataque:.12,solta:1.4,filtro:2200,detune:i%2?7:-7,vibrato:.005}));
   nota(bus.efeitos,mtof(48),t+.5,1.6,{tipo:'triangle',vol:.05*escala,solta:1.2});noise(1.6,.014,5000,.45,'highpass',12000,.4)},
  // item batendo no chão (somQueda): mais grave e brilhante nas raridades altas
- drop:()=>{tone(1700,1300,.06,'sine',.012);noise(.04,.01,3000,0,'bandpass',2000,2)}
+ // ---- sons das habilidades, ataques e poção (2026-10-22): cada tipo tem o seu ----
+ swing:()=>{noise(.12,.03,2600,0,'bandpass',900,1.2);tone(520,260,.1,'sine',.012)}, // golpe corpo a corpo cortando o ar
+ arco:()=>{tone(180,120,.12,'triangle',.03);noise(.05,.02,3000,0,'highpass',6000,.7);tone(900,1400,.08,'sine',.008,.02)}, // corda do arco
+ feitico:()=>{tone(600,980,.16,'sine',.02);tone(1200,1900,.12,'triangle',.008,.03);noise(.15,.008,4000,.02,'bandpass',2500,2)}, // disparo mágico
+ corte:()=>{noise(.22,.04,4200,0,'bandpass',700,1.4);tone(1600,500,.2,'sine',.014,.01)}, // meia-lua cortando
+ investida:()=>{noise(.3,.03,600,0,'lowpass',2400,.9);tone(140,60,.2,'sine',.05,.26);noise(.12,.04,500,.26,'lowpass',120,.7)}, // corrida + impacto
+ grito:()=>{const t=agora();for(const [f,d] of [[160,0],[220,.04],[110,.02]])nota(bus.efeitos,f,t+d,.5,{tipo:'sawtooth',vol:.018*escala,ataque:.05,solta:.3,filtro:900,vibrato:.02});noise(.6,.015,800,0,'bandpass',400,1)}, // brado de guerra
+ giro:()=>{for(let i=0;i<4;i++)noise(.14,.025,3000,i*.12,'bandpass',900,1.5)}, // lâmina rodando
+ fogo:()=>{noise(.45,.03,1200,0,'lowpass',300,.8);tone(220,90,.4,'sawtooth',.012)}, // bola de fogo (rugido de chama)
+ gelo:()=>{arpejo([88,91,95,100],.04,{tipo:'sine',vol:.02,dur:.15});noise(.2,.01,7000,0,'highpass',9000,.6)}, // cristais de gelo
+ meteoros:()=>{tone(1800,300,.7,'sine',.012);noise(.8,.02,2500,0,'bandpass',600,1)}, // assobio da chuva de meteoros
+ explosao:()=>{tone(90,40,.4,'sine',.06);noise(.35,.04,900,0,'lowpass',120,.7)}, // impacto de meteoro/bola
+ brilho:()=>{arpejo([76,79,83,88],.05,{tipo:'triangle',vol:.02,dur:.25,brilho:2})}, // aura/inspiração/fortalecer
+ cura:()=>{arpejo([72,76,79,84],.07,{tipo:'sine',vol:.025,dur:.3});noise(.5,.006,5000,.1,'highpass',8000,.5)}, // cura (sinos)
+ luzSagrada:()=>{const t=agora();[60,64,67,72].forEach((m,i)=>nota(bus.efeitos,mtof(m),t,1.2,{tipo:'sine',vol:.012*escala,ataque:.2,solta:1}));noise(1,.006,3000,0,'bandpass',5000,2)}, // zona de luz
+ pulso:()=>{tone(70,35,.8,'sine',.08);noise(.6,.035,1500,0,'lowpass',200,.7);arpejo([72,79,84,91],.04,{tipo:'triangle',vol:.025,dur:.4,brilho:4})}, // pulso de luz (ultimate)
+ beber:()=>{for(let i=0;i<3;i++){tone(320+i*30,180,.09,'sine',.03,i*.15);noise(.06,.012,700,i*.15+.02,'bandpass',400,4)}}, // goles da poção
+ drop:()=>{tone(1700,1300,.06,'sine',.012);noise(.04,.01,3000,0,'bandpass',2000,2)},
+ fala:()=>{tone(880,990,.05,'triangle',.01)}, // diálogo: nova fala (js/dialogo.js)
+ anjo:()=>{const t=agora();[64,68,71,76,80].forEach((m,i)=>nota(bus.efeitos,mtof(m),t+i*.09,1.6,{tipo:'sine',vol:.016*escala,ataque:.25,solta:1.3,vibrato:.004}));noise(1.4,.006,6000,0,'highpass',9000,.5)}, // coro do anjo / portal celeste
 };
 const LOOT=['lootComum','lootComum','lootIncomum','lootRaro','lootEpico','lootLendario'];
 // pegar um item: som pela raridade (qualidade). Itens sem qualidade (material, consumível) usam "item".

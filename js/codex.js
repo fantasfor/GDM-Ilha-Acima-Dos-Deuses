@@ -20,7 +20,7 @@ function sombra(m){if(!sombras.has(m.id)){const c=document.createElement('canvas
 function chances(m){const out={};for(const d of m.t.drops||[])if(d&&d.id)out[d.id]=d.chance/100;return out}
 /* ---- abas ---- */
 function tMon(){const g=E('div','cx-grid');mons().sort((a,b)=>(a.bt!='normal')-(b.bt!='normal')||(a.sp?a.sp.min:99)-(b.sp?b.sp.min:99)).forEach(m=>{const c=E('div','cx-card'),B=m.B,sk=m.sk,n=mortes(m.id);
- const badge=m.bt=='grandboss'?'<span class="cx-badge gb">Grande chefe</span>':m.bt=='boss'?'<span class="cx-badge boss">Chefe</span>':'<span class="cx-badge">Normal</span>';
+ const badge=m.bt=='grandboss'?'<span class="cx-badge gb">Chefe</span>':m.bt=='boss'?'<span class="cx-badge boss">Elite</span>':'<span class="cx-badge">Normal</span>';
  if(!n){c.classList.add('cx-oculto');c.innerHTML='<div class="cx-head"><img src="'+sombra(m)+'"><div><b>???</b>'+badge+'</div></div><div class="dim">Derrote este monstro para descobrir.</div>';g.appendChild(c);return}
  const lv=m.sp?'Nv '+m.sp.min+(m.sp.max&&m.sp.max<999?'–'+m.sp.max:'+'):m.bt!='normal'?'Único':'—',where=m.sp?(m.sp.far?'longe do acampamento':m.sp.coast?'costa':'toda a ilha'):'ponto fixo';
  const ch=chances(m),ids=Object.keys(ch).filter(id=>ITEMS[id]),vistos=ids.filter(id=>jaCaiu(m.id,id)).sort((a,b)=>ch[b]-ch[a]),falta=ids.length-vistos.length;
@@ -92,6 +92,6 @@ mmEl.addEventListener('pointerdown',e=>{if(e.button===2){e.preventDefault();go(e
 let lastSt='';const hud0=hud;hud=function(){hud0();const a=attributes(),cell=(l,v)=>'<div class="sc"><span>'+l+'</span><b>'+v+'</b></div>',
  /* foto do herói: dano do ataque (mínimo–máximo, com buffs), crítico e defesas */
  fx0=faixaBasico(),tot=k=>Math.round(fx0[k].physical+fx0[k].magic),crit=Math.max(0,Math.min(1,bonus('critChance')+critAgi(p))),
- h='<div class="sg">'+cell('Dano',tot('min')+'–'+tot('max'))+cell('Crítico',Math.round(crit*1000)/10+'%')+cell('Defesa',armor())+cell('Def. mág.',magicArmor())+cell('Vel. atq.',attackInterval().toFixed(2)+'s')+cell('Movim.',Math.round(CALC.move*(1+spdB())))+'</div><div class="fai2"><span><b style="color:#f55">F</b> '+a.F+'</span><span><b style="color:#5ee05a">A</b> '+a.A+'</span><span><b style="color:#5aa8ff">I</b> '+a.I+'</span></div><div class="gl">Ouro <b>'+(p.gold|0)+'</b></div>';
+ h='<div class="sg">'+cell('Dano',textoFaixa(fx0))+cell('Crítico',Math.round(crit*1000)/10+'%')+cell('Defesa',armor())+cell('Def. mág.',magicArmor())+cell('Vel. atq.',attackInterval().toFixed(2)+'s')+cell('Movim.',Math.round(CALC.move*(1+spdB())))+'</div><div class="fai2"><span><b style="color:#f55">F</b> '+a.F+'</span><span><b style="color:#5ee05a">A</b> '+a.A+'</span><span><b style="color:#5aa8ff">I</b> '+a.I+'</span></div><div class="gl">Ouro <b>'+(p.gold|0)+'</b></div>';
  if(h!==lastSt){lastSt=h;$('st').innerHTML=h}};
 })();

@@ -108,7 +108,7 @@ function makeSkill(s){
       const dentro=en.filter(e=>e.hp>0&&dist(e,{x:cx,y:cy})<raio);
       for(let k=0;k<porVez&&restam>0;k++,restam--){const alvo=dentro.length?dentro[(Math.random()*dentro.length)|0]:null,a=Math.random()*Math.PI*2,dd=alvo?Math.random()*6:Math.sqrt(Math.random())*raio;
        const x=(alvo?alvo.x:cx)+Math.cos(a)*dd,y=(alvo?alvo.y:cy)+Math.sin(a)*dd*.8,dano=pv(); // cai em cima de um inimigo da área (ou num ponto qualquer, sem ninguém)
-       const cair=()=>{for(const e of en)if(e.hp>0&&dist(e,{x,y})<raioImp&&linhaLivre({x,y},e))hurtE(e,dano,magic,fx())};
+       const cair=()=>{if(window.playGameSound)playGameSound('explosao',.6);for(const e of en)if(e.hp>0&&dist(e,{x,y})<raioImp&&linhaLivre({x,y},e))hurtE(e,dano,magic,fx())};
        if(s.vfx==='meteoros'&&window.VFX)VFX.tocar('meteoro',{x,y,raio:raioImp,cor:col,dur:.5,fim:cair});else{ring(x,y,raioImp,col,.4);cair()}}})}},noMouse?{mira:1}:{});
    d=()=>(noMouse?'Fica parado conjurando na área do mouse ('+r+' px)':'Gira')+' por '+dur+' s: '+(porVez>1?porVez+' impactos por vez, ':'')+P()+' de dano'+(noMouse?' por impacto ('+raioImp+' px)':' em área ('+r+' px)')+' a cada '+tick+' s'+(totalMax<Infinity?', '+totalMax+' no total':'')+'.'+(s.parado?' Você fica parado; aperte de novo para cancelar.':' Dá para andar.')+' Sem ataque básico enquanto dura.';break}
   case'meteor':f=Object.assign(w=>mets.push({x:w.x,y:w.y,t:.9,radius:r*areaMultiplier(p),dmg:pv(),magic,fx:fx&&fx()}),{mira:1});d=()=>'Chama um meteoro no local do mouse: '+P()+' de dano em área.';break;
@@ -125,7 +125,7 @@ function makeSkill(s){
  const areaTxt=()=>s.effect==='projectile'?(area?area.r+' px em volta do alvo ('+area.pct+'% do dano)':''):s.effect==='golpe'?'arco de '+n(s.arc,140)+'° à frente':s.effect==='canal'?(s.local==='mouse'?r+' px; impactos de '+n(s.raioImpacto,22)+' px':r+' px em volta'):['nova','aura','meteor'].includes(s.effect)||s.effect==='heal'&&hl?r+' px'+(s.effect==='aura'?' (você e aliados)':''):s.effect==='blink'&&hasDamage()?'32 px':'';
  const curaTxt=()=>s.effect==='heal'?ampCura(+pv()||0)+' de vida':hl?ampCura(hl())+' de vida':'';
  const info=()=>{const v=hasDamage()&&s.effect!=='heal'?pv():null;const vb=v==null?null:comBuffs(typeof v=='object'?v:magic?{physical:0,magic:+v||0}:{physical:+v||0,magic:0}); /* com os buffs ativos */
-  return{desc:s.desc||dd(),dano:vb==null?'':damageText(vb),dano2:v&&typeof v=='object'&&v.physical>=.5&&v.magic>=.5?v.magic/((v.physical+v.magic)||1):null,
+  return{desc:s.desc||dd(),dano:vb==null?'':danoHTML(vb),dano2:null,
   cura:curaTxt(),mana:n(s.mpRestore)>0?'+'+n(s.mpRestore)+' de mana':'',alcance:alcanceTxt(),area:areaTxt(),efeito:efeitoTexto(s.effects),extra:extra(),...(extraInfo?extraInfo():{}),...textosProprios()}};
  /* textos escritos na Engine (Caixa de informação) valem no lugar dos calculados; '-' esconde a linha */
  const textosProprios=()=>{const o={},tx=s.textos&&typeof s.textos=='object'?s.textos:{};for(const k of ['dano','cura','mana','alcance','area','efeito']){const v=String(tx[k]??'').trim();if(v)o[k]=v==='-'?'':v}return o};
@@ -142,8 +142,8 @@ L('items').forEach(it=>{
   o={n:nm,material:true,stackable:true,c:icone16(it.sprite,it.id)||woodIcon(it.id=='magicWood')}
  }
  else if(it.kind=='consumable'){
-  const h={hp:n(it.healHp),mp:n(it.healMp)};
-  o={n:nm+' ('+[h.hp&&'cura '+h.hp,h.mp&&'+'+h.mp+' mana'].filter(Boolean).join(', ')+')',use:1,heal:h,c:icone16(it.sprite,it.id)||potion(c[0],shade(c[0],1.4),shade(c[0],.55))}}
+  const h={hp:n(it.healHp),mp:n(it.healMp),hpPct:n(it.healHpPct),mpPct:n(it.healMpPct)};
+  o={n:nm+' ('+[h.hp&&'cura '+h.hp,h.hpPct&&'cura '+h.hpPct+'% da vida',h.mp&&'+'+h.mp+' mana',h.mpPct&&'+'+h.mpPct+'% da mana'].filter(Boolean).join(', ')+')',use:1,heal:h,castTime:it.castTime===''||it.castTime==null?.5:Math.max(0,n(it.castTime)),c:icone16(it.sprite,it.id)||potion(c[0],shade(c[0],1.4),shade(c[0],.55))}}
  else if(it.kind=='weapon'){
   const wtype=weaponId(it.wtype),twoHanded=!!it.twoHanded||['espada_grande','cajado','machado_2mao','martelo_2mao'].includes(wtype);
   // um item com dano inválido não pode impedir o jogo de abrir: avisa e usa os valores em ordem

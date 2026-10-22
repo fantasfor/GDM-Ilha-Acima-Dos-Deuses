@@ -291,3 +291,23 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .sk.auraAtiva{overflow:visible}
 .sk.auraAtiva::after{content:'';position:absolute;inset:-3px;padding:2px;border-radius:0;background:conic-gradient(from var(--auraAng),#ffd84a 0deg,rgba(255,216,74,0) 70deg,rgba(255,216,74,0) 180deg,#ffd84a 250deg,rgba(255,216,74,0) 320deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:auraGira 1.4s linear infinite;pointer-events:none;z-index:3}
 @keyframes auraGira{to{--auraAng:360deg}}
+/* tutorial (js/tutorial.js): botão de pular dentro do quadro de objetivo */
+#quest{pointer-events:auto}#quest .tutPular{display:block;margin-top:6px;padding:3px 8px;font:bold 10px monospace;color:#d9d0c7;background:#262626;border:1px solid #595959;cursor:pointer}#quest .tutPular:hover{border-color:#d9d0c7}
+
+/* diálogo com retratos (js/dialogo.js): personagens grandes nas laterais, caixa de texto embaixo */
+#vn{position:fixed;inset:0;z-index:60;display:none;background:rgba(13,13,13,.55);cursor:pointer;user-select:none}
+#vn.on{display:block}
+#vn .vnRet{position:absolute;bottom:calc(3vh + 104px);width:36vw;height:62vh;pointer-events:none;image-rendering:pixelated;transition:transform .15s}
+#vn .vnEsq{left:2vw}
+#vn .vnDir{right:2vw}
+#vn[data-lado="esquerda"] .vnEsq,#vn[data-lado="direita"] .vnDir{transform:translateY(-1.5vh)}
+#vn .vnCaixa{position:absolute;left:50%;bottom:3vh;transform:translateX(-50%);width:min(820px,94vw);min-height:118px;box-sizing:border-box;padding:26px 22px 18px;background:#0D0D0D;border:2px solid #595959;color:#D9D0C7;font:16px/1.5 monospace}
+#vn .vnNome{position:absolute;top:-16px;left:18px;padding:3px 12px;background:#A69C94;color:#0D0D0D;font:bold 14px monospace;border:2px solid #0D0D0D}
+#vn[data-lado="direita"] .vnNome{left:auto;right:18px}
+#vn .vnSeta{position:absolute;right:14px;bottom:8px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #D9D0C7;visibility:hidden}
+#vn .vnSeta.on{visibility:visible;animation:vnPisca 1s steps(2) infinite}
+@keyframes vnPisca{50%{opacity:0}}
+#vn .vnPular{position:absolute;top:14px;right:14px;padding:6px 14px;background:#262626;color:#D9D0C7;border:1px solid #595959;font:13px monospace;cursor:pointer}
+#vn .vnPular:hover{background:#595959}
+@media (max-width:700px){#vn .vnRet{width:46vw;height:50vh;bottom:160px}#vn .vnCaixa{font-size:14px}}
+body.emTutorial .tavBtn{display:none}

@@ -11,7 +11,7 @@
  if(MODO.teste||MODO.motor||!window.CONTA_ATIVA)return;
  const MAX_GRUPO=5,MAX_ILHA=4,PUB_MS=100,CONVITE_S=90,APOIO_MS=15000;
  // por jogador extra no grupo: +60% de vida e +15% de dano para os inimigos da DG
- const ESCALA_VIDA=.6,ESCALA_DANO=.15;
+ 
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
  const btn=(text,fn,cls)=>{const b=el('button',cls||'mpBtn',text);b.type='button';b.onclick=fn;return b};
  let N=null,db=null,uid=null;
@@ -82,16 +82,9 @@
   }
  }
  // aplica a escala do tamanho atual do grupo a partir dos valores originais (pode subir e descer durante a DG)
- function escalar(e){
-  const n=window.inDungeon?MP.tamanhoGrupo:1;if((e.mpEscala||1)===n)return;
-  if(!e.mpBase)e.mpBase={max:e.max,dmg:e.dmg,wm:e.weaponDamageMultiplier||1,wb:e.weaponDamageBase};
-  const b=e.mpBase,kv=1+ESCALA_VIDA*(n-1),kd=1+ESCALA_DANO*(n-1),parte=e.max>0?e.hp/e.max:1;
-  e.max=Math.round(b.max*kv);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
-  e.dmg=Math.round(b.dmg*kd);e.weaponDamageMultiplier=b.wm*kd;
-  if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*kd);
-  e.mpEscala=n;
- }
- MP.escalaTexto=n=>n>1?'+'+Math.round(ESCALA_VIDA*100*(n-1))+'% de vida e +'+Math.round(ESCALA_DANO*100*(n-1))+'% de dano':'dificuldade normal';
+ // a escala da DG pelo número de jogadores fica em update.js (escalarDG: ×1,5 sozinho, +1 por jogador)
+ function escalar(e){if(window.inDungeon&&window.escalarDG)escalarDG(e)}
+ MP.escalaTexto=n=>'monstros ×'+(Math.max(1,n)+.5).toString().replace('.',',')+' (vida, dano e atributos; o Chefe não muda)';
  const codificar=e=>[e.ty,e.lvl||1,Math.round(e.x),Math.round(e.y),Math.max(0,Math.ceil(e.hp)),Math.round(monsterMaxHp(e)),
   (e.elite?1:0)|(e.boss?2:0)|(e.aw>0?4:0),Math.sign(Math.round(e.fx||0)),e.dungeonRoomId==null?'':e.dungeonRoomId].join('|');
  function publicar(agora){
@@ -139,7 +132,7 @@
   aplicarIlha(v);
  }
  // só o dono mexe no carpinteiro, no ferreiro, no portão e no portal da ilha
- MP.soDono=()=>{if(!MP.visitando||window.inDungeon||window.inTaverna||window.inArena)return false;aviso('Só o dono da ilha pode fazer isso.','#c0ae91');return true};
+ MP.soDono=()=>{if(!MP.visitando||window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return false;aviso('Só o dono da ilha pode fazer isso.','#c0ae91');return true};
 
  /* ---- participação e divisão da recompensa ----
     Na ilha, XP e ouro de cada monstro são divididos em partes iguais entre quem participou da batalha:
