@@ -124,10 +124,10 @@
  // equipar com o espaço de destino escolhido volta para "Todos"
  const use0=useSlot;useSlot=function(i,slot){const r=use0.apply(this,arguments);if(slot&&invEquipSlot){invEquipSlot=null;invCategory='all'}return r};
  /* ---------- atualização por quadro ---------- */
- let qsig='',lastLoc='',ready=new Map();
+ let qsig='',lastLoc='',ready=new Map(),ouroVisto=null;
  const hud0=hud;hud=function(){hud0();
   badge.textContent=p.lvl;$('lv').textContent=p.lvl>=CALC.maxLevel?'XP MÁX':'XP '+p.xp+'/'+p.lvl*CALC.xpPerLevel;
-  $('invGold').textContent=(p.gold|0)+' ouro';$('qgold').textContent=(p.gold|0)+' ouro';
+  {const g=p.gold|0;if(g!==ouroVisto){ouroVisto=g;$('invGold').innerHTML=moeda(g);$('qgold').innerHTML=moeda(g)}} // número + símbolo da moeda
   const sig=I.slice(0,6).map(s=>s?s.id+':'+s.n+':'+s.q:'').join('|');
   if(sig!==qsig){qsig=sig;qslots.forEach((el,i)=>{const s=I[i],img=el.querySelector('img'),b=el.querySelector('b');el.className='qslot'+(s?qc(s):' empty');if(s){img.src=ITEMS[s.id].ic;img.hidden=false;b.textContent=s.n>1?s.n:''}else{img.hidden=true;b.textContent=''}})}
   const low=p.hp>0&&p.hp/mhp()<.3;document.body.classList.toggle('lowHp',low);
@@ -137,7 +137,9 @@
   else if(!cmb&&/^Em combate/.test(hint.textContent))hint.textContent='Arraste para trocar · botão direito: opções';
   SK.forEach(s=>{const was=ready.get(s);if(was>0&&!(s.t>0)&&s.el){s.el.classList.remove('readyFlash');void s.el.offsetWidth;s.el.classList.add('readyFlash')}ready.set(s,s.t)});
   const loc=window.inArena?'Arena':window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
-  if(loc!==lastLoc){lastLoc=loc;mmLabel.textContent=loc}
+  // relógio do jogo (js/tempo.js): igual para todos, dia e noite de 30 min reais
+  const rel=window.TEMPO?(TEMPO.ehNoite()?'Noite ':'Dia ')+TEMPO.hora():'',txt=loc+'|'+rel;
+  if(txt!==lastLoc){lastLoc=txt;mmLabel.innerHTML='';mmLabel.append(loc);if(rel){const s=E('span');s.className='mmHora'+(TEMPO.ehNoite()?' noite':'');s.textContent=rel;s.title=(TEMPO.ehNoite()?'Amanhece':'Anoitece')+' em '+TEMPO.minutosAte()+' min';mmLabel.append(s)}}
   const r=$('mm').getBoundingClientRect();mmLabel.style.left=r.left+'px';mmLabel.style.width=r.width+'px';mmLabel.style.top=(r.top-mmLabel.offsetHeight-6)+'px';
   const z=$('mmz');z.style.top=(r.top+4)+'px';z.style.left=(r.right-z.offsetWidth-4)+'px';
  };

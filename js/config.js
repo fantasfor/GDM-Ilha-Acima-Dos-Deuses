@@ -1,5 +1,5 @@
 /* constantes de cálculo (editáveis pelo GM na Enciclopédia > Cálculos) */
-const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:.2,magPerI:.2,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:40,maxLevel:30,rankXp:100,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,armorFloor:.3,
+const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:.2,magPerI:.2,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:90,maxLevel:10,atrPorNivel:2,critPerA:.1,monCritPerA:.1,rankXp:90,monXpPorNivel:5,xpChefe:5,xpChefao:15,rankXpPorAbate:25,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,armorFloor:.3,
  magArmPerI:1,monMp0:35,monMpPerI:5,monArmPerA:5,monMagArmPerI:1,monPhysPerF:.2,monMagPerI:.2,monRegenPerF:.05,monRegenPerI:.05,monMove0:28,monMovePerA:.005,monMinInterval:.25,monAtkSpdPerA:.005};
 const CALC_DEF={...CALC};
 /* fórmulas dos monstros: separadas das do personagem (Engine › Fórmulas › Monstros) */
@@ -25,17 +25,21 @@ const ITEM_STATS={
  critDamage:{label:'Dano crítico adicional (%)',text:'dano crítico adicional',percent:true},
  lifeSteal:{label:'Roubo de vida físico (%)',text:'roubo de vida físico',percent:true},
  magicLifeSteal:{label:'Roubo de vida mágico (%)',text:'roubo de vida mágico',percent:true},
+ // perfuração: ignora essa % da defesa do alvo; amplificação de cura: as curas das habilidades curam essa % a mais
+ physicalPen:{label:'Perfuração física (%)',text:'perfuração física',percent:true},
+ magicPen:{label:'Perfuração mágica (%)',text:'perfuração mágica',percent:true},
+ healAmp:{label:'Amplificação de cura (%)',text:'amplificação de cura',percent:true},
  F:{label:'Força',text:'F'},
  A:{label:'Agilidade',text:'A'},
  I:{label:'Inteligência',text:'I'}
 };
-const ATTRIBUTE_KEYS=['physicalDmg','magicDmg','arm','magicArm','hp','mp','regenHp','regenMp','F','A','I','moveSpeed','attackSpeed','castSpeed','area','cooldownReduction','critChance','critDamage','lifeSteal','magicLifeSteal'];
+const ATTRIBUTE_KEYS=['physicalDmg','magicDmg','arm','magicArm','hp','mp','regenHp','regenMp','F','A','I','moveSpeed','attackSpeed','castSpeed','area','cooldownReduction','critChance','critDamage','lifeSteal','magicLifeSteal','physicalPen','magicPen','healAmp'];
 const attributeValue=(stats,key)=>{const value=Number(stats&&stats[key])||0;return ITEM_STATS[key]?.percent?value/100:value};
 const attributeText=stats=>ATTRIBUTE_KEYS.filter(k=>Number(stats?.[k])).map(k=>(stats[k]>0?'+':'')+stats[k]+(ITEM_STATS[k].percent?'%':'')+' '+ITEM_STATS[k].text).join(', ');
 const itemStatValue=(k,v)=>{const s=ITEM_STATS[k];return Number((s.percent?v*100:v).toFixed(s.percent||s.fractional?2:0))+(s.percent?'%':'')};
-const weaponTag=v=>{const tag=String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');return({machado:'machado_2mao',machado_2_mao:'machado_2mao',martelo:'martelo_2mao',martelo_2_mao:'martelo_2mao',espadao:'espada_grande'})[tag]||tag};
+const weaponTag=v=>{const tag=String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');return({machado:'machado_2mao',machado_2_mao:'machado_2mao',martelo:'martelo_2mao',martelo_2_mao:'martelo_2mao',espadao:'espada_grande',vara:'cetro',varinha:'cetro'})[tag]||tag}; // a Vara virou Cetro
 const weaponTags=it=>[...new Set([...(it?.tags||[]),it?.wt||it?.wtype].map(weaponTag).filter(Boolean))];
-const skillWeaponAllowed=(skill,it)=>!skill.wt?.length||skill.wt.some(tag=>(it?weaponTags(it):['desarmado']).includes(weaponTag(tag)));
+const skillWeaponAllowed=()=>true; // qualquer habilidade pode ser usada com qualquer arma (o campo de armas da habilidade não limita mais)
 function weaponDamageRange(it){
  const present=v=>v!==''&&v!=null;
  if(!present(it.damageMin)&&!present(it.damageMax))return null;
@@ -43,6 +47,8 @@ function weaponDamageRange(it){
  if(!Number.isInteger(min)||!Number.isInteger(max)||min<0||max<min)throw new Error('Dano da arma: informe inteiros maiores ou iguais a zero, com máximo maior ou igual ao mínimo.');
  return{min,max};
 }
+/* segundo dano da arma (do outro tipo: arma física com dano mágico, ou o contrário), ex.: Espada de Madeira Mágica 26-36 físico + 12-22 mágico */
+function weaponDamage2Range(it){const a=Math.max(0,Math.round(+it.damage2Min||0)),b=Math.max(0,Math.round(+it.damage2Max||0));if(!a&&!b)return null;return{min:Math.min(a,b||a),max:Math.max(a,b)}}
 const rollWeaponDamage=range=>range.min+Math.floor(Math.random()*(range.max-range.min+1));
 function setp(o,path,v){const k=path.split('.');for(let i=0;i<k.length-1;i++){if(o[k[i]]==null||typeof o[k[i]]!='object')o[k[i]]=/^\d+$/.test(k[i+1])?[]:{};o=o[k[i]]}o[k[k.length-1]]=v}
 const getp=(o,path)=>path.split('.').reduce((a,k)=>a==null?a:a[k],o);
@@ -66,4 +72,7 @@ addEventListener('resize',rs);rs();
 const hash=(x,y)=>{const n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n)};
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+/* símbolo da moeda (no lugar da palavra ouro): moeda(n) devolve o número com a moedinha; o desenho vai no CSS .moeda */
+function moeda(n){return '<span class="moedaN">'+(typeof n=='number'?Math.round(n).toLocaleString('pt-BR'):n)+'<i class="moeda" title="ouro"></i></span>'}
+addEventListener('DOMContentLoaded',()=>{const img=spr(['...###...','.##yyy##.','.#yYYyy#.','#yYyyyyd#','#yYyyyyd#','#yyyyydd#','.#yyddd#.','.##ddd##.','...###...'],{'#':'#5a3a08',y:'#e8b830',Y:'#fff0a0',d:'#b07818'}).toDataURL(),st=document.createElement('style');st.textContent='.moeda{display:inline-block;width:12px;height:12px;margin-left:3px;vertical-align:-2px;background:url('+img+') center/contain no-repeat;image-rendering:pixelated}.moedaN{white-space:nowrap}';document.head.append(st)});
 function spr(rows,pal){const c=document.createElement('canvas');c.width=rows[0].length;c.height=rows.length;const x=c.getContext('2d');rows.forEach((r,j)=>[...r].forEach((ch,i)=>{if(pal[ch]){x.fillStyle=pal[ch];x.fillRect(i,j,1,1)}}));return c}

@@ -1,7 +1,7 @@
-/* Projeto do Ilha RPG — gravado pela Engine (editor.html). Edite pela engine; alterações manuais podem ser sobrescritas. */
+/* Projeto do GDM Ilha Acima dos Deuses — gravado pela Engine (editor.html). Edite pela engine; alterações manuais podem ser sobrescritas. */
 window.PROJETO={
  "formato": 1,
- "nome": "Ilha RPG",
+ "nome": "GDM Ilha Acima dos Deuses",
  "dados": {
   "classes": [
    {
@@ -13,11 +13,6 @@ window.PROJETO={
      "F": 25,
      "A": 15,
      "I": 5
-    },
-    "per": {
-     "F": 6,
-     "A": 3,
-     "I": 1
     },
     "passives": [
      {
@@ -69,44 +64,31 @@ window.PROJETO={
     "attackSpeed": 1,
     "attrs": {
      "F": 5,
-     "A": 5,
-     "I": 15
-    },
-    "per": {
-     "F": 1,
-     "A": 2,
-     "I": 5
+     "A": 15,
+     "I": 25
     },
     "passives": [
      {
-      "id": "p_mente_afiada",
-      "rank": 2
+      "id": "p_espirito_mago",
+      "rank": 7
      }
     ],
     "skills": [
      {
-      "id": "mag_fire",
+      "id": "mag_bola_fogo",
       "rank": 1
      },
      {
-      "id": "mag_blink",
-      "rank": 2
-     },
-     {
-      "id": "mag_nova",
+      "id": "mag_bola_gelo",
       "rank": 3
      },
      {
-      "id": "mag_meteor",
-      "rank": 4
-     },
-     {
-      "id": "mag_ice",
+      "id": "mag_inspiracao",
       "rank": 5
      },
      {
-      "id": "mag_shield",
-      "rank": 6
+      "id": "mag_chuva_meteoros",
+      "rank": 10
      }
     ],
     "kit": [
@@ -130,45 +112,32 @@ window.PROJETO={
     "base": "hea",
     "attackSpeed": 1.1,
     "attrs": {
-     "F": 7,
-     "A": 7,
-     "I": 14
-    },
-    "per": {
-     "F": 2,
-     "A": 2,
-     "I": 4
+     "F": 20,
+     "A": 15,
+     "I": 15
     },
     "passives": [
      {
-      "id": "p_vigor",
-      "rank": 2
+      "id": "p_vitalidade",
+      "rank": 7
      }
     ],
     "skills": [
      {
-      "id": "hea_ray",
+      "id": "hea_curar",
       "rank": 1
      },
      {
-      "id": "hea_heal",
-      "rank": 2
-     },
-     {
-      "id": "hea_aura",
+      "id": "hea_iluminacao",
       "rank": 3
      },
      {
-      "id": "hea_rebirth",
-      "rank": 4
-     },
-     {
-      "id": "hea_light",
+      "id": "hea_presenca",
       "rank": 5
      },
      {
-      "id": "hea_shield",
-      "rank": 6
+      "id": "hea_pulso",
+      "rank": 10
      }
     ],
     "kit": [
@@ -1532,10 +1501,10 @@ window.PROJETO={
    },
    {
     "id": "arma_vara",
-    "name": "Vara",
+    "name": "Cetro",
     "kind": "weapon",
     "pacote": "armas-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
     "damageMin": 7,
@@ -2512,10 +2481,10 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_01",
-    "name": "Vara de Cobre I",
+    "name": "Cetro de Cobre I",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
     "damageMin": 8,
@@ -2684,8 +2653,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 10,
-    "damageMax": 19,
+    "damageMin": 9,
+    "damageMax": 18,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -2737,7 +2706,7 @@ window.PROJETO={
     "twoHanded": true,
     "damageType": "physical",
     "damageMin": 12,
-    "damageMax": 24,
+    "damageMax": 23,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -2786,8 +2755,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 29,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {
      "attackSpeed": -22
     },
@@ -2892,7 +2861,7 @@ window.PROJETO={
     "twoHanded": true,
     "damageType": "physical",
     "damageMin": 14,
-    "damageMax": 28,
+    "damageMax": 27,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -2942,8 +2911,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 33,
+    "damageMin": 16,
+    "damageMax": 32,
     "stats": {
      "attackSpeed": -18
     },
@@ -2996,7 +2965,7 @@ window.PROJETO={
     "twoHanded": true,
     "damageType": "physical",
     "damageMin": 14,
-    "damageMax": 28,
+    "damageMax": 27,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -3048,7 +3017,7 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 12,
+    "damageMin": 11,
     "damageMax": 23,
     "stats": {
      "attackSpeed": 8
@@ -3101,8 +3070,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 13,
-    "damageMax": 25,
+    "damageMin": 12,
+    "damageMax": 24,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -3153,7 +3122,7 @@ window.PROJETO={
     "twoHanded": false,
     "damageType": "physical",
     "damageMin": 6,
-    "damageMax": 13,
+    "damageMax": 12,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -3196,14 +3165,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_02",
-    "name": "Vara de Cobre II",
+    "name": "Cetro de Cobre II",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 9,
-    "damageMax": 18,
+    "damageMin": 8,
+    "damageMax": 17,
     "stats": {
      "castSpeed": 15
     },
@@ -3254,8 +3223,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 9,
-    "damageMax": 18,
+    "damageMin": 8,
+    "damageMax": 17,
     "stats": {
      "mp": 20
     },
@@ -3322,8 +3291,8 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -3368,8 +3337,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 11,
-    "damageMax": 22,
+    "damageMin": 10,
+    "damageMax": 20,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -3420,8 +3389,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 14,
-    "damageMax": 27,
+    "damageMin": 12,
+    "damageMax": 24,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -3470,8 +3439,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 33,
+    "damageMin": 15,
+    "damageMax": 30,
     "stats": {
      "attackSpeed": -22
     },
@@ -3526,8 +3495,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 12,
-    "damageMax": 23,
+    "damageMin": 11,
+    "damageMax": 21,
     "stats": {
      "attackSpeed": 20
     },
@@ -3575,8 +3544,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 32,
+    "damageMin": 14,
+    "damageMax": 29,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -3626,8 +3595,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {
      "attackSpeed": -18
     },
@@ -3679,8 +3648,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 32,
+    "damageMin": 14,
+    "damageMax": 29,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -3732,8 +3701,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 13,
-    "damageMax": 27,
+    "damageMin": 12,
+    "damageMax": 24,
     "stats": {
      "attackSpeed": 8
     },
@@ -3785,8 +3754,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 29,
+    "damageMin": 13,
+    "damageMax": 26,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -3837,7 +3806,7 @@ window.PROJETO={
     "twoHanded": false,
     "damageType": "physical",
     "damageMin": 7,
-    "damageMax": 14,
+    "damageMax": 13,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -3886,8 +3855,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 12,
-    "damageMax": 23,
+    "damageMin": 10,
+    "damageMax": 20,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -3937,14 +3906,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_03",
-    "name": "Vara de Cobre III",
+    "name": "Cetro de Cobre III",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 11,
-    "damageMax": 21,
+    "damageMin": 9,
+    "damageMax": 18,
     "stats": {
      "castSpeed": 15
     },
@@ -3995,8 +3964,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 11,
-    "damageMax": 21,
+    "damageMin": 9,
+    "damageMax": 18,
     "stats": {
      "mp": 20
     },
@@ -4047,7 +4016,7 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 2,
+     "arm": 1,
      "magicArm": 1
     },
     "effects": [],
@@ -4109,8 +4078,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 31,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -4160,8 +4129,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 39,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {
      "attackSpeed": -12
     },
@@ -4213,8 +4182,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 12,
-    "damageMax": 24,
+    "damageMin": 11,
+    "damageMax": 21,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -4265,8 +4234,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 29,
+    "damageMin": 13,
+    "damageMax": 26,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -4315,8 +4284,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 18,
-    "damageMax": 36,
+    "damageMin": 16,
+    "damageMax": 32,
     "stats": {
      "attackSpeed": -22
     },
@@ -4371,8 +4340,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 13,
-    "damageMax": 25,
+    "damageMin": 11,
+    "damageMax": 22,
     "stats": {
      "attackSpeed": 20
     },
@@ -4420,8 +4389,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 34,
+    "damageMin": 15,
+    "damageMax": 31,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -4471,8 +4440,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 41,
+    "damageMin": 18,
+    "damageMax": 36,
     "stats": {
      "attackSpeed": -18
     },
@@ -4524,8 +4493,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 34,
+    "damageMin": 15,
+    "damageMax": 31,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -4577,8 +4546,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 29,
+    "damageMin": 13,
+    "damageMax": 26,
     "stats": {
      "attackSpeed": 8
     },
@@ -4630,8 +4599,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 31,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -4681,8 +4650,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 8,
-    "damageMax": 16,
+    "damageMin": 7,
+    "damageMax": 14,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -4731,8 +4700,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 13,
-    "damageMax": 25,
+    "damageMin": 11,
+    "damageMax": 22,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -4782,14 +4751,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_04",
-    "name": "Vara de Cobre IV",
+    "name": "Cetro de Cobre IV",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 12,
-    "damageMax": 23,
+    "damageMin": 10,
+    "damageMax": 20,
     "stats": {
      "castSpeed": 15
     },
@@ -4840,8 +4809,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 12,
-    "damageMax": 23,
+    "damageMin": 10,
+    "damageMax": 20,
     "stats": {
      "mp": 20
     },
@@ -4892,7 +4861,7 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 2,
+     "arm": 1,
      "magicArm": 1
     },
     "effects": [],
@@ -4908,7 +4877,7 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 4,
+     "arm": 3,
      "magicArm": 2
     },
     "effects": [],
@@ -4954,8 +4923,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 18,
-    "damageMax": 35,
+    "damageMin": 15,
+    "damageMax": 29,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -5005,8 +4974,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 43,
+    "damageMin": 18,
+    "damageMax": 36,
     "stats": {
      "attackSpeed": -12
     },
@@ -5058,8 +5027,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 13,
-    "damageMax": 26,
+    "damageMin": 11,
+    "damageMax": 22,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -5110,8 +5079,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 33,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -5160,8 +5129,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 40,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {
      "attackSpeed": -22
     },
@@ -5216,8 +5185,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 14,
-    "damageMax": 28,
+    "damageMin": 12,
+    "damageMax": 24,
     "stats": {
      "attackSpeed": 20
     },
@@ -5265,8 +5234,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 16,
+    "damageMax": 32,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -5316,8 +5285,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 45,
+    "damageMin": 19,
+    "damageMax": 38,
     "stats": {
      "attackSpeed": -18
     },
@@ -5369,8 +5338,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 16,
+    "damageMax": 32,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -5422,8 +5391,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 32,
+    "damageMin": 14,
+    "damageMax": 27,
     "stats": {
      "attackSpeed": 8
     },
@@ -5475,8 +5444,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 18,
-    "damageMax": 35,
+    "damageMin": 15,
+    "damageMax": 29,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -5526,8 +5495,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 9,
-    "damageMax": 17,
+    "damageMin": 7,
+    "damageMax": 15,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -5576,8 +5545,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 15,
-    "damageMax": 29,
+    "damageMin": 12,
+    "damageMax": 23,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -5627,14 +5596,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_05",
-    "name": "Vara de Cobre V",
+    "name": "Cetro de Cobre V",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 13,
-    "damageMax": 26,
+    "damageMin": 11,
+    "damageMax": 21,
     "stats": {
      "castSpeed": 15
     },
@@ -5685,8 +5654,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 13,
-    "damageMax": 26,
+    "damageMin": 11,
+    "damageMax": 21,
     "stats": {
      "mp": 20
     },
@@ -5753,7 +5722,7 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 4,
+     "arm": 3,
      "magicArm": 2
     },
     "effects": [],
@@ -5769,8 +5738,8 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -5785,7 +5754,7 @@ window.PROJETO={
     "c1": "#b87333",
     "c2": "#e0a070",
     "stats": {
-     "arm": 2,
+     "arm": 1,
      "magicArm": 1
     },
     "effects": [],
@@ -5799,8 +5768,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 37,
+    "damageMin": 16,
+    "damageMax": 31,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -5850,8 +5819,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
+    "damageMin": 19,
+    "damageMax": 38,
     "stats": {
      "attackSpeed": -12
     },
@@ -5903,8 +5872,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 14,
-    "damageMax": 28,
+    "damageMin": 12,
+    "damageMax": 23,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -5955,8 +5924,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 35,
+    "damageMin": 15,
+    "damageMax": 29,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -6005,8 +5974,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 42,
+    "damageMin": 18,
+    "damageMax": 35,
     "stats": {
      "attackSpeed": -22
     },
@@ -6061,8 +6030,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 30,
+    "damageMin": 13,
+    "damageMax": 25,
     "stats": {
      "attackSpeed": 20
     },
@@ -6110,8 +6079,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 41,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -6161,8 +6130,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 48,
+    "damageMin": 20,
+    "damageMax": 40,
     "stats": {
      "attackSpeed": -18
     },
@@ -6214,8 +6183,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 41,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -6267,8 +6236,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 34,
+    "damageMin": 14,
+    "damageMax": 29,
     "stats": {
      "attackSpeed": 8
     },
@@ -6320,8 +6289,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 37,
+    "damageMin": 16,
+    "damageMax": 31,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -6371,8 +6340,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 9,
-    "damageMax": 19,
+    "damageMin": 8,
+    "damageMax": 16,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -6421,8 +6390,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 16,
-    "damageMax": 31,
+    "damageMin": 13,
+    "damageMax": 25,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -6472,14 +6441,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_06",
-    "name": "Vara de Bronze I",
+    "name": "Cetro de Bronze I",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 14,
-    "damageMax": 28,
+    "damageMin": 11,
+    "damageMax": 23,
     "stats": {
      "castSpeed": 15
     },
@@ -6530,8 +6499,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 14,
-    "damageMax": 28,
+    "damageMin": 11,
+    "damageMax": 23,
     "stats": {
      "mp": 20
     },
@@ -6598,7 +6567,7 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 4,
+     "arm": 3,
      "magicArm": 2
     },
     "effects": [],
@@ -6614,8 +6583,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -6630,7 +6599,7 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 2,
+     "arm": 1,
      "magicArm": 1
     },
     "effects": [],
@@ -6644,8 +6613,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 41,
+    "damageMin": 16,
+    "damageMax": 33,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -6695,8 +6664,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 50,
+    "damageMin": 20,
+    "damageMax": 40,
     "stats": {
      "attackSpeed": -12
     },
@@ -6748,8 +6717,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 30,
+    "damageMin": 12,
+    "damageMax": 25,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -6800,8 +6769,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 15,
+    "damageMax": 31,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -6850,8 +6819,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
+    "damageMin": 19,
+    "damageMax": 37,
     "stats": {
      "attackSpeed": -22
     },
@@ -6906,8 +6875,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 32,
+    "damageMin": 13,
+    "damageMax": 26,
     "stats": {
      "attackSpeed": 20
     },
@@ -6955,8 +6924,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 45,
+    "damageMin": 18,
+    "damageMax": 36,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7006,8 +6975,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 53,
+    "damageMin": 21,
+    "damageMax": 42,
     "stats": {
      "attackSpeed": -18
     },
@@ -7059,8 +7028,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 45,
+    "damageMin": 18,
+    "damageMax": 36,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7112,8 +7081,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 37,
+    "damageMin": 15,
+    "damageMax": 30,
     "stats": {
      "attackSpeed": 8
     },
@@ -7165,8 +7134,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 41,
+    "damageMin": 16,
+    "damageMax": 33,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7216,8 +7185,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 10,
-    "damageMax": 20,
+    "damageMin": 8,
+    "damageMax": 16,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -7266,8 +7235,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 17,
-    "damageMax": 34,
+    "damageMin": 13,
+    "damageMax": 26,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -7317,14 +7286,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_07",
-    "name": "Vara de Bronze II",
+    "name": "Cetro de Bronze II",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 16,
-    "damageMax": 31,
+    "damageMin": 12,
+    "damageMax": 24,
     "stats": {
      "castSpeed": 15
     },
@@ -7375,8 +7344,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 16,
-    "damageMax": 31,
+    "damageMin": 12,
+    "damageMax": 24,
     "stats": {
      "mp": 20
     },
@@ -7459,8 +7428,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -7475,7 +7444,7 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 2,
+     "arm": 1,
      "magicArm": 1
     },
     "effects": [],
@@ -7489,8 +7458,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 43,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7540,8 +7509,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 53,
+    "damageMin": 21,
+    "damageMax": 42,
     "stats": {
      "attackSpeed": -12
     },
@@ -7593,8 +7562,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 32,
+    "damageMin": 13,
+    "damageMax": 26,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -7645,8 +7614,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 40,
+    "damageMin": 16,
+    "damageMax": 32,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7695,8 +7664,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 49,
+    "damageMin": 20,
+    "damageMax": 39,
     "stats": {
      "attackSpeed": -22
     },
@@ -7751,8 +7720,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 34,
+    "damageMin": 14,
+    "damageMax": 27,
     "stats": {
      "attackSpeed": 20
     },
@@ -7800,8 +7769,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 47,
+    "damageMin": 19,
+    "damageMax": 38,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7851,8 +7820,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 55,
+    "damageMin": 22,
+    "damageMax": 45,
     "stats": {
      "attackSpeed": -18
     },
@@ -7904,8 +7873,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 47,
+    "damageMin": 19,
+    "damageMax": 38,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -7957,8 +7926,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 39,
+    "damageMin": 16,
+    "damageMax": 32,
     "stats": {
      "attackSpeed": 8
     },
@@ -8010,8 +7979,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 43,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -8061,8 +8030,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 11,
-    "damageMax": 21,
+    "damageMin": 9,
+    "damageMax": 17,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -8111,8 +8080,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 18,
-    "damageMax": 37,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -8162,14 +8131,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_08",
-    "name": "Vara de Bronze III",
+    "name": "Cetro de Bronze III",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 17,
-    "damageMax": 33,
+    "damageMin": 13,
+    "damageMax": 25,
     "stats": {
      "castSpeed": 15
     },
@@ -8220,8 +8189,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 17,
-    "damageMax": 33,
+    "damageMin": 13,
+    "damageMax": 25,
     "stats": {
      "mp": 20
     },
@@ -8288,8 +8257,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 5,
-     "magicArm": 3
+     "arm": 4,
+     "magicArm": 2
     },
     "effects": [],
     "tags": []
@@ -8304,8 +8273,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -8320,7 +8289,7 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 2,
+     "arm": 1,
      "magicArm": 1
     },
     "effects": [],
@@ -8334,8 +8303,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
+    "damageMin": 18,
+    "damageMax": 36,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -8385,8 +8354,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 57,
+    "damageMin": 22,
+    "damageMax": 44,
     "stats": {
      "attackSpeed": -12
     },
@@ -8438,8 +8407,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 34,
+    "damageMin": 14,
+    "damageMax": 27,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -8490,8 +8459,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 43,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -8540,8 +8509,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 52,
+    "damageMin": 21,
+    "damageMax": 41,
     "stats": {
      "attackSpeed": -22
     },
@@ -8596,8 +8565,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 37,
+    "damageMin": 14,
+    "damageMax": 29,
     "stats": {
      "attackSpeed": 20
     },
@@ -8645,8 +8614,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 51,
+    "damageMin": 20,
+    "damageMax": 39,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -8696,8 +8665,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 60,
+    "damageMin": 23,
+    "damageMax": 47,
     "stats": {
      "attackSpeed": -18
     },
@@ -8749,8 +8718,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 51,
+    "damageMin": 20,
+    "damageMax": 39,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -8802,8 +8771,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 42,
+    "damageMin": 17,
+    "damageMax": 33,
     "stats": {
      "attackSpeed": 8
     },
@@ -8855,8 +8824,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
+    "damageMin": 18,
+    "damageMax": 36,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -8906,8 +8875,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 12,
-    "damageMax": 23,
+    "damageMin": 9,
+    "damageMax": 18,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -8956,8 +8925,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 20,
-    "damageMax": 40,
+    "damageMin": 15,
+    "damageMax": 30,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -9007,14 +8976,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_09",
-    "name": "Vara de Bronze IV",
+    "name": "Cetro de Bronze IV",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 18,
-    "damageMax": 36,
+    "damageMin": 14,
+    "damageMax": 27,
     "stats": {
      "castSpeed": 15
     },
@@ -9065,8 +9034,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 18,
-    "damageMax": 36,
+    "damageMin": 14,
+    "damageMax": 27,
     "stats": {
      "mp": 20
     },
@@ -9117,8 +9086,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -9133,8 +9102,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 5,
-     "magicArm": 3
+     "arm": 4,
+     "magicArm": 2
     },
     "effects": [],
     "tags": []
@@ -9179,8 +9148,8 @@ window.PROJETO={
     "wtype": "espada",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 48,
+    "damageMin": 19,
+    "damageMax": 37,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -9230,8 +9199,8 @@ window.PROJETO={
     "wtype": "espada_grande",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 59,
+    "damageMin": 23,
+    "damageMax": 46,
     "stats": {
      "attackSpeed": -12
     },
@@ -9283,8 +9252,8 @@ window.PROJETO={
     "wtype": "adaga",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 18,
-    "damageMax": 36,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {
      "attackSpeed": 25,
      "critChance": 10
@@ -9335,8 +9304,8 @@ window.PROJETO={
     "wtype": "arco",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 45,
+    "damageMin": 18,
+    "damageMax": 35,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -9385,8 +9354,8 @@ window.PROJETO={
     "wtype": "besta",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 55,
+    "damageMin": 22,
+    "damageMax": 43,
     "stats": {
      "attackSpeed": -22
     },
@@ -9441,8 +9410,8 @@ window.PROJETO={
     "wtype": "manopla",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 15,
+    "damageMax": 30,
     "stats": {
      "attackSpeed": 20
     },
@@ -9490,8 +9459,8 @@ window.PROJETO={
     "wtype": "machado_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 53,
+    "damageMin": 21,
+    "damageMax": 41,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -9541,8 +9510,8 @@ window.PROJETO={
     "wtype": "martelo_2mao",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 62,
+    "damageMin": 25,
+    "damageMax": 49,
     "stats": {
      "attackSpeed": -18
     },
@@ -9594,8 +9563,8 @@ window.PROJETO={
     "wtype": "lanca",
     "twoHanded": true,
     "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 53,
+    "damageMin": 21,
+    "damageMax": 41,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -9647,8 +9616,8 @@ window.PROJETO={
     "wtype": "machadinha",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 44,
+    "damageMin": 17,
+    "damageMax": 34,
     "stats": {
      "attackSpeed": 8
     },
@@ -9700,8 +9669,8 @@ window.PROJETO={
     "wtype": "maca",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 48,
+    "damageMin": 19,
+    "damageMax": 37,
     "stats": {},
     "skills": [],
     "effects": [],
@@ -9751,8 +9720,8 @@ window.PROJETO={
     "wtype": "escudo",
     "twoHanded": false,
     "damageType": "physical",
-    "damageMin": 12,
-    "damageMax": 24,
+    "damageMin": 9,
+    "damageMax": 19,
     "stats": {
      "arm": 6,
      "hp": 30
@@ -9801,8 +9770,8 @@ window.PROJETO={
     "wtype": "cajado",
     "twoHanded": true,
     "damageType": "magic",
-    "damageMin": 21,
-    "damageMax": 42,
+    "damageMin": 16,
+    "damageMax": 31,
     "stats": {
      "mp": 30,
      "magicDmg": 4
@@ -9852,14 +9821,14 @@ window.PROJETO={
    },
    {
     "id": "eq_vara_10",
-    "name": "Vara de Bronze V",
+    "name": "Cetro de Bronze V",
     "kind": "weapon",
     "pacote": "equip-v1",
-    "wtype": "vara",
+    "wtype": "cetro",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {
      "castSpeed": 15
     },
@@ -9910,8 +9879,8 @@ window.PROJETO={
     "wtype": "orbe",
     "twoHanded": false,
     "damageType": "magic",
-    "damageMin": 19,
-    "damageMax": 38,
+    "damageMin": 14,
+    "damageMax": 28,
     "stats": {
      "mp": 20
     },
@@ -9962,8 +9931,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 3,
-     "magicArm": 2
+     "arm": 2,
+     "magicArm": 1
     },
     "effects": [],
     "tags": []
@@ -9978,8 +9947,8 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 6,
-     "magicArm": 3
+     "arm": 4,
+     "magicArm": 2
     },
     "effects": [],
     "tags": []
@@ -9994,7 +9963,7 @@ window.PROJETO={
     "c1": "#cd7f32",
     "c2": "#f0c070",
     "stats": {
-     "arm": 4,
+     "arm": 3,
      "magicArm": 2
     },
     "effects": [],
@@ -10012,16906 +9981,6 @@ window.PROJETO={
     "stats": {
      "arm": 2,
      "magicArm": 1
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_11",
-    "name": "Espada de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 51,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_11",
-    "name": "Espada Grande de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 63,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_11",
-    "name": "Adaga de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_11",
-    "name": "Arco de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 48,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_11",
-    "name": "Besta de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_11",
-    "name": "Manopla de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 41,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_11",
-    "name": "Machado de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_11",
-    "name": "Martelo de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_11",
-    "name": "Lança de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_11",
-    "name": "Machadinha de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 47,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_11",
-    "name": "Maça de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 51,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_11",
-    "name": "Escudo de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 13,
-    "damageMax": 26,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_11",
-    "name": "Cajado de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 23,
-    "damageMax": 45,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_11",
-    "name": "Vara de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 21,
-    "damageMax": 41,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_11",
-    "name": "Orbe de Ferro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 21,
-    "damageMax": 41,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_11",
-    "name": "Capacete de Ferro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_11",
-    "name": "Peitoral de Ferro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_11",
-    "name": "Calça de Ferro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_11",
-    "name": "Bota de Ferro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 2,
-     "magicArm": 1
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_12",
-    "name": "Espada de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 53,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_12",
-    "name": "Espada Grande de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 65,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_12",
-    "name": "Adaga de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 40,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_12",
-    "name": "Arco de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 50,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_12",
-    "name": "Besta de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 61,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_12",
-    "name": "Manopla de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 42,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_12",
-    "name": "Machado de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_12",
-    "name": "Martelo de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_12",
-    "name": "Lança de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_12",
-    "name": "Machadinha de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 49,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_12",
-    "name": "Maça de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 53,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_12",
-    "name": "Escudo de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 13,
-    "damageMax": 27,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_12",
-    "name": "Cajado de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 24,
-    "damageMax": 47,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_12",
-    "name": "Vara de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 22,
-    "damageMax": 43,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_12",
-    "name": "Orbe de Ferro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 22,
-    "damageMax": 43,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_12",
-    "name": "Capacete de Ferro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_12",
-    "name": "Peitoral de Ferro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_12",
-    "name": "Calça de Ferro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_12",
-    "name": "Bota de Ferro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 2,
-     "magicArm": 1
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_13",
-    "name": "Espada de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_13",
-    "name": "Espada Grande de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_13",
-    "name": "Adaga de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 42,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_13",
-    "name": "Arco de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_13",
-    "name": "Besta de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_13",
-    "name": "Manopla de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 45,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_13",
-    "name": "Machado de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_13",
-    "name": "Martelo de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 73,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_13",
-    "name": "Lança de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_13",
-    "name": "Machadinha de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_13",
-    "name": "Maça de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_13",
-    "name": "Escudo de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 14,
-    "damageMax": 28,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_13",
-    "name": "Cajado de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 25,
-    "damageMax": 50,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_13",
-    "name": "Vara de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 23,
-    "damageMax": 46,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_13",
-    "name": "Orbe de Ferro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 23,
-    "damageMax": 46,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_13",
-    "name": "Capacete de Ferro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_13",
-    "name": "Peitoral de Ferro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_13",
-    "name": "Calça de Ferro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_13",
-    "name": "Bota de Ferro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_14",
-    "name": "Espada de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_14",
-    "name": "Espada Grande de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 71,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_14",
-    "name": "Adaga de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 44,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_14",
-    "name": "Arco de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 54,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_14",
-    "name": "Besta de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_14",
-    "name": "Manopla de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_14",
-    "name": "Machado de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_14",
-    "name": "Martelo de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_14",
-    "name": "Lança de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_14",
-    "name": "Machadinha de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 53,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_14",
-    "name": "Maça de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_14",
-    "name": "Escudo de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 29,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_14",
-    "name": "Cajado de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_14",
-    "name": "Vara de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 24,
-    "damageMax": 47,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_14",
-    "name": "Orbe de Ferro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 24,
-    "damageMax": 47,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_14",
-    "name": "Capacete de Ferro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_14",
-    "name": "Peitoral de Ferro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_14",
-    "name": "Calça de Ferro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_14",
-    "name": "Bota de Ferro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_15",
-    "name": "Espada de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 61,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_15",
-    "name": "Espada Grande de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_15",
-    "name": "Adaga de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_15",
-    "name": "Arco de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 57,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_15",
-    "name": "Besta de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_15",
-    "name": "Manopla de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 49,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_15",
-    "name": "Machado de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_15",
-    "name": "Martelo de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_15",
-    "name": "Lança de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_15",
-    "name": "Machadinha de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_15",
-    "name": "Maça de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 61,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_15",
-    "name": "Escudo de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 15,
-    "damageMax": 30,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_15",
-    "name": "Cajado de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 28,
-    "damageMax": 55,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_15",
-    "name": "Vara de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 25,
-    "damageMax": 50,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_15",
-    "name": "Orbe de Ferro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 25,
-    "damageMax": 50,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_15",
-    "name": "Capacete de Ferro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_15",
-    "name": "Peitoral de Ferro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_15",
-    "name": "Calça de Ferro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_15",
-    "name": "Bota de Ferro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#9aa7b8",
-    "c2": "#c0392b",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_16",
-    "name": "Espada de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 63,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_16",
-    "name": "Espada Grande de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_16",
-    "name": "Adaga de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 24,
-    "damageMax": 47,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_16",
-    "name": "Arco de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 59,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_16",
-    "name": "Besta de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_16",
-    "name": "Manopla de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 50,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_16",
-    "name": "Machado de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_16",
-    "name": "Martelo de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 81,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_16",
-    "name": "Lança de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_16",
-    "name": "Machadinha de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_16",
-    "name": "Maça de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 63,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_16",
-    "name": "Escudo de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 16,
-    "damageMax": 31,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_16",
-    "name": "Cajado de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 29,
-    "damageMax": 57,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_16",
-    "name": "Vara de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_16",
-    "name": "Orbe de Aço I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_16",
-    "name": "Capacete de Aço I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_16",
-    "name": "Peitoral de Aço I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_16",
-    "name": "Calça de Aço I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_16",
-    "name": "Bota de Aço I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_17",
-    "name": "Espada de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_17",
-    "name": "Espada Grande de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 81,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_17",
-    "name": "Adaga de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 49,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_17",
-    "name": "Arco de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 61,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_17",
-    "name": "Besta de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_17",
-    "name": "Manopla de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_17",
-    "name": "Machado de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_17",
-    "name": "Martelo de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 85,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_17",
-    "name": "Lança de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_17",
-    "name": "Machadinha de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 60,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_17",
-    "name": "Maça de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_17",
-    "name": "Escudo de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 33,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_17",
-    "name": "Cajado de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 30,
-    "damageMax": 60,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_17",
-    "name": "Vara de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 27,
-    "damageMax": 54,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_17",
-    "name": "Orbe de Aço II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 27,
-    "damageMax": 54,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_17",
-    "name": "Capacete de Aço II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_17",
-    "name": "Peitoral de Aço II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_17",
-    "name": "Calça de Aço II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_17",
-    "name": "Bota de Aço II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_18",
-    "name": "Espada de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_18",
-    "name": "Espada Grande de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 83,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_18",
-    "name": "Adaga de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 25,
-    "damageMax": 50,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_18",
-    "name": "Arco de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 63,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_18",
-    "name": "Besta de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_18",
-    "name": "Manopla de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 54,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_18",
-    "name": "Machado de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 74,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_18",
-    "name": "Martelo de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 87,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_18",
-    "name": "Lança de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 74,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_18",
-    "name": "Machadinha de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_18",
-    "name": "Maça de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_18",
-    "name": "Escudo de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 17,
-    "damageMax": 34,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_18",
-    "name": "Cajado de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_18",
-    "name": "Vara de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_18",
-    "name": "Orbe de Aço III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_18",
-    "name": "Capacete de Aço III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_18",
-    "name": "Peitoral de Aço III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_18",
-    "name": "Calça de Aço III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_18",
-    "name": "Bota de Aço III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_19",
-    "name": "Espada de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_19",
-    "name": "Espada Grande de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 86,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_19",
-    "name": "Adaga de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 26,
-    "damageMax": 52,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_19",
-    "name": "Arco de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 65,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_19",
-    "name": "Besta de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 80,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_19",
-    "name": "Manopla de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_19",
-    "name": "Machado de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_19",
-    "name": "Martelo de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_19",
-    "name": "Lança de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_19",
-    "name": "Machadinha de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_19",
-    "name": "Maça de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_19",
-    "name": "Escudo de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 18,
-    "damageMax": 35,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_19",
-    "name": "Cajado de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_19",
-    "name": "Vara de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_19",
-    "name": "Orbe de Aço IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 29,
-    "damageMax": 58,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_19",
-    "name": "Capacete de Aço IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_19",
-    "name": "Peitoral de Aço IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 9,
-     "magicArm": 5
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_19",
-    "name": "Calça de Aço IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_19",
-    "name": "Bota de Aço IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_20",
-    "name": "Espada de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_20",
-    "name": "Espada Grande de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 88,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_20",
-    "name": "Adaga de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 27,
-    "damageMax": 54,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_20",
-    "name": "Arco de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_20",
-    "name": "Besta de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 82,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_20",
-    "name": "Manopla de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 57,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_20",
-    "name": "Machado de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_20",
-    "name": "Martelo de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 47,
-    "damageMax": 93,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_20",
-    "name": "Lança de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_20",
-    "name": "Machadinha de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_20",
-    "name": "Maça de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_20",
-    "name": "Escudo de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 18,
-    "damageMax": 36,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_20",
-    "name": "Cajado de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_20",
-    "name": "Vara de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 30,
-    "damageMax": 60,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_20",
-    "name": "Orbe de Aço V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 30,
-    "damageMax": 60,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_20",
-    "name": "Capacete de Aço V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_20",
-    "name": "Peitoral de Aço V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 9,
-     "magicArm": 5
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_20",
-    "name": "Calça de Aço V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_20",
-    "name": "Bota de Aço V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 1,
-    "c1": "#c0c8d4",
-    "c2": "#3c7be0",
-    "stats": {
-     "arm": 3,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_21",
-    "name": "Espada de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 74,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_21",
-    "name": "Espada Grande de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_21",
-    "name": "Adaga de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 28,
-    "damageMax": 56,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_21",
-    "name": "Arco de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_21",
-    "name": "Besta de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 85,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_21",
-    "name": "Manopla de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 59,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_21",
-    "name": "Machado de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 82,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_21",
-    "name": "Martelo de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 49,
-    "damageMax": 96,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_21",
-    "name": "Lança de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 82,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_21",
-    "name": "Machadinha de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 68,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_21",
-    "name": "Maça de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 74,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_21",
-    "name": "Escudo de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 37,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_21",
-    "name": "Cajado de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_21",
-    "name": "Vara de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_21",
-    "name": "Orbe de Prata I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_21",
-    "name": "Capacete de Prata I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_21",
-    "name": "Peitoral de Prata I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 10,
-     "magicArm": 5
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_21",
-    "name": "Calça de Prata I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_21",
-    "name": "Bota de Prata I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_22",
-    "name": "Espada de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 76,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_22",
-    "name": "Espada Grande de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 47,
-    "damageMax": 93,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_22",
-    "name": "Adaga de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 29,
-    "damageMax": 57,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_22",
-    "name": "Arco de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 71,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_22",
-    "name": "Besta de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 86,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_22",
-    "name": "Manopla de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 61,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_22",
-    "name": "Machado de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 83,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_22",
-    "name": "Martelo de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 50,
-    "damageMax": 98,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_22",
-    "name": "Lança de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 83,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_22",
-    "name": "Machadinha de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_22",
-    "name": "Maça de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 76,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_22",
-    "name": "Escudo de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 19,
-    "damageMax": 38,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_22",
-    "name": "Cajado de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_22",
-    "name": "Vara de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_22",
-    "name": "Orbe de Prata II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_22",
-    "name": "Capacete de Prata II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_22",
-    "name": "Peitoral de Prata II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 10,
-     "magicArm": 5
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_22",
-    "name": "Calça de Prata II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_22",
-    "name": "Bota de Prata II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_23",
-    "name": "Espada de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 78,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_23",
-    "name": "Espada Grande de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 49,
-    "damageMax": 97,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_23",
-    "name": "Adaga de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 59,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_23",
-    "name": "Arco de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 73,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_23",
-    "name": "Besta de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 45,
-    "damageMax": 89,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_23",
-    "name": "Manopla de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 63,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_23",
-    "name": "Machado de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 86,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_23",
-    "name": "Martelo de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 51,
-    "damageMax": 102,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_23",
-    "name": "Lança de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 86,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_23",
-    "name": "Machadinha de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_23",
-    "name": "Maça de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 78,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_23",
-    "name": "Escudo de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 39,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_23",
-    "name": "Cajado de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 37,
-    "damageMax": 73,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_23",
-    "name": "Vara de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_23",
-    "name": "Orbe de Prata III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_23",
-    "name": "Capacete de Prata III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_23",
-    "name": "Peitoral de Prata III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 10,
-     "magicArm": 5
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_23",
-    "name": "Calça de Prata III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_23",
-    "name": "Bota de Prata III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_24",
-    "name": "Espada de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 80,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_24",
-    "name": "Espada Grande de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 50,
-    "damageMax": 98,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_24",
-    "name": "Adaga de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 30,
-    "damageMax": 60,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_24",
-    "name": "Arco de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_24",
-    "name": "Besta de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_24",
-    "name": "Manopla de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 64,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_24",
-    "name": "Machado de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 88,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_24",
-    "name": "Martelo de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 52,
-    "damageMax": 104,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_24",
-    "name": "Lança de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 88,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_24",
-    "name": "Machadinha de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 73,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_24",
-    "name": "Maça de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 80,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_24",
-    "name": "Escudo de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 20,
-    "damageMax": 40,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_24",
-    "name": "Cajado de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_24",
-    "name": "Vara de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 34,
-    "damageMax": 68,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_24",
-    "name": "Orbe de Prata IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 34,
-    "damageMax": 68,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_24",
-    "name": "Capacete de Prata IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_24",
-    "name": "Peitoral de Prata IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 11,
-     "magicArm": 6
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_24",
-    "name": "Calça de Prata IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_24",
-    "name": "Bota de Prata IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_25",
-    "name": "Espada de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 82,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_25",
-    "name": "Espada Grande de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 51,
-    "damageMax": 101,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_25",
-    "name": "Adaga de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 31,
-    "damageMax": 62,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_25",
-    "name": "Arco de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_25",
-    "name": "Besta de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 47,
-    "damageMax": 94,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_25",
-    "name": "Manopla de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_25",
-    "name": "Machado de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_25",
-    "name": "Martelo de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 54,
-    "damageMax": 107,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_25",
-    "name": "Lança de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_25",
-    "name": "Machadinha de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 38,
-    "damageMax": 76,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_25",
-    "name": "Maça de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 82,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_25",
-    "name": "Escudo de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 41,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_25",
-    "name": "Cajado de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_25",
-    "name": "Vara de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_25",
-    "name": "Orbe de Prata V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_25",
-    "name": "Capacete de Prata V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_25",
-    "name": "Peitoral de Prata V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 11,
-     "magicArm": 6
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_25",
-    "name": "Calça de Prata V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_25",
-    "name": "Bota de Prata V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#e0e4ec",
-    "c2": "#9b6bff",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_26",
-    "name": "Espada de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 84,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_26",
-    "name": "Espada Grande de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 52,
-    "damageMax": 103,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_26",
-    "name": "Adaga de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 32,
-    "damageMax": 63,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_26",
-    "name": "Arco de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 78,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_26",
-    "name": "Besta de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 48,
-    "damageMax": 96,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_26",
-    "name": "Manopla de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_26",
-    "name": "Machado de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 92,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_26",
-    "name": "Martelo de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 55,
-    "damageMax": 109,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_26",
-    "name": "Lança de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 92,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_26",
-    "name": "Machadinha de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_26",
-    "name": "Maça de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 84,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_26",
-    "name": "Escudo de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 21,
-    "damageMax": 42,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_26",
-    "name": "Cajado de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_26",
-    "name": "Vara de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_26",
-    "name": "Orbe de Ouro I",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_26",
-    "name": "Capacete de Ouro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_26",
-    "name": "Peitoral de Ouro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 11,
-     "magicArm": 6
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_26",
-    "name": "Calça de Ouro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_26",
-    "name": "Bota de Ouro I",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_27",
-    "name": "Espada de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 86,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_27",
-    "name": "Espada Grande de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 53,
-    "damageMax": 106,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_27",
-    "name": "Adaga de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 65,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_27",
-    "name": "Arco de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 81,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_27",
-    "name": "Besta de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 49,
-    "damageMax": 98,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_27",
-    "name": "Manopla de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 69,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_27",
-    "name": "Machado de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 48,
-    "damageMax": 95,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_27",
-    "name": "Martelo de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 56,
-    "damageMax": 112,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_27",
-    "name": "Lança de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 48,
-    "damageMax": 95,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_27",
-    "name": "Machadinha de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_27",
-    "name": "Maça de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 86,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_27",
-    "name": "Escudo de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 43,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_27",
-    "name": "Cajado de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 41,
-    "damageMax": 81,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_27",
-    "name": "Vara de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 37,
-    "damageMax": 74,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_27",
-    "name": "Orbe de Ouro II",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 37,
-    "damageMax": 74,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_27",
-    "name": "Capacete de Ouro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_27",
-    "name": "Peitoral de Ouro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 12,
-     "magicArm": 6
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_27",
-    "name": "Calça de Ouro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 7,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_27",
-    "name": "Bota de Ouro II",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 4,
-     "magicArm": 2
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_28",
-    "name": "Espada de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 88,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_28",
-    "name": "Espada Grande de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 54,
-    "damageMax": 108,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_28",
-    "name": "Adaga de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 33,
-    "damageMax": 66,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_28",
-    "name": "Arco de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 82,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_28",
-    "name": "Besta de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 50,
-    "damageMax": 100,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_28",
-    "name": "Manopla de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 35,
-    "damageMax": 70,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_28",
-    "name": "Machado de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 48,
-    "damageMax": 96,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_28",
-    "name": "Martelo de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 57,
-    "damageMax": 114,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_28",
-    "name": "Lança de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 48,
-    "damageMax": 96,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_28",
-    "name": "Machadinha de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 41,
-    "damageMax": 81,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_28",
-    "name": "Maça de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 44,
-    "damageMax": 88,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_28",
-    "name": "Escudo de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 22,
-    "damageMax": 44,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_28",
-    "name": "Cajado de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 42,
-    "damageMax": 83,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_28",
-    "name": "Vara de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_28",
-    "name": "Orbe de Ouro III",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 38,
-    "damageMax": 75,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_28",
-    "name": "Capacete de Ouro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_28",
-    "name": "Peitoral de Ouro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 12,
-     "magicArm": 6
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_28",
-    "name": "Calça de Ouro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_28",
-    "name": "Bota de Ouro III",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_29",
-    "name": "Espada de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 45,
-    "damageMax": 90,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_29",
-    "name": "Espada Grande de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 56,
-    "damageMax": 111,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_29",
-    "name": "Adaga de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 67,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_29",
-    "name": "Arco de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 84,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_29",
-    "name": "Besta de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 52,
-    "damageMax": 102,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_29",
-    "name": "Manopla de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 36,
-    "damageMax": 72,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_29",
-    "name": "Machado de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 50,
-    "damageMax": 99,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_29",
-    "name": "Martelo de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 59,
-    "damageMax": 117,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_29",
-    "name": "Lança de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 50,
-    "damageMax": 99,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_29",
-    "name": "Machadinha de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 83,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_29",
-    "name": "Maça de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 45,
-    "damageMax": 90,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_29",
-    "name": "Escudo de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 45,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_29",
-    "name": "Cajado de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 43,
-    "damageMax": 85,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_29",
-    "name": "Vara de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_29",
-    "name": "Orbe de Ouro IV",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 39,
-    "damageMax": 77,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_29",
-    "name": "Capacete de Ouro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_29",
-    "name": "Peitoral de Ouro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 12,
-     "magicArm": 6
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_29",
-    "name": "Calça de Ouro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_29",
-    "name": "Bota de Ouro IV",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_espada_30",
-    "name": "Espada de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 70,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 22
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0--------------001------------00200----------00200---------000230----------042000---------00540----------005000-----------400--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 12,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020--0230-020--020-04440-050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_espada_grande_30",
-    "name": "Espada Grande de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "espada_grande",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 57,
-    "damageMax": 112,
-    "stats": {
-     "attackSpeed": -12
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 74,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 26
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "------------------------------------------00-0-----------0221-----------022130---------0221330--------0221330-------00221330--------4421330---------044330---------005440---------0050040----------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#8892a0",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "---0-----010---02130--02130--02130--02130--02130--02130--02130--02130-0444440-00500---050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_adaga_30",
-    "name": "Adaga de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "adaga",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 34,
-    "damageMax": 68,
-    "stats": {
-     "attackSpeed": 25,
-     "critChance": 10
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 68,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 18
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------------------------------------000-----------00010-----------33200----------00330-----------03030-----------000----------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a",
-      "#6b4226"
-     ],
-     "pixels": "--0---010--020--020-03330-040--030---0--"
-    }
-   },
-   {
-    "id": "eq_arco_30",
-    "name": "Arco de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "arco",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 43,
-    "damageMax": 85,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "arco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 140,
-     "proj": "#eadfc4"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "----------------------------------------------------------0010---------0-03010--------0033002--------004000200------004000200--------3000200--------0300200--------0300200---------010200----------01200-----------00-0-----------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 15,
-     "palette": [
-      "#16121c",
-      "#5e3a1c",
-      "#eadfc4",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---0----010--01020-03020-03020030020040020040020040020030020-03020-03020-01020--010----0--"
-    }
-   },
-   {
-    "id": "eq_besta_30",
-    "name": "Besta de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "besta",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 52,
-    "damageMax": 104,
-    "stats": {
-     "attackSpeed": -22
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "besta",
-    "pega": 62,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 160,
-     "proj": "#c9d2dc"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "------------------------------------------------------000-------------0220-0----------00221-----------040220----------0050220--------00504020-------605000000------00600------------006--------------0----------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 9,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#8892a0",
-      "#c9d2dc",
-      "#eadfc4",
-      "#9a6436",
-      "#5e3a1c"
-     ],
-     "pixels": "----0-----0001000-022222220020030020-0445440---00500-----050------050-----06660-----000---"
-    }
-   },
-   {
-    "id": "eq_manopla_30",
-    "name": "Manopla de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "manopla",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 37,
-    "damageMax": 73,
-    "stats": {
-     "attackSpeed": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "soco",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "--------------------------------------------------------------------------------------000------------01220-----------02220-----------03330------------000-------------------------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 5,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#e8b84a"
-     ],
-     "pixels": "-000-012200222003330-000-"
-    }
-   },
-   {
-    "id": "eq_machado_30",
-    "name": "Machado de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machado_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 51,
-    "damageMax": 100,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 72,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------020-0----------04221-----------022130----------001333---------0010340--------0010000--------00100----------00100----------00500----------00500------------100------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#c9d2dc",
-      "#8892a0",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "---0----00100-022133004213400221330-00100---010----010----010----010----010----050----050----050----010-----0---"
-    }
-   },
-   {
-    "id": "eq_martelo_30",
-    "name": "Martelo de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "martelo_2mao",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 60,
-    "damageMax": 118,
-    "stats": {
-     "attackSpeed": -18
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "pesado",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 24
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--------------------------000------------03100-----------333200----------032310---------0043330--------0040030--------00400----------00400----------00400----------00500----------00500------------400------------0-0-------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#8892a0",
-      "#e8b84a",
-      "#5a6270",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-00000-011211003323300332330-00400---040----040----040----040----040----040----050----050----050----040-----0---"
-    }
-   },
-   {
-    "id": "eq_lanca_30",
-    "name": "Lança de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "lanca",
-    "twoHanded": true,
-    "damageType": "physical",
-    "damageMin": 51,
-    "damageMax": 100,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "estocada",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 34
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "------------00-------------0111------------02220----------403220---------005000---------00504----------00500----------00500----------00500----------00500----------00600----------00600----------00500----------00500------------500--------------0-------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 21,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#c8323e",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "--0---010-0122002220-030-04540-050--050--050--050--050--050--050--060--060--060--050--050--050--050---0--"
-    }
-   },
-   {
-    "id": "eq_machadinha_30",
-    "name": "Machadinha de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "machadinha",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 42,
-    "damageMax": 84,
-    "stats": {
-     "attackSpeed": 8
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "-----------------------------------------------------------------------0000-------------210------------01330----------010340---------0500000--------0500------------000-------------0---------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#9a6436",
-      "#8892a0",
-      "#c9d2dc",
-      "#f4f7fb",
-      "#6b4226"
-     ],
-     "pixels": "--0----0100-021340-01340-0100--010---050---050---010----0---"
-    }
-   },
-   {
-    "id": "eq_maca_30",
-    "name": "Maça de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "maca",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 46,
-    "damageMax": 91,
-    "stats": {},
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "corte",
-    "pega": 66,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 20
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "---------------------------------------------------------00-------------0110------------22220----------002220---------004030---------00400----------00500-----------0400------------000-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 11,
-     "palette": [
-      "#16121c",
-      "#f4f7fb",
-      "#c9d2dc",
-      "#8892a0",
-      "#9a6436",
-      "#6b4226"
-     ],
-     "pixels": "-000-012200222002230-040--040--040--050--050--040---0--"
-    }
-   },
-   {
-    "id": "eq_escudo_30",
-    "name": "Escudo de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "escudo",
-    "twoHanded": false,
-    "damageType": "physical",
-    "damageMin": 23,
-    "damageMax": 46,
-    "stats": {
-     "arm": 6,
-     "hp": 30
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "escudo",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": false,
-     "rng": 16
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "---------------------------------------------------------------------00000----------0111110---------0211130---------0221330---------0221330----------02120------------020--------------0------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 7,
-     "h": 8,
-     "palette": [
-      "#16121c",
-      "#e8b84a",
-      "#4a7ae0",
-      "#26407e"
-     ],
-     "pixels": "-00000-0111110021113002213300221330-02120---020-----0---"
-    }
-   },
-   {
-    "id": "eq_cajado_30",
-    "name": "Cajado de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "cajado",
-    "twoHanded": true,
-    "damageType": "magic",
-    "damageMin": 44,
-    "damageMax": 86,
-    "stats": {
-     "mp": 30,
-     "magicDmg": 4
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "vertical",
-    "pega": 55,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "----------------------------0-------------0201-----------041100----------04431----------005440---------005000---------00500----------00500----------00500----------00500----------00500----------00500------------600--------------0----------------------------"
-    },
-    "equippedSprite": {
-     "w": 5,
-     "h": 18,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8",
-      "#e8b84a",
-      "#9a6436",
-      "#5a6270"
-     ],
-     "pixels": "--0---010-021100113004440-050--050--050--050--050--050--050--050--050--050--050--060---0--"
-    }
-   },
-   {
-    "id": "eq_vara_30",
-    "name": "Vara de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "vara",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {
-     "castSpeed": 15
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "varinha",
-    "pega": 75,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 110,
-     "proj": "#b07bff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-------------------------------------------------------------------------0-0------------001------------00200----------00300----------00300----------00300------------400------------0-0-------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 3,
-     "h": 10,
-     "palette": [
-      "#16121c",
-      "#b07bff",
-      "#e8b84a",
-      "#c08a52",
-      "#5e3a1c"
-     ],
-     "pixels": "-0-010020030030030030030040-0-"
-    }
-   },
-   {
-    "id": "eq_orbe_30",
-    "name": "Orbe de Ouro V",
-    "kind": "weapon",
-    "pacote": "equip-v1",
-    "wtype": "orbe",
-    "twoHanded": false,
-    "damageType": "magic",
-    "damageMin": 40,
-    "damageMax": 79,
-    "stats": {
-     "mp": 20
-    },
-    "skills": [],
-    "effects": [],
-    "tags": [],
-    "c1": "#9aa7b8",
-    "c2": "#c9a227",
-    "style": 0,
-    "ataque": "orbe",
-    "pega": 50,
-    "escalaMao": 2,
-    "basic": {
-     "ranged": true,
-     "rng": 120,
-     "proj": "#7cf0ff"
-    },
-    "sprite": {
-     "w": 16,
-     "h": 16,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "---------------------------------------------------------------------------------------00-------------0110-----------012110----------011330-----------0130-------------00---------------------------------------------------------------------------------------"
-    },
-    "equippedSprite": {
-     "w": 6,
-     "h": 6,
-     "palette": [
-      "#16121c",
-      "#7cf0ff",
-      "#f4f7fb",
-      "#2a9ac8"
-     ],
-     "pixels": "--00---0110-012110011330-0130---00--"
-    }
-   },
-   {
-    "id": "eq_he_30",
-    "name": "Capacete de Ouro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "he",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 6,
-     "magicArm": 3
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_ch_30",
-    "name": "Peitoral de Ouro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "ch",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 13,
-     "magicArm": 7
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_le_30",
-    "name": "Calça de Ouro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "le",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 8,
-     "magicArm": 4
-    },
-    "effects": [],
-    "tags": []
-   },
-   {
-    "id": "eq_bo_30",
-    "name": "Bota de Ouro V",
-    "kind": "armor",
-    "pacote": "equip-v1",
-    "slot": "bo",
-    "style": 2,
-    "c1": "#d9a62e",
-    "c2": "#e03c3c",
-    "stats": {
-     "arm": 5,
-     "magicArm": 3
     },
     "effects": [],
     "tags": []
@@ -27195,7 +10264,9 @@ window.PROJETO={
       "walk": [],
       "attack": []
      }
-    }
+    },
+    "damage2Min": 12,
+    "damage2Max": 22
    },
    {
     "id": "cajado_base",
@@ -27754,446 +10825,42 @@ window.PROJETO={
       "attack": []
      }
     }
+   },
+   {
+    "id": "nova_arma",
+    "name": "ADM",
+    "kind": "weapon",
+    "wtype": "espada",
+    "twoHanded": false,
+    "style": 0,
+    "c1": "#9aa7b8",
+    "c2": "#c9a227",
+    "damageType": "physical",
+    "stats": {
+     "dmg": 5
+    },
+    "basic": {
+     "name": "Golpe",
+     "ranged": false,
+     "rng": 22,
+     "proj": "#ffffff",
+     "damageType": "",
+     "base": 0,
+     "per": 0,
+     "charPercent": 100,
+     "scaleStat": "none",
+     "scalePercent": 0,
+     "icon": "blade",
+     "desc": "Ataque automático da arma."
+    },
+    "skills": [],
+    "effects": [],
+    "tags": [],
+    "damageMin": 999,
+    "damageMax": 9999
    }
   ],
   "skills": [
-   {
-    "id": "war_throw",
-    "name": "Arremesso",
-    "kind": "class",
-    "cross": false,
-    "effect": "projectile",
-    "mana": 10,
-    "cd": 2.5,
-    "base": 25,
-    "per": 5,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "blade",
-    "c1": "#8a94a8",
-    "c2": "#ffffff",
-    "color": "#dddddd",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Arremessa uma lança teleguiada.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100,
-    "castTime": 0.5
-   },
-   {
-    "id": "war_charge",
-    "name": "Investida",
-    "kind": "class",
-    "cross": false,
-    "effect": "blink",
-    "mana": 20,
-    "cd": 7,
-    "base": 25,
-    "per": 5,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "dash",
-    "c1": "#d9823a",
-    "c2": "#ffe0b0",
-    "color": "#ffe0b0",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Avança até o alvo e causa dano próximo.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "war_spin",
-    "name": "Giro",
-    "kind": "class",
-    "cross": false,
-    "effect": "nova",
-    "mana": 20,
-    "cd": 6,
-    "base": 35,
-    "per": 8,
-    "radius": 40,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "spin",
-    "c1": "#b8322a",
-    "c2": "#ffd0c0",
-    "color": "#ee5555",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Atinge todos ao redor.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "war_fury",
-    "name": "Fúria",
-    "kind": "class",
-    "cross": false,
-    "effect": "buff",
-    "mana": 40,
-    "cd": 25,
-    "base": 8,
-    "per": 0,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "flame",
-    "c1": "#e0401e",
-    "c2": "#ffd84a",
-    "color": "#f55",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Aumenta dano e velocidade por alguns segundos.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "war_impact",
-    "name": "Impacto",
-    "kind": "class",
-    "cross": false,
-    "effect": "nova",
-    "mana": 15,
-    "cd": 4,
-    "base": 50,
-    "per": 10,
-    "radius": 30,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "burst",
-    "c1": "#d98a20",
-    "c2": "#fff0b0",
-    "color": "#ffaa44",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Golpe pesado em área.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "war_wall",
-    "name": "Muralha",
-    "kind": "class",
-    "cross": false,
-    "effect": "guard",
-    "mana": 25,
-    "cd": 18,
-    "base": 0,
-    "per": 0,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "shield",
-    "c1": "#4a6a96",
-    "c2": "#dfe8f5",
-    "color": "#9cf",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Recebe metade do dano por 6 segundos.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "mag_fire",
-    "name": "Bola de fogo",
-    "kind": "class",
-    "cross": false,
-    "effect": "projectile",
-    "mana": 15,
-    "cd": 2,
-    "base": 25,
-    "per": 6,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "orb",
-    "c1": "#d9501a",
-    "c2": "#ffd84a",
-    "color": "#ffb04a",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Dispara uma bola de fogo.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100,
-    "castTime": 0.5
-   },
-   {
-    "id": "mag_blink",
-    "name": "Salto",
-    "kind": "class",
-    "cross": false,
-    "effect": "blink",
-    "mana": 20,
-    "cd": 6,
-    "base": 0,
-    "per": 0,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "dash",
-    "c1": "#3a8ab8",
-    "c2": "#bfefff",
-    "color": "#9cf",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Teletransporta na direção do mouse.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "mag_nova",
-    "name": "Nova",
-    "kind": "class",
-    "cross": false,
-    "effect": "nova",
-    "mana": 30,
-    "cd": 8,
-    "base": 30,
-    "per": 8,
-    "radius": 48,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "burst",
-    "c1": "#2f62c0",
-    "c2": "#cfe8ff",
-    "color": "#77ccff",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Explode energia ao redor.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "mag_meteor",
-    "name": "Meteoro",
-    "kind": "class",
-    "cross": false,
-    "effect": "meteor",
-    "mana": 70,
-    "cd": 25,
-    "base": 120,
-    "per": 12,
-    "radius": 36,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "meteor",
-    "c1": "#a02010",
-    "c2": "#ffd84a",
-    "color": "#ff6600",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Chama um meteoro no local do mouse.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "mag_ice",
-    "name": "Raio de gelo",
-    "kind": "class",
-    "cross": false,
-    "effect": "projectile",
-    "mana": 20,
-    "cd": 3,
-    "base": 40,
-    "per": 8,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "snow",
-    "c1": "#3a7ab8",
-    "c2": "#e0f6ff",
-    "color": "#99eeff",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Lança gelo teleguiado.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100,
-    "castTime": 0.5
-   },
-   {
-    "id": "mag_shield",
-    "name": "Escudo arcano",
-    "kind": "class",
-    "cross": false,
-    "effect": "guard",
-    "mana": 30,
-    "cd": 18,
-    "base": 0,
-    "per": 0,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "shield",
-    "c1": "#6a4ab8",
-    "c2": "#e0d0ff",
-    "color": "#c9aaff",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Recebe metade do dano por 6 segundos.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "hea_ray",
-    "name": "Raio sagrado",
-    "kind": "class",
-    "cross": false,
-    "effect": "projectile",
-    "mana": 12,
-    "cd": 2,
-    "base": 18,
-    "per": 4,
-    "radius": 0,
-    "heal": 8,
-    "mpRestore": 0,
-    "icon": "orb",
-    "c1": "#c9a020",
-    "c2": "#fff6b0",
-    "color": "#ffe66b",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Dispara luz e cura ao acertar.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100,
-    "castTime": 0.5
-   },
-   {
-    "id": "hea_heal",
-    "name": "Cura",
-    "kind": "class",
-    "cross": true,
-    "effect": "heal",
-    "mana": 25,
-    "cd": 5,
-    "base": 60,
-    "per": 10,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "cross",
-    "c1": "#2f9a58",
-    "c2": "#bff5cf",
-    "color": "#88ee99",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Recupera vida.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "hea_aura",
-    "name": "Aura sagrada",
-    "kind": "class",
-    "cross": false,
-    "effect": "nova",
-    "mana": 30,
-    "cd": 8,
-    "base": 20,
-    "per": 4,
-    "radius": 50,
-    "heal": 30,
-    "mpRestore": 0,
-    "icon": "burst",
-    "c1": "#2f9a58",
-    "c2": "#dfffe0",
-    "color": "#77ff77",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Fere inimigos e cura.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "hea_rebirth",
-    "name": "Renascer",
-    "kind": "class",
-    "cross": false,
-    "effect": "heal",
-    "mana": 60,
-    "cd": 30,
-    "base": 150,
-    "per": 20,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 30,
-    "icon": "flame",
-    "c1": "#d9a020",
-    "c2": "#ffffff",
-    "color": "#fff6a0",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Recupera muita vida e mana.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
-   {
-    "id": "hea_light",
-    "name": "Lança de luz",
-    "kind": "class",
-    "cross": false,
-    "effect": "projectile",
-    "mana": 18,
-    "cd": 3,
-    "base": 35,
-    "per": 6,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "blade",
-    "c1": "#c9a020",
-    "c2": "#ffffff",
-    "color": "#fff6a0",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Lança de luz teleguiada.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100,
-    "castTime": 0.5
-   },
-   {
-    "id": "hea_shield",
-    "name": "Escudo divino",
-    "kind": "class",
-    "cross": false,
-    "effect": "guard",
-    "mana": 30,
-    "cd": 18,
-    "base": 0,
-    "per": 0,
-    "radius": 0,
-    "heal": 0,
-    "mpRestore": 0,
-    "icon": "shield",
-    "c1": "#b8962a",
-    "c2": "#fff6c0",
-    "color": "#fff6c0",
-    "weaponTypes": [],
-    "tags": [],
-    "desc": "Recebe metade do dano por 6 segundos.",
-    "category": "ability",
-    "scaleStat": "weaponPower",
-    "scalePercent": 100
-   },
    {
     "id": "skill_acid",
     "name": "Cuspe ácido",
@@ -28518,7 +11185,7 @@ window.PROJETO={
     "weaponTypes": [
      "espada",
      "espada_grande",
-     "machado"
+     "machado_2mao"
     ],
     "effects": [],
     "icon": "blade",
@@ -28629,35 +11296,303 @@ window.PROJETO={
     "weaponTypes": [
      "espada",
      "espada_grande",
-     "machado"
+     "machado_2mao"
     ],
     "effects": [],
     "icon": "spin",
     "c1": "#b8322a",
     "c2": "#ffd0c0",
     "color": "#d8e6ff"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "cross": true,
+    "base": 0,
+    "per": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "radius": 0,
+    "id": "mag_bola_fogo",
+    "name": "Bola de Fogo",
+    "desc": "Bola de fogo com 130% do dano; 50% desse dano em área pequena em volta do alvo e 1 acúmulo de fogo.",
+    "effect": "projectile",
+    "vfx": "fogo",
+    "mana": 10,
+    "cd": 3,
+    "castTime": 1,
+    "charPercent": 130,
+    "areaRaio": 20,
+    "areaPct": 50,
+    "weaponTypes": [
+     "cajado",
+     "cetro",
+     "manopla"
+    ],
+    "effects": [
+     {
+      "type": "burn",
+      "chance": 100,
+      "power": 3
+     }
+    ],
+    "icon": "orb",
+    "c1": "#d9501a",
+    "c2": "#ffd84a",
+    "color": "#ff7a1a"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "cross": true,
+    "base": 0,
+    "per": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "radius": 0,
+    "id": "mag_bola_gelo",
+    "name": "Bola de Gelo",
+    "desc": "Bola de gelo com 100% do dano; 50% desse dano em área pequena em volta do alvo e 1 acúmulo de gelo (lentidão).",
+    "effect": "projectile",
+    "vfx": "gelo",
+    "mana": 10,
+    "cd": 3,
+    "castTime": 1,
+    "charPercent": 100,
+    "areaRaio": 20,
+    "areaPct": 50,
+    "weaponTypes": [
+     "cajado",
+     "cetro",
+     "manopla"
+    ],
+    "effects": [
+     {
+      "type": "gelo",
+      "chance": 100,
+      "power": 5
+     }
+    ],
+    "icon": "snow",
+    "c1": "#3a7ab8",
+    "c2": "#e0f6ff",
+    "color": "#8fd8ff"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "cross": true,
+    "base": 0,
+    "per": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "radius": 80,
+    "id": "mag_inspiracao",
+    "name": "Inspiração Mágica",
+    "desc": "Aumenta o dano mágico em 10% por 7 s; aliados na área ganham o efeito também.",
+    "effect": "aura",
+    "vfx": "aura",
+    "mana": 20,
+    "cd": 15,
+    "castTime": 0,
+    "charPercent": 0,
+    "weaponTypes": [],
+    "effects": [
+     {
+      "type": "inspiracao",
+      "chance": 100,
+      "dur": 10,
+      "target": "self",
+      "pct": 10
+     }
+    ],
+    "icon": "burst",
+    "c1": "#5a3ab8",
+    "c2": "#e0d0ff",
+    "color": "#8a6bff"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "cross": true,
+    "base": 0,
+    "per": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "radius": 50,
+    "id": "mag_chuva_meteoros",
+    "name": "Chuva de Meteoros",
+    "desc": "Fica parado por 5 s fazendo chover bolas de fogo na área do mouse: 70% do dano por impacto, 2 por vez, 7 no total. Andar interrompe.",
+    "effect": "canal",
+    "vfx": "meteoros",
+    "local": "mouse",
+    "parado": true,
+    "duracao": 5,
+    "intervalo": 1.2,
+    "porGolpe": 2,
+    "totalGolpes": 7,
+    "raioImpacto": 22,
+    "mana": 30,
+    "cd": 30,
+    "castTime": 0,
+    "charPercent": 70,
+    "weaponTypes": [
+     "cajado",
+     "cetro"
+    ],
+    "effects": [
+     {
+      "type": "burn",
+      "chance": 100,
+      "power": 3
+     }
+    ],
+    "icon": "meteor",
+    "c1": "#a02010",
+    "c2": "#ffd84a",
+    "color": "#ff7a1a"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "base": 0,
+    "per": 0,
+    "charPercent": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "weaponTypes": [],
+    "effects": [],
+    "id": "hea_curar",
+    "name": "Curar",
+    "desc": "Cura 3% da vida máxima do alvo (você ou um aliado) e limpa 2 acúmulos de veneno e sangramento.",
+    "effect": "curar",
+    "curaPct": 5,
+    "limpa": 2,
+    "mana": 10,
+    "cd": 5,
+    "castTime": 0.3,
+    "cross": true,
+    "icon": "cross",
+    "c1": "#2f9a58",
+    "c2": "#bff5cf",
+    "color": "#6fe36f"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "base": 0,
+    "per": 0,
+    "charPercent": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "weaponTypes": [],
+    "effects": [],
+    "id": "hea_iluminacao",
+    "name": "Iluminação",
+    "desc": "Cura 1% da vida máxima por segundo, por 5 s, de quem estiver numa área média; os inimigos na área levam 20% da sua vida máxima em dano mágico.",
+    "effect": "zonaCura",
+    "curaPct": 2,
+    "duracao": 5,
+    "danoVidaPct": 5,
+    "radius": 50,
+    "mana": 15,
+    "cd": 10,
+    "castTime": 0,
+    "cross": false,
+    "icon": "orb",
+    "c1": "#c9a020",
+    "c2": "#fff6b0",
+    "color": "#fff3a0"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "base": 0,
+    "per": 0,
+    "charPercent": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "weaponTypes": [],
+    "effects": [],
+    "id": "hea_presenca",
+    "name": "Presença Curativa",
+    "desc": "Aura (liga/desliga): +2% de dano físico e mágico e 2 de vida por segundo para todos numa área grande; gasta 2 de mana por segundo.",
+    "effect": "auraContinua",
+    "manaPorSeg": 2,
+    "danoPct": 2,
+    "regen": 2,
+    "radius": 110,
+    "mana": 0,
+    "cd": 1,
+    "castTime": 0,
+    "cross": true,
+    "icon": "burst",
+    "c1": "#2f9a58",
+    "c2": "#dfffe0",
+    "color": "#7fe8a0"
+   },
+   {
+    "kind": "class",
+    "category": "ability",
+    "base": 0,
+    "per": 0,
+    "charPercent": 0,
+    "damageType": "magic",
+    "heal": 0,
+    "mpRestore": 0,
+    "tags": [],
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "weaponTypes": [],
+    "effects": [],
+    "id": "hea_pulso",
+    "name": "Pulso de Luz",
+    "desc": "Libera 3 pulsos que curam 3% da sua vida máxima (você e aliados), causam 20% da sua vida máxima em dano mágico e empurram os inimigos para trás.",
+    "effect": "pulso",
+    "pulsos": 3,
+    "curaPct": 3,
+    "danoVidaPct": 20,
+    "empurra": 14,
+    "radius": 70,
+    "mana": 30,
+    "cd": 30,
+    "castTime": 0,
+    "cross": false,
+    "icon": "burst",
+    "c1": "#c9a020",
+    "c2": "#fff",
+    "color": "#ffe9a0"
    }
   ],
   "passives": [
-   {
-    "id": "p_pele_ferro",
-    "name": "Pele de Ferro",
-    "desc": "Defesa física aumentada.",
-    "arm": 12
-   },
-   {
-    "id": "p_vigor",
-    "name": "Vigor",
-    "desc": "Mais vida máxima.",
-    "hp": 15
-   },
-   {
-    "id": "p_mente_afiada",
-    "name": "Mente Afiada",
-    "desc": "Mais Inteligência e mana.",
-    "I": 3,
-    "mp": 10
-   },
    {
     "id": "p_pes_ligeiros",
     "name": "Pés Ligeiros",
@@ -28687,6 +11622,19 @@ window.PROJETO={
     "name": "Alma de Guerreiro",
     "desc": "Aumenta 5% da armadura.",
     "arm": 5
+   },
+   {
+    "id": "p_espirito_mago",
+    "name": "Espírito de Mago",
+    "desc": "Aumenta 10% a mana máxima e a regeneração de mana.",
+    "mp": 10,
+    "regenMp": 10
+   },
+   {
+    "id": "p_vitalidade",
+    "name": "Vitalidade",
+    "desc": "Aumenta 10% da vida máxima.",
+    "hp": 10
    }
   ],
   "monsters": [
@@ -28706,7 +11654,7 @@ window.PROJETO={
      "A": 15,
      "I": 5
     },
-    "xp": 10,
+    "xp": 0,
     "gold": 3,
     "aggro": 60,
     "equipment": [],
@@ -28750,15 +11698,15 @@ window.PROJETO={
      "walk": [],
      "attack": []
     },
-    "per": {
-     "F": 6,
-     "A": 3,
-     "I": 1
-    },
     "damageMin": 12,
     "damageMax": 24,
     "attackSpeed": 1.25,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "sk",
@@ -28776,7 +11724,7 @@ window.PROJETO={
      "A": 5,
      "I": 5
     },
-    "xp": 25,
+    "xp": 0,
     "gold": 8,
     "aggro": 75,
     "equipment": [
@@ -28795,13 +11743,13 @@ window.PROJETO={
     "skills": [
      "skill_crush"
     ],
+    "attackSpeed": 1.25,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "attackSpeed": 1.25,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "gob",
@@ -28819,7 +11767,7 @@ window.PROJETO={
      "A": 10,
      "I": 5
     },
-    "xp": 55,
+    "xp": 0,
     "gold": 24,
     "aggro": 90,
     "equipment": [
@@ -28827,13 +11775,13 @@ window.PROJETO={
     ],
     "drops": [],
     "skills": [],
+    "attackSpeed": 1.25,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "attackSpeed": 1.25,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "sprout",
@@ -28848,7 +11796,7 @@ window.PROJETO={
      "A": 5,
      "I": 3
     },
-    "xp": 18,
+    "xp": 0,
     "gold": 4,
     "aggro": 65,
     "equipment": [],
@@ -28863,15 +11811,15 @@ window.PROJETO={
      }
     ],
     "skills": [],
+    "attackSpeed": 1.25,
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "attackSpeed": 1.25,
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "boss",
@@ -28889,7 +11837,7 @@ window.PROJETO={
      "A": 8,
      "I": 10
     },
-    "xp": 180,
+    "xp": 0,
     "gold": 80,
     "aggro": 110,
     "equipment": [
@@ -28905,18 +11853,18 @@ window.PROJETO={
     "skills": [
      "skill_roar"
     ],
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 1
-    },
     "mecanicas": [
      {
       "tipo": "anel",
       "nome": "Anel"
      }
     ],
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "bat",
@@ -28933,7 +11881,7 @@ window.PROJETO={
      "A": 12,
      "I": 4
     },
-    "xp": 14,
+    "xp": 0,
     "gold": 4,
     "aggro": 90,
     "equipment": [],
@@ -28943,8 +11891,8 @@ window.PROJETO={
     ],
     "attackSpeed": 1,
     "moveSpeed": 54,
-    "hpMult": 0.5,
-    "dmgMult": 0.389,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sounds": {},
     "animation": {
      "idle": [],
@@ -28952,14 +11900,14 @@ window.PROJETO={
      "attack": [],
      "durations": {}
     },
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "spider",
@@ -28976,7 +11924,7 @@ window.PROJETO={
      "A": 8,
      "I": 5
     },
-    "xp": 20,
+    "xp": 0,
     "gold": 6,
     "aggro": 70,
     "equipment": [],
@@ -28986,16 +11934,16 @@ window.PROJETO={
     ],
     "attackSpeed": 1.3,
     "moveSpeed": 34,
-    "hpMult": 0.667,
-    "dmgMult": 0.3,
+    "hpMult": 1,
+    "dmgMult": 1,
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "shroom",
@@ -29012,7 +11960,7 @@ window.PROJETO={
      "A": 2,
      "I": 6
     },
-    "xp": 30,
+    "xp": 0,
     "gold": 10,
     "aggro": 55,
     "equipment": [],
@@ -29023,15 +11971,15 @@ window.PROJETO={
     "attackSpeed": 2,
     "moveSpeed": 18,
     "hpMult": 1,
-    "dmgMult": 0.183,
+    "dmgMult": 1,
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "crab",
@@ -29048,7 +11996,7 @@ window.PROJETO={
      "A": 4,
      "I": 3
     },
-    "xp": 26,
+    "xp": 0,
     "gold": 9,
     "aggro": 60,
     "equipment": [],
@@ -29058,16 +12006,16 @@ window.PROJETO={
     ],
     "attackSpeed": 1.7,
     "moveSpeed": 26,
-    "hpMult": 0.833,
-    "dmgMult": 0.271,
+    "hpMult": 1,
+    "dmgMult": 1,
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "ghost",
@@ -29084,7 +12032,7 @@ window.PROJETO={
      "A": 7,
      "I": 14
     },
-    "xp": 34,
+    "xp": 0,
     "gold": 12,
     "aggro": 100,
     "equipment": [],
@@ -29095,15 +12043,15 @@ window.PROJETO={
     "attackSpeed": 1.6,
     "moveSpeed": 30,
     "hpMult": 1,
-    "dmgMult": 0.25,
+    "dmgMult": 1,
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "goblin",
@@ -29120,7 +12068,7 @@ window.PROJETO={
      "A": 10,
      "I": 4
     },
-    "xp": 28,
+    "xp": 0,
     "gold": 11,
     "aggro": 85,
     "equipment": [],
@@ -29130,16 +12078,16 @@ window.PROJETO={
     ],
     "attackSpeed": 1.3,
     "moveSpeed": 40,
-    "hpMult": 0.75,
-    "dmgMult": 0.306,
+    "hpMult": 1,
+    "dmgMult": 1,
+    "damageMin": 12,
+    "damageMax": 24,
+    "ataqueDoNivel": true,
     "per": {
      "F": 1,
      "A": 1,
      "I": 1
-    },
-    "damageMin": 12,
-    "damageMax": 24,
-    "ataqueDoNivel": true
+    }
    },
    {
     "id": "rato",
@@ -29158,7 +12106,7 @@ window.PROJETO={
      "A": 10,
      "I": 5
     },
-    "xp": 15,
+    "xp": 0,
     "gold": 5,
     "aggro": 65,
     "equipment": [],
@@ -29226,14 +12174,14 @@ window.PROJETO={
      ],
      "attack": []
     },
-    "per": {
-     "F": 5,
-     "A": 3,
-     "I": 2
-    },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "goblinBoss",
@@ -29255,12 +12203,7 @@ window.PROJETO={
      "arm": 18,
      "magicArm": 12
     },
-    "per": {
-     "F": 3,
-     "A": 1,
-     "I": 1
-    },
-    "xp": 320,
+    "xp": 0,
     "gold": 150,
     "aggro": 480,
     "hpMult": 3,
@@ -29332,7 +12275,12 @@ window.PROJETO={
     "attackSpeed": 1.25,
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "lobo",
@@ -29349,12 +12297,7 @@ window.PROJETO={
      "A": 13,
      "I": 4
     },
-    "per": {
-     "F": 4,
-     "A": 5,
-     "I": 2
-    },
-    "xp": 15,
+    "xp": 0,
     "gold": 5,
     "aggro": 65,
     "equipment": [],
@@ -29492,7 +12435,12 @@ window.PROJETO={
     "attackSpeed": 1,
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "lobo_pardo",
@@ -29509,12 +12457,7 @@ window.PROJETO={
      "A": 3,
      "I": 3
     },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 1
-    },
-    "xp": 15,
+    "xp": 0,
     "gold": 5,
     "aggro": 65,
     "equipment": [],
@@ -29543,7 +12486,12 @@ window.PROJETO={
     "attackSpeed": 1.25,
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "orc",
@@ -29564,12 +12512,7 @@ window.PROJETO={
      "A": 8,
      "I": 3
     },
-    "per": {
-     "F": 2,
-     "A": 1,
-     "I": 0
-    },
-    "xp": 30,
+    "xp": 0,
     "gold": 12,
     "aggro": 90,
     "equipment": [],
@@ -29583,7 +12526,7 @@ window.PROJETO={
     "attackSpeed": 1.4,
     "moveSpeed": 38,
     "hpMult": 1,
-    "dmgMult": 0.35,
+    "dmgMult": 1,
     "sprite": {
      "w": 38,
      "h": 25,
@@ -30223,7 +13166,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "soldado",
@@ -30243,12 +13191,7 @@ window.PROJETO={
      "A": 11,
      "I": 4
     },
-    "per": {
-     "F": 1,
-     "A": 2,
-     "I": 0
-    },
-    "xp": 24,
+    "xp": 0,
     "gold": 14,
     "aggro": 95,
     "equipment": [],
@@ -30261,8 +13204,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.2,
     "moveSpeed": 44,
-    "hpMult": 0.8,
-    "dmgMult": 0.3,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 42,
      "h": 27,
@@ -30981,7 +13924,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "monstro_sangue",
@@ -31001,12 +13949,7 @@ window.PROJETO={
      "A": 6,
      "I": 6
     },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 1
-    },
-    "xp": 18,
+    "xp": 0,
     "gold": 8,
     "aggro": 80,
     "equipment": [],
@@ -31019,8 +13962,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.5,
     "moveSpeed": 34,
-    "hpMult": 1.1,
-    "dmgMult": 0.28,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 38,
      "h": 26,
@@ -31435,7 +14378,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "demonio",
@@ -31455,12 +14403,7 @@ window.PROJETO={
      "A": 9,
      "I": 14
     },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 2
-    },
-    "xp": 40,
+    "xp": 0,
     "gold": 16,
     "aggro": 100,
     "equipment": [],
@@ -31473,8 +14416,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.3,
     "moveSpeed": 42,
-    "hpMult": 0.9,
-    "dmgMult": 0.4,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 50,
      "h": 22,
@@ -32159,7 +15102,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "cogumelo",
@@ -32180,12 +15128,7 @@ window.PROJETO={
      "A": 10,
      "I": 4
     },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 0
-    },
-    "xp": 20,
+    "xp": 0,
     "gold": 9,
     "aggro": 85,
     "equipment": [],
@@ -32198,8 +15141,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.3,
     "moveSpeed": 46,
-    "hpMult": 0.9,
-    "dmgMult": 0.3,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 64,
      "h": 35,
@@ -32709,7 +15652,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "colmeia",
@@ -32729,12 +15677,7 @@ window.PROJETO={
      "A": 12,
      "I": 10
     },
-    "per": {
-     "F": 1,
-     "A": 2,
-     "I": 1
-    },
-    "xp": 32,
+    "xp": 0,
     "gold": 14,
     "aggro": 110,
     "equipment": [],
@@ -32747,8 +15690,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.2,
     "moveSpeed": 40,
-    "hpMult": 0.8,
-    "dmgMult": 0.35,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 32,
      "h": 31,
@@ -33432,7 +16375,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "pedra_viva",
@@ -33452,12 +16400,7 @@ window.PROJETO={
      "A": 4,
      "I": 2
     },
-    "per": {
-     "F": 2,
-     "A": 0,
-     "I": 0
-    },
-    "xp": 38,
+    "xp": 0,
     "gold": 15,
     "aggro": 70,
     "equipment": [],
@@ -33470,8 +16413,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.8,
     "moveSpeed": 26,
-    "hpMult": 1.6,
-    "dmgMult": 0.4,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 34,
      "h": 26,
@@ -33986,7 +16929,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "flor_selvagem",
@@ -34006,12 +16954,7 @@ window.PROJETO={
      "A": 8,
      "I": 13
     },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 2
-    },
-    "xp": 28,
+    "xp": 0,
     "gold": 11,
     "aggro": 120,
     "equipment": [],
@@ -34024,8 +16967,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.4,
     "moveSpeed": 18,
-    "hpMult": 0.9,
-    "dmgMult": 0.35,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 34,
      "h": 30,
@@ -35042,7 +17985,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "toco_vivo",
@@ -35063,12 +18011,7 @@ window.PROJETO={
      "A": 6,
      "I": 3
     },
-    "per": {
-     "F": 2,
-     "A": 1,
-     "I": 0
-    },
-    "xp": 28,
+    "xp": 0,
     "gold": 12,
     "aggro": 85,
     "equipment": [],
@@ -35081,8 +18024,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.5,
     "moveSpeed": 32,
-    "hpMult": 1.3,
-    "dmgMult": 0.32,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 32,
      "h": 16,
@@ -35879,7 +18822,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "bambu",
@@ -35899,12 +18847,7 @@ window.PROJETO={
      "A": 11,
      "I": 5
     },
-    "per": {
-     "F": 1,
-     "A": 2,
-     "I": 0
-    },
-    "xp": 30,
+    "xp": 0,
     "gold": 12,
     "aggro": 95,
     "equipment": [],
@@ -35918,7 +18861,7 @@ window.PROJETO={
     "attackSpeed": 1.3,
     "moveSpeed": 36,
     "hpMult": 1,
-    "dmgMult": 0.38,
+    "dmgMult": 1,
     "sprite": {
      "w": 20,
      "h": 31,
@@ -36452,7 +19395,12 @@ window.PROJETO={
     },
     "damageMin": 12,
     "damageMax": 24,
-    "ataqueDoNivel": true
+    "ataqueDoNivel": true,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    },
    {
     "id": "sombra_rubra",
@@ -36474,12 +19422,7 @@ window.PROJETO={
      "A": 12,
      "I": 12
     },
-    "per": {
-     "F": 1,
-     "A": 2,
-     "I": 2
-    },
-    "xp": 32,
+    "xp": 0,
     "gold": 13,
     "aggro": 110,
     "equipment": [],
@@ -36492,8 +19435,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.2,
     "moveSpeed": 44,
-    "hpMult": 0.9,
-    "dmgMult": 0.35,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 24,
      "h": 24,
@@ -36614,6 +19557,11 @@ window.PROJETO={
       "walk": 0.8,
       "attack": 0.6
      }
+    },
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
     }
    },
    {
@@ -36635,12 +19583,7 @@ window.PROJETO={
      "A": 10,
      "I": 14
     },
-    "per": {
-     "F": 2,
-     "A": 1,
-     "I": 2
-    },
-    "xp": 60,
+    "xp": 0,
     "gold": 25,
     "aggro": 120,
     "equipment": [],
@@ -36653,8 +19596,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1.4,
     "moveSpeed": 38,
-    "hpMult": 1.4,
-    "dmgMult": 0.45,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 30,
      "h": 29,
@@ -36771,6 +19714,11 @@ window.PROJETO={
       "walk": 0.8,
       "attack": 0.6
      }
+    },
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
     }
    },
    {
@@ -36791,12 +19739,7 @@ window.PROJETO={
      "A": 17,
      "I": 3
     },
-    "per": {
-     "F": 1,
-     "A": 1,
-     "I": 1
-    },
-    "xp": 14,
+    "xp": 0,
     "gold": 6,
     "aggro": 70,
     "equipment": [],
@@ -36809,8 +19752,8 @@ window.PROJETO={
     "skills": [],
     "attackSpeed": 1,
     "moveSpeed": 30,
-    "hpMult": 0.8,
-    "dmgMult": 0.25,
+    "hpMult": 1,
+    "dmgMult": 1,
     "sprite": {
      "w": 20,
      "h": 19,
@@ -37237,10 +20180,37 @@ window.PROJETO={
      }
     },
     "damageMin": 15,
-    "damageMax": 20
+    "damageMax": 20,
+    "per": {
+     "F": 1,
+     "A": 1,
+     "I": 1
+    }
    }
   ],
-  "effects": []
+  "effects": [
+   {
+    "id": "gelo",
+    "n": "Gelo",
+    "c": "#8fd8ff",
+    "kind": "slow",
+    "good": false,
+    "stacks": 10,
+    "dur": 5
+   },
+   {
+    "id": "burn",
+    "n": "Queimadura",
+    "c": "#f83",
+    "kind": "dot",
+    "good": false,
+    "tick": 1,
+    "dtype": "true",
+    "power": 3,
+    "stacks": 10,
+    "dur": 5
+   }
+  ]
  },
  "mundo": {
   "arvores": [
@@ -41002,8 +23972,8 @@ window.PROJETO={
   "calc": {
    "hp0": 50,
    "hpPerF": 2,
-   "mp0": 100,
-   "mpPerI": 10,
+   "mp0": 50,
+   "mpPerI": 2,
    "armPerA": 0.5,
    "physPerF": 0.2,
    "magPerI": 0.2,
@@ -41014,10 +23984,9 @@ window.PROJETO={
    "spdPerA": 0.001,
    "minInterval": 0.15,
    "atkSpdPerA": 0.001,
-   "maxLevel": 30,
+   "maxLevel": 10,
    "monHp0": 50,
    "monHpPerF": 2,
-   "armorFloor": 0,
    "portalLevelRange": 5,
    "monPhysPerF": 0.2,
    "monMagPerI": 0.2,
@@ -41025,13 +23994,20 @@ window.PROJETO={
    "magArmPerI": 0.5,
    "monArmPerA": 0.5,
    "monMagArmPerI": 0.5,
-   "monMpPerI": 10,
-   "monMp0": 100,
+   "monMpPerI": 2,
+   "monMp0": 50,
    "monRegenPerF": 0.04,
    "monRegenPerI": 0.04,
    "monMove0": 50,
    "monMovePerA": 0.001,
-   "monAtkSpdPerA": 0.001
+   "monAtkSpdPerA": 0.001,
+   "atrPorNivel": 2,
+   "xpPerLevel": 90,
+   "rankXp": 90,
+   "monXpPorNivel": 5,
+   "xpChefe": 5,
+   "xpChefao": 15,
+   "rankXpPorAbate": 25
   },
   "spawns": [],
   "chao": {},
@@ -41039,7 +24015,8 @@ window.PROJETO={
   "proporcaoV": 3,
   "formulasV": 3,
   "balanceV": 3,
-  "habilidadesV": 3
+  "habilidadesV": 3,
+  "ajustesV": 4
  },
  "artes": {
   "monstros/sl": null,
@@ -41327,42 +24304,42 @@ window.PROJETO={
        "type": "goblin",
        "x": 410,
        "y": 170,
-       "lvl": 30
+       "lvl": 10
       },
       {
        "id": 102,
        "type": "goblin",
        "x": 455,
        "y": 220,
-       "lvl": 30
+       "lvl": 10
       },
       {
        "id": 103,
        "type": "gob",
        "x": 430,
        "y": 340,
-       "lvl": 30
+       "lvl": 10
       },
       {
        "id": 104,
        "type": "gob",
        "x": 408,
        "y": 456,
-       "lvl": 30
+       "lvl": 10
       },
       {
        "id": 105,
        "type": "gob",
        "x": 445,
        "y": 500,
-       "lvl": 30
+       "lvl": 10
       },
       {
        "id": 106,
        "type": "goblin",
        "x": 470,
        "y": 510,
-       "lvl": 30,
+       "lvl": 10,
        "isBoss": true
       },
       {
@@ -41370,7 +24347,7 @@ window.PROJETO={
        "type": "goblinBoss",
        "x": 780,
        "y": 480,
-       "lvl": 50,
+       "lvl": 10,
        "isBoss": true
       }
      ],
@@ -41646,16 +24623,26 @@ window.PROJETO={
        "h": 16,
        "q": 1,
        "palette": [
-        "#4b6354",
-        "#2f4338",
-        "#1b2a23"
+        "#333a2b",
+        "#2a3126",
+        "#22281f"
        ],
-       "pixels": "0000000000000000000000000000000000000000000000000000000000000000001010100000000000012100000000000012221110000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000101101000000000001221000000000011220000000000000000"
+       "pixels": "0000000000000000000000001000000000010000000000100000101000000000010121000000000000122211000000000000000000000000000000000000000000000000000000000000000000000000100000001000000000000000000001011010000000000012210000000000012200000000000000000000000000000000"
+      },
+      "wall": {
+       "w": 16,
+       "h": 16,
+       "q": 1,
+       "palette": [
+        "#333a2b",
+        "#22281f"
+       ],
+       "pixels": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000110000011000000111110001100000011111101110000011111111111000011111111111111111111111111111111111111111111"
       }
      },
      "playerSpawn": {
-      "x": 150,
-      "y": 210
+      "x": 149,
+      "y": 200
      },
      "entrancePortal": {
       "x": 125,
@@ -41665,427 +24652,21 @@ window.PROJETO={
      "exitPortal": {
       "x": 920,
       "y": 480,
-      "name": "Portal Mágico de Saída"
+      "name": "Portal Mágico de Saída",
+      "disabled": true
      },
      "blacksmithPos": {
-      "x": 890,
-      "y": 560,
+      "x": 116,
+      "y": 272,
       "name": "Ferreiro Prisioneiro"
      },
-     "rooms": [
-      {
-       "id": 1,
-       "name": "Entrada da Caverna",
-       "x": 80,
-       "y": 140,
-       "w": 160,
-       "h": 140
-      },
-      {
-       "id": 2,
-       "name": "Posto dos Goblins",
-       "x": 340,
-       "y": 140,
-       "w": 180,
-       "h": 152
-      },
-      {
-       "id": 3,
-       "name": "Arsenal Goblin",
-       "x": 333,
-       "y": 382,
-       "w": 200,
-       "h": 180
-      },
-      {
-       "id": 4,
-       "name": "Covil do Lorde",
-       "x": 630,
-       "y": 330,
-       "w": 340,
-       "h": 300
-      }
-     ],
+     "rooms": [],
      "corridors": [],
-     "doors": [
-      {
-       "id": 21,
-       "x": 610,
-       "y": 480,
-       "w": 12,
-       "h": 56,
-       "roomId": 3,
-       "orientation": "vertical"
-      }
-     ],
-     "torches": [
-      {
-       "x": 96,
-       "y": 146
-      },
-      {
-       "x": 224,
-       "y": 146
-      },
-      {
-       "x": 96,
-       "y": 268
-      },
-      {
-       "x": 290,
-       "y": 186
-      },
-      {
-       "x": 290,
-       "y": 234
-      },
-      {
-       "x": 356,
-       "y": 146
-      },
-      {
-       "x": 504,
-       "y": 146
-      },
-      {
-       "x": 504,
-       "y": 278
-      },
-      {
-       "x": 406,
-       "y": 340
-      },
-      {
-       "x": 454,
-       "y": 340
-      },
-      {
-       "x": 346,
-       "y": 396
-      },
-      {
-       "x": 514,
-       "y": 396
-      },
-      {
-       "x": 346,
-       "y": 558
-      },
-      {
-       "x": 580,
-       "y": 456
-      },
-      {
-       "x": 580,
-       "y": 504
-      },
-      {
-       "x": 650,
-       "y": 336
-      },
-      {
-       "x": 790,
-       "y": 336
-      },
-      {
-       "x": 950,
-       "y": 336
-      },
-      {
-       "x": 650,
-       "y": 618
-      },
-      {
-       "x": 790,
-       "y": 618
-      },
-      {
-       "x": 950,
-       "y": 618
-      }
-     ],
-     "chests": [
-      {
-       "id": 1,
-       "tier": "blue",
-       "x": 470,
-       "y": 175,
-       "bossChest": false
-      },
-      {
-       "id": 2,
-       "tier": "purple",
-       "x": 365,
-       "y": 520,
-       "bossChest": false
-      },
-      {
-       "id": 3,
-       "tier": "gold",
-       "x": 890,
-       "y": 390,
-       "bossChest": true
-      }
-     ],
-     "mobs": [
-      {
-       "id": 101,
-       "type": "goblin",
-       "x": 410,
-       "y": 170,
-       "lvl": 30
-      },
-      {
-       "id": 102,
-       "type": "goblin",
-       "x": 455,
-       "y": 220,
-       "lvl": 30
-      },
-      {
-       "id": 103,
-       "type": "gob",
-       "x": 430,
-       "y": 340,
-       "lvl": 30
-      },
-      {
-       "id": 104,
-       "type": "gob",
-       "x": 408,
-       "y": 456,
-       "lvl": 30
-      },
-      {
-       "id": 105,
-       "type": "gob",
-       "x": 445,
-       "y": 500,
-       "lvl": 30
-      },
-      {
-       "id": 106,
-       "type": "goblin",
-       "x": 470,
-       "y": 510,
-       "lvl": 30,
-       "isBoss": true
-      },
-      {
-       "id": 107,
-       "type": "goblinBoss",
-       "x": 780,
-       "y": 480,
-       "lvl": 50,
-       "isBoss": true
-      }
-     ],
-     "decorations": [
-      {
-       "type": "barrel",
-       "x": 95,
-       "y": 165
-      },
-      {
-       "type": "crate",
-       "x": 108,
-       "y": 168
-      },
-      {
-       "type": "bones",
-       "x": 220,
-       "y": 255
-      },
-      {
-       "type": "stalagmite",
-       "x": 92,
-       "y": 245
-      },
-      {
-       "type": "puddle",
-       "x": 175,
-       "y": 240,
-       "r": 16
-      },
-      {
-       "type": "web",
-       "x": 232,
-       "y": 182
-      },
-      {
-       "type": "bones",
-       "x": 275,
-       "y": 228
-      },
-      {
-       "type": "crystal",
-       "x": 310,
-       "y": 183,
-       "col": "#f97316"
-      },
-      {
-       "type": "banner",
-       "x": 355,
-       "y": 160
-      },
-      {
-       "type": "crate",
-       "x": 350,
-       "y": 175
-      },
-      {
-       "type": "barrel",
-       "x": 362,
-       "y": 172
-      },
-      {
-       "type": "puddle",
-       "x": 440,
-       "y": 165,
-       "r": 20
-      },
-      {
-       "type": "stalagmite",
-       "x": 505,
-       "y": 240
-      },
-      {
-       "type": "bones",
-       "x": 495,
-       "y": 265
-      },
-      {
-       "type": "barrel",
-       "x": 406,
-       "y": 310
-      },
-      {
-       "type": "bones",
-       "x": 450,
-       "y": 360
-      },
-      {
-       "type": "crystal",
-       "x": 404,
-       "y": 375,
-       "col": "#ef4444"
-      },
-      {
-       "type": "weapon_pile",
-       "x": 355,
-       "y": 410
-      },
-      {
-       "type": "barrel",
-       "x": 345,
-       "y": 430
-      },
-      {
-       "type": "crate",
-       "x": 340,
-       "y": 445
-      },
-      {
-       "type": "crate",
-       "x": 355,
-       "y": 448
-      },
-      {
-       "type": "puddle",
-       "x": 450,
-       "y": 430,
-       "r": 24
-      },
-      {
-       "type": "bones",
-       "x": 490,
-       "y": 535
-      },
-      {
-       "type": "banner",
-       "x": 512,
-       "y": 415
-      },
-      {
-       "type": "stalagmite",
-       "x": 345,
-       "y": 540
-      },
-      {
-       "type": "bones",
-       "x": 540,
-       "y": 498
-      },
-      {
-       "type": "crystal",
-       "x": 575,
-       "y": 453,
-       "col": "#f59e0b"
-      },
-      {
-       "type": "web",
-       "x": 625,
-       "y": 452
-      },
-      {
-       "type": "skull_pile",
-       "x": 660,
-       "y": 360
-      },
-      {
-       "type": "banner",
-       "x": 650,
-       "y": 420
-      },
-      {
-       "type": "banner",
-       "x": 650,
-       "y": 550
-      },
-      {
-       "type": "barrel",
-       "x": 940,
-       "y": 355
-      },
-      {
-       "type": "crate",
-       "x": 928,
-       "y": 360
-      },
-      {
-       "type": "stalagmite",
-       "x": 660,
-       "y": 590
-      },
-      {
-       "type": "stalagmite",
-       "x": 935,
-       "y": 605
-      },
-      {
-       "type": "puddle",
-       "x": 740,
-       "y": 570,
-       "r": 28
-      },
-      {
-       "type": "weapon_pile",
-       "x": 895,
-       "y": 590
-      },
-      {
-       "type": "crystal",
-       "x": 780,
-       "y": 334,
-       "col": "#ef4444"
-      },
-      {
-       "type": "crystal",
-       "x": 880,
-       "y": 334,
-       "col": "#f97316"
-      }
-     ],
+     "doors": [],
+     "torches": [],
+     "chests": [],
+     "mobs": [],
+     "decorations": [],
      "recLevel": 10,
      "chao": {
       "5,9": "@dg",
@@ -42123,40 +24704,35 @@ window.PROJETO={
       "7,12": "@dg",
       "8,12": "@dg",
       "9,12": "@dg",
-      "10,12": "pk_esg_agua",
-      "11,12": "pk_esg_agua",
-      "12,12": "pk_esg_agua",
-      "13,12": "pk_esg_agua",
-      "14,12": "pk_esg_agua",
+      "10,12": "@dg",
+      "12,12": "@dg",
+      "13,12": "@dg",
+      "14,12": "@dg",
       "5,13": "@dg",
       "6,13": "@dg",
       "7,13": "@dg",
       "8,13": "@dg",
-      "9,13": "pk_esg_agua",
-      "10,13": "pk_esg_agua",
-      "11,13": "pk_esg_agua",
-      "12,13": "pk_esg_agua",
-      "13,13": "pk_esg_agua",
-      "14,13": "pk_esg_agua",
+      "9,13": "@dg",
+      "10,13": "@dg",
+      "12,13": "@dg",
+      "13,13": "@dg",
+      "14,13": "@dg",
       "5,14": "@dg",
       "6,14": "@dg",
       "7,14": "@dg",
-      "8,14": "pk_esg_agua",
-      "9,14": "pk_esg_agua",
-      "10,14": "pk_esg_agua",
-      "11,14": "pk_esg_agua",
-      "12,14": "pk_esg_agua",
-      "13,14": "pk_esg_agua",
+      "8,14": "@dg",
+      "9,14": "@dg",
+      "10,14": "@dg",
       "14,14": "@dg",
       "5,15": "@dg",
-      "6,15": "pk_esg_agua",
-      "7,15": "pk_esg_agua",
-      "8,15": "pk_esg_agua",
-      "9,15": "pk_esg_agua",
-      "10,15": "pk_esg_agua",
-      "11,15": "pk_esg_agua",
-      "12,15": "pk_esg_agua",
-      "13,15": "pk_esg_agua",
+      "6,15": "@dg",
+      "7,15": "@dg",
+      "8,15": "@dg",
+      "9,15": "@dg",
+      "10,15": "@dg",
+      "11,15": "@dg",
+      "12,15": "@dg",
+      "13,15": "@dg",
       "14,15": "@dg",
       "5,16": "@dg",
       "6,16": "@dg",
@@ -42178,104 +24754,358 @@ window.PROJETO={
       "12,17": "@dg",
       "13,17": "@dg",
       "14,17": "@dg",
-      "21,9": "@dg",
-      "22,9": "@dg",
-      "23,9": "@dg",
-      "24,9": "@dg",
-      "25,9": "@dg",
-      "26,9": "@dg",
-      "27,9": "@dg",
-      "28,9": "@dg",
-      "29,9": "@dg",
-      "30,9": "@dg",
-      "31,9": "@dg",
-      "32,9": "@dg",
-      "21,10": "@dg",
-      "22,10": "@dg",
-      "23,10": "@dg",
-      "24,10": "@dg",
-      "25,10": "@dg",
-      "26,10": "@dg",
-      "27,10": "@dg",
-      "28,10": "@dg",
-      "29,10": "@dg",
-      "30,10": "@dg",
-      "31,10": "@dg",
-      "32,10": "@dg",
-      "21,11": "@dg",
-      "22,11": "@dg",
-      "23,11": "@dg",
-      "24,11": "@dg",
-      "25,11": "@dg",
-      "26,11": "@dg",
-      "27,11": "@dg",
-      "28,11": "@dg",
-      "29,11": "@dg",
-      "30,11": "@dg",
-      "31,11": "@dg",
-      "32,11": "@dg",
-      "21,12": "@dg",
-      "22,12": "@dg",
-      "23,12": "@dg",
-      "24,12": "@dg",
-      "25,12": "@dg",
-      "26,12": "@dg",
-      "27,12": "@dg",
-      "28,12": "@dg",
-      "29,12": "@dg",
-      "30,12": "@dg",
-      "31,12": "@dg",
-      "32,12": "@dg",
-      "21,13": "@dg",
-      "22,13": "@dg",
-      "23,13": "@dg",
-      "24,13": "@dg",
-      "25,13": "@dg",
-      "26,13": "@dg",
-      "27,13": "@dg",
-      "28,13": "@dg",
-      "29,13": "@dg",
-      "30,13": "@dg",
-      "31,13": "@dg",
-      "32,13": "@dg",
-      "21,14": "@dg",
-      "22,14": "@dg",
-      "23,14": "@dg",
-      "24,14": "@dg",
-      "25,14": "@dg",
-      "26,14": "@dg",
-      "27,14": "@dg",
-      "28,14": "@dg",
-      "29,14": "@dg",
-      "30,14": "@dg",
-      "31,14": "@dg",
-      "32,14": "@dg",
-      "21,15": "@dg",
-      "22,15": "@dg",
-      "23,15": "@dg",
-      "24,15": "@dg",
-      "25,15": "@dg",
-      "26,15": "@dg",
-      "27,15": "@dg",
-      "28,15": "@dg",
-      "29,15": "@dg",
-      "30,15": "@dg",
-      "31,15": "@dg",
-      "32,15": "@dg",
-      "21,16": "@dg",
-      "22,16": "@dg",
-      "23,16": "@dg",
-      "24,16": "@dg",
-      "25,16": "@dg",
-      "26,16": "@dg",
-      "27,16": "@dg",
-      "28,16": "@dg",
-      "29,16": "@dg",
-      "30,16": "@dg",
-      "31,16": "@dg",
-      "32,16": "@dg",
-      "21,17": "@dg",
-      "22,17": "@dg",
+      "11,14": "@dg",
+      "12,14": "@dg",
+      "13,14": "@dg",
+      "11,12": "@dg",
+      "11,13": "@dg",
+      "10,7": "@dg",
+      "11,7": "@dg",
+      "12,7": "@dg",
+      "13,7": "@dg",
+      "14,7": "@dg",
+      "15,7": "@dg",
+      "16,7": "@dg",
+      "10,8": "@dg",
+      "11,8": "@dg",
+      "12,8": "@dg",
+      "13,8": "@dg",
+      "14,8": "@dg",
+      "15,8": "@dg",
+      "16,8": "@dg",
+      "15,9": "@dg",
+      "16,9": "@dg",
+      "15,10": "@dg",
+      "16,10": "@dg",
+      "15,11": "@dg",
+      "16,11": "@dg",
+      "15,12": "@dg",
+      "16,12": "@dg",
+      "15,13": "@dg",
+      "16,13": "@dg",
+      "9,7": "@dg",
+      "9,8": "@dg",
+      "8,8": "@dg",
+      "6,18": "@dg",
+      "7,18": "@dg",
+      "8,18": "@dg",
+      "9,18": "@dg",
+      "10,18": "@dg",
+      "11,18": "@dg",
+      "12,18": "@dg",
+      "6,19": "@dg",
+      "7,19": "@dg",
+      "8,19": "@dg",
+      "9,19": "@dg",
+      "10,19": "@dg",
+      "11,19": "@dg",
+      "12,19": "@dg",
+      "13,18": "@dg",
+      "13,19": "@dg",
+      "7,20": "@dg",
+      "8,20": "@dg",
+      "9,20": "@dg",
+      "10,20": "@dg",
+      "11,20": "@dg",
+      "12,20": "@dg",
+      "13,20": "@dg",
+      "7,21": "@dg",
+      "8,21": "@dg",
+      "9,21": "@dg",
+      "10,21": "@dg",
+      "11,21": "@dg",
+      "12,21": "@dg",
+      "13,21": "@dg",
+      "14,18": "@dg",
+      "14,19": "@dg",
+      "14,20": "@dg",
+      "14,21": "@dg",
+      "8,22": "@dg",
+      "9,22": "@dg",
+      "10,22": "@dg",
+      "11,22": "@dg",
+      "12,22": "@dg",
+      "13,22": "@dg",
+      "14,22": "@dg",
+      "15,16": "@dg",
+      "15,17": "@dg",
+      "15,18": "@dg",
+      "15,19": "@dg",
+      "15,20": "@dg",
+      "15,21": "@dg",
+      "15,22": "@dg",
+      "16,16": "@dg",
+      "16,17": "@dg",
+      "16,18": "@dg",
+      "16,19": "@dg",
+      "16,20": "@dg",
+      "16,21": "@dg",
+      "16,22": "@dg",
+      "17,16": "@dg",
+      "17,17": "@dg",
+      "17,18": "@dg",
+      "17,19": "@dg",
+      "17,20": "@dg",
+      "17,21": "@dg",
+      "17,22": "@dg",
+      "18,16": "@dg",
+      "18,17": "@dg",
+      "18,18": "@dg",
+      "18,19": "@dg",
+      "18,20": "@dg",
+      "18,21": "@dg",
+      "18,22": "@dg",
+      "15,15": "@dg",
+      "16,15": "@dg",
+      "17,15": "@dg",
+      "18,15": "@dg",
+      "19,15": "@dg",
+      "19,16": "@dg",
+      "19,17": "@dg",
+      "19,18": "@dg",
+      "19,19": "@dg",
+      "19,20": "@dg",
+      "19,21": "@dg",
+      "15,14": "@dg",
+      "16,14": "@dg",
+      "17,14": "@dg",
+      "18,14": "@dg",
+      "19,14": "@dg",
+      "17,13": "@dg",
+      "18,13": "@dg",
+      "19,13": "@dg",
+      "17,12": "@dg",
+      "18,12": "@dg",
+      "19,12": "@dg",
+      "17,11": "@dg",
+      "18,11": "@dg",
+      "19,11": "@dg",
+      "17,10": "@dg",
+      "18,10": "@dg",
+      "19,10": "@dg",
+      "17,9": "@dg",
+      "18,9": "@dg",
+      "19,9": "@dg",
+      "17,8": "@dg",
+      "18,8": "@dg",
+      "19,8": "@dg",
+      "17,7": "@dg",
+      "18,7": "@dg",
+      "19,7": "@dg",
+      "12,6": "@dg",
+      "13,6": "@dg",
+      "14,6": "@dg",
+      "15,6": "@dg",
+      "16,6": "@dg",
+      "17,6": "@dg",
+      "18,6": "@dg",
+      "12,5": "@dg",
+      "13,5": "@dg",
+      "14,5": "@dg",
+      "15,5": "@dg",
+      "16,5": "@dg",
+      "17,5": "@dg",
+      "18,5": "@dg",
+      "11,5": "@dg",
+      "11,6": "@dg",
+      "10,5": "@dg",
+      "10,6": "@dg",
+      "9,5": "@dg",
+      "9,6": "@dg",
+      "8,5": "@dg",
+      "8,6": "@dg",
+      "8,7": "@dg",
+      "6,5": "@dg",
+      "7,5": "@dg",
+      "6,6": "@dg",
+      "7,6": "@dg",
+      "6,7": "@dg",
+      "7,7": "@dg",
+      "6,8": "@dg",
+      "7,8": "@dg",
+      "5,6": "@dg",
+      "5,7": "@dg",
+      "5,8": "@dg",
+      "4,7": "@dg",
+      "4,8": "@dg",
+      "4,9": "@dg",
+      "4,10": "@dg",
+      "4,11": "@dg",
+      "4,12": "@dg",
+      "4,13": "@dg",
+      "2,8": "@dg",
+      "3,8": "@dg",
+      "2,9": "@dg",
+      "3,9": "@dg",
+      "2,10": "@dg",
+      "3,10": "@dg",
+      "2,11": "@dg",
+      "3,11": "@dg",
+      "2,12": "@dg",
+      "3,12": "@dg",
+      "2,13": "@dg",
+      "3,13": "@dg",
+      "2,14": "@dg",
+      "3,14": "@dg",
+      "4,14": "@dg",
+      "2,15": "@dg",
+      "3,15": "@dg",
+      "4,15": "@dg",
+      "1,10": "@dg",
+      "1,11": "@dg",
+      "1,12": "@dg",
+      "1,13": "@dg",
+      "1,14": "@dg",
+      "1,15": "@dg",
+      "1,16": "@dg",
+      "2,16": "@dg",
+      "3,16": "@dg",
+      "4,16": "@dg",
+      "1,17": "@dg",
+      "2,17": "@dg",
+      "3,17": "@dg",
+      "4,17": "@dg",
+      "1,18": "@dg",
+      "2,18": "@dg",
+      "3,18": "@dg",
+      "4,18": "@dg",
+      "5,18": "@dg",
+      "2,19": "@dg",
+      "3,19": "@dg",
+      "4,19": "@dg",
+      "5,19": "@dg",
+      "2,20": "@dg",
+      "3,20": "@dg",
+      "4,20": "@dg",
+      "5,20": "@dg",
+      "6,20": "@dg",
+      "3,21": "@dg",
+      "4,21": "@dg",
+      "5,21": "@dg",
+      "6,21": "@dg",
+      "3,22": "@dg",
+      "4,22": "@dg",
+      "5,22": "@dg",
+      "6,22": "@dg",
+      "7,22": "@dg",
+      "6,23": "@dg",
+      "7,23": "@dg",
+      "8,23": "@dg",
+      "9,23": "@dg",
+      "10,23": "@dg",
+      "11,23": "@dg",
+      "12,23": "@dg",
+      "6,24": "@dg",
+      "7,24": "@dg",
+      "8,24": "@dg",
+      "9,24": "@dg",
+      "10,24": "@dg",
+      "11,24": "@dg",
+      "12,24": "@dg",
+      "13,23": "@dg",
+      "14,23": "@dg",
+      "15,23": "@dg",
+      "13,24": "@dg",
+      "14,24": "@dg",
+      "15,24": "@dg",
+      "9,25": "@dg",
+      "10,25": "@dg",
+      "11,25": "@dg",
+      "12,25": "@dg",
+      "13,25": "@dg",
+      "14,25": "@dg",
+      "15,25": "@dg",
+      "16,23": "@dg",
+      "17,23": "@dg",
+      "18,23": "@dg",
+      "16,24": "@dg",
+      "17,24": "@dg",
+      "18,24": "@dg",
+      "16,25": "@dg",
+      "17,25": "@dg",
+      "18,25": "@dg",
+      "12,26": "@dg",
+      "13,26": "@dg",
+      "14,26": "@dg",
+      "15,26": "@dg",
+      "16,26": "@dg",
+      "17,26": "@dg",
+      "18,26": "@dg",
+      "12,27": "@dg",
+      "13,27": "@dg",
+      "14,27": "@dg",
+      "15,27": "@dg",
+      "16,27": "@dg",
+      "17,27": "@dg",
+      "18,27": "@dg",
+      "20,21": "@dg",
+      "21,21": "@dg",
+      "19,22": "@dg",
+      "20,22": "@dg",
+      "21,22": "@dg",
+      "19,23": "@dg",
+      "20,23": "@dg",
+      "21,23": "@dg",
+      "19,24": "@dg",
+      "20,24": "@dg",
+      "21,24": "@dg",
+      "19,25": "@dg",
+      "20,25": "@dg",
+      "21,25": "@dg",
+      "19,26": "@dg",
+      "20,26": "@dg",
+      "21,26": "@dg",
+      "19,27": "@dg",
+      "20,27": "@dg",
+      "21,27": "@dg",
+      "20,20": "@dg",
+      "21,20": "@dg",
+      "22,20": "@dg",
+      "23,20": "@dg",
+      "24,20": "@dg",
+      "22,21": "@dg",
+      "23,21": "@dg",
+      "24,21": "@dg",
+      "22,22": "@dg",
+      "23,22": "@dg",
+      "24,22": "@dg",
+      "22,23": "@dg",
+      "23,23": "@dg",
+      "24,23": "@dg",
+      "22,24": "@dg",
+      "23,24": "@dg",
+      "24,24": "@dg",
+      "22,25": "@dg",
+      "23,25": "@dg",
+      "24,25": "@dg",
+      "22,26": "@dg",
+      "23,26": "@dg",
+      "24,26": "@dg",
+      "21,19": "@dg",
+      "22,19": "@dg",
+      "23,19": "@dg",
+      "24,19": "@dg",
+      "25,19": "@dg",
+      "26,19": "@dg",
+      "27,19": "@dg",
+      "25,20": "@dg",
+      "26,20": "@dg",
+      "27,20": "@dg",
+      "25,21": "@dg",
+      "26,21": "@dg",
+      "27,21": "@dg",
+      "25,22": "@dg",
+      "26,22": "@dg",
+      "27,22": "@dg",
+      "25,23": "@dg",
+      "26,23": "@dg",
+      "27,23": "@dg",
+      "25,24": "@dg",
+      "26,24": "@dg",
+      "27,24": "@dg",
+      "25,25": "@dg",
+      "26,25": "@dg",
+      "27,25": "@dg",
       "23,17": "@dg",
       "24,17": "@dg",
       "25,17": "@dg",
@@ -42283,37 +25113,562 @@ window.PROJETO={
       "27,17": "@dg",
       "28,17": "@dg",
       "29,17": "@dg",
+      "23,18": "@dg",
+      "24,18": "@dg",
+      "25,18": "@dg",
+      "26,18": "@dg",
+      "27,18": "@dg",
+      "28,18": "@dg",
+      "29,18": "@dg",
+      "28,19": "@dg",
+      "29,19": "@dg",
+      "28,20": "@dg",
+      "29,20": "@dg",
+      "28,21": "@dg",
+      "29,21": "@dg",
+      "28,22": "@dg",
+      "29,22": "@dg",
+      "28,23": "@dg",
+      "29,23": "@dg",
+      "24,16": "@dg",
+      "25,16": "@dg",
+      "26,16": "@dg",
+      "27,16": "@dg",
+      "28,16": "@dg",
+      "29,16": "@dg",
+      "30,16": "@dg",
       "30,17": "@dg",
-      "31,17": "@dg",
-      "32,17": "@dg",
-      "21,24": "@dg",
-      "22,24": "@dg",
-      "23,24": "@dg",
-      "24,24": "@dg",
-      "25,24": "@dg",
-      "26,24": "@dg",
-      "27,24": "@dg",
+      "30,18": "@dg",
+      "30,19": "@dg",
+      "30,20": "@dg",
+      "30,21": "@dg",
+      "30,22": "@dg",
+      "24,14": "@dg",
+      "25,14": "@dg",
+      "26,14": "@dg",
+      "27,14": "@dg",
+      "28,14": "@dg",
+      "29,14": "@dg",
+      "30,14": "@dg",
+      "24,15": "@dg",
+      "25,15": "@dg",
+      "26,15": "@dg",
+      "27,15": "@dg",
+      "28,15": "@dg",
+      "29,15": "@dg",
+      "30,15": "@dg",
+      "24,13": "@dg",
+      "25,13": "@dg",
+      "26,13": "@dg",
+      "27,13": "@dg",
+      "28,13": "@dg",
+      "29,13": "@dg",
+      "30,13": "@dg",
+      "24,10": "@dg",
+      "25,10": "@dg",
+      "26,10": "@dg",
+      "27,10": "@dg",
+      "28,10": "@dg",
+      "29,10": "@dg",
+      "30,10": "@dg",
+      "24,11": "@dg",
+      "25,11": "@dg",
+      "26,11": "@dg",
+      "27,11": "@dg",
+      "28,11": "@dg",
+      "29,11": "@dg",
+      "30,11": "@dg",
+      "24,12": "@dg",
+      "25,12": "@dg",
+      "26,12": "@dg",
+      "27,12": "@dg",
+      "28,12": "@dg",
+      "29,12": "@dg",
+      "30,12": "@dg",
+      "24,8": "@dg",
+      "25,8": "@dg",
+      "26,8": "@dg",
+      "27,8": "@dg",
+      "28,8": "@dg",
+      "29,8": "@dg",
+      "30,8": "@dg",
+      "24,9": "@dg",
+      "25,9": "@dg",
+      "26,9": "@dg",
+      "27,9": "@dg",
+      "28,9": "@dg",
+      "29,9": "@dg",
+      "30,9": "@dg",
+      "23,7": "@dg",
+      "24,7": "@dg",
+      "25,7": "@dg",
+      "26,7": "@dg",
+      "27,7": "@dg",
+      "28,7": "@dg",
+      "29,7": "@dg",
+      "23,8": "@dg",
+      "23,9": "@dg",
+      "23,10": "@dg",
+      "23,11": "@dg",
+      "23,12": "@dg",
+      "23,13": "@dg",
+      "22,6": "@dg",
+      "23,6": "@dg",
+      "24,6": "@dg",
+      "25,6": "@dg",
+      "26,6": "@dg",
+      "27,6": "@dg",
+      "28,6": "@dg",
+      "22,7": "@dg",
+      "22,8": "@dg",
+      "22,9": "@dg",
+      "22,10": "@dg",
+      "22,11": "@dg",
+      "22,12": "@dg",
+      "22,5": "@dg",
+      "23,5": "@dg",
+      "24,5": "@dg",
+      "25,5": "@dg",
+      "26,5": "@dg",
+      "27,5": "@dg",
+      "28,5": "@dg",
+      "20,5": "@dg",
+      "21,5": "@dg",
+      "20,6": "@dg",
+      "21,6": "@dg",
+      "20,7": "@dg",
+      "21,7": "@dg",
+      "20,8": "@dg",
+      "21,8": "@dg",
+      "20,9": "@dg",
+      "21,9": "@dg",
+      "20,10": "@dg",
+      "21,10": "@dg",
+      "20,11": "@dg",
+      "21,11": "@dg",
+      "19,4": "@dg",
+      "20,4": "@dg",
+      "21,4": "@dg",
+      "22,4": "@dg",
+      "23,4": "@dg",
+      "24,4": "@dg",
+      "25,4": "@dg",
+      "19,5": "@dg",
+      "19,6": "@dg",
+      "17,4": "@dg",
+      "18,4": "@dg",
+      "16,4": "@dg",
+      "20,15": "@dg",
+      "20,16": "@dg",
+      "20,17": "@dg",
+      "20,18": "@dg",
+      "20,19": "@dg",
+      "21,15": "@dg",
+      "22,15": "@dg",
+      "21,16": "@dg",
+      "22,16": "@dg",
+      "21,17": "@dg",
+      "22,17": "@dg",
+      "21,18": "@dg",
+      "22,18": "@dg",
+      "20,14": "@dg",
+      "21,14": "@dg",
+      "22,14": "@dg",
+      "23,14": "@dg",
+      "23,15": "@dg",
+      "23,16": "@dg",
+      "22,13": "@dg",
+      "31,10": "@dg",
+      "31,11": "@dg",
+      "31,12": "@dg",
+      "31,13": "@dg",
+      "31,14": "@dg",
+      "31,15": "@dg",
+      "31,16": "@dg",
+      "31,9": "@dg",
+      "32,9": "@dg",
+      "32,10": "@dg",
+      "32,11": "@dg",
+      "32,12": "@dg",
+      "32,13": "@dg",
+      "32,14": "@dg",
+      "32,15": "@dg",
+      "30,7": "@dg",
+      "31,7": "@dg",
+      "32,7": "@dg",
+      "31,8": "@dg",
+      "32,8": "@dg",
+      "29,5": "@dg",
+      "30,5": "@dg",
+      "31,5": "@dg",
+      "32,5": "@dg",
+      "29,6": "@dg",
+      "30,6": "@dg",
+      "31,6": "@dg",
+      "32,6": "@dg",
+      "26,3": "@dg",
+      "27,3": "@dg",
+      "28,3": "@dg",
+      "29,3": "@dg",
+      "30,3": "@dg",
+      "31,3": "@dg",
+      "32,3": "@dg",
+      "26,4": "@dg",
+      "27,4": "@dg",
+      "28,4": "@dg",
+      "29,4": "@dg",
+      "30,4": "@dg",
+      "31,4": "@dg",
+      "32,4": "@dg",
+      "26,2": "@dg",
+      "27,2": "@dg",
+      "28,2": "@dg",
+      "29,2": "@dg",
+      "30,2": "@dg",
+      "31,2": "@dg",
+      "32,2": "@dg",
+      "26,1": "@dg",
+      "27,1": "@dg",
+      "28,1": "@dg",
+      "29,1": "@dg",
+      "30,1": "@dg",
+      "31,1": "@dg",
+      "32,1": "@dg",
+      "25,1": "@dg",
+      "25,2": "@dg",
+      "25,3": "@dg",
+      "23,1": "@dg",
+      "24,1": "@dg",
+      "23,2": "@dg",
+      "24,2": "@dg",
+      "23,3": "@dg",
+      "24,3": "@dg",
+      "21,1": "@dg",
+      "22,1": "@dg",
+      "21,2": "@dg",
+      "22,2": "@dg",
+      "21,3": "@dg",
+      "22,3": "@dg",
+      "18,2": "@dg",
+      "19,2": "@dg",
+      "20,2": "@dg",
+      "18,3": "@dg",
+      "19,3": "@dg",
+      "20,3": "@dg",
+      "15,3": "@dg",
+      "16,3": "@dg",
+      "17,3": "@dg",
+      "15,4": "@dg",
+      "13,4": "@dg",
+      "14,4": "@dg",
+      "31,19": "@dg",
+      "32,19": "@dg",
+      "31,20": "@dg",
+      "32,20": "@dg",
+      "31,21": "@dg",
+      "32,21": "@dg",
+      "31,22": "@dg",
+      "32,22": "@dg",
+      "30,23": "@dg",
+      "31,23": "@dg",
+      "32,23": "@dg",
       "28,24": "@dg",
       "29,24": "@dg",
       "30,24": "@dg",
       "31,24": "@dg",
       "32,24": "@dg",
-      "21,25": "@dg",
-      "22,25": "@dg",
-      "23,25": "@dg",
-      "24,25": "@dg",
-      "25,25": "@dg",
-      "26,25": "@dg",
-      "27,25": "@dg",
       "28,25": "@dg",
       "29,25": "@dg",
       "30,25": "@dg",
       "31,25": "@dg",
       "32,25": "@dg",
-      "21,26": "@dg",
-      "22,26": "@dg",
-      "23,26": "@dg",
-      "24,26": "@dg",
+      "33,20": "@dg",
+      "34,20": "@dg",
+      "35,20": "@dg",
+      "36,20": "@dg",
+      "37,20": "@dg",
+      "38,20": "@dg",
+      "33,21": "@dg",
+      "34,21": "@dg",
+      "35,21": "@dg",
+      "36,21": "@dg",
+      "37,21": "@dg",
+      "38,21": "@dg",
+      "33,22": "@dg",
+      "34,22": "@dg",
+      "35,22": "@dg",
+      "36,22": "@dg",
+      "37,22": "@dg",
+      "38,22": "@dg",
+      "33,23": "@dg",
+      "34,23": "@dg",
+      "35,23": "@dg",
+      "36,23": "@dg",
+      "37,23": "@dg",
+      "38,23": "@dg",
+      "33,24": "@dg",
+      "34,24": "@dg",
+      "35,24": "@dg",
+      "36,24": "@dg",
+      "37,24": "@dg",
+      "38,24": "@dg",
+      "33,25": "@dg",
+      "34,25": "@dg",
+      "35,25": "@dg",
+      "36,25": "@dg",
+      "37,25": "@dg",
+      "38,25": "@dg",
+      "32,26": "@dg",
+      "33,26": "@dg",
+      "34,26": "@dg",
+      "35,26": "@dg",
+      "36,26": "@dg",
+      "37,26": "@dg",
+      "38,26": "@dg",
+      "37,19": "@dg",
+      "38,19": "@dg",
+      "39,19": "@dg",
+      "40,19": "@dg",
+      "41,19": "@dg",
+      "42,19": "@dg",
+      "43,19": "@dg",
+      "39,20": "@dg",
+      "40,20": "@dg",
+      "41,20": "@dg",
+      "42,20": "@dg",
+      "43,20": "@dg",
+      "39,21": "@dg",
+      "40,21": "@dg",
+      "41,21": "@dg",
+      "42,21": "@dg",
+      "43,21": "@dg",
+      "39,22": "@dg",
+      "40,22": "@dg",
+      "41,22": "@dg",
+      "42,22": "@dg",
+      "43,22": "@dg",
+      "39,23": "@dg",
+      "40,23": "@dg",
+      "41,23": "@dg",
+      "42,23": "@dg",
+      "43,23": "@dg",
+      "39,24": "@dg",
+      "40,24": "@dg",
+      "41,24": "@dg",
+      "42,24": "@dg",
+      "43,24": "@dg",
+      "39,25": "@dg",
+      "40,25": "@dg",
+      "41,25": "@dg",
+      "42,25": "@dg",
+      "43,25": "@dg",
+      "39,18": "@dg",
+      "40,18": "@dg",
+      "41,18": "@dg",
+      "42,18": "@dg",
+      "43,18": "@dg",
+      "44,18": "@dg",
+      "45,18": "@dg",
+      "44,19": "@dg",
+      "45,19": "@dg",
+      "44,20": "@dg",
+      "45,20": "@dg",
+      "44,21": "@dg",
+      "45,21": "@dg",
+      "44,22": "@dg",
+      "45,22": "@dg",
+      "44,23": "@dg",
+      "45,23": "@dg",
+      "44,24": "@dg",
+      "45,24": "@dg",
+      "41,16": "@dg",
+      "42,16": "@dg",
+      "43,16": "@dg",
+      "44,16": "@dg",
+      "45,16": "@dg",
+      "46,16": "@dg",
+      "47,16": "@dg",
+      "41,17": "@dg",
+      "42,17": "@dg",
+      "43,17": "@dg",
+      "44,17": "@dg",
+      "45,17": "@dg",
+      "46,17": "@dg",
+      "47,17": "@dg",
+      "46,18": "@dg",
+      "47,18": "@dg",
+      "46,19": "@dg",
+      "47,19": "@dg",
+      "46,20": "@dg",
+      "47,20": "@dg",
+      "46,21": "@dg",
+      "47,21": "@dg",
+      "46,22": "@dg",
+      "47,22": "@dg",
+      "41,14": "@dg",
+      "42,14": "@dg",
+      "43,14": "@dg",
+      "44,14": "@dg",
+      "45,14": "@dg",
+      "46,14": "@dg",
+      "47,14": "@dg",
+      "41,15": "@dg",
+      "42,15": "@dg",
+      "43,15": "@dg",
+      "44,15": "@dg",
+      "45,15": "@dg",
+      "46,15": "@dg",
+      "47,15": "@dg",
+      "41,11": "@dg",
+      "42,11": "@dg",
+      "43,11": "@dg",
+      "44,11": "@dg",
+      "45,11": "@dg",
+      "46,11": "@dg",
+      "47,11": "@dg",
+      "41,12": "@dg",
+      "42,12": "@dg",
+      "43,12": "@dg",
+      "44,12": "@dg",
+      "45,12": "@dg",
+      "46,12": "@dg",
+      "47,12": "@dg",
+      "41,13": "@dg",
+      "42,13": "@dg",
+      "43,13": "@dg",
+      "44,13": "@dg",
+      "45,13": "@dg",
+      "46,13": "@dg",
+      "47,13": "@dg",
+      "40,8": "@dg",
+      "41,8": "@dg",
+      "42,8": "@dg",
+      "43,8": "@dg",
+      "44,8": "@dg",
+      "45,8": "@dg",
+      "46,8": "@dg",
+      "40,9": "@dg",
+      "41,9": "@dg",
+      "42,9": "@dg",
+      "43,9": "@dg",
+      "44,9": "@dg",
+      "45,9": "@dg",
+      "46,9": "@dg",
+      "40,10": "@dg",
+      "41,10": "@dg",
+      "42,10": "@dg",
+      "43,10": "@dg",
+      "44,10": "@dg",
+      "45,10": "@dg",
+      "46,10": "@dg",
+      "40,11": "@dg",
+      "40,12": "@dg",
+      "40,13": "@dg",
+      "40,14": "@dg",
+      "39,6": "@dg",
+      "40,6": "@dg",
+      "41,6": "@dg",
+      "42,6": "@dg",
+      "43,6": "@dg",
+      "44,6": "@dg",
+      "45,6": "@dg",
+      "39,7": "@dg",
+      "40,7": "@dg",
+      "41,7": "@dg",
+      "42,7": "@dg",
+      "43,7": "@dg",
+      "44,7": "@dg",
+      "45,7": "@dg",
+      "39,8": "@dg",
+      "39,9": "@dg",
+      "39,10": "@dg",
+      "39,11": "@dg",
+      "39,12": "@dg",
+      "37,3": "@dg",
+      "38,3": "@dg",
+      "39,3": "@dg",
+      "40,3": "@dg",
+      "41,3": "@dg",
+      "42,3": "@dg",
+      "43,3": "@dg",
+      "37,4": "@dg",
+      "38,4": "@dg",
+      "39,4": "@dg",
+      "40,4": "@dg",
+      "41,4": "@dg",
+      "42,4": "@dg",
+      "43,4": "@dg",
+      "37,5": "@dg",
+      "38,5": "@dg",
+      "39,5": "@dg",
+      "40,5": "@dg",
+      "41,5": "@dg",
+      "42,5": "@dg",
+      "43,5": "@dg",
+      "37,6": "@dg",
+      "38,6": "@dg",
+      "37,7": "@dg",
+      "38,7": "@dg",
+      "37,8": "@dg",
+      "38,8": "@dg",
+      "37,9": "@dg",
+      "38,9": "@dg",
+      "34,1": "@dg",
+      "35,1": "@dg",
+      "36,1": "@dg",
+      "37,1": "@dg",
+      "38,1": "@dg",
+      "39,1": "@dg",
+      "40,1": "@dg",
+      "34,2": "@dg",
+      "35,2": "@dg",
+      "36,2": "@dg",
+      "37,2": "@dg",
+      "38,2": "@dg",
+      "39,2": "@dg",
+      "40,2": "@dg",
+      "34,3": "@dg",
+      "35,3": "@dg",
+      "36,3": "@dg",
+      "34,4": "@dg",
+      "35,4": "@dg",
+      "36,4": "@dg",
+      "34,5": "@dg",
+      "35,5": "@dg",
+      "36,5": "@dg",
+      "34,6": "@dg",
+      "35,6": "@dg",
+      "36,6": "@dg",
+      "34,7": "@dg",
+      "35,7": "@dg",
+      "36,7": "@dg",
+      "30,0": "@dg",
+      "31,0": "@dg",
+      "32,0": "@dg",
+      "33,0": "@dg",
+      "34,0": "@dg",
+      "35,0": "@dg",
+      "36,0": "@dg",
+      "33,1": "@dg",
+      "33,2": "@dg",
+      "33,3": "@dg",
+      "33,4": "@dg",
+      "33,5": "@dg",
+      "33,6": "@dg",
+      "27,0": "@dg",
+      "28,0": "@dg",
+      "29,0": "@dg",
+      "24,0": "@dg",
+      "25,0": "@dg",
+      "26,0": "@dg",
+      "21,0": "@dg",
+      "22,0": "@dg",
+      "23,0": "@dg",
+      "19,1": "@dg",
+      "20,1": "@dg",
+      "17,2": "@dg",
+      "20,12": "@dg",
+      "20,13": "@dg",
       "25,26": "@dg",
       "26,26": "@dg",
       "27,26": "@dg",
@@ -42321,11 +25676,566 @@ window.PROJETO={
       "29,26": "@dg",
       "30,26": "@dg",
       "31,26": "@dg",
-      "32,26": "@dg",
-      "21,27": "@dg",
-      "22,27": "@dg",
-      "23,27": "@dg",
-      "24,27": "@dg",
+      "39,26": "@dg",
+      "40,26": "@dg",
+      "40,17": "@dg",
+      "46,23": "@dg",
+      "48,15": "@dg",
+      "48,16": "@dg",
+      "48,17": "@dg",
+      "48,18": "@dg",
+      "48,19": "@dg",
+      "48,20": "@dg",
+      "48,21": "@dg",
+      "48,13": "@dg",
+      "49,13": "@dg",
+      "48,14": "@dg",
+      "49,14": "@dg",
+      "49,15": "@dg",
+      "49,16": "@dg",
+      "49,17": "@dg",
+      "49,18": "@dg",
+      "49,19": "@dg",
+      "48,11": "@dg",
+      "49,11": "@dg",
+      "48,12": "@dg",
+      "49,12": "@dg",
+      "47,8": "@dg",
+      "48,8": "@dg",
+      "49,8": "@dg",
+      "47,9": "@dg",
+      "48,9": "@dg",
+      "49,9": "@dg",
+      "47,10": "@dg",
+      "48,10": "@dg",
+      "49,10": "@dg",
+      "46,6": "@dg",
+      "47,6": "@dg",
+      "48,6": "@dg",
+      "49,6": "@dg",
+      "46,7": "@dg",
+      "47,7": "@dg",
+      "48,7": "@dg",
+      "49,7": "@dg",
+      "44,4": "@dg",
+      "45,4": "@dg",
+      "46,4": "@dg",
+      "47,4": "@dg",
+      "48,4": "@dg",
+      "44,5": "@dg",
+      "45,5": "@dg",
+      "46,5": "@dg",
+      "47,5": "@dg",
+      "48,5": "@dg",
+      "44,3": "@dg",
+      "45,3": "@dg",
+      "46,3": "@dg",
+      "47,3": "@dg",
+      "41,2": "@dg",
+      "42,2": "@dg",
+      "43,2": "@dg",
+      "44,2": "@dg",
+      "45,2": "@dg",
+      "35,8": "@dg",
+      "36,8": "@dg",
+      "35,9": "@dg",
+      "36,9": "@dg",
+      "33,7": "@dg",
+      "33,8": "@dg",
+      "34,8": "@dg",
+      "33,9": "@dg",
+      "34,9": "@dg",
+      "33,10": "@dg",
+      "34,10": "@dg",
+      "35,10": "@dg",
+      "36,10": "@dg",
+      "37,10": "@dg",
+      "38,10": "@dg",
+      "33,11": "@dg",
+      "34,11": "@dg",
+      "35,11": "@dg",
+      "36,11": "@dg",
+      "33,12": "@dg",
+      "34,12": "@dg",
+      "35,12": "@dg",
+      "36,12": "@dg",
+      "33,13": "@dg",
+      "33,14": "@dg",
+      "33,15": "@dg",
+      "32,16": "@dg",
+      "31,17": "@dg",
+      "32,17": "@dg",
+      "31,18": "@dg",
+      "32,18": "@dg",
+      "33,16": "@dg",
+      "33,17": "@dg",
+      "33,18": "@dg",
+      "33,19": "@dg",
+      "34,17": "@dg",
+      "34,18": "@dg",
+      "34,19": "@dg",
+      "35,18": "@dg",
+      "36,18": "@dg",
+      "37,18": "@dg",
+      "35,19": "@dg",
+      "36,19": "@dg",
+      "38,18": "@dg",
+      "39,13": "@dg",
+      "37,11": "@dg",
+      "38,11": "@dg",
+      "37,12": "@dg",
+      "38,12": "@dg",
+      "37,13": "@dg",
+      "38,13": "@dg",
+      "35,13": "@dg",
+      "36,13": "@dg",
+      "34,13": "@dg",
+      "34,14": "@dg",
+      "35,14": "@dg",
+      "36,14": "@dg",
+      "37,14": "@dg",
+      "38,14": "@dg",
+      "39,14": "@dg",
+      "34,15": "@dg",
+      "35,15": "@dg",
+      "36,15": "@dg",
+      "37,15": "@dg",
+      "34,16": "@dg",
+      "35,16": "@dg",
+      "36,16": "@dg",
+      "37,16": "@dg",
+      "35,17": "@dg",
+      "36,17": "@dg",
+      "38,15": "@dg",
+      "38,16": "@dg",
+      "37,17": "@dg",
+      "38,17": "@dg",
+      "39,15": "@dg",
+      "40,15": "@dg",
+      "39,16": "@dg",
+      "40,16": "@dg",
+      "39,17": "@dg",
+      "27,-1": "@dg",
+      "28,-1": "@dg",
+      "29,-1": "@dg",
+      "30,-1": "@dg",
+      "31,-1": "@dg",
+      "32,-1": "@dg",
+      "33,-1": "@dg",
+      "21,-2": "@dg",
+      "22,-2": "@dg",
+      "23,-2": "@dg",
+      "24,-2": "@dg",
+      "25,-2": "@dg",
+      "26,-2": "@dg",
+      "27,-2": "@dg",
+      "21,-1": "@dg",
+      "22,-1": "@dg",
+      "23,-1": "@dg",
+      "24,-1": "@dg",
+      "25,-1": "@dg",
+      "26,-1": "@dg",
+      "16,-2": "@dg",
+      "17,-2": "@dg",
+      "18,-2": "@dg",
+      "19,-2": "@dg",
+      "20,-2": "@dg",
+      "16,-1": "@dg",
+      "17,-1": "@dg",
+      "18,-1": "@dg",
+      "19,-1": "@dg",
+      "20,-1": "@dg",
+      "16,0": "@dg",
+      "17,0": "@dg",
+      "18,0": "@dg",
+      "19,0": "@dg",
+      "20,0": "@dg",
+      "16,1": "@dg",
+      "17,1": "@dg",
+      "18,1": "@dg",
+      "16,2": "@dg",
+      "13,-2": "@dg",
+      "14,-2": "@dg",
+      "15,-2": "@dg",
+      "13,-1": "@dg",
+      "14,-1": "@dg",
+      "15,-1": "@dg",
+      "13,0": "@dg",
+      "14,0": "@dg",
+      "15,0": "@dg",
+      "13,1": "@dg",
+      "14,1": "@dg",
+      "15,1": "@dg",
+      "13,2": "@dg",
+      "14,2": "@dg",
+      "15,2": "@dg",
+      "13,3": "@dg",
+      "14,3": "@dg",
+      "12,-1": "@dg",
+      "12,0": "@dg",
+      "12,1": "@dg",
+      "12,2": "@dg",
+      "12,3": "@dg",
+      "12,4": "@dg",
+      "11,0": "@dg",
+      "11,1": "@dg",
+      "11,2": "@dg",
+      "11,3": "@dg",
+      "11,4": "@dg",
+      "21,12": "@dg",
+      "21,13": "@dg",
+      "41,1": "@dg",
+      "36,-1": "@dg",
+      "37,-1": "@dg",
+      "38,-1": "@dg",
+      "39,-1": "@dg",
+      "40,-1": "@dg",
+      "41,-1": "@dg",
+      "42,-1": "@dg",
+      "37,0": "@dg",
+      "38,0": "@dg",
+      "39,0": "@dg",
+      "40,0": "@dg",
+      "41,0": "@dg",
+      "42,0": "@dg",
+      "42,1": "@dg",
+      "36,-3": "@dg",
+      "37,-3": "@dg",
+      "38,-3": "@dg",
+      "39,-3": "@dg",
+      "40,-3": "@dg",
+      "41,-3": "@dg",
+      "42,-3": "@dg",
+      "36,-2": "@dg",
+      "37,-2": "@dg",
+      "38,-2": "@dg",
+      "39,-2": "@dg",
+      "40,-2": "@dg",
+      "41,-2": "@dg",
+      "42,-2": "@dg",
+      "36,-4": "@dg",
+      "37,-4": "@dg",
+      "38,-4": "@dg",
+      "39,-4": "@dg",
+      "40,-4": "@dg",
+      "41,-4": "@dg",
+      "42,-4": "@dg",
+      "36,-5": "@dg",
+      "37,-5": "@dg",
+      "38,-5": "@dg",
+      "39,-5": "@dg",
+      "40,-5": "@dg",
+      "41,-5": "@dg",
+      "42,-5": "@dg",
+      "35,-6": "@dg",
+      "36,-6": "@dg",
+      "37,-6": "@dg",
+      "38,-6": "@dg",
+      "39,-6": "@dg",
+      "40,-6": "@dg",
+      "41,-6": "@dg",
+      "35,-5": "@dg",
+      "35,-4": "@dg",
+      "35,-3": "@dg",
+      "35,-2": "@dg",
+      "35,-1": "@dg",
+      "33,-6": "@dg",
+      "34,-6": "@dg",
+      "33,-5": "@dg",
+      "34,-5": "@dg",
+      "33,-4": "@dg",
+      "34,-4": "@dg",
+      "33,-3": "@dg",
+      "34,-3": "@dg",
+      "33,-2": "@dg",
+      "34,-2": "@dg",
+      "34,-1": "@dg",
+      "29,-6": "@dg",
+      "30,-6": "@dg",
+      "31,-6": "@dg",
+      "32,-6": "@dg",
+      "29,-5": "@dg",
+      "30,-5": "@dg",
+      "31,-5": "@dg",
+      "32,-5": "@dg",
+      "29,-4": "@dg",
+      "30,-4": "@dg",
+      "31,-4": "@dg",
+      "32,-4": "@dg",
+      "29,-3": "@dg",
+      "30,-3": "@dg",
+      "31,-3": "@dg",
+      "32,-3": "@dg",
+      "29,-2": "@dg",
+      "30,-2": "@dg",
+      "31,-2": "@dg",
+      "32,-2": "@dg",
+      "23,-5": "@dg",
+      "24,-5": "@dg",
+      "25,-5": "@dg",
+      "26,-5": "@dg",
+      "27,-5": "@dg",
+      "28,-5": "@dg",
+      "23,-4": "@dg",
+      "24,-4": "@dg",
+      "25,-4": "@dg",
+      "26,-4": "@dg",
+      "27,-4": "@dg",
+      "28,-4": "@dg",
+      "23,-3": "@dg",
+      "24,-3": "@dg",
+      "25,-3": "@dg",
+      "26,-3": "@dg",
+      "27,-3": "@dg",
+      "28,-3": "@dg",
+      "28,-2": "@dg",
+      "19,-4": "@dg",
+      "20,-4": "@dg",
+      "21,-4": "@dg",
+      "22,-4": "@dg",
+      "19,-3": "@dg",
+      "20,-3": "@dg",
+      "21,-3": "@dg",
+      "22,-3": "@dg",
+      "14,-3": "@dg",
+      "15,-3": "@dg",
+      "16,-3": "@dg",
+      "17,-3": "@dg",
+      "18,-3": "@dg",
+      "10,0": "@dg",
+      "10,1": "@dg",
+      "10,2": "@dg",
+      "10,3": "@dg",
+      "10,4": "@dg",
+      "8,3": "@dg",
+      "9,3": "@dg",
+      "8,4": "@dg",
+      "9,4": "@dg",
+      "50,12": "@dg",
+      "51,12": "@dg",
+      "52,12": "@dg",
+      "53,12": "@dg",
+      "54,12": "@dg",
+      "50,13": "@dg",
+      "51,13": "@dg",
+      "52,13": "@dg",
+      "53,13": "@dg",
+      "54,13": "@dg",
+      "50,14": "@dg",
+      "51,14": "@dg",
+      "52,14": "@dg",
+      "53,14": "@dg",
+      "54,14": "@dg",
+      "50,15": "@dg",
+      "51,15": "@dg",
+      "52,15": "@dg",
+      "53,15": "@dg",
+      "54,15": "@dg",
+      "50,16": "@dg",
+      "51,16": "@dg",
+      "52,16": "@dg",
+      "53,16": "@dg",
+      "54,16": "@dg",
+      "50,17": "@dg",
+      "51,17": "@dg",
+      "52,17": "@dg",
+      "53,17": "@dg",
+      "54,17": "@dg",
+      "50,18": "@dg",
+      "51,18": "@dg",
+      "52,18": "@dg",
+      "53,18": "@dg",
+      "54,18": "@dg",
+      "51,9": "@dg",
+      "52,9": "@dg",
+      "53,9": "@dg",
+      "54,9": "@dg",
+      "55,9": "@dg",
+      "56,9": "@dg",
+      "57,9": "@dg",
+      "51,10": "@dg",
+      "52,10": "@dg",
+      "53,10": "@dg",
+      "54,10": "@dg",
+      "55,10": "@dg",
+      "56,10": "@dg",
+      "57,10": "@dg",
+      "51,11": "@dg",
+      "52,11": "@dg",
+      "53,11": "@dg",
+      "54,11": "@dg",
+      "55,11": "@dg",
+      "56,11": "@dg",
+      "57,11": "@dg",
+      "55,12": "@dg",
+      "56,12": "@dg",
+      "57,12": "@dg",
+      "55,13": "@dg",
+      "56,13": "@dg",
+      "57,13": "@dg",
+      "55,14": "@dg",
+      "56,14": "@dg",
+      "57,14": "@dg",
+      "55,15": "@dg",
+      "56,15": "@dg",
+      "57,15": "@dg",
+      "52,7": "@dg",
+      "53,7": "@dg",
+      "54,7": "@dg",
+      "55,7": "@dg",
+      "56,7": "@dg",
+      "57,7": "@dg",
+      "58,7": "@dg",
+      "52,8": "@dg",
+      "53,8": "@dg",
+      "54,8": "@dg",
+      "55,8": "@dg",
+      "56,8": "@dg",
+      "57,8": "@dg",
+      "58,8": "@dg",
+      "58,9": "@dg",
+      "58,10": "@dg",
+      "58,11": "@dg",
+      "58,12": "@dg",
+      "58,13": "@dg",
+      "52,5": "@dg",
+      "53,5": "@dg",
+      "54,5": "@dg",
+      "55,5": "@dg",
+      "56,5": "@dg",
+      "57,5": "@dg",
+      "58,5": "@dg",
+      "52,6": "@dg",
+      "53,6": "@dg",
+      "54,6": "@dg",
+      "55,6": "@dg",
+      "56,6": "@dg",
+      "57,6": "@dg",
+      "58,6": "@dg",
+      "51,2": "@dg",
+      "52,2": "@dg",
+      "53,2": "@dg",
+      "54,2": "@dg",
+      "55,2": "@dg",
+      "56,2": "@dg",
+      "57,2": "@dg",
+      "51,3": "@dg",
+      "52,3": "@dg",
+      "53,3": "@dg",
+      "54,3": "@dg",
+      "55,3": "@dg",
+      "56,3": "@dg",
+      "57,3": "@dg",
+      "51,4": "@dg",
+      "52,4": "@dg",
+      "53,4": "@dg",
+      "54,4": "@dg",
+      "55,4": "@dg",
+      "56,4": "@dg",
+      "57,4": "@dg",
+      "51,5": "@dg",
+      "51,6": "@dg",
+      "51,7": "@dg",
+      "51,8": "@dg",
+      "50,0": "@dg",
+      "51,0": "@dg",
+      "52,0": "@dg",
+      "53,0": "@dg",
+      "54,0": "@dg",
+      "55,0": "@dg",
+      "56,0": "@dg",
+      "50,1": "@dg",
+      "51,1": "@dg",
+      "52,1": "@dg",
+      "53,1": "@dg",
+      "54,1": "@dg",
+      "55,1": "@dg",
+      "56,1": "@dg",
+      "50,2": "@dg",
+      "50,3": "@dg",
+      "50,4": "@dg",
+      "50,5": "@dg",
+      "50,6": "@dg",
+      "49,-2": "@dg",
+      "50,-2": "@dg",
+      "51,-2": "@dg",
+      "52,-2": "@dg",
+      "53,-2": "@dg",
+      "54,-2": "@dg",
+      "55,-2": "@dg",
+      "49,-1": "@dg",
+      "50,-1": "@dg",
+      "51,-1": "@dg",
+      "52,-1": "@dg",
+      "53,-1": "@dg",
+      "54,-1": "@dg",
+      "55,-1": "@dg",
+      "49,0": "@dg",
+      "49,1": "@dg",
+      "49,2": "@dg",
+      "49,3": "@dg",
+      "49,4": "@dg",
+      "48,-3": "@dg",
+      "49,-3": "@dg",
+      "50,-3": "@dg",
+      "51,-3": "@dg",
+      "52,-3": "@dg",
+      "53,-3": "@dg",
+      "54,-3": "@dg",
+      "48,-2": "@dg",
+      "48,-1": "@dg",
+      "48,0": "@dg",
+      "48,1": "@dg",
+      "48,2": "@dg",
+      "48,3": "@dg",
+      "47,-4": "@dg",
+      "48,-4": "@dg",
+      "49,-4": "@dg",
+      "50,-4": "@dg",
+      "51,-4": "@dg",
+      "52,-4": "@dg",
+      "53,-4": "@dg",
+      "47,-3": "@dg",
+      "47,-2": "@dg",
+      "47,-1": "@dg",
+      "47,0": "@dg",
+      "47,1": "@dg",
+      "47,2": "@dg",
+      "46,-5": "@dg",
+      "47,-5": "@dg",
+      "48,-5": "@dg",
+      "49,-5": "@dg",
+      "50,-5": "@dg",
+      "51,-5": "@dg",
+      "52,-5": "@dg",
+      "46,-4": "@dg",
+      "46,-3": "@dg",
+      "46,-2": "@dg",
+      "46,-1": "@dg",
+      "46,0": "@dg",
+      "46,1": "@dg",
+      "44,-5": "@dg",
+      "45,-5": "@dg",
+      "44,-4": "@dg",
+      "45,-4": "@dg",
+      "44,-3": "@dg",
+      "45,-3": "@dg",
+      "44,-2": "@dg",
+      "45,-2": "@dg",
+      "44,-1": "@dg",
+      "45,-1": "@dg",
+      "44,0": "@dg",
+      "45,0": "@dg",
+      "44,1": "@dg",
+      "45,1": "@dg",
+      "43,-5": "@dg",
+      "43,-4": "@dg",
+      "43,-3": "@dg",
+      "43,-2": "@dg",
+      "43,-1": "@dg",
+      "43,0": "@dg",
+      "43,1": "@dg",
+      "46,2": "@dg",
       "25,27": "@dg",
       "26,27": "@dg",
       "27,27": "@dg",
@@ -42334,223 +26244,106 @@ window.PROJETO={
       "30,27": "@dg",
       "31,27": "@dg",
       "32,27": "@dg",
-      "21,28": "@dg",
-      "22,28": "@dg",
-      "23,28": "@dg",
-      "24,28": "@dg",
-      "25,28": "@dg",
-      "26,28": "@dg",
+      "33,27": "@dg",
       "27,28": "@dg",
       "28,28": "@dg",
       "29,28": "@dg",
       "30,28": "@dg",
       "31,28": "@dg",
       "32,28": "@dg",
-      "21,29": "@dg",
-      "22,29": "@dg",
-      "23,29": "@dg",
-      "24,29": "@dg",
-      "25,29": "@dg",
-      "26,29": "@dg",
+      "33,28": "@dg",
       "27,29": "@dg",
       "28,29": "@dg",
       "29,29": "@dg",
       "30,29": "@dg",
       "31,29": "@dg",
       "32,29": "@dg",
-      "21,30": "@dg",
-      "22,30": "@dg",
-      "23,30": "@dg",
-      "24,30": "@dg",
-      "25,30": "@dg",
-      "26,30": "@dg",
+      "33,29": "@dg",
       "27,30": "@dg",
       "28,30": "@dg",
       "29,30": "@dg",
       "30,30": "@dg",
       "31,30": "@dg",
       "32,30": "@dg",
-      "21,31": "@dg",
-      "22,31": "@dg",
-      "23,31": "@dg",
-      "24,31": "@dg",
-      "25,31": "@dg",
-      "26,31": "@dg",
-      "27,31": "@dg",
-      "28,31": "@dg",
+      "33,30": "@dg",
+      "34,27": "@dg",
+      "35,27": "@dg",
+      "34,28": "@dg",
+      "35,28": "@dg",
+      "34,29": "@dg",
+      "35,29": "@dg",
+      "34,30": "@dg",
+      "35,30": "@dg",
       "29,31": "@dg",
       "30,31": "@dg",
       "31,31": "@dg",
       "32,31": "@dg",
-      "21,32": "@dg",
-      "22,32": "@dg",
-      "23,32": "@dg",
-      "24,32": "@dg",
-      "25,32": "@dg",
-      "26,32": "@dg",
-      "27,32": "@dg",
-      "28,32": "@dg",
+      "33,31": "@dg",
+      "34,31": "@dg",
+      "35,31": "@dg",
       "29,32": "@dg",
       "30,32": "@dg",
       "31,32": "@dg",
       "32,32": "@dg",
-      "21,33": "@dg",
-      "22,33": "@dg",
-      "23,33": "@dg",
-      "24,33": "@dg",
-      "25,33": "@dg",
-      "26,33": "@dg",
-      "27,33": "@dg",
-      "28,33": "@dg",
-      "29,33": "@dg",
-      "30,33": "@dg",
-      "31,33": "@dg",
+      "33,32": "@dg",
+      "34,32": "@dg",
+      "35,32": "@dg",
+      "36,27": "@dg",
+      "37,27": "@dg",
+      "38,27": "@dg",
+      "36,28": "@dg",
+      "37,28": "@dg",
+      "38,28": "@dg",
+      "36,29": "@dg",
+      "37,29": "@dg",
+      "38,29": "@dg",
+      "36,30": "@dg",
+      "37,30": "@dg",
+      "38,30": "@dg",
+      "36,31": "@dg",
+      "37,31": "@dg",
+      "38,31": "@dg",
+      "36,32": "@dg",
+      "37,32": "@dg",
+      "38,32": "@dg",
       "32,33": "@dg",
-      "21,34": "@dg",
-      "22,34": "@dg",
-      "23,34": "@dg",
-      "24,34": "@dg",
-      "25,34": "@dg",
-      "26,34": "@dg",
-      "27,34": "@dg",
-      "28,34": "@dg",
-      "29,34": "@dg",
-      "30,34": "@dg",
-      "31,34": "@dg",
-      "32,34": "@dg",
-      "39,21": "@dg",
-      "40,21": "@dg",
-      "41,21": "@dg",
-      "42,21": "@dg",
-      "43,21": "@dg",
-      "44,21": "@dg",
-      "45,21": "@dg",
-      "46,21": "@dg",
-      "47,21": "@dg",
-      "48,21": "@dg",
-      "49,21": "@dg",
-      "50,21": "@dg",
-      "51,21": "@dg",
-      "52,21": "@dg",
-      "53,21": "@dg",
-      "54,21": "@dg",
-      "55,21": "@dg",
-      "56,21": "@dg",
-      "57,21": "@dg",
-      "58,21": "@dg",
-      "59,21": "@dg",
-      "60,21": "@dg",
-      "39,22": "@dg",
-      "40,22": "@dg",
-      "41,22": "@dg",
-      "42,22": "@dg",
-      "43,22": "@dg",
-      "44,22": "@dg",
-      "45,22": "@dg",
-      "46,22": "@dg",
-      "47,22": "@dg",
-      "48,22": "@dg",
-      "49,22": "@dg",
-      "50,22": "@dg",
-      "51,22": "@dg",
-      "52,22": "@dg",
-      "53,22": "@dg",
-      "54,22": "@dg",
-      "55,22": "@dg",
-      "56,22": "@dg",
-      "57,22": "@dg",
-      "58,22": "@dg",
-      "59,22": "@dg",
-      "60,22": "@dg",
-      "39,23": "@dg",
-      "40,23": "@dg",
-      "41,23": "@dg",
-      "42,23": "@dg",
-      "43,23": "@dg",
-      "44,23": "@dg",
-      "45,23": "@dg",
-      "46,23": "@dg",
-      "47,23": "@dg",
-      "48,23": "@dg",
-      "49,23": "@dg",
-      "50,23": "@dg",
-      "51,23": "@dg",
-      "52,23": "@dg",
-      "53,23": "@dg",
-      "54,23": "@dg",
-      "55,23": "@dg",
-      "56,23": "@dg",
-      "57,23": "@dg",
-      "58,23": "@dg",
-      "59,23": "@dg",
-      "60,23": "@dg",
-      "39,24": "@dg",
-      "40,24": "@dg",
-      "41,24": "@dg",
-      "42,24": "@dg",
-      "43,24": "@dg",
-      "44,24": "@dg",
-      "45,24": "@dg",
-      "46,24": "@dg",
-      "47,24": "@dg",
-      "48,24": "@dg",
-      "49,24": "@dg",
-      "50,24": "@dg",
-      "51,24": "@dg",
-      "52,24": "@dg",
-      "53,24": "@dg",
-      "54,24": "@dg",
-      "55,24": "@dg",
-      "56,24": "@dg",
-      "57,24": "@dg",
-      "58,24": "@dg",
-      "59,24": "@dg",
-      "60,24": "@dg",
-      "39,25": "@dg",
-      "40,25": "@dg",
-      "41,25": "@dg",
-      "42,25": "@dg",
-      "43,25": "@dg",
-      "44,25": "@dg",
-      "45,25": "@dg",
-      "46,25": "@dg",
-      "47,25": "@dg",
-      "48,25": "@dg",
-      "49,25": "@dg",
-      "50,25": "@dg",
-      "51,25": "@dg",
-      "52,25": "@dg",
-      "53,25": "@dg",
-      "54,25": "@dg",
-      "55,25": "@dg",
-      "56,25": "@dg",
-      "57,25": "@dg",
-      "58,25": "@dg",
-      "59,25": "@dg",
-      "60,25": "@dg",
-      "39,26": "@dg",
-      "40,26": "@dg",
-      "41,26": "@dg",
-      "42,26": "@dg",
-      "43,26": "@dg",
-      "44,26": "@dg",
-      "45,26": "@dg",
-      "46,26": "@dg",
-      "47,26": "@dg",
-      "48,26": "@dg",
-      "49,26": "@dg",
-      "50,26": "@dg",
-      "51,26": "@dg",
-      "52,26": "@dg",
-      "53,26": "@dg",
-      "54,26": "@dg",
-      "55,26": "@dg",
-      "56,26": "@dg",
-      "57,26": "@dg",
-      "58,26": "@dg",
-      "59,26": "@dg",
-      "60,26": "@dg",
-      "39,27": "@dg",
+      "33,33": "@dg",
+      "34,33": "@dg",
+      "35,33": "@dg",
+      "36,33": "@dg",
+      "37,33": "@dg",
+      "38,33": "@dg",
+      "39,28": "@dg",
+      "40,28": "@dg",
+      "41,28": "@dg",
+      "42,28": "@dg",
+      "39,29": "@dg",
+      "40,29": "@dg",
+      "41,29": "@dg",
+      "42,29": "@dg",
+      "39,30": "@dg",
+      "40,30": "@dg",
+      "41,30": "@dg",
+      "42,30": "@dg",
+      "39,31": "@dg",
+      "40,31": "@dg",
+      "41,31": "@dg",
+      "42,31": "@dg",
+      "39,32": "@dg",
+      "40,32": "@dg",
+      "41,32": "@dg",
+      "42,32": "@dg",
+      "39,33": "@dg",
+      "40,33": "@dg",
+      "41,33": "@dg",
+      "42,33": "@dg",
+      "36,34": "@dg",
+      "37,34": "@dg",
+      "38,34": "@dg",
+      "39,34": "@dg",
+      "40,34": "@dg",
+      "41,34": "@dg",
+      "42,34": "@dg",
       "40,27": "@dg",
       "41,27": "@dg",
       "42,27": "@dg",
@@ -42558,220 +26351,755 @@ window.PROJETO={
       "44,27": "@dg",
       "45,27": "@dg",
       "46,27": "@dg",
-      "47,27": "@dg",
-      "48,27": "@dg",
-      "49,27": "@dg",
-      "50,27": "@dg",
-      "51,27": "@dg",
-      "52,27": "@dg",
-      "53,27": "@dg",
-      "54,27": "@dg",
-      "55,27": "@dg",
-      "56,27": "@dg",
-      "57,27": "@dg",
-      "58,27": "@dg",
-      "59,27": "@dg",
-      "60,27": "@dg",
-      "39,28": "@dg",
-      "40,28": "@dg",
-      "41,28": "@dg",
-      "42,28": "@dg",
       "43,28": "@dg",
       "44,28": "@dg",
       "45,28": "@dg",
       "46,28": "@dg",
-      "47,28": "@dg",
-      "48,28": "@dg",
-      "49,28": "@dg",
-      "50,28": "@dg",
-      "51,28": "@dg",
-      "52,28": "@dg",
-      "53,28": "@dg",
-      "54,28": "@dg",
-      "55,28": "@dg",
-      "56,28": "@dg",
-      "57,28": "@dg",
-      "58,28": "@dg",
-      "59,28": "@dg",
-      "60,28": "@dg",
-      "39,29": "@dg",
-      "40,29": "@dg",
-      "41,29": "@dg",
-      "42,29": "@dg",
       "43,29": "@dg",
       "44,29": "@dg",
       "45,29": "@dg",
       "46,29": "@dg",
-      "47,29": "@dg",
-      "48,29": "@dg",
-      "49,29": "@dg",
-      "50,29": "@dg",
-      "51,29": "@dg",
-      "52,29": "@dg",
-      "53,29": "@dg",
-      "54,29": "@dg",
-      "55,29": "@dg",
-      "56,29": "@dg",
-      "57,29": "@dg",
-      "58,29": "@dg",
-      "59,29": "@dg",
-      "60,29": "@dg",
-      "39,30": "@dg",
-      "40,30": "@dg",
-      "41,30": "@dg",
-      "42,30": "@dg",
       "43,30": "@dg",
       "44,30": "@dg",
       "45,30": "@dg",
       "46,30": "@dg",
-      "47,30": "@dg",
-      "48,30": "@dg",
-      "49,30": "@dg",
-      "50,30": "@dg",
-      "51,30": "@dg",
-      "52,30": "@dg",
-      "53,30": "@dg",
-      "54,30": "@dg",
-      "55,30": "@dg",
-      "56,30": "@dg",
-      "57,30": "@dg",
-      "58,30": "@dg",
-      "59,30": "@dg",
-      "60,30": "@dg",
-      "39,31": "@dg",
-      "40,31": "@dg",
-      "41,31": "@dg",
-      "42,31": "@dg",
       "43,31": "@dg",
       "44,31": "@dg",
       "45,31": "@dg",
       "46,31": "@dg",
-      "47,31": "@dg",
-      "48,31": "@dg",
-      "49,31": "@dg",
-      "50,31": "@dg",
-      "51,31": "@dg",
-      "52,31": "@dg",
-      "53,31": "@dg",
-      "54,31": "@dg",
-      "55,31": "@dg",
-      "56,31": "@dg",
-      "57,31": "@dg",
-      "58,31": "@dg",
-      "59,31": "@dg",
-      "60,31": "@dg",
-      "39,32": "@dg",
-      "40,32": "@dg",
-      "41,32": "@dg",
-      "42,32": "@dg",
       "43,32": "@dg",
       "44,32": "@dg",
       "45,32": "@dg",
       "46,32": "@dg",
-      "47,32": "@dg",
-      "48,32": "@dg",
-      "49,32": "@dg",
-      "50,32": "@dg",
-      "51,32": "@dg",
-      "52,32": "@dg",
-      "53,32": "@dg",
-      "54,32": "@dg",
-      "55,32": "@dg",
-      "56,32": "@dg",
-      "57,32": "@dg",
-      "58,32": "@dg",
-      "59,32": "@dg",
-      "60,32": "@dg",
-      "39,33": "@dg",
-      "40,33": "@dg",
-      "41,33": "@dg",
-      "42,33": "@dg",
       "43,33": "@dg",
       "44,33": "@dg",
       "45,33": "@dg",
       "46,33": "@dg",
-      "47,33": "@dg",
-      "48,33": "@dg",
-      "49,33": "@dg",
-      "50,33": "@dg",
-      "51,33": "@dg",
-      "52,33": "@dg",
-      "53,33": "@dg",
-      "54,33": "@dg",
-      "55,33": "@dg",
-      "56,33": "@dg",
-      "57,33": "@dg",
-      "58,33": "@dg",
-      "59,33": "@dg",
-      "60,33": "@dg",
-      "39,34": "@dg",
-      "40,34": "@dg",
-      "41,34": "@dg",
-      "42,34": "@dg",
+      "44,26": "@dg",
+      "45,26": "@dg",
+      "46,26": "@dg",
+      "47,26": "@dg",
+      "48,26": "@dg",
+      "49,26": "@dg",
+      "50,26": "@dg",
+      "47,27": "@dg",
+      "48,27": "@dg",
+      "49,27": "@dg",
+      "50,27": "@dg",
+      "47,28": "@dg",
+      "48,28": "@dg",
+      "49,28": "@dg",
+      "50,28": "@dg",
+      "47,29": "@dg",
+      "48,29": "@dg",
+      "49,29": "@dg",
+      "50,29": "@dg",
+      "47,30": "@dg",
+      "48,30": "@dg",
+      "49,30": "@dg",
+      "50,30": "@dg",
+      "47,31": "@dg",
+      "48,31": "@dg",
+      "49,31": "@dg",
+      "50,31": "@dg",
+      "47,32": "@dg",
+      "48,32": "@dg",
+      "49,32": "@dg",
+      "50,32": "@dg",
+      "46,25": "@dg",
+      "47,25": "@dg",
+      "48,25": "@dg",
+      "49,25": "@dg",
+      "50,25": "@dg",
+      "51,25": "@dg",
+      "52,25": "@dg",
+      "51,26": "@dg",
+      "52,26": "@dg",
+      "51,27": "@dg",
+      "52,27": "@dg",
+      "51,28": "@dg",
+      "52,28": "@dg",
+      "51,29": "@dg",
+      "52,29": "@dg",
+      "51,30": "@dg",
+      "52,30": "@dg",
+      "51,31": "@dg",
+      "52,31": "@dg",
+      "47,23": "@dg",
+      "48,23": "@dg",
+      "49,23": "@dg",
+      "50,23": "@dg",
+      "51,23": "@dg",
+      "52,23": "@dg",
+      "53,23": "@dg",
+      "47,24": "@dg",
+      "48,24": "@dg",
+      "49,24": "@dg",
+      "50,24": "@dg",
+      "51,24": "@dg",
+      "52,24": "@dg",
+      "53,24": "@dg",
+      "53,25": "@dg",
+      "53,26": "@dg",
+      "53,27": "@dg",
+      "53,28": "@dg",
+      "53,29": "@dg",
+      "49,21": "@dg",
+      "50,21": "@dg",
+      "51,21": "@dg",
+      "52,21": "@dg",
+      "53,21": "@dg",
+      "48,22": "@dg",
+      "49,22": "@dg",
+      "50,22": "@dg",
+      "51,22": "@dg",
+      "52,22": "@dg",
+      "53,22": "@dg",
+      "50,19": "@dg",
+      "51,19": "@dg",
+      "52,19": "@dg",
+      "49,20": "@dg",
+      "50,20": "@dg",
+      "51,20": "@dg",
+      "52,20": "@dg",
+      "46,24": "@dg",
+      "9,26": "@dg",
+      "10,26": "@dg",
+      "11,26": "@dg",
+      "10,27": "@dg",
+      "11,27": "@dg",
+      "10,28": "@dg",
+      "11,28": "@dg",
+      "12,28": "@dg",
+      "13,28": "@dg",
+      "14,28": "@dg",
+      "15,28": "@dg",
+      "16,28": "@dg",
+      "17,28": "@dg",
+      "18,28": "@dg",
+      "12,29": "@dg",
+      "13,29": "@dg",
+      "14,29": "@dg",
+      "15,29": "@dg",
+      "16,29": "@dg",
+      "17,29": "@dg",
+      "18,29": "@dg",
+      "19,28": "@dg",
+      "20,28": "@dg",
+      "21,28": "@dg",
+      "19,29": "@dg",
+      "20,29": "@dg",
+      "21,29": "@dg",
+      "15,30": "@dg",
+      "16,30": "@dg",
+      "17,30": "@dg",
+      "18,30": "@dg",
+      "19,30": "@dg",
+      "20,30": "@dg",
+      "21,30": "@dg",
+      "15,31": "@dg",
+      "16,31": "@dg",
+      "17,31": "@dg",
+      "18,31": "@dg",
+      "19,31": "@dg",
+      "20,31": "@dg",
+      "21,31": "@dg",
+      "22,27": "@dg",
+      "23,27": "@dg",
+      "24,27": "@dg",
+      "22,28": "@dg",
+      "23,28": "@dg",
+      "24,28": "@dg",
+      "25,28": "@dg",
+      "22,29": "@dg",
+      "23,29": "@dg",
+      "24,29": "@dg",
+      "25,29": "@dg",
+      "22,30": "@dg",
+      "23,30": "@dg",
+      "24,30": "@dg",
+      "25,30": "@dg",
+      "22,31": "@dg",
+      "23,31": "@dg",
+      "24,31": "@dg",
+      "25,31": "@dg",
+      "19,32": "@dg",
+      "20,32": "@dg",
+      "21,32": "@dg",
+      "22,32": "@dg",
+      "23,32": "@dg",
+      "24,32": "@dg",
+      "25,32": "@dg",
+      "26,28": "@dg",
+      "26,29": "@dg",
+      "26,30": "@dg",
+      "26,31": "@dg",
+      "27,31": "@dg",
+      "28,31": "@dg",
+      "26,32": "@dg",
+      "27,32": "@dg",
+      "28,32": "@dg",
+      "39,27": "@dg",
+      "41,26": "@dg",
+      "42,26": "@dg",
+      "43,26": "@dg",
+      "44,25": "@dg",
+      "45,25": "@dg",
+      "54,24": "@dg",
+      "55,24": "@dg",
+      "56,24": "@dg",
+      "54,25": "@dg",
+      "55,25": "@dg",
+      "56,25": "@dg",
+      "54,26": "@dg",
+      "55,26": "@dg",
+      "56,26": "@dg",
+      "54,27": "@dg",
+      "55,27": "@dg",
+      "56,27": "@dg",
+      "54,28": "@dg",
+      "55,28": "@dg",
+      "56,28": "@dg",
+      "54,29": "@dg",
+      "55,29": "@dg",
+      "56,29": "@dg",
+      "53,30": "@dg",
+      "54,30": "@dg",
+      "55,30": "@dg",
+      "56,30": "@dg",
+      "57,24": "@dg",
+      "58,24": "@dg",
+      "59,24": "@dg",
+      "60,24": "@dg",
+      "57,25": "@dg",
+      "58,25": "@dg",
+      "59,25": "@dg",
+      "60,25": "@dg",
+      "57,26": "@dg",
+      "58,26": "@dg",
+      "59,26": "@dg",
+      "60,26": "@dg",
+      "57,27": "@dg",
+      "58,27": "@dg",
+      "59,27": "@dg",
+      "60,27": "@dg",
+      "57,28": "@dg",
+      "58,28": "@dg",
+      "59,28": "@dg",
+      "60,28": "@dg",
+      "57,29": "@dg",
+      "58,29": "@dg",
+      "59,29": "@dg",
+      "60,29": "@dg",
+      "57,30": "@dg",
+      "58,30": "@dg",
+      "59,30": "@dg",
+      "60,30": "@dg",
+      "61,24": "@dg",
+      "62,24": "@dg",
+      "61,25": "@dg",
+      "62,25": "@dg",
+      "61,26": "@dg",
+      "62,26": "@dg",
+      "61,27": "@dg",
+      "62,27": "@dg",
+      "61,28": "@dg",
+      "62,28": "@dg",
+      "61,29": "@dg",
+      "62,29": "@dg",
+      "61,30": "@dg",
+      "62,30": "@dg",
+      "57,23": "@dg",
+      "58,23": "@dg",
+      "59,23": "@dg",
+      "60,23": "@dg",
+      "61,23": "@dg",
+      "62,23": "@dg",
+      "63,23": "@dg",
+      "63,24": "@dg",
+      "63,25": "@dg",
+      "63,26": "@dg",
+      "63,27": "@dg",
+      "63,28": "@dg",
+      "63,29": "@dg",
+      "58,22": "@dg",
+      "59,22": "@dg",
+      "60,22": "@dg",
+      "61,22": "@dg",
+      "62,22": "@dg",
+      "63,22": "@dg",
+      "64,22": "@dg",
+      "64,23": "@dg",
+      "64,24": "@dg",
+      "64,25": "@dg",
+      "64,26": "@dg",
+      "64,27": "@dg",
+      "64,28": "@dg",
+      "59,20": "@dg",
+      "60,20": "@dg",
+      "61,20": "@dg",
+      "62,20": "@dg",
+      "63,20": "@dg",
+      "64,20": "@dg",
+      "65,20": "@dg",
+      "59,21": "@dg",
+      "60,21": "@dg",
+      "61,21": "@dg",
+      "62,21": "@dg",
+      "63,21": "@dg",
+      "64,21": "@dg",
+      "65,21": "@dg",
+      "65,22": "@dg",
+      "65,23": "@dg",
+      "65,24": "@dg",
+      "65,25": "@dg",
+      "65,26": "@dg",
+      "61,17": "@dg",
+      "62,17": "@dg",
+      "63,17": "@dg",
+      "64,17": "@dg",
+      "65,17": "@dg",
+      "66,17": "@dg",
+      "67,17": "@dg",
+      "61,18": "@dg",
+      "62,18": "@dg",
+      "63,18": "@dg",
+      "64,18": "@dg",
+      "65,18": "@dg",
+      "66,18": "@dg",
+      "67,18": "@dg",
+      "61,19": "@dg",
+      "62,19": "@dg",
+      "63,19": "@dg",
+      "64,19": "@dg",
+      "65,19": "@dg",
+      "66,19": "@dg",
+      "67,19": "@dg",
+      "66,20": "@dg",
+      "67,20": "@dg",
+      "66,21": "@dg",
+      "67,21": "@dg",
+      "66,22": "@dg",
+      "67,22": "@dg",
+      "66,23": "@dg",
+      "67,23": "@dg",
+      "62,14": "@dg",
+      "63,14": "@dg",
+      "64,14": "@dg",
+      "65,14": "@dg",
+      "66,14": "@dg",
+      "67,14": "@dg",
+      "68,14": "@dg",
+      "62,15": "@dg",
+      "63,15": "@dg",
+      "64,15": "@dg",
+      "65,15": "@dg",
+      "66,15": "@dg",
+      "67,15": "@dg",
+      "68,15": "@dg",
+      "62,16": "@dg",
+      "63,16": "@dg",
+      "64,16": "@dg",
+      "65,16": "@dg",
+      "66,16": "@dg",
+      "67,16": "@dg",
+      "68,16": "@dg",
+      "68,17": "@dg",
+      "68,18": "@dg",
+      "68,19": "@dg",
+      "68,20": "@dg",
+      "63,11": "@dg",
+      "64,11": "@dg",
+      "65,11": "@dg",
+      "66,11": "@dg",
+      "67,11": "@dg",
+      "68,11": "@dg",
+      "69,11": "@dg",
+      "63,12": "@dg",
+      "64,12": "@dg",
+      "65,12": "@dg",
+      "66,12": "@dg",
+      "67,12": "@dg",
+      "68,12": "@dg",
+      "69,12": "@dg",
+      "63,13": "@dg",
+      "64,13": "@dg",
+      "65,13": "@dg",
+      "66,13": "@dg",
+      "67,13": "@dg",
+      "68,13": "@dg",
+      "69,13": "@dg",
+      "69,14": "@dg",
+      "69,15": "@dg",
+      "69,16": "@dg",
+      "69,17": "@dg",
+      "63,9": "@dg",
+      "64,9": "@dg",
+      "65,9": "@dg",
+      "66,9": "@dg",
+      "67,9": "@dg",
+      "68,9": "@dg",
+      "69,9": "@dg",
+      "63,10": "@dg",
+      "64,10": "@dg",
+      "65,10": "@dg",
+      "66,10": "@dg",
+      "67,10": "@dg",
+      "68,10": "@dg",
+      "69,10": "@dg",
+      "62,9": "@dg",
+      "62,10": "@dg",
+      "62,11": "@dg",
+      "62,12": "@dg",
+      "62,13": "@dg",
+      "62,8": "@dg",
+      "63,8": "@dg",
+      "64,8": "@dg",
+      "65,8": "@dg",
+      "66,8": "@dg",
+      "67,8": "@dg",
+      "68,8": "@dg",
+      "61,8": "@dg",
+      "61,9": "@dg",
+      "61,10": "@dg",
+      "61,11": "@dg",
+      "61,12": "@dg",
+      "61,13": "@dg",
+      "61,14": "@dg",
+      "59,7": "@dg",
+      "60,7": "@dg",
+      "61,7": "@dg",
+      "62,7": "@dg",
+      "63,7": "@dg",
+      "64,7": "@dg",
+      "65,7": "@dg",
+      "59,8": "@dg",
+      "60,8": "@dg",
+      "59,9": "@dg",
+      "60,9": "@dg",
+      "59,10": "@dg",
+      "60,10": "@dg",
+      "59,11": "@dg",
+      "60,11": "@dg",
+      "59,12": "@dg",
+      "60,12": "@dg",
+      "59,13": "@dg",
+      "60,13": "@dg",
+      "59,6": "@dg",
+      "60,6": "@dg",
+      "61,6": "@dg",
+      "62,6": "@dg",
+      "50,7": "@dg",
+      "50,8": "@dg",
+      "50,9": "@dg",
+      "50,10": "@dg",
+      "50,11": "@dg",
+      "53,19": "@dg",
+      "54,19": "@dg",
+      "53,20": "@dg",
+      "54,20": "@dg",
+      "54,21": "@dg",
+      "54,22": "@dg",
+      "54,23": "@dg",
+      "55,18": "@dg",
+      "56,18": "@dg",
+      "55,19": "@dg",
+      "56,19": "@dg",
+      "55,20": "@dg",
+      "56,20": "@dg",
+      "55,21": "@dg",
+      "56,21": "@dg",
+      "55,22": "@dg",
+      "56,22": "@dg",
+      "55,23": "@dg",
+      "56,23": "@dg",
+      "55,17": "@dg",
+      "56,17": "@dg",
+      "57,17": "@dg",
+      "58,17": "@dg",
+      "57,18": "@dg",
+      "58,18": "@dg",
+      "57,19": "@dg",
+      "58,19": "@dg",
+      "57,20": "@dg",
+      "58,20": "@dg",
+      "57,21": "@dg",
+      "58,21": "@dg",
+      "57,22": "@dg",
+      "59,17": "@dg",
+      "60,17": "@dg",
+      "59,18": "@dg",
+      "60,18": "@dg",
+      "59,19": "@dg",
+      "60,19": "@dg",
+      "58,15": "@dg",
+      "59,15": "@dg",
+      "60,15": "@dg",
+      "61,15": "@dg",
+      "56,16": "@dg",
+      "57,16": "@dg",
+      "58,16": "@dg",
+      "59,16": "@dg",
+      "60,16": "@dg",
+      "61,16": "@dg",
+      "58,14": "@dg",
+      "59,14": "@dg",
+      "60,14": "@dg",
+      "55,16": "@dg",
+      "59,5": "@dg",
+      "60,5": "@dg",
+      "61,5": "@dg",
+      "58,4": "@dg",
+      "59,4": "@dg",
+      "60,4": "@dg",
+      "61,4": "@dg",
+      "58,3": "@dg",
+      "59,3": "@dg",
+      "60,3": "@dg",
+      "49,5": "@dg",
+      "57,0": "@dg",
+      "58,0": "@dg",
+      "57,1": "@dg",
+      "58,1": "@dg",
+      "58,2": "@dg",
+      "59,1": "@dg",
+      "60,1": "@dg",
+      "61,1": "@dg",
+      "59,2": "@dg",
+      "60,2": "@dg",
+      "61,2": "@dg",
+      "61,3": "@dg",
+      "62,1": "@dg",
+      "62,2": "@dg",
+      "62,3": "@dg",
+      "62,4": "@dg",
+      "62,5": "@dg",
+      "63,2": "@dg",
+      "63,3": "@dg",
+      "63,4": "@dg",
+      "63,5": "@dg",
+      "63,6": "@dg",
+      "64,3": "@dg",
+      "64,4": "@dg",
+      "64,5": "@dg",
+      "64,6": "@dg",
+      "59,0": "@dg",
+      "60,0": "@dg",
+      "61,0": "@dg",
+      "62,0": "@dg",
+      "56,-2": "@dg",
+      "57,-2": "@dg",
+      "58,-2": "@dg",
+      "59,-2": "@dg",
+      "60,-2": "@dg",
+      "61,-2": "@dg",
+      "56,-1": "@dg",
+      "57,-1": "@dg",
+      "58,-1": "@dg",
+      "59,-1": "@dg",
+      "60,-1": "@dg",
+      "61,-1": "@dg",
+      "55,-3": "@dg",
+      "56,-3": "@dg",
+      "57,-3": "@dg",
+      "58,-3": "@dg",
+      "59,-3": "@dg",
+      "60,-3": "@dg",
+      "61,-3": "@dg",
+      "54,-4": "@dg",
+      "55,-4": "@dg",
+      "56,-4": "@dg",
+      "57,-4": "@dg",
+      "58,-4": "@dg",
+      "59,-4": "@dg",
+      "60,-4": "@dg",
+      "53,-5": "@dg",
+      "54,-5": "@dg",
+      "55,-5": "@dg",
+      "56,-5": "@dg",
+      "57,-5": "@dg",
+      "58,-5": "@dg",
+      "59,-5": "@dg",
+      "62,-2": "@dg",
+      "62,-1": "@dg",
+      "63,0": "@dg",
+      "64,0": "@dg",
+      "63,1": "@dg",
+      "64,1": "@dg",
+      "64,2": "@dg",
+      "65,1": "@dg",
+      "65,2": "@dg",
+      "65,3": "@dg",
+      "65,4": "@dg",
+      "65,5": "@dg",
+      "65,6": "@dg",
+      "66,2": "@dg",
+      "66,3": "@dg",
+      "66,4": "@dg",
+      "66,5": "@dg",
+      "66,6": "@dg",
+      "66,7": "@dg",
+      "67,4": "@dg",
+      "67,5": "@dg",
+      "67,6": "@dg",
+      "67,7": "@dg",
+      "65,0": "@dg",
+      "63,-2": "@dg",
+      "64,-2": "@dg",
+      "65,-2": "@dg",
+      "63,-1": "@dg",
+      "64,-1": "@dg",
+      "65,-1": "@dg",
+      "61,-4": "@dg",
+      "62,-4": "@dg",
+      "63,-4": "@dg",
+      "64,-4": "@dg",
+      "62,-3": "@dg",
+      "63,-3": "@dg",
+      "64,-3": "@dg",
+      "60,-5": "@dg",
+      "61,-5": "@dg",
+      "62,-5": "@dg",
+      "63,-5": "@dg",
+      "64,-5": "@dg",
+      "65,-5": "@dg",
+      "65,-4": "@dg",
+      "65,-3": "@dg",
+      "66,-4": "@dg",
+      "67,-4": "@dg",
+      "66,-3": "@dg",
+      "67,-3": "@dg",
+      "66,-2": "@dg",
+      "67,-2": "@dg",
+      "66,-1": "@dg",
+      "67,-1": "@dg",
+      "66,0": "@dg",
+      "67,0": "@dg",
+      "66,1": "@dg",
+      "67,1": "@dg",
+      "67,2": "@dg",
+      "68,-3": "@dg",
+      "68,-2": "@dg",
+      "68,-1": "@dg",
+      "68,0": "@dg",
+      "68,1": "@dg",
+      "68,2": "@dg",
+      "67,3": "@dg",
+      "68,3": "@dg",
+      "69,-2": "@dg",
+      "69,-1": "@dg",
+      "69,0": "@dg",
+      "69,1": "@dg",
+      "69,2": "@dg",
+      "69,3": "@dg",
+      "68,4": "@dg",
+      "69,4": "@dg",
+      "70,0": "@dg",
+      "70,1": "@dg",
+      "70,2": "@dg",
+      "70,3": "@dg",
+      "70,4": "@dg",
+      "68,5": "@dg",
+      "69,5": "@dg",
+      "70,5": "@dg",
+      "68,6": "@dg",
+      "69,6": "@dg",
+      "70,6": "@dg",
+      "68,7": "@dg",
+      "69,7": "@dg",
+      "70,7": "@dg",
+      "69,8": "@dg",
+      "70,8": "@dg",
+      "71,3": "@dg",
+      "71,4": "@dg",
+      "71,5": "@dg",
+      "71,6": "@dg",
+      "71,7": "@dg",
+      "71,8": "@dg",
+      "70,9": "@dg",
+      "71,9": "@dg",
+      "70,10": "@dg",
+      "71,10": "@dg",
+      "70,11": "@dg",
+      "71,11": "@dg",
+      "70,12": "@dg",
+      "71,12": "@dg",
+      "70,13": "@dg",
+      "71,13": "@dg",
+      "70,14": "@dg",
+      "71,14": "@dg",
+      "70,15": "@dg",
+      "71,15": "@dg",
+      "70,16": "@dg",
+      "71,16": "@dg",
+      "70,17": "@dg",
+      "71,17": "@dg",
+      "69,18": "@dg",
+      "70,18": "@dg",
+      "71,18": "@dg",
+      "69,19": "@dg",
+      "70,19": "@dg",
+      "69,20": "@dg",
+      "70,20": "@dg",
+      "68,21": "@dg",
+      "69,21": "@dg",
+      "68,22": "@dg",
+      "69,22": "@dg",
+      "68,23": "@dg",
+      "66,24": "@dg",
+      "67,24": "@dg",
+      "68,24": "@dg",
+      "66,25": "@dg",
+      "67,25": "@dg",
+      "66,26": "@dg",
+      "67,26": "@dg",
+      "65,27": "@dg",
+      "66,27": "@dg",
+      "67,27": "@dg",
+      "65,28": "@dg",
+      "66,28": "@dg",
+      "51,32": "@dg",
       "43,34": "@dg",
       "44,34": "@dg",
-      "45,34": "@dg",
-      "46,34": "@dg",
-      "47,34": "@dg",
-      "48,34": "@dg",
-      "49,34": "@dg",
-      "50,34": "@dg",
-      "51,34": "@dg",
-      "52,34": "@dg",
-      "53,34": "@dg",
-      "54,34": "@dg",
-      "55,34": "@dg",
-      "56,34": "@dg",
-      "57,34": "@dg",
-      "58,34": "@dg",
-      "59,34": "@dg",
-      "60,34": "@dg",
+      "35,34": "@dg",
+      "33,34": "@dg",
+      "34,34": "@dg",
+      "32,34": "@dg",
+      "31,33": "@dg",
+      "31,34": "@dg",
+      "30,33": "@dg",
+      "30,34": "@dg",
+      "32,35": "@dg",
+      "33,35": "@dg",
+      "34,35": "@dg",
+      "35,35": "@dg",
+      "36,35": "@dg",
+      "37,35": "@dg",
+      "38,35": "@dg",
       "39,35": "@dg",
       "40,35": "@dg",
       "41,35": "@dg",
       "42,35": "@dg",
       "43,35": "@dg",
-      "44,35": "@dg",
-      "45,35": "@dg",
-      "46,35": "@dg",
-      "47,35": "@dg",
-      "48,35": "@dg",
-      "49,35": "@dg",
-      "50,35": "@dg",
-      "51,35": "@dg",
-      "52,35": "@dg",
-      "53,35": "@dg",
-      "54,35": "@dg",
-      "55,35": "@dg",
-      "56,35": "@dg",
-      "57,35": "@dg",
-      "58,35": "@dg",
-      "59,35": "@dg",
-      "60,35": "@dg",
+      "37,36": "@dg",
+      "38,36": "@dg",
       "39,36": "@dg",
       "40,36": "@dg",
       "41,36": "@dg",
       "42,36": "@dg",
       "43,36": "@dg",
+      "47,33": "@dg",
+      "45,34": "@dg",
+      "46,34": "@dg",
+      "47,34": "@dg",
+      "44,35": "@dg",
+      "45,35": "@dg",
+      "46,35": "@dg",
+      "47,35": "@dg",
       "44,36": "@dg",
       "45,36": "@dg",
       "46,36": "@dg",
       "47,36": "@dg",
-      "48,36": "@dg",
-      "49,36": "@dg",
-      "50,36": "@dg",
-      "51,36": "@dg",
-      "52,36": "@dg",
-      "53,36": "@dg",
-      "54,36": "@dg",
-      "55,36": "@dg",
-      "56,36": "@dg",
-      "57,36": "@dg",
-      "58,36": "@dg",
-      "59,36": "@dg",
-      "60,36": "@dg",
-      "39,37": "@dg",
-      "40,37": "@dg",
       "41,37": "@dg",
       "42,37": "@dg",
       "43,37": "@dg",
@@ -42779,31 +27107,118 @@ window.PROJETO={
       "45,37": "@dg",
       "46,37": "@dg",
       "47,37": "@dg",
+      "48,33": "@dg",
+      "49,33": "@dg",
+      "48,34": "@dg",
+      "49,34": "@dg",
+      "48,35": "@dg",
+      "49,35": "@dg",
+      "48,36": "@dg",
+      "49,36": "@dg",
       "48,37": "@dg",
       "49,37": "@dg",
+      "50,33": "@dg",
+      "51,33": "@dg",
+      "50,34": "@dg",
+      "51,34": "@dg",
+      "50,35": "@dg",
+      "51,35": "@dg",
+      "50,36": "@dg",
+      "51,36": "@dg",
       "50,37": "@dg",
       "51,37": "@dg",
+      "52,32": "@dg",
+      "52,33": "@dg",
+      "52,34": "@dg",
+      "52,35": "@dg",
+      "52,36": "@dg",
+      "53,31": "@dg",
+      "53,32": "@dg",
+      "53,33": "@dg",
+      "53,34": "@dg",
+      "53,35": "@dg",
+      "53,36": "@dg",
+      "54,31": "@dg",
+      "54,32": "@dg",
+      "54,33": "@dg",
+      "54,34": "@dg",
+      "54,35": "@dg",
+      "55,31": "@dg",
+      "55,32": "@dg",
+      "55,33": "@dg",
+      "55,34": "@dg",
+      "55,35": "@dg",
+      "56,31": "@dg",
+      "56,32": "@dg",
+      "56,33": "@dg",
+      "56,34": "@dg",
+      "56,35": "@dg",
+      "57,31": "@dg",
+      "57,32": "@dg",
+      "57,33": "@dg",
+      "57,34": "@dg",
+      "58,31": "@dg",
+      "58,32": "@dg",
+      "58,33": "@dg",
+      "58,34": "@dg",
+      "59,31": "@dg",
+      "59,32": "@dg",
+      "59,33": "@dg",
+      "59,34": "@dg",
+      "60,31": "@dg",
+      "60,32": "@dg",
+      "60,33": "@dg",
+      "60,34": "@dg",
+      "61,31": "@dg",
+      "61,32": "@dg",
+      "61,33": "@dg",
+      "62,31": "@dg",
+      "62,32": "@dg",
+      "62,33": "@dg",
+      "63,30": "@dg",
+      "63,31": "@dg",
+      "63,32": "@dg",
+      "63,33": "@dg",
+      "64,29": "@dg",
+      "64,30": "@dg",
+      "64,31": "@dg",
+      "64,32": "@dg",
+      "65,29": "@dg",
+      "65,30": "@dg",
+      "65,31": "@dg",
+      "65,32": "@dg",
+      "66,29": "@dg",
+      "66,30": "@dg",
+      "66,31": "@dg",
+      "66,32": "@dg",
+      "67,28": "@dg",
+      "67,29": "@dg",
+      "67,30": "@dg",
+      "67,31": "@dg",
+      "68,25": "@dg",
+      "68,26": "@dg",
+      "68,27": "@dg",
+      "68,28": "@dg",
+      "68,29": "@dg",
+      "68,30": "@dg",
+      "64,33": "@dg",
+      "61,34": "@dg",
+      "62,34": "@dg",
+      "57,35": "@dg",
+      "58,35": "@dg",
+      "59,35": "@dg",
+      "60,35": "@dg",
+      "54,36": "@dg",
+      "55,36": "@dg",
+      "56,36": "@dg",
+      "57,36": "@dg",
+      "58,36": "@dg",
       "52,37": "@dg",
       "53,37": "@dg",
       "54,37": "@dg",
       "55,37": "@dg",
       "56,37": "@dg",
       "57,37": "@dg",
-      "58,37": "@dg",
-      "59,37": "@dg",
-      "60,37": "@dg",
-      "39,38": "@dg",
-      "40,38": "@dg",
-      "41,38": "@dg",
-      "42,38": "@dg",
-      "43,38": "@dg",
-      "44,38": "@dg",
-      "45,38": "@dg",
-      "46,38": "@dg",
-      "47,38": "@dg",
-      "48,38": "@dg",
-      "49,38": "@dg",
-      "50,38": "@dg",
       "51,38": "@dg",
       "52,38": "@dg",
       "53,38": "@dg",
@@ -42811,81 +27226,1706 @@ window.PROJETO={
       "55,38": "@dg",
       "56,38": "@dg",
       "57,38": "@dg",
+      "58,37": "@dg",
       "58,38": "@dg",
+      "59,36": "@dg",
+      "60,36": "@dg",
+      "59,37": "@dg",
+      "60,37": "@dg",
       "59,38": "@dg",
       "60,38": "@dg",
-      "15,11": "@dg",
-      "16,11": "@dg",
-      "17,11": "@dg",
-      "18,11": "@dg",
-      "19,11": "@dg",
-      "20,11": "@dg",
-      "15,12": "pk_esg_agua",
-      "16,12": "@dg",
-      "17,12": "@dg",
-      "18,12": "@dg",
-      "19,12": "@dg",
-      "20,12": "@dg",
-      "15,13": "pk_esg_agua",
-      "16,13": "@dg",
-      "17,13": "@dg",
-      "18,13": "@dg",
-      "19,13": "@dg",
-      "20,13": "@dg",
-      "15,14": "@dg",
-      "16,14": "@dg",
-      "17,14": "@dg",
-      "18,14": "@dg",
-      "19,14": "@dg",
-      "20,14": "@dg",
-      "25,18": "@dg",
-      "26,18": "@dg",
-      "27,18": "@dg",
-      "28,18": "@dg",
-      "25,19": "@dg",
-      "26,19": "@dg",
-      "27,19": "@dg",
-      "28,19": "@dg",
-      "25,20": "@dg",
-      "26,20": "@dg",
-      "27,20": "@dg",
-      "28,20": "@dg",
-      "25,21": "@dg",
-      "26,21": "@dg",
-      "27,21": "@dg",
-      "28,21": "@dg",
-      "25,22": "@dg",
-      "26,22": "@dg",
-      "27,22": "@dg",
-      "28,22": "@dg",
-      "25,23": "@dg",
-      "26,23": "@dg",
-      "27,23": "@dg",
-      "28,23": "@dg",
-      "33,28": "@dg",
-      "34,28": "@dg",
-      "35,28": "@dg",
-      "36,28": "@dg",
-      "37,28": "@dg",
-      "38,28": "@dg",
-      "33,29": "@dg",
-      "34,29": "@dg",
-      "35,29": "@dg",
-      "36,29": "@dg",
-      "37,29": "@dg",
-      "38,29": "@dg",
-      "33,30": "@dg",
-      "34,30": "@dg",
-      "35,30": "@dg",
-      "36,30": "@dg",
-      "37,30": "@dg",
-      "38,30": "@dg",
-      "33,31": "@dg",
-      "34,31": "@dg",
-      "35,31": "@dg",
-      "36,31": "@dg",
-      "37,31": "@dg",
-      "38,31": "@dg"
+      "54,39": "@dg",
+      "55,39": "@dg",
+      "56,39": "@dg",
+      "57,39": "@dg",
+      "58,39": "@dg",
+      "59,39": "@dg",
+      "60,39": "@dg",
+      "61,35": "@dg",
+      "62,35": "@dg",
+      "61,36": "@dg",
+      "62,36": "@dg",
+      "61,37": "@dg",
+      "62,37": "@dg",
+      "61,38": "@dg",
+      "62,38": "@dg",
+      "61,39": "@dg",
+      "62,39": "@dg",
+      "63,34": "@dg",
+      "64,34": "@dg",
+      "63,35": "@dg",
+      "64,35": "@dg",
+      "63,36": "@dg",
+      "64,36": "@dg",
+      "63,37": "@dg",
+      "64,37": "@dg",
+      "63,38": "@dg",
+      "64,38": "@dg",
+      "63,39": "@dg",
+      "64,39": "@dg",
+      "65,33": "@dg",
+      "66,33": "@dg",
+      "65,34": "@dg",
+      "66,34": "@dg",
+      "65,35": "@dg",
+      "66,35": "@dg",
+      "65,36": "@dg",
+      "66,36": "@dg",
+      "65,37": "@dg",
+      "66,37": "@dg",
+      "65,38": "@dg",
+      "66,38": "@dg",
+      "65,39": "@dg",
+      "66,39": "@dg",
+      "67,32": "@dg",
+      "67,33": "@dg",
+      "67,34": "@dg",
+      "67,35": "@dg",
+      "67,36": "@dg",
+      "67,37": "@dg",
+      "67,38": "@dg",
+      "68,31": "@dg",
+      "68,32": "@dg",
+      "68,33": "@dg",
+      "68,34": "@dg",
+      "68,35": "@dg",
+      "68,36": "@dg",
+      "68,37": "@dg",
+      "69,30": "@dg",
+      "69,31": "@dg",
+      "69,32": "@dg",
+      "69,33": "@dg",
+      "69,34": "@dg",
+      "69,35": "@dg",
+      "69,36": "@dg",
+      "69,29": "@dg",
+      "70,29": "@dg",
+      "70,30": "@dg",
+      "70,31": "@dg",
+      "70,32": "@dg",
+      "70,33": "@dg",
+      "70,34": "@dg",
+      "70,35": "@dg",
+      "69,28": "@dg",
+      "70,28": "@dg",
+      "69,27": "@dg",
+      "70,27": "@dg",
+      "71,27": "@dg",
+      "71,28": "@dg",
+      "71,29": "@dg",
+      "71,30": "@dg",
+      "71,31": "@dg",
+      "71,32": "@dg",
+      "71,33": "@dg",
+      "69,26": "@dg",
+      "70,26": "@dg",
+      "71,26": "@dg",
+      "72,26": "@dg",
+      "72,27": "@dg",
+      "72,28": "@dg",
+      "72,29": "@dg",
+      "72,30": "@dg",
+      "72,31": "@dg",
+      "72,32": "@dg",
+      "69,25": "@dg",
+      "70,25": "@dg",
+      "71,25": "@dg",
+      "72,25": "@dg",
+      "69,24": "@dg",
+      "70,24": "@dg",
+      "71,24": "@dg",
+      "72,24": "@dg",
+      "69,23": "@dg",
+      "70,23": "@dg",
+      "71,23": "@dg",
+      "72,23": "@dg",
+      "70,22": "@dg",
+      "71,22": "@dg",
+      "72,22": "@dg",
+      "70,21": "@dg",
+      "71,21": "@dg",
+      "73,23": "@dg",
+      "73,24": "@dg",
+      "73,25": "@dg",
+      "73,26": "@dg",
+      "73,27": "@dg",
+      "73,28": "@dg",
+      "73,29": "@dg",
+      "74,23": "@dg",
+      "74,24": "@dg",
+      "74,25": "@dg",
+      "74,26": "@dg",
+      "74,27": "@dg",
+      "74,28": "@dg",
+      "74,29": "@dg",
+      "75,24": "@dg",
+      "75,25": "@dg",
+      "75,26": "@dg",
+      "75,27": "@dg",
+      "75,28": "@dg",
+      "75,29": "@dg",
+      "73,30": "@dg",
+      "74,30": "@dg",
+      "75,30": "@dg",
+      "76,25": "@dg",
+      "76,26": "@dg",
+      "76,27": "@dg",
+      "76,28": "@dg",
+      "76,29": "@dg",
+      "76,30": "@dg",
+      "73,31": "@dg",
+      "74,31": "@dg",
+      "75,31": "@dg",
+      "76,31": "@dg",
+      "77,26": "@dg",
+      "77,27": "@dg",
+      "77,28": "@dg",
+      "77,29": "@dg",
+      "77,30": "@dg",
+      "77,31": "@dg",
+      "73,32": "@dg",
+      "74,32": "@dg",
+      "75,32": "@dg",
+      "76,32": "@dg",
+      "77,32": "@dg",
+      "78,28": "@dg",
+      "78,29": "@dg",
+      "78,30": "@dg",
+      "78,31": "@dg",
+      "78,32": "@dg",
+      "72,33": "@dg",
+      "73,33": "@dg",
+      "74,33": "@dg",
+      "75,33": "@dg",
+      "76,33": "@dg",
+      "77,33": "@dg",
+      "78,33": "@dg",
+      "72,34": "@dg",
+      "73,34": "@dg",
+      "74,34": "@dg",
+      "75,34": "@dg",
+      "76,34": "@dg",
+      "77,34": "@dg",
+      "78,34": "@dg",
+      "79,28": "@dg",
+      "79,29": "@dg",
+      "79,30": "@dg",
+      "79,31": "@dg",
+      "79,32": "@dg",
+      "79,33": "@dg",
+      "79,34": "@dg",
+      "73,35": "@dg",
+      "74,35": "@dg",
+      "75,35": "@dg",
+      "76,35": "@dg",
+      "77,35": "@dg",
+      "78,35": "@dg",
+      "79,35": "@dg",
+      "73,36": "@dg",
+      "74,36": "@dg",
+      "75,36": "@dg",
+      "76,36": "@dg",
+      "77,36": "@dg",
+      "78,36": "@dg",
+      "79,36": "@dg",
+      "80,31": "@dg",
+      "80,32": "@dg",
+      "80,33": "@dg",
+      "80,34": "@dg",
+      "80,35": "@dg",
+      "80,36": "@dg",
+      "74,37": "@dg",
+      "75,37": "@dg",
+      "76,37": "@dg",
+      "77,37": "@dg",
+      "78,37": "@dg",
+      "79,37": "@dg",
+      "80,37": "@dg",
+      "74,38": "@dg",
+      "75,38": "@dg",
+      "76,38": "@dg",
+      "77,38": "@dg",
+      "78,38": "@dg",
+      "79,38": "@dg",
+      "80,38": "@dg",
+      "74,39": "@dg",
+      "75,39": "@dg",
+      "76,39": "@dg",
+      "77,39": "@dg",
+      "78,39": "@dg",
+      "79,39": "@dg",
+      "80,39": "@dg",
+      "74,40": "@dg",
+      "75,40": "@dg",
+      "76,40": "@dg",
+      "77,40": "@dg",
+      "78,40": "@dg",
+      "79,40": "@dg",
+      "80,40": "@dg",
+      "73,37": "@dg",
+      "73,38": "@dg",
+      "73,39": "@dg",
+      "73,40": "@dg",
+      "73,41": "@dg",
+      "74,41": "@dg",
+      "75,41": "@dg",
+      "76,41": "@dg",
+      "77,41": "@dg",
+      "78,41": "@dg",
+      "79,41": "@dg",
+      "72,36": "@dg",
+      "72,37": "@dg",
+      "72,38": "@dg",
+      "72,39": "@dg",
+      "72,40": "@dg",
+      "72,41": "@dg",
+      "72,42": "@dg",
+      "73,42": "@dg",
+      "74,42": "@dg",
+      "75,42": "@dg",
+      "76,42": "@dg",
+      "77,42": "@dg",
+      "78,42": "@dg",
+      "71,37": "@dg",
+      "71,38": "@dg",
+      "71,39": "@dg",
+      "71,40": "@dg",
+      "71,41": "@dg",
+      "71,42": "@dg",
+      "71,43": "@dg",
+      "72,43": "@dg",
+      "73,43": "@dg",
+      "74,43": "@dg",
+      "75,43": "@dg",
+      "76,43": "@dg",
+      "77,43": "@dg",
+      "69,37": "@dg",
+      "70,37": "@dg",
+      "69,38": "@dg",
+      "70,38": "@dg",
+      "69,39": "@dg",
+      "70,39": "@dg",
+      "69,40": "@dg",
+      "70,40": "@dg",
+      "69,41": "@dg",
+      "70,41": "@dg",
+      "69,42": "@dg",
+      "70,42": "@dg",
+      "69,43": "@dg",
+      "70,43": "@dg",
+      "68,38": "@dg",
+      "67,39": "@dg",
+      "68,39": "@dg",
+      "67,40": "@dg",
+      "68,40": "@dg",
+      "67,41": "@dg",
+      "68,41": "@dg",
+      "67,42": "@dg",
+      "68,42": "@dg",
+      "67,43": "@dg",
+      "68,43": "@dg",
+      "67,44": "@dg",
+      "68,44": "@dg",
+      "69,44": "@dg",
+      "70,44": "@dg",
+      "71,44": "@dg",
+      "72,44": "@dg",
+      "73,44": "@dg",
+      "66,40": "@dg",
+      "66,41": "@dg",
+      "66,42": "@dg",
+      "66,43": "@dg",
+      "66,44": "@dg",
+      "64,40": "@dg",
+      "65,40": "@dg",
+      "64,41": "@dg",
+      "65,41": "@dg",
+      "64,42": "@dg",
+      "65,42": "@dg",
+      "64,43": "@dg",
+      "65,43": "@dg",
+      "64,44": "@dg",
+      "65,44": "@dg",
+      "63,40": "@dg",
+      "63,41": "@dg",
+      "63,42": "@dg",
+      "63,43": "@dg",
+      "63,44": "@dg",
+      "62,40": "@dg",
+      "62,41": "@dg",
+      "62,42": "@dg",
+      "62,43": "@dg",
+      "62,44": "@dg",
+      "60,40": "@dg",
+      "61,40": "@dg",
+      "60,41": "@dg",
+      "61,41": "@dg",
+      "60,42": "@dg",
+      "61,42": "@dg",
+      "60,43": "@dg",
+      "61,43": "@dg",
+      "59,40": "@dg",
+      "59,41": "@dg",
+      "59,42": "@dg",
+      "59,43": "@dg",
+      "58,40": "@dg",
+      "58,41": "@dg",
+      "58,42": "@dg",
+      "58,43": "@dg",
+      "70,36": "@dg",
+      "71,34": "@dg",
+      "71,35": "@dg",
+      "72,35": "@dg",
+      "71,36": "@dg",
+      "81,35": "@dg",
+      "81,36": "@dg",
+      "81,37": "@dg",
+      "81,38": "@dg",
+      "81,39": "@dg",
+      "81,40": "@dg",
+      "80,41": "@dg",
+      "81,41": "@dg",
+      "79,42": "@dg",
+      "80,42": "@dg",
+      "81,42": "@dg",
+      "78,43": "@dg",
+      "79,43": "@dg",
+      "80,43": "@dg",
+      "81,43": "@dg",
+      "75,44": "@dg",
+      "76,44": "@dg",
+      "77,44": "@dg",
+      "78,44": "@dg",
+      "79,44": "@dg",
+      "80,44": "@dg",
+      "81,44": "@dg",
+      "75,45": "@dg",
+      "76,45": "@dg",
+      "77,45": "@dg",
+      "78,45": "@dg",
+      "79,45": "@dg",
+      "80,45": "@dg",
+      "81,45": "@dg",
+      "75,46": "@dg",
+      "76,46": "@dg",
+      "77,46": "@dg",
+      "78,46": "@dg",
+      "79,46": "@dg",
+      "80,46": "@dg",
+      "81,46": "@dg",
+      "74,44": "@dg",
+      "74,45": "@dg",
+      "74,46": "@dg",
+      "74,47": "@dg",
+      "75,47": "@dg",
+      "76,47": "@dg",
+      "77,47": "@dg",
+      "78,47": "@dg",
+      "79,47": "@dg",
+      "80,47": "@dg",
+      "73,45": "@dg",
+      "73,46": "@dg",
+      "73,47": "@dg",
+      "71,45": "@dg",
+      "72,45": "@dg",
+      "71,46": "@dg",
+      "72,46": "@dg",
+      "71,47": "@dg",
+      "72,47": "@dg",
+      "70,45": "@dg",
+      "70,46": "@dg",
+      "70,47": "@dg",
+      "70,48": "@dg",
+      "71,48": "@dg",
+      "72,48": "@dg",
+      "73,48": "@dg",
+      "74,48": "@dg",
+      "75,48": "@dg",
+      "76,48": "@dg",
+      "69,45": "@dg",
+      "69,46": "@dg",
+      "69,47": "@dg",
+      "69,48": "@dg",
+      "67,45": "@dg",
+      "68,45": "@dg",
+      "67,46": "@dg",
+      "68,46": "@dg",
+      "67,47": "@dg",
+      "68,47": "@dg",
+      "67,48": "@dg",
+      "68,48": "@dg",
+      "65,45": "@dg",
+      "66,45": "@dg",
+      "65,46": "@dg",
+      "66,46": "@dg",
+      "65,47": "@dg",
+      "66,47": "@dg",
+      "65,48": "@dg",
+      "66,48": "@dg",
+      "64,45": "@dg",
+      "64,46": "@dg",
+      "64,47": "@dg",
+      "64,48": "@dg",
+      "82,37": "@dg",
+      "82,38": "@dg",
+      "82,39": "@dg",
+      "82,40": "@dg",
+      "82,41": "@dg",
+      "82,42": "@dg",
+      "82,43": "@dg",
+      "82,36": "@dg",
+      "81,34": "@dg",
+      "82,34": "@dg",
+      "82,35": "@dg",
+      "81,32": "@dg",
+      "82,32": "@dg",
+      "81,33": "@dg",
+      "82,33": "@dg",
+      "80,30": "@dg",
+      "81,30": "@dg",
+      "82,30": "@dg",
+      "81,31": "@dg",
+      "82,31": "@dg",
+      "80,29": "@dg",
+      "81,29": "@dg",
+      "82,29": "@dg",
+      "83,30": "@dg",
+      "83,31": "@dg",
+      "83,32": "@dg",
+      "83,33": "@dg",
+      "83,34": "@dg",
+      "83,35": "@dg",
+      "83,36": "@dg",
+      "84,31": "@dg",
+      "84,32": "@dg",
+      "84,33": "@dg",
+      "84,34": "@dg",
+      "84,35": "@dg",
+      "84,36": "@dg",
+      "83,37": "@dg",
+      "84,37": "@dg",
+      "85,33": "@dg",
+      "85,34": "@dg",
+      "85,35": "@dg",
+      "85,36": "@dg",
+      "85,37": "@dg",
+      "83,38": "@dg",
+      "84,38": "@dg",
+      "85,38": "@dg",
+      "83,39": "@dg",
+      "84,39": "@dg",
+      "85,39": "@dg",
+      "86,36": "@dg",
+      "86,37": "@dg",
+      "86,38": "@dg",
+      "86,39": "@dg",
+      "83,40": "@dg",
+      "84,40": "@dg",
+      "85,40": "@dg",
+      "86,40": "@dg",
+      "83,41": "@dg",
+      "84,41": "@dg",
+      "85,41": "@dg",
+      "86,41": "@dg",
+      "83,42": "@dg",
+      "84,42": "@dg",
+      "85,42": "@dg",
+      "86,42": "@dg",
+      "87,38": "@dg",
+      "87,39": "@dg",
+      "87,40": "@dg",
+      "87,41": "@dg",
+      "87,42": "@dg",
+      "83,43": "@dg",
+      "84,43": "@dg",
+      "85,43": "@dg",
+      "86,43": "@dg",
+      "87,43": "@dg",
+      "82,44": "@dg",
+      "83,44": "@dg",
+      "84,44": "@dg",
+      "85,44": "@dg",
+      "86,44": "@dg",
+      "87,44": "@dg",
+      "88,39": "@dg",
+      "88,40": "@dg",
+      "88,41": "@dg",
+      "88,42": "@dg",
+      "88,43": "@dg",
+      "88,44": "@dg",
+      "82,45": "@dg",
+      "83,45": "@dg",
+      "84,45": "@dg",
+      "85,45": "@dg",
+      "86,45": "@dg",
+      "87,45": "@dg",
+      "88,45": "@dg",
+      "89,41": "@dg",
+      "89,42": "@dg",
+      "89,43": "@dg",
+      "89,44": "@dg",
+      "89,45": "@dg",
+      "83,46": "@dg",
+      "84,46": "@dg",
+      "85,46": "@dg",
+      "86,46": "@dg",
+      "87,46": "@dg",
+      "88,46": "@dg",
+      "89,46": "@dg",
+      "83,47": "@dg",
+      "84,47": "@dg",
+      "85,47": "@dg",
+      "86,47": "@dg",
+      "87,47": "@dg",
+      "88,47": "@dg",
+      "89,47": "@dg",
+      "83,48": "@dg",
+      "84,48": "@dg",
+      "85,48": "@dg",
+      "86,48": "@dg",
+      "87,48": "@dg",
+      "88,48": "@dg",
+      "89,48": "@dg",
+      "83,49": "@dg",
+      "84,49": "@dg",
+      "85,49": "@dg",
+      "86,49": "@dg",
+      "87,49": "@dg",
+      "88,49": "@dg",
+      "89,49": "@dg",
+      "83,50": "@dg",
+      "84,50": "@dg",
+      "85,50": "@dg",
+      "86,50": "@dg",
+      "87,50": "@dg",
+      "88,50": "@dg",
+      "89,50": "@dg",
+      "82,46": "@dg",
+      "82,47": "@dg",
+      "82,48": "@dg",
+      "82,49": "@dg",
+      "82,50": "@dg",
+      "82,51": "@dg",
+      "83,51": "@dg",
+      "84,51": "@dg",
+      "85,51": "@dg",
+      "86,51": "@dg",
+      "87,51": "@dg",
+      "88,51": "@dg",
+      "81,47": "@dg",
+      "81,48": "@dg",
+      "81,49": "@dg",
+      "81,50": "@dg",
+      "81,51": "@dg",
+      "81,52": "@dg",
+      "82,52": "@dg",
+      "83,52": "@dg",
+      "84,52": "@dg",
+      "85,52": "@dg",
+      "86,52": "@dg",
+      "87,52": "@dg",
+      "79,48": "@dg",
+      "80,48": "@dg",
+      "79,49": "@dg",
+      "80,49": "@dg",
+      "79,50": "@dg",
+      "80,50": "@dg",
+      "79,51": "@dg",
+      "80,51": "@dg",
+      "79,52": "@dg",
+      "80,52": "@dg",
+      "79,53": "@dg",
+      "80,53": "@dg",
+      "81,53": "@dg",
+      "82,53": "@dg",
+      "83,53": "@dg",
+      "84,53": "@dg",
+      "85,53": "@dg",
+      "77,48": "@dg",
+      "78,48": "@dg",
+      "75,49": "@dg",
+      "76,49": "@dg",
+      "77,49": "@dg",
+      "78,49": "@dg",
+      "75,50": "@dg",
+      "76,50": "@dg",
+      "77,50": "@dg",
+      "78,50": "@dg",
+      "75,51": "@dg",
+      "76,51": "@dg",
+      "77,51": "@dg",
+      "78,51": "@dg",
+      "75,52": "@dg",
+      "76,52": "@dg",
+      "77,52": "@dg",
+      "78,52": "@dg",
+      "75,53": "@dg",
+      "76,53": "@dg",
+      "77,53": "@dg",
+      "78,53": "@dg",
+      "75,54": "@dg",
+      "76,54": "@dg",
+      "77,54": "@dg",
+      "78,54": "@dg",
+      "79,54": "@dg",
+      "80,54": "@dg",
+      "81,54": "@dg",
+      "73,49": "@dg",
+      "74,49": "@dg",
+      "73,50": "@dg",
+      "74,50": "@dg",
+      "73,51": "@dg",
+      "74,51": "@dg",
+      "73,52": "@dg",
+      "74,52": "@dg",
+      "73,53": "@dg",
+      "74,53": "@dg",
+      "73,54": "@dg",
+      "74,54": "@dg",
+      "71,49": "@dg",
+      "72,49": "@dg",
+      "71,50": "@dg",
+      "72,50": "@dg",
+      "71,51": "@dg",
+      "72,51": "@dg",
+      "71,52": "@dg",
+      "72,52": "@dg",
+      "71,53": "@dg",
+      "72,53": "@dg",
+      "71,54": "@dg",
+      "72,54": "@dg",
+      "71,55": "@dg",
+      "72,55": "@dg",
+      "73,55": "@dg",
+      "74,55": "@dg",
+      "75,55": "@dg",
+      "76,55": "@dg",
+      "77,55": "@dg",
+      "68,49": "@dg",
+      "69,49": "@dg",
+      "70,49": "@dg",
+      "68,50": "@dg",
+      "69,50": "@dg",
+      "70,50": "@dg",
+      "68,51": "@dg",
+      "69,51": "@dg",
+      "70,51": "@dg",
+      "68,52": "@dg",
+      "69,52": "@dg",
+      "70,52": "@dg",
+      "68,53": "@dg",
+      "69,53": "@dg",
+      "70,53": "@dg",
+      "68,54": "@dg",
+      "69,54": "@dg",
+      "70,54": "@dg",
+      "68,55": "@dg",
+      "69,55": "@dg",
+      "70,55": "@dg",
+      "66,50": "@dg",
+      "67,50": "@dg",
+      "66,51": "@dg",
+      "67,51": "@dg",
+      "66,52": "@dg",
+      "67,52": "@dg",
+      "66,53": "@dg",
+      "67,53": "@dg",
+      "66,54": "@dg",
+      "67,54": "@dg",
+      "66,55": "@dg",
+      "67,55": "@dg",
+      "66,56": "@dg",
+      "67,56": "@dg",
+      "68,56": "@dg",
+      "69,56": "@dg",
+      "70,56": "@dg",
+      "71,56": "@dg",
+      "72,56": "@dg",
+      "64,50": "@dg",
+      "65,50": "@dg",
+      "64,51": "@dg",
+      "65,51": "@dg",
+      "64,52": "@dg",
+      "65,52": "@dg",
+      "64,53": "@dg",
+      "65,53": "@dg",
+      "64,54": "@dg",
+      "65,54": "@dg",
+      "64,55": "@dg",
+      "65,55": "@dg",
+      "64,56": "@dg",
+      "65,56": "@dg",
+      "63,50": "@dg",
+      "63,51": "@dg",
+      "63,52": "@dg",
+      "63,53": "@dg",
+      "63,54": "@dg",
+      "63,55": "@dg",
+      "63,56": "@dg",
+      "62,50": "@dg",
+      "62,51": "@dg",
+      "62,52": "@dg",
+      "62,53": "@dg",
+      "62,54": "@dg",
+      "62,55": "@dg",
+      "62,56": "@dg",
+      "61,50": "@dg",
+      "61,51": "@dg",
+      "61,52": "@dg",
+      "61,53": "@dg",
+      "61,54": "@dg",
+      "61,55": "@dg",
+      "61,56": "@dg",
+      "61,49": "@dg",
+      "62,49": "@dg",
+      "63,49": "@dg",
+      "64,49": "@dg",
+      "65,49": "@dg",
+      "66,49": "@dg",
+      "67,49": "@dg",
+      "61,48": "@dg",
+      "62,48": "@dg",
+      "63,48": "@dg",
+      "61,47": "@dg",
+      "62,47": "@dg",
+      "63,47": "@dg",
+      "61,46": "@dg",
+      "62,46": "@dg",
+      "63,46": "@dg",
+      "61,45": "@dg",
+      "62,45": "@dg",
+      "63,45": "@dg",
+      "60,44": "@dg",
+      "61,44": "@dg",
+      "60,45": "@dg",
+      "60,46": "@dg",
+      "60,47": "@dg",
+      "60,48": "@dg",
+      "60,49": "@dg",
+      "60,50": "@dg",
+      "59,44": "@dg",
+      "59,45": "@dg",
+      "58,44": "@dg",
+      "57,40": "@dg",
+      "57,41": "@dg",
+      "57,42": "@dg",
+      "57,43": "@dg",
+      "55,40": "@dg",
+      "56,40": "@dg",
+      "55,41": "@dg",
+      "56,41": "@dg",
+      "55,42": "@dg",
+      "56,42": "@dg",
+      "55,43": "@dg",
+      "56,43": "@dg",
+      "55,44": "@dg",
+      "56,44": "@dg",
+      "57,44": "@dg",
+      "55,45": "@dg",
+      "56,45": "@dg",
+      "57,45": "@dg",
+      "58,45": "@dg",
+      "55,46": "@dg",
+      "56,46": "@dg",
+      "57,46": "@dg",
+      "58,46": "@dg",
+      "59,46": "@dg",
+      "55,47": "@dg",
+      "56,47": "@dg",
+      "57,47": "@dg",
+      "58,47": "@dg",
+      "59,47": "@dg",
+      "55,48": "@dg",
+      "56,48": "@dg",
+      "57,48": "@dg",
+      "58,48": "@dg",
+      "59,48": "@dg",
+      "56,49": "@dg",
+      "57,49": "@dg",
+      "58,49": "@dg",
+      "59,49": "@dg",
+      "56,50": "@dg",
+      "57,50": "@dg",
+      "58,50": "@dg",
+      "59,50": "@dg",
+      "56,51": "@dg",
+      "57,51": "@dg",
+      "58,51": "@dg",
+      "59,51": "@dg",
+      "60,51": "@dg",
+      "54,40": "@dg",
+      "54,41": "@dg",
+      "54,42": "@dg",
+      "54,43": "@dg",
+      "54,44": "@dg",
+      "54,45": "@dg",
+      "52,39": "@dg",
+      "53,39": "@dg",
+      "52,40": "@dg",
+      "53,40": "@dg",
+      "52,41": "@dg",
+      "53,41": "@dg",
+      "52,42": "@dg",
+      "53,42": "@dg",
+      "52,43": "@dg",
+      "53,43": "@dg",
+      "51,39": "@dg",
+      "51,40": "@dg",
+      "51,41": "@dg",
+      "49,38": "@dg",
+      "50,38": "@dg",
+      "49,39": "@dg",
+      "50,39": "@dg",
+      "48,38": "@dg",
+      "87,36": "@dg",
+      "87,37": "@dg",
+      "86,35": "@dg",
+      "87,35": "@dg",
+      "88,35": "@dg",
+      "88,36": "@dg",
+      "88,37": "@dg",
+      "88,38": "@dg",
+      "89,35": "@dg",
+      "89,36": "@dg",
+      "89,37": "@dg",
+      "89,38": "@dg",
+      "89,39": "@dg",
+      "89,40": "@dg",
+      "86,34": "@dg",
+      "87,34": "@dg",
+      "88,34": "@dg",
+      "89,34": "@dg",
+      "90,34": "@dg",
+      "90,35": "@dg",
+      "90,36": "@dg",
+      "90,37": "@dg",
+      "90,38": "@dg",
+      "90,39": "@dg",
+      "90,40": "@dg",
+      "86,33": "@dg",
+      "87,33": "@dg",
+      "88,33": "@dg",
+      "89,33": "@dg",
+      "90,33": "@dg",
+      "91,33": "@dg",
+      "91,34": "@dg",
+      "91,35": "@dg",
+      "91,36": "@dg",
+      "91,37": "@dg",
+      "91,38": "@dg",
+      "91,39": "@dg",
+      "85,32": "@dg",
+      "86,32": "@dg",
+      "87,32": "@dg",
+      "88,32": "@dg",
+      "89,32": "@dg",
+      "90,32": "@dg",
+      "91,32": "@dg",
+      "86,31": "@dg",
+      "87,31": "@dg",
+      "88,31": "@dg",
+      "89,31": "@dg",
+      "90,31": "@dg",
+      "91,31": "@dg",
+      "92,31": "@dg",
+      "92,32": "@dg",
+      "92,33": "@dg",
+      "92,34": "@dg",
+      "92,35": "@dg",
+      "92,36": "@dg",
+      "92,37": "@dg",
+      "86,30": "@dg",
+      "87,30": "@dg",
+      "88,30": "@dg",
+      "89,30": "@dg",
+      "90,30": "@dg",
+      "91,30": "@dg",
+      "92,30": "@dg",
+      "86,29": "@dg",
+      "87,29": "@dg",
+      "88,29": "@dg",
+      "89,29": "@dg",
+      "90,29": "@dg",
+      "91,29": "@dg",
+      "92,29": "@dg",
+      "86,28": "@dg",
+      "87,28": "@dg",
+      "88,28": "@dg",
+      "89,28": "@dg",
+      "90,28": "@dg",
+      "91,28": "@dg",
+      "92,28": "@dg",
+      "86,27": "@dg",
+      "87,27": "@dg",
+      "88,27": "@dg",
+      "89,27": "@dg",
+      "90,27": "@dg",
+      "91,27": "@dg",
+      "92,27": "@dg",
+      "86,26": "@dg",
+      "87,26": "@dg",
+      "88,26": "@dg",
+      "89,26": "@dg",
+      "90,26": "@dg",
+      "91,26": "@dg",
+      "92,26": "@dg",
+      "87,25": "@dg",
+      "88,25": "@dg",
+      "89,25": "@dg",
+      "90,25": "@dg",
+      "91,25": "@dg",
+      "92,25": "@dg",
+      "93,25": "@dg",
+      "93,26": "@dg",
+      "93,27": "@dg",
+      "93,28": "@dg",
+      "93,29": "@dg",
+      "93,30": "@dg",
+      "93,31": "@dg",
+      "87,24": "@dg",
+      "88,24": "@dg",
+      "89,24": "@dg",
+      "90,24": "@dg",
+      "91,24": "@dg",
+      "92,24": "@dg",
+      "93,24": "@dg",
+      "87,23": "@dg",
+      "88,23": "@dg",
+      "89,23": "@dg",
+      "90,23": "@dg",
+      "91,23": "@dg",
+      "92,23": "@dg",
+      "93,23": "@dg",
+      "87,22": "@dg",
+      "88,22": "@dg",
+      "89,22": "@dg",
+      "90,22": "@dg",
+      "91,22": "@dg",
+      "92,22": "@dg",
+      "93,22": "@dg",
+      "87,21": "@dg",
+      "88,21": "@dg",
+      "89,21": "@dg",
+      "90,21": "@dg",
+      "91,21": "@dg",
+      "92,21": "@dg",
+      "93,21": "@dg",
+      "88,20": "@dg",
+      "89,20": "@dg",
+      "90,20": "@dg",
+      "91,20": "@dg",
+      "92,20": "@dg",
+      "93,20": "@dg",
+      "94,20": "@dg",
+      "94,21": "@dg",
+      "94,22": "@dg",
+      "94,23": "@dg",
+      "94,24": "@dg",
+      "94,25": "@dg",
+      "94,26": "@dg",
+      "88,19": "@dg",
+      "89,19": "@dg",
+      "90,19": "@dg",
+      "91,19": "@dg",
+      "92,19": "@dg",
+      "93,19": "@dg",
+      "94,19": "@dg",
+      "88,18": "@dg",
+      "89,18": "@dg",
+      "90,18": "@dg",
+      "91,18": "@dg",
+      "92,18": "@dg",
+      "93,18": "@dg",
+      "94,18": "@dg",
+      "88,17": "@dg",
+      "89,17": "@dg",
+      "90,17": "@dg",
+      "91,17": "@dg",
+      "92,17": "@dg",
+      "93,17": "@dg",
+      "94,17": "@dg",
+      "95,17": "@dg",
+      "95,18": "@dg",
+      "95,19": "@dg",
+      "95,20": "@dg",
+      "95,21": "@dg",
+      "95,22": "@dg",
+      "95,23": "@dg",
+      "89,16": "@dg",
+      "90,16": "@dg",
+      "91,16": "@dg",
+      "92,16": "@dg",
+      "93,16": "@dg",
+      "94,16": "@dg",
+      "95,16": "@dg",
+      "90,14": "@dg",
+      "91,14": "@dg",
+      "92,14": "@dg",
+      "93,14": "@dg",
+      "94,14": "@dg",
+      "95,14": "@dg",
+      "96,14": "@dg",
+      "90,15": "@dg",
+      "91,15": "@dg",
+      "92,15": "@dg",
+      "93,15": "@dg",
+      "94,15": "@dg",
+      "95,15": "@dg",
+      "96,15": "@dg",
+      "96,16": "@dg",
+      "96,17": "@dg",
+      "96,18": "@dg",
+      "96,19": "@dg",
+      "96,20": "@dg",
+      "90,13": "@dg",
+      "91,13": "@dg",
+      "92,13": "@dg",
+      "93,13": "@dg",
+      "94,13": "@dg",
+      "95,13": "@dg",
+      "96,13": "@dg",
+      "90,12": "@dg",
+      "91,12": "@dg",
+      "92,12": "@dg",
+      "93,12": "@dg",
+      "94,12": "@dg",
+      "95,12": "@dg",
+      "96,12": "@dg",
+      "90,11": "@dg",
+      "91,11": "@dg",
+      "92,11": "@dg",
+      "93,11": "@dg",
+      "94,11": "@dg",
+      "95,11": "@dg",
+      "96,11": "@dg",
+      "97,11": "@dg",
+      "97,12": "@dg",
+      "97,13": "@dg",
+      "97,14": "@dg",
+      "97,15": "@dg",
+      "97,16": "@dg",
+      "97,17": "@dg",
+      "91,10": "@dg",
+      "92,10": "@dg",
+      "93,10": "@dg",
+      "94,10": "@dg",
+      "95,10": "@dg",
+      "96,10": "@dg",
+      "97,10": "@dg",
+      "91,9": "@dg",
+      "92,9": "@dg",
+      "93,9": "@dg",
+      "94,9": "@dg",
+      "95,9": "@dg",
+      "96,9": "@dg",
+      "97,9": "@dg",
+      "92,8": "@dg",
+      "93,8": "@dg",
+      "94,8": "@dg",
+      "95,8": "@dg",
+      "96,8": "@dg",
+      "97,8": "@dg",
+      "98,8": "@dg",
+      "98,9": "@dg",
+      "98,10": "@dg",
+      "98,11": "@dg",
+      "98,12": "@dg",
+      "98,13": "@dg",
+      "98,14": "@dg",
+      "99,8": "@dg",
+      "99,9": "@dg",
+      "99,10": "@dg",
+      "99,11": "@dg",
+      "99,12": "@dg",
+      "99,13": "@dg",
+      "99,14": "@dg",
+      "100,8": "@dg",
+      "100,9": "@dg",
+      "100,10": "@dg",
+      "100,11": "@dg",
+      "100,12": "@dg",
+      "100,13": "@dg",
+      "100,14": "@dg",
+      "101,8": "@dg",
+      "101,9": "@dg",
+      "101,10": "@dg",
+      "101,11": "@dg",
+      "101,12": "@dg",
+      "101,13": "@dg",
+      "101,14": "@dg",
+      "102,8": "@dg",
+      "102,9": "@dg",
+      "102,10": "@dg",
+      "102,11": "@dg",
+      "102,12": "@dg",
+      "102,13": "@dg",
+      "102,14": "@dg",
+      "103,8": "@dg",
+      "103,9": "@dg",
+      "103,10": "@dg",
+      "103,11": "@dg",
+      "103,12": "@dg",
+      "103,13": "@dg",
+      "103,14": "@dg",
+      "104,8": "@dg",
+      "104,9": "@dg",
+      "104,10": "@dg",
+      "104,11": "@dg",
+      "104,12": "@dg",
+      "104,13": "@dg",
+      "104,14": "@dg",
+      "105,8": "@dg",
+      "105,9": "@dg",
+      "105,10": "@dg",
+      "105,11": "@dg",
+      "105,12": "@dg",
+      "105,13": "@dg",
+      "105,14": "@dg",
+      "106,8": "@dg",
+      "106,9": "@dg",
+      "106,10": "@dg",
+      "106,11": "@dg",
+      "106,12": "@dg",
+      "106,13": "@dg",
+      "106,14": "@dg",
+      "107,8": "@dg",
+      "107,9": "@dg",
+      "107,10": "@dg",
+      "107,11": "@dg",
+      "107,12": "@dg",
+      "107,13": "@dg",
+      "107,14": "@dg",
+      "108,8": "@dg",
+      "108,9": "@dg",
+      "108,10": "@dg",
+      "108,11": "@dg",
+      "108,12": "@dg",
+      "108,13": "@dg",
+      "108,14": "@dg",
+      "109,8": "@dg",
+      "109,9": "@dg",
+      "109,10": "@dg",
+      "109,11": "@dg",
+      "109,12": "@dg",
+      "109,13": "@dg",
+      "109,14": "@dg",
+      "110,8": "@dg",
+      "110,9": "@dg",
+      "110,10": "@dg",
+      "110,11": "@dg",
+      "110,12": "@dg",
+      "110,13": "@dg",
+      "110,14": "@dg",
+      "111,8": "@dg",
+      "111,9": "@dg",
+      "111,10": "@dg",
+      "111,11": "@dg",
+      "111,12": "@dg",
+      "111,13": "@dg",
+      "111,14": "@dg",
+      "112,8": "@dg",
+      "112,9": "@dg",
+      "112,10": "@dg",
+      "112,11": "@dg",
+      "112,12": "@dg",
+      "112,13": "@dg",
+      "112,14": "@dg",
+      "113,8": "@dg",
+      "113,9": "@dg",
+      "113,10": "@dg",
+      "113,11": "@dg",
+      "113,12": "@dg",
+      "113,13": "@dg",
+      "113,14": "@dg",
+      "114,8": "@dg",
+      "114,9": "@dg",
+      "114,10": "@dg",
+      "114,11": "@dg",
+      "114,12": "@dg",
+      "114,13": "@dg",
+      "114,14": "@dg",
+      "108,15": "@dg",
+      "109,15": "@dg",
+      "110,15": "@dg",
+      "111,15": "@dg",
+      "112,15": "@dg",
+      "113,15": "@dg",
+      "114,15": "@dg",
+      "108,16": "@dg",
+      "109,16": "@dg",
+      "110,16": "@dg",
+      "111,16": "@dg",
+      "112,16": "@dg",
+      "113,16": "@dg",
+      "114,16": "@dg",
+      "108,17": "@dg",
+      "109,17": "@dg",
+      "110,17": "@dg",
+      "111,17": "@dg",
+      "112,17": "@dg",
+      "113,17": "@dg",
+      "114,17": "@dg",
+      "108,18": "@dg",
+      "109,18": "@dg",
+      "110,18": "@dg",
+      "111,18": "@dg",
+      "112,18": "@dg",
+      "113,18": "@dg",
+      "114,18": "@dg",
+      "115,12": "@dg",
+      "115,13": "@dg",
+      "115,14": "@dg",
+      "115,15": "@dg",
+      "115,16": "@dg",
+      "115,17": "@dg",
+      "115,18": "@dg",
+      "109,19": "@dg",
+      "110,19": "@dg",
+      "111,19": "@dg",
+      "112,19": "@dg",
+      "113,19": "@dg",
+      "114,19": "@dg",
+      "115,19": "@dg",
+      "109,20": "@dg",
+      "110,20": "@dg",
+      "111,20": "@dg",
+      "112,20": "@dg",
+      "113,20": "@dg",
+      "114,20": "@dg",
+      "115,20": "@dg",
+      "109,21": "@dg",
+      "110,21": "@dg",
+      "111,21": "@dg",
+      "112,21": "@dg",
+      "113,21": "@dg",
+      "114,21": "@dg",
+      "115,21": "@dg",
+      "109,22": "@dg",
+      "110,22": "@dg",
+      "111,22": "@dg",
+      "112,22": "@dg",
+      "113,22": "@dg",
+      "114,22": "@dg",
+      "115,22": "@dg",
+      "109,23": "@dg",
+      "110,23": "@dg",
+      "111,23": "@dg",
+      "112,23": "@dg",
+      "113,23": "@dg",
+      "114,23": "@dg",
+      "115,23": "@dg",
+      "109,24": "@dg",
+      "110,24": "@dg",
+      "111,24": "@dg",
+      "112,24": "@dg",
+      "113,24": "@dg",
+      "114,24": "@dg",
+      "115,24": "@dg",
+      "109,25": "@dg",
+      "110,25": "@dg",
+      "111,25": "@dg",
+      "112,25": "@dg",
+      "113,25": "@dg",
+      "114,25": "@dg",
+      "115,25": "@dg",
+      "108,20": "@dg",
+      "108,21": "@dg",
+      "108,22": "@dg",
+      "108,23": "@dg",
+      "108,24": "@dg",
+      "108,25": "@dg",
+      "108,26": "@dg",
+      "109,26": "@dg",
+      "110,26": "@dg",
+      "111,26": "@dg",
+      "112,26": "@dg",
+      "113,26": "@dg",
+      "114,26": "@dg",
+      "108,27": "@dg",
+      "109,27": "@dg",
+      "110,27": "@dg",
+      "111,27": "@dg",
+      "112,27": "@dg",
+      "113,27": "@dg",
+      "114,27": "@dg",
+      "107,22": "@dg",
+      "107,23": "@dg",
+      "107,24": "@dg",
+      "107,25": "@dg",
+      "107,26": "@dg",
+      "107,27": "@dg",
+      "107,28": "@dg",
+      "108,28": "@dg",
+      "109,28": "@dg",
+      "110,28": "@dg",
+      "111,28": "@dg",
+      "112,28": "@dg",
+      "113,28": "@dg",
+      "106,22": "@dg",
+      "106,23": "@dg",
+      "106,24": "@dg",
+      "106,25": "@dg",
+      "106,26": "@dg",
+      "106,27": "@dg",
+      "106,28": "@dg",
+      "105,22": "@dg",
+      "105,23": "@dg",
+      "105,24": "@dg",
+      "105,25": "@dg",
+      "105,26": "@dg",
+      "105,27": "@dg",
+      "105,28": "@dg",
+      "104,22": "@dg",
+      "104,23": "@dg",
+      "104,24": "@dg",
+      "104,25": "@dg",
+      "104,26": "@dg",
+      "104,27": "@dg",
+      "104,28": "@dg",
+      "102,22": "@dg",
+      "103,22": "@dg",
+      "102,23": "@dg",
+      "103,23": "@dg",
+      "102,24": "@dg",
+      "103,24": "@dg",
+      "102,25": "@dg",
+      "103,25": "@dg",
+      "102,26": "@dg",
+      "103,26": "@dg",
+      "102,27": "@dg",
+      "103,27": "@dg",
+      "102,28": "@dg",
+      "103,28": "@dg",
+      "100,22": "@dg",
+      "101,22": "@dg",
+      "100,23": "@dg",
+      "101,23": "@dg",
+      "100,24": "@dg",
+      "101,24": "@dg",
+      "100,25": "@dg",
+      "101,25": "@dg",
+      "100,26": "@dg",
+      "101,26": "@dg",
+      "100,27": "@dg",
+      "101,27": "@dg",
+      "100,28": "@dg",
+      "101,28": "@dg",
+      "99,22": "@dg",
+      "99,23": "@dg",
+      "99,24": "@dg",
+      "99,25": "@dg",
+      "99,26": "@dg",
+      "99,27": "@dg",
+      "99,28": "@dg",
+      "98,22": "@dg",
+      "98,23": "@dg",
+      "98,24": "@dg",
+      "98,25": "@dg",
+      "98,26": "@dg",
+      "98,27": "@dg",
+      "98,28": "@dg",
+      "97,22": "@dg",
+      "97,23": "@dg",
+      "97,24": "@dg",
+      "97,25": "@dg",
+      "97,26": "@dg",
+      "97,27": "@dg",
+      "97,28": "@dg",
+      "96,22": "@dg",
+      "96,23": "@dg",
+      "96,24": "@dg",
+      "96,25": "@dg",
+      "96,26": "@dg",
+      "96,27": "@dg",
+      "96,28": "@dg",
+      "95,24": "@dg",
+      "95,25": "@dg",
+      "95,26": "@dg",
+      "95,27": "@dg",
+      "95,28": "@dg",
+      "94,27": "@dg",
+      "94,28": "@dg",
+      "96,21": "@dg",
+      "97,21": "@dg",
+      "97,19": "@dg",
+      "97,20": "@dg",
+      "97,18": "@dg",
+      "89,11": "@dg",
+      "89,12": "@dg",
+      "89,13": "@dg",
+      "89,14": "@dg",
+      "89,15": "@dg",
+      "89,10": "@dg",
+      "90,10": "@dg",
+      "88,10": "@dg",
+      "88,11": "@dg",
+      "88,12": "@dg",
+      "88,13": "@dg",
+      "88,14": "@dg",
+      "88,15": "@dg",
+      "88,16": "@dg",
+      "88,9": "@dg",
+      "89,9": "@dg",
+      "90,9": "@dg",
+      "88,8": "@dg",
+      "89,8": "@dg",
+      "90,8": "@dg",
+      "91,8": "@dg",
+      "115,8": "@dg",
+      "115,9": "@dg",
+      "115,10": "@dg",
+      "115,11": "@dg",
+      "116,8": "@dg",
+      "116,9": "@dg",
+      "116,10": "@dg",
+      "116,11": "@dg",
+      "116,12": "@dg",
+      "116,13": "@dg",
+      "116,14": "@dg",
+      "116,15": "@dg",
+      "116,16": "@dg",
+      "116,17": "@dg",
+      "116,18": "@dg",
+      "116,19": "@dg",
+      "116,20": "@dg",
+      "116,21": "@dg",
+      "116,22": "@dg",
+      "116,23": "@dg",
+      "116,24": "@dg",
+      "115,26": "@dg",
+      "115,27": "@dg",
+      "114,28": "@dg",
+      "115,28": "@dg",
+      "116,25": "@dg",
+      "116,26": "@dg",
+      "116,27": "@dg",
+      "116,28": "@dg",
+      "105,16": "@dg",
+      "106,16": "@dg",
+      "107,16": "@dg",
+      "105,17": "@dg",
+      "106,17": "@dg",
+      "107,17": "@dg",
+      "105,18": "@dg",
+      "106,18": "@dg",
+      "107,18": "@dg",
+      "105,19": "@dg",
+      "106,19": "@dg",
+      "107,19": "@dg",
+      "108,19": "@dg",
+      "105,20": "@dg",
+      "106,20": "@dg",
+      "107,20": "@dg",
+      "105,21": "@dg",
+      "106,21": "@dg",
+      "107,21": "@dg",
+      "104,15": "@dg",
+      "105,15": "@dg",
+      "106,15": "@dg",
+      "107,15": "@dg",
+      "104,16": "@dg",
+      "104,17": "@dg",
+      "104,18": "@dg",
+      "104,19": "@dg",
+      "104,20": "@dg",
+      "104,21": "@dg",
+      "103,15": "@dg",
+      "103,16": "@dg",
+      "103,17": "@dg",
+      "103,18": "@dg",
+      "103,19": "@dg",
+      "103,20": "@dg",
+      "103,21": "@dg",
+      "102,15": "@dg",
+      "102,16": "@dg",
+      "102,17": "@dg",
+      "102,18": "@dg",
+      "102,19": "@dg",
+      "102,20": "@dg",
+      "102,21": "@dg",
+      "101,15": "@dg",
+      "101,16": "@dg",
+      "101,17": "@dg",
+      "101,18": "@dg",
+      "101,19": "@dg",
+      "101,20": "@dg",
+      "101,21": "@dg",
+      "100,15": "@dg",
+      "100,16": "@dg",
+      "100,17": "@dg",
+      "100,18": "@dg",
+      "100,19": "@dg",
+      "100,20": "@dg",
+      "100,21": "@dg",
+      "99,15": "@dg",
+      "99,16": "@dg",
+      "99,17": "@dg",
+      "99,18": "@dg",
+      "99,19": "@dg",
+      "99,20": "@dg",
+      "99,21": "@dg",
+      "98,16": "@dg",
+      "98,17": "@dg",
+      "98,18": "@dg",
+      "98,19": "@dg",
+      "98,20": "@dg",
+      "98,21": "@dg",
+      "98,15": "@dg",
+      "90,41": "@dg",
+      "90,42": "@dg",
+      "90,43": "@dg",
+      "91,40": "@dg",
+      "91,41": "@dg",
+      "91,42": "@dg",
+      "91,43": "@dg",
+      "92,38": "@dg",
+      "92,39": "@dg",
+      "92,40": "@dg",
+      "92,41": "@dg",
+      "92,42": "@dg",
+      "93,35": "@dg",
+      "93,36": "@dg",
+      "93,37": "@dg",
+      "93,38": "@dg",
+      "93,39": "@dg",
+      "93,40": "@dg",
+      "93,41": "@dg",
+      "93,34": "@dg",
+      "94,34": "@dg",
+      "94,35": "@dg",
+      "94,36": "@dg",
+      "94,37": "@dg",
+      "94,38": "@dg",
+      "94,39": "@dg",
+      "94,40": "@dg",
+      "93,33": "@dg",
+      "94,33": "@dg",
+      "93,32": "@dg",
+      "94,32": "@dg",
+      "95,32": "@dg",
+      "95,33": "@dg",
+      "95,34": "@dg",
+      "95,35": "@dg",
+      "95,36": "@dg",
+      "95,37": "@dg",
+      "95,38": "@dg",
+      "94,31": "@dg",
+      "95,31": "@dg",
+      "94,30": "@dg",
+      "95,30": "@dg",
+      "96,30": "@dg",
+      "96,31": "@dg",
+      "96,32": "@dg",
+      "96,33": "@dg",
+      "96,34": "@dg",
+      "96,35": "@dg",
+      "96,36": "@dg",
+      "94,29": "@dg",
+      "95,29": "@dg",
+      "96,29": "@dg",
+      "66,-5": "@dg",
+      "67,-5": "@dg",
+      "68,-5": "@dg",
+      "69,-5": "@dg",
+      "70,-5": "@dg",
+      "71,-5": "@dg",
+      "68,-4": "@dg",
+      "69,-4": "@dg",
+      "70,-4": "@dg",
+      "71,-4": "@dg",
+      "69,-3": "@dg",
+      "70,-3": "@dg",
+      "71,-3": "@dg",
+      "70,-2": "@dg",
+      "71,-2": "@dg",
+      "70,-1": "@dg",
+      "71,-1": "@dg",
+      "71,0": "@dg",
+      "71,1": "@dg",
+      "72,-5": "@dg",
+      "72,-4": "@dg",
+      "72,-3": "@dg",
+      "72,-2": "@dg",
+      "72,-1": "@dg",
+      "72,0": "@dg",
+      "72,1": "@dg",
+      "66,-6": "@dg",
+      "67,-6": "@dg",
+      "68,-6": "@dg",
+      "69,-6": "@dg",
+      "70,-6": "@dg",
+      "71,-6": "@dg",
+      "72,-6": "@dg",
+      "73,-6": "@dg",
+      "73,-5": "@dg",
+      "73,-4": "@dg",
+      "73,-3": "@dg",
+      "73,-2": "@dg",
+      "73,-1": "@dg",
+      "73,0": "@dg",
+      "67,-7": "@dg",
+      "68,-7": "@dg",
+      "69,-7": "@dg",
+      "70,-7": "@dg",
+      "71,-7": "@dg",
+      "72,-7": "@dg",
+      "73,-7": "@dg",
+      "74,-7": "@dg",
+      "74,-6": "@dg",
+      "74,-5": "@dg",
+      "74,-4": "@dg",
+      "74,-3": "@dg",
+      "74,-2": "@dg",
+      "74,-1": "@dg",
+      "68,-8": "@dg",
+      "69,-8": "@dg",
+      "70,-8": "@dg",
+      "71,-8": "@dg",
+      "72,-8": "@dg",
+      "73,-8": "@dg",
+      "74,-8": "@dg",
+      "75,-8": "@dg",
+      "75,-7": "@dg",
+      "75,-6": "@dg",
+      "75,-5": "@dg",
+      "75,-4": "@dg",
+      "75,-3": "@dg",
+      "75,-2": "@dg",
+      "69,-9": "@dg",
+      "70,-9": "@dg",
+      "71,-9": "@dg",
+      "72,-9": "@dg",
+      "73,-9": "@dg",
+      "74,-9": "@dg",
+      "75,-9": "@dg",
+      "69,-10": "@dg",
+      "70,-10": "@dg",
+      "71,-10": "@dg",
+      "72,-10": "@dg",
+      "73,-10": "@dg",
+      "74,-10": "@dg",
+      "75,-10": "@dg",
+      "76,-10": "@dg",
+      "76,-9": "@dg",
+      "76,-8": "@dg",
+      "76,-7": "@dg",
+      "76,-6": "@dg",
+      "76,-5": "@dg",
+      "76,-4": "@dg",
+      "70,-11": "@dg",
+      "71,-11": "@dg",
+      "72,-11": "@dg",
+      "73,-11": "@dg",
+      "74,-11": "@dg",
+      "75,-11": "@dg",
+      "76,-11": "@dg",
+      "77,-11": "@dg",
+      "77,-10": "@dg",
+      "77,-9": "@dg",
+      "77,-8": "@dg",
+      "77,-7": "@dg",
+      "77,-6": "@dg",
+      "77,-5": "@dg"
      },
      "pintado": true
     }

@@ -7,13 +7,13 @@
    a armadura completa absorve ARMADURA do golpe do monstro. Valores para itens de qualidade 50%.
    Usado pela Engine (engine/js/project.js criarEquipamentos) e pelo jogo (ataque dos monstros e drops por nível). */
 (function(root){
- const PARAM={golpes:10,min:.67,max:1.33,armadura:.25,pecas:{ch:.40,le:.25,he:.20,bo:.15},magica:.5,duasMaos:.10,distancia:.15,escudo:.5,niveis:30};
+ const PARAM={golpes:10,min:.67,max:1.33,armadura:.25,pecas:{ch:.40,le:.25,he:.20,bo:.15},magica:.5,duasMaos:.10,distancia:.15,escudo:.5,niveis:10}; // nível máximo 10
  // tipos de arma (chave do js/pacote-armas.js): velocidade de ataque %, duas mãos, alcance; o mesmo dano por segundo para todos
  const TIPOS=[
   ['espada','Espada',0,false,22],['espada_grande','Espada Grande',-12,true,26],['adaga','Adaga',25,false,18],['arco','Arco',0,true,140],
   ['besta','Besta',-22,true,160],['manopla','Manopla',20,false,16],['machado','Machado',0,true,24],['martelo','Martelo',-18,true,24],
   ['lanca','Lança',0,true,34],['machadinha','Machadinha',8,false,20],['maca','Maça',0,false,20],['escudo','Escudo',0,false,16],
-  ['cajado','Cajado',0,true,120],['vara','Vara',0,false,110],['orbe','Orbe',0,false,120]
+  ['cajado','Cajado',0,true,120],['vara','Cetro',0,false,110],['orbe','Orbe',0,false,120]
  ].map(([chave,nome,vel,duas,alcance])=>({chave,nome,vel,duas,alcance}));
  const PECAS=[['he','Capacete'],['ch','Peitoral'],['le','Calça'],['bo','Bota']];
  // material por faixa de 5 níveis (nome e cores do ícone das armaduras)
@@ -22,11 +22,12 @@
  const PADRAO_CALC={hp0:50,hpPerF:2,armPerA:.5,magArmPerI:.5,physPerF:.2,magPerI:.2};
  const PADRAO_CLASSE={war:{attrs:{F:25,A:15,I:5},per:{F:6,A:3,I:1}},mag:{attrs:{F:5,A:5,I:15},per:{F:1,A:2,I:5}}};
  const num=(v,d)=>Number.isFinite(+v)&&v!==''&&v!=null?+v:d;
- const atr=(c,k,n)=>num(c&&c.attrs&&c.attrs[k],0)+(n-1)*num(c&&c.per&&c.per[k],0);
+ let POR_NIVEL=2; // Fórmulas › Atributos por nível (o mesmo para todas as classes e monstros)
+ const atr=(c,k,n)=>num(c&&c.attrs&&c.attrs[k],0)+(n-1)*POR_NIVEL;
  const faixa=(media,p=PARAM)=>{const min=Math.max(1,Math.round(media*p.min));return{min,max:Math.max(min,Math.round(media*p.max)),media}};
  /* números de um nível: calc = Fórmulas do projeto; classes = {war, mag} no formato do projeto (attrs, per) */
  function nivel(n,calc={},classes={}){
-  const c={...PADRAO_CALC,...Object.fromEntries(Object.entries(calc||{}).filter(([,v])=>v!==''&&v!=null))},p=PARAM;
+  const c={...PADRAO_CALC,...Object.fromEntries(Object.entries(calc||{}).filter(([,v])=>v!==''&&v!=null))},p=PARAM;POR_NIVEL=num(c.atrPorNivel,2);
   const war=classes.war||PADRAO_CLASSE.war,mag=classes.mag||PADRAO_CLASSE.mag;
   const F=atr(war,'F',n),A=atr(war,'A',n),vida=c.hp0+F*c.hpPerF,defesa=Math.round(A*c.armPerA),G=1+F*c.physPerF/100;
   const armaFisica=(vida/p.golpes+defesa)/G,golpeMonstro=(vida/p.golpes+defesa)/(1-p.armadura),armadura=Math.round(golpeMonstro*p.armadura);

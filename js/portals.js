@@ -23,7 +23,7 @@ const clonePortalDefs=list=>list.map((q,i)=>{
   const min=m.min!==undefined?Math.max(0,Math.floor(+m.min||0)):Math.max(1,Math.round(cMin*parte));
   const max=Math.max(min,m.max!==undefined?Math.floor(+m.max||0):Math.round(cMax*parte));
   return{id:m.id,chance,min,max,elite:Math.max(0,Math.min(100,m.elite!==undefined?+m.elite||0:elite0))/100}});
- return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),grupo:!!q.grupo,monsters}});
+ return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),grupo:!!q.grupo,cor:/^#[0-9a-f]{6}$/i.test(q.cor||'')?q.cor:'#b06bff',monsters}});
 const portalDefs=clonePortalDefs(Array.isArray(PROJ.portalDefs)?PROJ.portalDefs:DEFAULT_PORTAL_DEFS);
 window.PORTAL_DEFS=portalDefs;
 function spawnAt(x,y,type,level=monsterLevel()){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
@@ -83,7 +83,7 @@ function openPortal(){
  const validPositions=positions.filter(pos=>pos.available>=minPack(site)),position=validPositions[Math.floor(Math.random()*validPositions.length)];
  const a=position.a,plan=planPack(site,position.available);
  if(!plan.length)return;
- portals.push({x:position.x,y:position.y,t:0,a,n0:plan.length,left:plan.length,plan,next:PORTAL_FIRST_SPAWN,interval:(PORTAL_LAST_SPAWN-PORTAL_FIRST_SPAWN)/Math.max(1,plan.length-1),fin:0,id:++pid,siteId:site.id,grupo:site.grupo,ang:Math.atan2(CY-position.y,CX-position.x)+rnd(-.8,.8)});
+ portals.push({x:position.x,y:position.y,t:0,a,n0:plan.length,left:plan.length,plan,next:PORTAL_FIRST_SPAWN,interval:(PORTAL_LAST_SPAWN-PORTAL_FIRST_SPAWN)/Math.max(1,plan.length-1),fin:0,id:++pid,siteId:site.id,grupo:site.grupo,cor:site.cor,ang:Math.atan2(CY-position.y,CX-position.x)+rnd(-.8,.8)});
 }
 /* A composição segue as chances e quantidades configuradas para o portal escolhido. */
 function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,1.1),r=rnd(16,34),px=q.x+Math.cos(a)*r,py=q.y+Math.sin(a)*r;if(walk(px,py)&&!insideCamp(px,py)&&longeDeArvores(px,py)){ox=px;oy=py;break}}
@@ -95,7 +95,7 @@ function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,
  if(entry.type=='gob'&&questMonsterRequested('gob')&&!sawGoblin){
   e.sawGoblin=true;sawGoblin=e
  }
- ring(q.x,q.y-8,14,'#b98cff',.3);en.push(e);q.left--}
+ ring(q.x,q.y-8,14,q.cor||'#b98cff',.3);en.push(e);q.left--}
 /* Espalhar para o centro: a cada poucos segundos a "casa" do monstro anda 40–80 px em direção ao acampamento,
    até parar a uma distância segura dele. Grupo: os seguidores têm a casa colada no líder. */
 const grupos=new Map(),PARADA=CAMP_SAFE_HALF_SIZE+110;
@@ -139,7 +139,12 @@ const upd0=upd;upd=function(dt){upd0(dt);
  }
  if(!window.mpEspelho)seguirLider();
  separate();for(let i=en.length;i--;)if(en[i].gone)en.splice(i,1)};
-/* Fenda retangular vertical: moldura com runas, energia interna e faiscas em pixel art. */
+/* Portal de invocação: anel de luz vertical (como um portal mágico) na cor escolhida para ele na Engine (q.cor):
+   brilho em volta, reflexo no chão, borda em degradê da cor (mais quente de um lado, mais fria do outro), um ponto
+   de luz correndo pela borda, centro escuro com redemoinho e faíscas subindo. Abre crescendo e fecha encolhendo. */
+const hexRgb=h=>{const n=parseInt(String(h).slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]};
+const girarCor=([r,g,b],k)=>{const m=(r+g+b)/3;return[r,g,b].map((v,i)=>Math.max(0,Math.min(255,Math.round(i===0?v+k*60:i===2?v-k*60:v+(m-v)*.1))))};
+const rgba=(c,a)=>'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';
 function drawSpawnPortal(q,target,original=false){
  const ctx=target||cv.getContext('2d');
  const s=Math.max(0,Math.min(1,q.t/PORTAL_OPEN,(PORTAL_DURATION-q.t)/PORTAL_CLOSE));if(s<.03)return;
@@ -148,61 +153,34 @@ function drawSpawnPortal(q,target,original=false){
   const drawn=gameArtDraw('portal-spawn-'+q.siteId,ctx,q.x,q.y)||gameArtDraw('portal-spawn',ctx,q.x,q.y);
   ctx.restore();if(drawn)return;
  }
- const t=q.t,phase=q.id*.73;
- ctx.save();ctx.translate(Math.round(q.x),Math.round(q.y));ctx.globalAlpha*=s;
- ctx.scale(.6,.6);
- const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
- const frame=(x,y,w,h,c)=>{rect(x,y,w,1,c);rect(x,y+h-1,w,1,c);rect(x,y,1,h,c);rect(x+w-1,y,1,h,c)};
- rect(-17,-2,34,5,'#0007');rect(-15,-1,30,2,'#a855f744');
- ctx.scale(.75+.25*s,s);
- rect(-21,-49,42,53,'#8b5cf610');rect(-17,-46,34,48,'#a855f71c');rect(-14,-44,28,45,'#c084fc26');
- rect(-13,-43,26,43,'#241638');rect(-12,-42,24,41,'#655080');
- rect(-10,-40,20,38,'#10091e');frame(-10,-40,20,38,'#c4a0ff');
- ctx.save();ctx.beginPath();ctx.rect(-9,-39,18,36);ctx.clip();
- rect(-9,-39,18,36,'#06020c');rect(-9,-34,18,31,'#0d041a');
- rect(-8,-29,16,26,'#140626');rect(-7,-23,14,20,'#1c0836');rect(-6,-17,12,14,'#260a4a');
- for(let col=-8;col<=7;col+=2){
-  const bandPulse=.5+.5*Math.sin(t*3+col*.8+phase);
-  rect(col,-35,1,32,`rgba(168,85,247,${.06+bandPulse*.08})`);
- }
- for(let i=0;i<PORTAL_SQUARES.length;i++){
-  const sq=PORTAL_SQUARES[i],progress=(t*sq.spd+sq.ph+phase)%35;
-  const alpha=Math.max(0,Math.min(1,progress/5,(35-progress)/6));
-  const x=sq.col*.8+Math.sin(t*1.8+sq.ph*.6)*1.1,y=-4-progress;
-  ctx.globalAlpha=s*alpha;
-  rect(x-1,y-1,sq.sz+2,sq.sz+2,'#a855f733');
-  rect(x,y,sq.sz,sq.sz,i%3==0?'#a855f7':i%3==1?'#c084fc':'#9333ea');
-  rect(x,y,1,1,'#f3e8ff');
- }
+ const def=portalDefs.find(d=>d.id===q.siteId),cor=hexRgb(q.cor||(def&&def.cor)||'#b06bff'),quente=girarCor(cor,.7),fria=girarCor(cor,-.7);
+ const t=q.t,phase=q.id*.73,H=46*(.35+.65*s),W=13*(.7+.3*s),cy=-H/2-2;
+ ctx.save();ctx.translate(Math.round(q.x),Math.round(q.y));
+ // reflexo e brilho no chão
+ let g=ctx.createRadialGradient(0,0,0,0,0,22);g.addColorStop(0,rgba(cor,.45*s));g.addColorStop(1,rgba(cor,0));ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,22,5,0,0,7);ctx.fill();
+ // centro escuro e translúcido com redemoinho
+ ctx.fillStyle='rgba(8,4,18,'+(.55*s)+')';ctx.beginPath();ctx.ellipse(0,cy,W-1.5,H/2-1.5,0,0,7);ctx.fill();
+ ctx.save();ctx.beginPath();ctx.ellipse(0,cy,W-1.5,H/2-1.5,0,0,7);ctx.clip();ctx.lineWidth=1;
+ for(let k=0;k<4;k++){const a0=t*(1.2+k*.3)+k*1.6+phase;ctx.strokeStyle=rgba(k%2?quente:fria,.28*s);ctx.beginPath();ctx.ellipse(0,cy,(W-3)*(1-k*.18),(H/2-3)*(1-k*.18),0,a0,a0+2.2);ctx.stroke()}
  ctx.restore();
- for(const side of [-1,1]){
-  rect(side<0?-13:10,-41,3,40,'#493358');rect(side<0?-12:10,-40,1,38,'#a384bd');
-  for(let j=0;j<6;j++){
-   const x=side<0?-12:10,y=-37+j*6,col=(j+Math.floor(t*6))%3==0?'#f5e5ff':'#b580f4';
-   rect(x,y,2,1,col);rect(x+(j%2),y+1,1,2,col);
-  }
- }
- rect(-13,-43,26,3,'#72518e');rect(-11,-42,22,1,'#ead2ff');
- rect(-13,-3,26,3,'#72518e');rect(-11,-2,22,1,'#dab7ff');
- for(const x of [-13,9])for(const y of [-43,-4]){
-  rect(x-1,y-1,5,5,'#39264d');rect(x,y,3,3,'#c493f3');rect(x+1,y,1,2,'#fff0ff');
- }
- rect(-3,-45,6,5,'#3b2154');rect(-2,-44,4,3,'#bd8aff');rect(-1,-44,2,1,'#fff2ff');
- for(let i=0;i<32;i++){
-  const f=(t*(.65+(i%4)*.12)+i*.618+phase)%1,side=i%2?-1:1;
-  const x=side*(11+f*15)+Math.sin(i*2.4+t*3)*2,y=-4-f*47;
-  const size=i%5==0?2:1;
-  ctx.globalAlpha=s*Math.sin(f*Math.PI);
-  rect(x-1,y-1,size+2,size+2,'#a855f733');
-  rect(x,y,size,size,i%3==0?'#f6e9ff':i%3==1?'#c084fc':'#a855f7');
-  if(i%5==0)rect(x,y+3,1,3,'#bb8aff77');
- }
+ // brilho em volta (soma de luz)
+ ctx.globalCompositeOperation='lighter';
+ g=ctx.createRadialGradient(0,cy,H*.2,0,cy,H*.8);g.addColorStop(0,rgba(cor,0));g.addColorStop(.55,rgba(cor,.16*s));g.addColorStop(1,rgba(cor,0));ctx.fillStyle=g;ctx.fillRect(-H,cy-H,H*2,H*2);
+ // anel: faixa larga e suave, depois a borda em degradê e o fio claro por dentro
+ const borda=ctx.createLinearGradient(-W,cy-H/2,W,cy+H/2);borda.addColorStop(0,rgba(quente,.95*s));borda.addColorStop(.5,rgba(cor,.95*s));borda.addColorStop(1,rgba(fria,.95*s));
+ ctx.lineWidth=5;ctx.strokeStyle=rgba(cor,.22*s);ctx.beginPath();ctx.ellipse(0,cy,W,H/2,0,0,7);ctx.stroke();
+ ctx.lineWidth=2;ctx.strokeStyle=borda;ctx.beginPath();ctx.ellipse(0,cy,W,H/2,0,0,7);ctx.stroke();
+ ctx.lineWidth=.8;ctx.strokeStyle='rgba(255,250,240,'+(.85*s)+')';ctx.beginPath();ctx.ellipse(0,cy,W-.8,H/2-.8,0,0,7);ctx.stroke();
+ // ponto de luz correndo pela borda
+ const a=t*2.4+phase;ctx.lineWidth=2.5;ctx.strokeStyle='rgba(255,255,255,'+(.7*s)+')';ctx.beginPath();ctx.ellipse(0,cy,W,H/2,0,a,a+.5);ctx.stroke();
+ // faíscas subindo pela borda
+ for(let i=0;i<18;i++){const f=(t*(.5+(i%4)*.12)+i*.618+phase)%1,ang=i*2.39+t*.4,x=Math.cos(ang)*W*(1+f*.25),y=cy+Math.sin(ang)*H/2-f*14;
+  ctx.globalAlpha=s*Math.sin(f*Math.PI);ctx.fillStyle=i%3===0?'#ffffff':rgba(i%2?quente:fria,1);ctx.fillRect(Math.round(x),Math.round(y),1,1)}
  ctx.restore()
-}
-window.drawPortals=()=>portals.forEach(q=>drawSpawnPortal(q));
+}window.drawPortals=()=>portals.forEach(q=>drawSpawnPortal(q));
 for(const site of [{id:null,name:'Portal de invocação — padrão'},...portalDefs]){
  gameArtRegister(site.id?'portal-spawn-'+site.id:'portal-spawn',site.name,{
-  w:40,h:40,ay:34/40,draw:g=>drawSpawnPortal({x:20,y:34,t:1,id:1},g,true)
+  w:48,h:64,ay:58/64,draw:g=>drawSpawnPortal({x:24,y:58,t:1,id:1,siteId:site.id},g,true)
  });
 }
 window.PORTALS=portals;

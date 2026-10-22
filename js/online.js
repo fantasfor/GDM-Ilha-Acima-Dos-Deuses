@@ -50,7 +50,8 @@
  window.abrirChatCom=texto=>{openChat();input.value=texto;input.setSelectionRange(texto.length,texto.length)};
  // com conta: visível só quem está na mesma sala; sem conta: todos fora das DGs
  const minhaSala=()=>window.MP&&MP.salaAtual?MP.salaAtual():null;
- const visivel=o=>nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon;
+ // na arena: inimigo fora do campo de visão some (aliados sempre aparecem) — js/arena.js ARENA.ve
+const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)&&!(window.inArena&&window.ARENA&&ARENA.ve&&o.x!=null&&!ARENA.aliado(o.id)&&!ARENA.ve(o.x,o.y));
  function refreshBadge(){
   const count=[...others.values()].filter(visivel).length;
   const lugar=window.inTaverna?'na taverna':window.inDungeon?'na masmorra':'aqui';
@@ -104,18 +105,16 @@
  if(nuvem&&typeof lancar==='function'){
   const cast0=lancar;
   lancar=function(s){
-   const t0=s.t,px=p.x,py=p.y,nf=fxs.length,np=proj.length,nm=mets.length,ng=window.EFX?EFX.total:0,nv=window.VFX?VFX.total:0;
+   const t0=s.t,px=p.x,py=p.y,nf=fxs.length,np=proj.length,nm=mets.length,nv=window.VFX?VFX.total:0;
    const r=cast0.apply(this,arguments);
    if(s&&s.t>t0&&!window.inTaverna){
     const R=Math.round,partes=['e:'+nomeLimpo(s.effect||'x')+':'+hex(s.vfxColor||'#9bd4ff')+':'+R(+s.radius||40)+':'+R(px)+':'+R(py)+':'+R(p.x)+':'+R(p.y)];
     for(const f of fxs.slice(nf,nf+4))partes.push('f:'+R(f.x)+':'+R(f.y)+':'+R(f.r)+':'+hex(f.c)+':'+R((f.d||.4)*100)+':'+nomeLimpo(f.style));
-    for(const q of proj.slice(np,np+3)){const tx=q.tg?q.tg.x:q.x+q.vx*q.t,ty=q.tg?q.tg.y-8:q.y+q.vy*q.t;partes.push('p:'+R(q.x)+':'+R(q.y)+':'+R(tx)+':'+R(ty)+':'+hex(q.c)+(q.seta?':s':''))}
+    for(const q of proj.slice(np,np+3)){const tx=q.tg?q.tg.x:q.x+q.vx*q.t,ty=q.tg?q.tg.y-8:q.y+q.vy*q.t;partes.push('p:'+R(q.x)+':'+R(q.y)+':'+R(tx)+':'+R(ty)+':'+hex(q.c)+(q.seta?':s':q.vfx?':'+q.vfx:''))}
     for(const m of mets.slice(nm,nm+2))partes.push('m:'+R(m.x)+':'+R(m.y));
-    // animações do pacote de efeitos (g:folha.linha.grupo:x:y:ângulo×100:escala×10:duração×100)
-    // logo depois do 'e' (antes dos círculos simples) para não cair no corte de 200 caracteres
+    // efeitos desenhados (v:) e giro (r:) logo depois do 'e', para não cair no corte de 200 caracteres
     const kv=window.VFX?Math.min(2,VFX.total-nv):0;if(kv>0)partes.splice(1,0,...VFX.recentes.slice(-kv).map(v=>'v:'+v.tipo+':'+R(v.x)+':'+R(v.y)+':'+R((v.ang||0)*100)+':'+R(v.raio||0)+':'+R((v.arco||0)*100)+':'+hex(v.cor||'')));
     if(p.canal&&p.canal.visual)partes.splice(1,0,'r:'+R(p.canal.r*10)+':'+p.canal.visual.raio+':'+hex(p.canal.visual.cor));
-    const kg=window.EFX?Math.min(2,EFX.total-ng):0;if(kg>0)partes.splice(1,0,...EFX.recentes.slice(-kg).map(g=>'g:'+g.id+':'+R(g.x)+':'+R(g.y)+':'+R(g.ang*100)+':'+R(g.esc*10)+':'+R(g.dur*100)));
     // grito/aura: os efeitos chegam aos aliados perto de quem lançou (a:tipo:força:duração×10:raio), logo depois do 'e' para não cair no corte de 200 caracteres
     if(s.effect==='aura'&&Array.isArray(s.efs))for(const f of s.efs.slice(0,2))partes.splice(1,0,'a:'+nomeLimpo(f.type)+':'+R(+f.power||0)+':'+R((+f.dur||3)*10)+':'+R((+s.radius||40)*(typeof areaMultiplier==='function'?areaMultiplier(p):1)));
     let tok='k;'+partes.join(';');while(tok.length>200&&tok.includes(';'))tok=tok.slice(0,tok.lastIndexOf(';'));
@@ -125,6 +124,8 @@
   };
  }
  /* aura de um aliado (Grito de Guerra): quem estiver no raio fica com aura e contorno na minha tela (js/vfx-habilidades.js) */
+ /* curas e buffs do Curandeiro para os aliados (js/curandeiro.js): h:tipo:força×100:duração×10:raio:x:y:limpa */
+ window.efeitoAliados=lista=>{if(typeof filaSons=='undefined'||!nuvem||window.inTaverna)return;const R=Math.round;const tok='k;'+lista.slice(0,3).map(f=>'h:'+nomeLimpo(f.tipo)+':'+R((+f.pw||0)*100)+':'+R((+f.dur||0)*10)+':'+R(f.r||20)+':'+R(f.x)+':'+R(f.y)+':'+R(+f.limpa||0)).join(';');if(filaSons.length>=6)filaSons.shift();filaSons.push(tok)};
  window.marcarAura=(x,y,r,cor,dur)=>{const ate=performance.now()/1000+dur;for(const o of others.values())if(o.x!=null&&Math.hypot(o.x-x,o.y-y)<=r)o.vfxAura={ate,cor}};
  function habilidadeRemota(tok,quem){
   const n=v=>Number(v)||0,cor=c=>c?'#'+c:null;let ox=null,oy=null;
@@ -134,15 +135,16 @@
    // aura de um aliado (ex.: Grito de Guerra): vale para mim se eu estiver no raio; na arena não vale (lá são adversários)
    if(a[0]==='a'){if(ox!=null&&!window.inArena&&FX_INFO[a[1]]){const dur=Math.max(.5,n(a[3])/10);if(FX_INFO[a[1]].aura)marcarAura(ox,oy,n(a[4]),FX_INFO[a[1]].c,dur);
      if(p.hp>0&&!(p.dead>0)&&Math.hypot(p.x-ox,p.y-oy)<=n(a[4]))applyFx(p,[{caster:p,self:true,type:a[1],chance:100,dur,pw:n(a[2])}])}continue}
+   // cura/buff de um aliado Curandeiro: vale para mim se eu estiver no raio (na arena, só se for da minha equipe)
+   if(a[0]==='h'){if(FX_INFO[a[1]]&&!(p.dead>0)&&(!window.inArena||quem&&window.ARENA&&ARENA.aliado(quem.uid))&&Math.hypot(p.x-n(a[5]),p.y-n(a[6]))<=n(a[4]))applyFx(p,[{caster:p,type:a[1],chance:100,pw:n(a[2])/100,dur:n(a[3])/10,limpa:n(a[7])}]);continue}
    // efeitos desenhados (js/vfx-habilidades.js): v:tipo:x:y:ângulo×100:raio:arco×100:cor
    if(a[0]==='v'&&window.VFX){VFX.tocar(a[1],{x:n(a[2]),y:n(a[3]),ang:n(a[4])/100,raio:n(a[5]),arco:n(a[6])/100,cor:cor(a[7])||undefined});continue}
    // giro de um aliado: r:duração×10:raio:cor (a lâmina roda em volta dele)
    if(a[0]==='r'&&quem){quem.vfxGiro={ate:performance.now()/1000+n(a[1])/10,raio:n(a[2]),cor:cor(a[3])||'#d8e6ff'};continue}
    if(a[0]==='e'&&window.efeitoVisualHabilidade)efeitoVisualHabilidade(a[1],cor(a[2])||'#9bd4ff',n(a[3])||40,n(a[6]),n(a[7]),n(a[4]),n(a[5]));
    else if(a[0]==='f')fxs.push({x:n(a[1]),y:n(a[2]),r:Math.min(80,n(a[3])),c:cor(a[4])||'#9bd4ff',t:0,d:Math.max(.1,Math.min(2,n(a[5])/100)),...(a[6]?{style:a[6]}:{})});
-   else if(a[0]==='p'&&window.projetilVisual)projetilVisual(n(a[1]),n(a[2]),n(a[3]),n(a[4]),cor(a[5]),a[6]==='s');
+   else if(a[0]==='p'&&window.projetilVisual)projetilVisual(n(a[1]),n(a[2]),n(a[3]),n(a[4]),cor(a[5]),a[6]||false);
    else if(a[0]==='m'&&window.meteoroVisual)meteoroVisual(n(a[1]),n(a[2]));
-   else if(a[0]==='g'&&window.EFX)EFX.tocar(a[1],n(a[2]),n(a[3]),{ang:n(a[4])/100,esc:Math.max(.2,n(a[5])/10),dur:Math.max(.1,n(a[6])/100)});
   }
  }
  function tocarSomRemoto(token,vol){

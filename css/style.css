@@ -65,6 +65,9 @@ canvas#g{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixela
 #dialogue .tavOuro{display:inline;margin:0;font-size:13px;color:#d9d0c7}
 .tavVenda{max-height:min(330px,50vh);overflow:auto;margin:0 0 12px;border:1px solid #595959;background:#0d0d0d}
 .tavItem{display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #262626;font:12px monospace}
+/* quadro de missões da taverna (js/taverna.js) */
+.qmLista{margin:0 0 10px;border:1px solid #595959;background:#0d0d0d}.qmOferta{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #262626;font:12px monospace}.qmOferta>div{flex:1;display:flex;flex-direction:column;gap:2px}.qmOferta small{color:#a69c94}.qmPremio{color:#d9a441;text-align:right;font-size:11px;line-height:1.3}.qmOferta button{margin:0}.qmAtual{border:1px solid #a69c94;background:#262626;padding:6px 10px;margin:0 0 10px}.qmAtual.ok{border-color:#d9a441}.qmAtual p{margin:4px 0}
+#quest .qmq{margin-top:8px;padding-top:6px;border-top:1px solid #595959}#quest .qmq b{display:block}#quest .qmq span{color:#a69c94}#quest .qmq.ok b{color:#d9a441}
 .tavItem img{width:22px;height:22px;flex:none;image-rendering:pixelated}
 .tavItem span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tavItem small{color:#a69c94}
 #dialogue .tavItem b{display:inline;margin:0;font:bold 11px monospace;color:#d9d0c7;white-space:nowrap}

@@ -1,6 +1,6 @@
 /* ---------- Conta, progresso na nuvem e online pelo Firebase ----------
    Ativo só quando js/firebase-config.js está preenchido (versão do GitHub Pages).
-   - Tela de login: Google, GitHub, Microsoft, e-mail e senha ou convidado.
+   - Tela de login: só Google. Depois do login, seleção de personagem (1 espaço) com a ilha ao fundo; clicar entra no jogo.
    - O progresso (autosave e slots) fica na conta, em saves/{uid}; vale o mais recente.
    - online.js usa window.ONLINE_NUVEM para posição dos jogadores e chat em tempo real.
    As regras de segurança do banco estão em ferramentas/regras-firebase.json. */
@@ -21,7 +21,7 @@
  tela.addEventListener('keydown',e=>e.stopPropagation());
  document.body.append(tela);
  function caixa(sub){
-  const box=el('div','mbox contaBox');const h=el('h1');h.innerHTML='Ilha do<br>Acampamento';
+  const box=el('div','mbox contaBox');const h=el('h1');h.innerHTML='GDM<br>Ilha Acima dos Deuses';
   box.append(h,el('div','sub',sub||'AVENTURA RPG ONLINE'));tela.replaceChildren(box);tela.classList.add('open');return box;
  }
  const botao=(texto,fn,cls)=>{const b=el('button','mb '+(cls||''),texto);b.type='button';b.onclick=fn;return b};
@@ -55,7 +55,7 @@
   }
  }
  function telaLogin(){
-  const box=caixa();const lista=(window.LOGIN_PROVEDORES||['google','email','convidado']).filter(id=>NOMES[id]||id==='email'||id==='convidado');
+  const box=caixa();const lista=['google']; // só Google (pedido do usuário)
   for(const id of lista){
    if(NOMES[id])box.append(botao('Entrar com '+NOMES[id],()=>entrarCom(id,box),'contaProv contaProv-'+id));
    else if(id==='email'){
@@ -368,49 +368,52 @@
   }));
   const del=box.querySelector('.mDel');if(del)box.insertBefore(r,del);else box.append(r);
  }
- // chamado pelo link "Excluir conta" no fim do menu (js/menu.js)
- window.excluirConta=box=>{if(user)confirmarApagar(box)};
-
- /* ---- apagar conta: progresso, perfil, amigos e o login; não tem volta ---- */
- function confirmarApagar(box){
+ /* ---- seleção de personagem: um espaço; clicar no personagem entra no jogo. O fundo é a ilha dele, com a câmera
+    passeando devagar (render.js cameraMenu). Apagar personagem: progresso, nome, perfil e amigos; a conta (Google) fica ---- */
+ function telaSelecao(){
+  return new Promise(resolve=>{
+   tela.replaceChildren();tela.classList.add('open','selecao');document.body.classList.add('selecaoPersonagem');
+   if(window.cameraMenu)cameraMenu.ligar();
+   const painel=el('div','selPainel');
+   const fechar=()=>{tela.classList.remove('selecao');document.body.classList.remove('selecaoPersonagem');if(window.cameraMenu)cameraMenu.desligar()};
+   const slot=el('button','selSlot');slot.type='button';slot.setAttribute('aria-label','Jogar com '+(perfil.nome||'o personagem'));
+   const cv=el('canvas','selSprite');cv.width=120;cv.height=120;
+   try{desenharPrevia(cv,spritePersonagem(p.cls,p.sex,window.APARENCIA?APARENCIA.normalizar(p.look,p.sex):p.look))}catch(e){}
+   const rank=(p.classProgress&&p.classProgress[p.cls]||{rank:1}).rank;
+   const info=el('div','selInfo');info.append(el('strong','',perfil.nome||'Aventureiro'),el('span','',(CL[p.cls]?CL[p.cls].n:'Sem classe')+' · Nível '+p.lvl+' · Rank '+rank),el('em','','Clique para jogar'));
+   slot.append(cv,info);slot.onclick=()=>{fechar();if(window.iniciarJogo)iniciarJogo();resolve()};
+   const linha=el('div','selBotoes');
+   linha.append(botao('Apagar personagem',()=>confirmarApagarPersonagem(painel),'danger'),botao('Sair',async()=>{window._noSave=true;nuvem.leave();await auth.signOut();location.reload()},'dim'));
+   painel.append(el('h1','selTitulo','GDM Ilha Acima dos Deuses'),el('div','selSub','PERSONAGEM'),slot,linha,el('div','selConta',descrever()));
+   tela.append(painel);setTimeout(()=>slot.focus(),50);
+  });
+ }
+ function confirmarApagarPersonagem(box){
   const c=el('div','contaApagar');
-  c.append(el('p','','Excluir a conta remove para sempre o seu personagem, o progresso, o nome, os amigos e o login. Não tem como desfazer. Depois você volta para a tela de entrada e pode criar um personagem novo.'),
+  c.append(el('p','','Apagar o personagem remove para sempre o progresso, os itens, o nome e os amigos dele. Não tem como desfazer. Depois você cria um personagem novo.'),
    el('p','','Para confirmar, digite APAGAR:'));
   const i=el('input');i.autocomplete='off';i.setAttribute('aria-label','Digite APAGAR para confirmar');
   i.addEventListener('keydown',e=>e.stopPropagation());
   const msg=el('p','contaMsg');
-  const ok=botao('Excluir minha conta',async()=>{
+  const ok=botao('Apagar personagem',async()=>{
    if(i.value.trim().toUpperCase()!=='APAGAR'){msg.textContent='Digite APAGAR para confirmar.';msg.classList.add('erro');return}
-   ok.disabled=true;msg.classList.remove('erro');msg.textContent='Excluindo…';
-   try{await apagarConta();}
-   catch(e){ok.disabled=false;msg.classList.add('erro');msg.textContent=msgErro(e)}
+   ok.disabled=true;msg.classList.remove('erro');msg.textContent='Apagando…';
+   try{await apagarPersonagem()}catch(e){ok.disabled=false;msg.classList.add('erro');msg.textContent=msgErro(e)}
   },'danger');
   c.append(i,ok,botao('Cancelar',()=>c.remove(),'dim'),msg);
   const antigo=box.querySelector('.contaApagar');if(antigo)antigo.remove();
   box.append(c);i.focus();
  }
- async function apagarConta(){
+ async function apagarPersonagem(){
   const uid=user.uid;
   window._noSave=true;nuvem.leave();
-  // libera o nome para outra pessoa usar
-  if(perfil.nome)await liberarNome(chaveNome(perfil.nome));
-  // amigos: some da lista dos outros também
+  if(perfil.nome)await liberarNome(chaveNome(perfil.nome)); // o nome fica livre para outra pessoa
   try{const a=(await db.ref('amigos/'+uid).get()).val()||{};for(const id of Object.keys(a))await db.ref('amigos/'+id+'/'+uid).remove().catch(()=>{})}catch(e){}
   if(nuvem.posSala)await db.ref('pos/'+nuvem.posSala+'/'+uid).remove().catch(()=>{});
   for(const k of ['saves','perfis','online','amigos','grupos','convites','sussurros','ultimaMsg','ping'])await db.ref(k+'/'+uid).remove().catch(()=>{});
-  try{await user.delete()}
-  catch(e){
-   if(e.code!=='auth/requires-recent-login')throw e;
-   // o Firebase pede um login recente para apagar: confirma de novo e tenta outra vez
-   const p=user.providerData[0]&&user.providerData[0].providerId;
-   if(p==='password'){const senha=prompt('Por segurança, digite a sua senha para apagar a conta:');if(!senha)throw e;await user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(user.email,senha))}
-   else{const id={'google.com':'google','github.com':'github','microsoft.com':'microsoft'}[p];if(!id)throw e;await user.reauthenticateWithPopup(provedor(id))}
-   await user.delete();
-  }
-  for(const k of [SAVE,DONO,QUANDO,'ilha-rpg-explorado','ilha-rpg-grupo','ilha-rpg-online','ilha-rpg-dg-recordes'])ls.del(k);
-  location.reload();
- }
- const menu=document.getElementById('menu');
+  for(const k of [SAVE,QUANDO,'ilha-rpg-explorado','ilha-rpg-grupo','ilha-rpg-online','ilha-rpg-dg-recordes'])ls.del(k);
+  location.reload(); // volta para a criação de personagem
+ } const menu=document.getElementById('menu');
  if(menu)new MutationObserver(()=>{const box=menu.querySelector('.mbox');if(box&&[...box.querySelectorAll('button')].some(b=>/Opções/.test(b.textContent)))linhaConta(box)}).observe(menu,{childList:true});
 
  /* ---- carregar o Firebase e acompanhar o login ---- */
@@ -435,6 +438,7 @@
     // conta nova (ou sem personagem): escolhe nome, classe e sexo antes de jogar
     if(!perfil.criado)await criarPersonagem();
     nuvem.name=perfil.nome;
+    await telaSelecao(); // um espaço de personagem: clicar entra no jogo
    }catch(e){
     console.error('Falha ao ler a conta:',e);
     semNuvem(e&&e.code==='PERMISSION_DENIED'?'O banco recusou o acesso. Publique as regras de ferramentas/regras-firebase.json no Firebase.':'Não foi possível ler sua conta. Verifique a internet.');return;

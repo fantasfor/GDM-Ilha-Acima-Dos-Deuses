@@ -47,6 +47,30 @@ function movePlayer(sp,dt){
  if(!p.dest)return;
  moveAlong(p,sp,dt)
 }
+/* IA tática dos monstros e do Mestre do duelo. Quem ataca de longe mantém distância: recua se o alvo chega perto e anda de
+   lado entre um ataque e outro (fica difícil de alcançar e de acertar); todos saem da área de dano do jogador (Chuva de
+   Meteoros); monstros comuns quase mortos às vezes fogem um pouco; o Mestre usa investida (guerreiro) ou salto para trás
+   (mago). Devolve true quando já decidiu o que fazer neste quadro (sem ataque básico). */
+function iaTatica(e,a,d,alcance,ve,dt){
+ const ar=p.canal&&p.canal.area;
+ if(ar&&!e.boss&&Math.hypot(e.x-ar.x,e.y-ar.y)<ar.r+8){const ang=Math.atan2(e.y-ar.y,e.x-ar.x)||Math.random()*6.28;navigate(e,ar.x+Math.cos(ang)*(ar.r+26),ar.y+Math.sin(ang)*(ar.r+26));return true}
+ if(!e.boss&&!e.duelo&&(e.bossType||'normal')==='normal'){
+  if(e.fuga>0){e.fuga-=dt;const ang=Math.atan2(e.y-a.y,e.x-a.x);navigate(e,e.x+Math.cos(ang)*40,e.y+Math.sin(ang)*40);return true}
+  if(!e.fugiu&&e.hp<monsterMaxHp(e)*.2){e.fugiu=true;if(Math.random()<.35){e.fuga=2.2;ft(e.x,e.y-26,'!','#ffd84a');return true}}}
+ if(e.duelo&&iaDuelista(e,a,d,ve,dt))return true;
+ if(alcance>=45&&ve){
+  if(d<alcance*.5){const ang=Math.atan2(e.y-a.y,e.x-a.x);for(const o of [0,.5,-.5,1,-1]){const x=a.x+Math.cos(ang+o)*alcance*.8,y=a.y+Math.sin(ang+o)*alcance*.8;if(walk(x,y)&&linhaLivre({x,y},a)){navigate(e,x,y);e.fx=a.x-e.x;e.fy=a.y-e.y;return e.cd>0}}}
+  if(d<=alcance&&e.cd>.35){e.strafeT=(e.strafeT||0)-dt;if(!e.lado)e.lado=Math.random()<.5?1:-1;
+   if(!e.dest||e.strafeT<=0){e.strafeT=.8+Math.random()*.8;if(Math.random()<.3)e.lado*=-1;const ang=Math.atan2(e.y-a.y,e.x-a.x)+e.lado*.35,r=Math.min(alcance*.85,Math.max(alcance*.6,d)),x=a.x+Math.cos(ang)*r,y=a.y+Math.sin(ang)*r;if(walk(x,y)&&linhaLivre({x,y},a))navigate(e,x,y);else e.lado*=-1}
+   e.fx=a.x-e.x;e.fy=a.y-e.y;return true}}
+ return false}
+function iaDuelista(e,a,d,ve,dt){
+ if(window.ARENA&&ARENA.iaMestre&&ARENA.iaMestre(e,a,d,ve,dt))return true; // habilidades da classe que o Mestre ensina (js/arena.js)
+ e.truque=(e.truque??2)-dt;if(e.truque>0)return false;
+ if(e.attackMagic){if(d<42){const ang=Math.atan2(e.y-a.y,e.x-a.x);for(const o of [0,.6,-.6,1.2,-1.2]){const x=e.x+Math.cos(ang+o)*85,y=e.y+Math.sin(ang+o)*85;
+   if(walk(x,y)&&linhaLivre(e,{x,y})){ring(e.x,e.y,16,'#9cf',.4);e.x=x;e.y=y;e.dest=null;e.path=[];e.pathKey='';ring(x,y,16,'#9cf',.4);ft(x,y-26,'Salto!','#9cf');e.truque=6;return true}}}}
+ return false}/* botão Reaparecer (tela de morte): na arena volta pela regra da arena; fora dela, no acampamento com vida e mana cheias */
+window.reaparecer=function(){if(!(p.dead>0)||p.dead>=1e8)return;p.dead=0;p.morreuEm=null;if(window.inArena&&window.ARENA){ARENA.renascer();return}p.x=CX;p.y=CY+34;p.dest=null;p.path=[];p.hp=mhp();p.mp=mmp();ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');saveGame()};
 function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
  fxs.forEach(f=>f.t+=dt);for(let i=fxs.length;i--;)if(fxs[i].t>fxs[i].d)fxs.splice(i,1);
  fts.forEach(f=>{f.y-=14*dt;f.a-=dt*.9});for(let i=fts.length;i--;)if(fts[i].a<=0)fts.splice(i,1);
@@ -57,10 +81,10 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    exitDungeon(false);
    ft(CX,CY-30,'VOCÊ FOI DERROTADO E EXPULSO DA MASMORRA!','#ff4444');
   }
-  p.dead-=dt;if(p.dead<=0&&window.inArena&&window.ARENA)ARENA.renascer();else if(p.dead<=0){p.x=CX;p.y=CY+34;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');saveGame()}
+  // morto: a animação de queda roda (render.js desenharHeroiMorto) e o jogador volta pelo botão Reaparecer (reaparecer abaixo)
  }
  else{
-  tickAttributeBuffs(p,dt);SK.forEach(s=>s.t=Math.max(0,s.t-dt));p.guard=Math.max(0,(p.guard||0)-dt);p.acd-=dt;tickStatus(p,dt);if(window.tickDash)tickDash(dt);if(window.tickCanal)tickCanal(dt);const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
+  tickAttributeBuffs(p,dt);SK.forEach(s=>s.t=Math.max(0,s.t-dt));p.acd-=dt;tickStatus(p,dt);if(window.tickDash)tickDash(dt);if(window.tickCanal)tickCanal(dt);if(window.CURANDEIRO)CURANDEIRO.tick(dt);const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
   // conjuração em andamento (combat.js cast/lancar): andar, atacar ou ser atordoado interrompe; no fim a habilidade sai
   if(p.conj){const c=p.conj,andando=['mover_direita','mover_esquerda','mover_baixo','mover_cima'].some(k=>held.has(k))||Math.hypot(p.joy.x,p.joy.y)>.08;
    if(pst==0||p.dest||p.tgt||p.npcT||andando){p.conj=null;ft(p.x,p.y-24,'Conjuração interrompida','#ccc')}
@@ -117,10 +141,11 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
   else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&naSalaDoChefe(e,a)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;if(a===p)marcarCombate();e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
    const hasSkill=e.skill&&e.skill.cost<999999,attackRange=hasSkill?e.skill.range*(e.skill.radius?areaMultiplier(e):1):(e.weaponBasic?e.weaponBasic.rng:20),ve=linhaLivre(e,a);
    if(window.CHEFES&&CHEFES.tick(e,dt,a,d)){e.noAtk=0} // mecânica de chefe (js/chefes.js)
+   else if(iaTatica(e,a,d,attackRange,ve,dt)){} // distância, desvio de área, fuga e truques do duelista (abaixo)
    else if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);
    else if(hasSkill&&d<=attackRange&&ve&&e.mp>=e.skill.cost&&e.skillCd<=0){e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;e.aw=e.skill.windup/Math.max(.1,1+monsterAttribute(e,'castSpeed'));e.noAtk=0;e.skillWindup=true;e.mp-=e.skill.cost;applyActionAttributes(e,e.skill);e.skillCd=e.skill.cd*cooldownMultiplier(e);if(!(window.playEntitySound&&playEntitySound('skills',e.skill.id,'cast'))&&window.playEntitySound)playEntitySound('monsters',e.ty,'skill');ft(e.x,e.y-24,e.skill.name,'#f9c')}
    else if(d>attackRange||!ve){if(!ve)approach(e,a,8);else if(e.bossType=='grandboss')approach(e,a,Math.max(12,attackRange-4));else flank(e,Math.max(12,attackRange-4),a)}
-   else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*CALC.monAtkSpdPerA)/Math.max(.05,1-e.stats.A*CALC.monAtkSpdPerA);e.cd=Math.max(CALC.monMinInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))));if(window.playEntitySound)playEntitySound('monsters',e.ty,'attack')}}
+   else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*CALC.monAtkSpdPerA)/Math.max(.05,1-e.stats.A*CALC.monAtkSpdPerA);e.cd=Math.max(CALC.monMinInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))))/statusAtk(e); /* gelo: ataca mais devagar */if(window.playEntitySound)playEntitySound('monsters',e.ty,'attack')}}
   }
   else{
    if(e.chasing){e.dest=null;e.path=[];e.pathKey='';e.chasing=false;e.fa=undefined;e.alert=0;e.noAtk=0;if(e.boss&&window.inDungeon)e.foraCombate=CALC.monsterReset||10/* chefe da DG: saiu da sala, reseta na hora */}
@@ -138,7 +163,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    }
   }
   moveAlong(e,e.spd*statusSpeed(e)*Math.max(0,1+statusAttributeBonus(e,'moveSpeed')+statusAttributeBonus(e,'A')*.005),dt)}
- for(let i=proj.length;i--;){const q=proj[i];if(q.tg){if(q.tg.hp<=0){proj.splice(i,1);continue}const tx=q.tg.x,ty=q.tg.y-wh(q.tg.img)/2,a=Math.atan2(ty-q.y,tx-q.x);q.vx=Math.cos(a)*190;q.vy=Math.sin(a)*190;if(dist(q,{x:tx,y:ty})<10){hurtE(q.tg,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());ring(q.x,q.y,14,'#f93',.25);proj.splice(i,1);continue}}q.x+=q.vx*dt;q.y+=q.vy*dt;q.t-=dt;if(q.tg){if(q.t<=0||bloqueiaTiro(q.x,q.y+8))proj.splice(i,1);continue}
-  const h=en.find(e=>e.hp>0&&(dist(e,q)<14||dist({x:e.x,y:e.y-wh(e.img)/2},q)<14));if(h){hurtE(h,q.d,q.magic,q.fx);if(q.hl)heal(q.hl());ring(q.x,q.y,14,'#f93',.25);proj.splice(i,1)}else if(q.t<=0||!walk(q.x,q.y))proj.splice(i,1)}
+ for(let i=proj.length;i--;){const q=proj[i];if(q.tg){if(q.tg.hp<=0){proj.splice(i,1);continue}const tx=q.tg.x,ty=q.tg.y-wh(q.tg.img)/2,a=Math.atan2(ty-q.y,tx-q.x);q.vx=Math.cos(a)*190;q.vy=Math.sin(a)*190;if(dist(q,{x:tx,y:ty})<10){acertoProjetil(q,q.tg);proj.splice(i,1);continue}}q.x+=q.vx*dt;q.y+=q.vy*dt;q.t-=dt;if(q.tg){if(q.t<=0||bloqueiaTiro(q.x,q.y+8))proj.splice(i,1);continue}
+  const h=en.find(e=>e.hp>0&&(dist(e,q)<14||dist({x:e.x,y:e.y-wh(e.img)/2},q)<14));if(h){acertoProjetil(q,h);proj.splice(i,1)}else if(q.t<=0||!walk(q.x,q.y))proj.splice(i,1)}
  for(let i=mets.length;i--;){const m=mets[i];m.t-=dt;if(m.t<=0){const radius=m.radius||36*areaMultiplier(p);ring(m.x,m.y,radius,'#f60',.5);en.forEach(e=>{if(e.hp>0&&dist(e,m)<radius&&linhaLivre(m,e))hurtE(e,m.dmg||120+p.lvl*12,m.magic!==false,m.fx)});mets.splice(i,1)}}
 }

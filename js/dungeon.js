@@ -361,7 +361,7 @@
   if(!window.inDungeon) return false;
 
   const isInsideCave = (px, py) => {
-   if(DUNGEON_CHAO){ const id = chaoDG(px, py), t = id && texturasChao()[id]; return !!id && !(t && t.liquido); }
+   if(DUNGEON_CHAO){ const id = chaoDG(px, py), t = id && texturasChao()[id]; return !!id && !(t && (t.liquido || t.parede)); }
    for(let i = 0; i < CAVE_ROOMS.length; i++){
     const r = CAVE_ROOMS[i];
     if(px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return true;
@@ -405,7 +405,7 @@
  // parede para golpes e magias: fora das salas/corredores ou porta fechada (baús e NPCs não bloqueiam)
  window.dungeonParede = (x, y) => {
   if(!window.inDungeon) return false;
-  const dentro = DUNGEON_CHAO ? !!chaoDG(x, y) : [...CAVE_ROOMS, ...CAVE_CORRIDORS].some(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
+  const dentro = DUNGEON_CHAO ? (id => !!id && !(texturasChao()[id] && texturasChao()[id].parede))(chaoDG(x, y)) : [...CAVE_ROOMS, ...CAVE_CORRIDORS].some(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
   if(!dentro) return true;
   return DUNGEON_DOORS.some(door => !dungeonDoorOpen(door) && Math.abs(x - door.x) <= Math.max(8, Number(door.w) || 12) / 2 && Math.abs(y - door.y) <= Math.max(8, Number(door.h) || 56) / 2);
  };
@@ -1724,7 +1724,7 @@
   fts.forEach(f => {
    ctx.globalAlpha = Math.max(0, f.a);
    ctx.fillStyle = '#000'; ctx.fillText(f.t, Math.round(f.x) + .5, Math.round(f.y) + .5);
-   ctx.fillStyle = f.c; ctx.fillText(f.t, Math.round(f.x), Math.round(f.y));
+   ctx.fillStyle = corFt(f); ctx.fillText(f.t, Math.round(f.x), Math.round(f.y)); if (f.crit) iconeCrit(f);
    ctx.globalAlpha = 1;
   });
 

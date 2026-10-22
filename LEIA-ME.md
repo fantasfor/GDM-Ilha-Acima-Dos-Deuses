@@ -1,4 +1,4 @@
-# Ilha RPG no GitHub Pages (online com login)
+# GDM Ilha Acima dos Deuses no GitHub Pages (online com login)
 
 O GitHub Pages só hospeda arquivos. Por isso, o login e o online usam o **Firebase**, que é gratuito no plano Spark. O Firebase cuida de:
 
@@ -75,7 +75,7 @@ Abra **Authentication › Settings › Authorized domains** e adicione:
      ```
      git init
      git add .
-     git commit -m "Ilha RPG"
+     git commit -m "GDM Ilha Acima dos Deuses"
      git branch -M main
      git remote add origin https://github.com/SEU-USUARIO/ilha-rpg.git
      git push -u origin main

@@ -7,6 +7,8 @@
   const q=new URLSearchParams(location.search),cls=q.get('classe'),nivel=+q.get('nivel')||0;
   if(q.has('novo')){if(cls)TESTE.classe(cls);for(let i=1;i<Math.min(nivel,CALC.maxLevel);i++)TESTE.nivel();TESTE.curar()}
   if(MODO.dg)TESTE.entrarDG(MODO.dg);
+  else if(q.get('cena')==='arena'&&window.ARENA)setTimeout(()=>ARENA.entrar(),300); // Play na cena Arena
+  else if(q.get('cena')==='taverna'&&window.entrarTaverna)setTimeout(()=>entrarTaverna(),300); // Play na cena Taverna
   else if(MODO.x!=null&&MODO.y!=null&&!TESTE.teleportar(MODO.x,MODO.y))ft(p.x,p.y-30,'Ponto escolhido não é caminhável; começando no acampamento.','#ffd84a');
   try{parent!==window&&parent.ENGINE&&parent.ENGINE.jogoPronto(window)}catch(e){}
  });
@@ -29,6 +31,8 @@
  }
  const skillIcon=id=>{const entry=Object.keys(CL).flatMap(c=>skillEntries(c)).find(s=>s.id==id),d=GAMEDATA.skills.find(s=>s.id==id);return entry&&entry.ic||(d?SKI(d.icon||'orb',d.c1||'#4a6a96',d.c2||'#fff'):null)};
  window.MOTOR={
+  // prévia das cenas fixas (arena, taverna) para o painel de cenas da Engine
+  previaCena:id=>{const f=window.CENA_PREVIA&&CENA_PREVIA[id];return f?f():null},
   versao:1,
   mundo:()=>({W,T,N,CX,CY,campo:CAMP_SAFE_HALF_SIZE,portalAcampamento:{x:campPortal.x,y:campPortal.y},pontes:RBR.slice()}),
   terreno:()=>map,
@@ -66,7 +70,7 @@
     const a=attributes(),b=basic(),golpeMedio={physical:media(()=>basicAttackDamage(b).physical||0),magic:media(()=>basicAttackDamage(b).magic||0)};
     const heroi={F:a.F,A:a.A,I:a.I,vida:mhp(),mana:mmp(),poderFisico:Math.round(physicalPower()),poderMagico:Math.round(magicPower()),golpe:Math.round(soma(golpeMedio)),tipo:b.damageType=='magic'?'mágico':'físico',
      defesaFisica:armor(),defesaMagica:magicArmor(),intervalo:+attackInterval().toFixed(2),velocidade:Math.round(CALC.move*(1+spdB())),regenVida:+regenHp().toFixed(2),regenMana:+regenMp().toFixed(2),
-     critico:Math.round(bonus('critChance')*100),danoCritico:Math.round(150+bonus('critDamage')*100),equipamentos:Object.entries(EQ).filter(([,s])=>s).map(([sl,s])=>sl+':'+s.id)};
+     critico:Math.round((bonus('critChance')+critAgi(p))*100),danoCritico:Math.round(150+(bonus('critDamage')+critAgi(p))*100),equipamentos:Object.entries(EQ).filter(([,s])=>s).map(([sl,s])=>sl+':'+s.id)};
     let mon=null,luta=null;
     if(MONSTER_TYPES[o.monstro]&&window.spawnAt){
      const e=spawnAt(0,0,o.monstro,Math.max(1,Math.floor(+o.nivelMon||1)));if(o.elite)makeElite(e);
@@ -75,7 +79,7 @@
      mon={nome:MONSTER_TYPES[o.monstro].name||o.monstro,nivel:e.lvl,elite:!!e.elite,F:e.stats.F,A:e.stats.A,I:e.stats.I,vida:Math.round(monsterMaxHp(e)),mana:Math.round(monsterMaxMp(e)),golpe:Math.round(soma(golpeMon)),tipo:e.attackMagic?'mágico':'físico',
       defesaFisica:Math.round(e.armor),defesaMagica:Math.round(e.magicArmor),intervalo:+e.ac.toFixed(2),velocidade:Math.round(e.spd),xp:e.xp,ouro:e.g,habilidade:e.skill&&e.skill.cost<999999?e.skill.name:null};
      // mesmas contas do hurtE (defesa do monstro com piso) e do hurtP (defesa do herói)
-     const piso=CALC.armorFloor??.3,noMon=(v,def)=>v>0?Math.max(1,v*piso,v-def):0,noHeroi=(v,def)=>v>0?Math.max(1,v-def):0;
+     const noMon=(v,def)=>Math.max(0,v-def),noHeroi=(v,def)=>Math.max(0,v-def); // dano − defesa, igual ao jogo
      const heroiBate=noMon(golpeMedio.physical,e.armor)+noMon(golpeMedio.magic,e.magicArmor),monBate=noHeroi(golpeMon.physical,armor())+noHeroi(golpeMon.magic,magicArmor());
      const golpesH=Math.ceil(mon.vida/Math.max(1,heroiBate)),golpesM=Math.ceil(heroi.vida/Math.max(1,monBate));
      luta={heroiBate:Math.round(heroiBate),monBate:Math.round(monBate),golpesParaMatar:golpesH,segundosParaMatar:+(golpesH*heroi.intervalo).toFixed(1),golpesParaMorrer:golpesM,segundosParaMorrer:+(golpesM*mon.intervalo).toFixed(1),

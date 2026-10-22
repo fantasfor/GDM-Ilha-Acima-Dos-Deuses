@@ -9,16 +9,17 @@
  function texturas(biblioteca){
   const out={},pack=root.PACOTE_MAPA&&root.PACOTE_MAPA.texturas||{};
   for(const [id,t] of Object.entries(pack))out[id]={...t,pacote:true};
-  for(const [id,d] of Object.entries(biblioteca||{}))if(d&&!d.deleted&&d.chao&&d.pixels)out[id]={name:d.name||id,tema:'projeto',liquido:!!d.liquido,data:d};
+  for(const [id,d] of Object.entries(biblioteca||{}))if(d&&!d.deleted&&d.chao&&d.pixels)out[id]={name:d.name||id,tema:d.tema||'projeto',liquido:!!d.liquido,parede:!!d.parede,data:d}; // parede: pintura de parede (DG), bloqueia
   return out;
  }
- /* Pixels RGBA de uma textura (16×16; texturas maiores são cortadas, menores repetidas). */
+ /* Pixels RGBA da textura inteira (qualquer tamanho). Na pintura ela se repete alinhada ao mundo: uma textura de
+    32×32 cobre 2×2 ladrilhos sem cortar o desenho (antes só os primeiros 16×16 apareciam). */
  const pixelCache=new Map();
  function pixels(data){
   if(pixelCache.has(data))return pixelCache.get(data);
-  const w=data.w,h=data.h,out=new Uint8ClampedArray(TILE*TILE*4);
-  for(let y=0;y<TILE;y++)for(let x=0;x<TILE;x++){const c=data.palette[parseInt(data.pixels[(y%h)*w+(x%w)],36)];if(!/^#[0-9a-f]{6}$/i.test(c||''))continue;const n=parseInt(c.slice(1),16),o=(y*TILE+x)*4;out[o]=n>>16&255;out[o+1]=n>>8&255;out[o+2]=n&255;out[o+3]=255}
-  pixelCache.set(data,out);return out;
+  const w=Math.max(1,data.w|0),h=Math.max(1,data.h|0),out=new Uint8ClampedArray(w*h*4);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const c=data.palette[parseInt(data.pixels[y*w+x],36)];if(!/^#[0-9a-f]{6}$/i.test(c||''))continue;const n=parseInt(c.slice(1),16),o=(y*w+x)*4;out[o]=n>>16&255;out[o+1]=n>>8&255;out[o+2]=n&255;out[o+3]=255}
+  const r={p:out,w,h};pixelCache.set(data,r);return r;
  }
  /* Desenha a pintura numa ImageData W×W (transparente fora dos ladrilhos pintados).
     Bordas com outro chão ficam serrilhadas em pixel (2–3 px) para não parecerem um quadriculado.
@@ -28,13 +29,13 @@
   for(const key of Object.keys(tiles)){
    const id=tiles[key],t=texs[id];if(!t)continue;
    const [i,j]=key.split(',').map(Number);if(!(i-i0>=0&&j-j0>=0&&i-i0<N&&j-j0<M))continue;
-   const P=pixels(t.data),L=at(i-1,j)!==id,R=at(i+1,j)!==id,U=at(i,j-1)!==id,B=at(i,j+1)!==id;
+   const T=pixels(t.data),P=T.p,parede=!!t.parede,L=at(i-1,j)!==id,R=at(i+1,j)!==id,U=at(i,j-1)!==id,B=at(i,j+1)!==id;
    const UL=at(i-1,j-1)!==id,UR=at(i+1,j-1)!==id,BL=at(i-1,j+1)!==id,BR=at(i+1,j+1)!==id;
    for(let y=0;y<TILE;y++)for(let x=0;x<TILE;x++){
     let d=9;if(L)d=Math.min(d,x);if(R)d=Math.min(d,15-x);if(U)d=Math.min(d,y);if(B)d=Math.min(d,15-y);
     if(UL&&!L&&!U)d=Math.min(d,Math.max(x,y));if(UR&&!R&&!U)d=Math.min(d,Math.max(15-x,y));if(BL&&!L&&!B)d=Math.min(d,Math.max(x,15-y));if(BR&&!R&&!B)d=Math.min(d,Math.max(15-x,15-y));
-    const gx=(i-i0)*TILE+x,gy=(j-j0)*TILE+y;if(d<3&&hash(gx+i0*TILE,gy+j0*TILE)>[.38,.62,.86][d])continue;
-    const s=(y*TILE+x)*4,o=(gy*W+gx)*4;D[o]=P[s];D[o+1]=P[s+1];D[o+2]=P[s+2];D[o+3]=P[s+3];
+    const gx=(i-i0)*TILE+x,gy=(j-j0)*TILE+y;if(!parede&&d<3&&hash(gx+i0*TILE,gy+j0*TILE)>[.38,.62,.86][d])continue; // parede pintada: sem borda serrilhada
+    const wx=i*TILE+x,wy=j*TILE+y,s=(((wy%T.h)+T.h)%T.h*T.w+((wx%T.w)+T.w)%T.w)*4,o=(gy*W+gx)*4;D[o]=P[s];D[o+1]=P[s+1];D[o+2]=P[s+2];D[o+3]=P[s+3];
    }
   }
   return image;
@@ -49,11 +50,14 @@
   const c=root.document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   g.putImageData(render(g.createImageData(W,H),W,tiles,texs,{i0,j0,H}),0,0);
   g.save();g.translate(-i0*TILE,-j0*TILE); // padrões alinhados ao mundo
-  const tem=(i,j)=>!!tiles[i+','+j],lista=Object.keys(tiles).map(k=>{const [i,j]=k.split(',').map(Number);return [i,j,tiles[k]]});
+  // ladrilho de parede pintada (textura com parede) não conta como chão: a borda da parede é desenhada em volta dele também
+  const ehParede=id=>!!(texs[id]&&texs[id].parede),tem=(i,j)=>{const id=tiles[i+','+j];return !!id&&!ehParede(id)},lista=Object.keys(tiles).map(k=>{const [i,j]=k.split(',').map(Number);return [i,j,tiles[k]]}).filter(([,,id])=>!ehParede(id));
   g.fillStyle=piso?g.createPattern(piso,'repeat'):cores.inner;for(const [i,j,id] of lista)if(id==='@dg')g.fillRect(i*TILE,j*TILE,TILE,TILE);
   const pat=parede&&g.createPattern(parede,'repeat');
   for(const [i,j] of lista){const x=i*TILE,y=j*TILE;
-   if(!tem(i,j-1)){g.fillStyle=pat||cores.wall;g.fillRect(x,y-4,TILE,4);g.fillStyle=cores.highlight;g.fillRect(x,y-4,TILE,1);g.fillStyle=cores.shadow;g.fillRect(x,y,TILE,2)}
+   // parede de cima em visão 3/4: a face inteira (um ladrilho de altura) com o desenho todo da parede da DG; se ali já há
+   // uma pintura de parede do projeto, vale a pintura
+   if(!tem(i,j-1)&&!ehParede(tiles[i+','+(j-1)])){g.fillStyle=pat||cores.wall;g.fillRect(x,y-TILE,TILE,TILE);g.fillStyle=cores.highlight;g.fillRect(x,y-TILE,TILE,1);g.fillStyle='rgba(0,0,0,.35)';g.fillRect(x,y-2,TILE,2);g.fillStyle=cores.shadow;g.fillRect(x,y,TILE,2)}
    if(!tem(i,j+1)){g.fillStyle=pat||cores.shadow;g.fillRect(x,y+TILE-2,TILE,2)}
    if(!tem(i-1,j)){g.fillStyle=pat||cores.shadow;g.fillRect(x,y,2,TILE);g.fillStyle=cores.wall;g.fillRect(x,y,1,TILE)}
    if(!tem(i+1,j)){g.fillStyle=pat||cores.shadow;g.fillRect(x+TILE-2,y,2,TILE);g.fillStyle=cores.wall;g.fillRect(x+TILE-1,y,1,TILE)}}

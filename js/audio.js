@@ -252,17 +252,21 @@ const TRILHAS={
    nota(d,52,t,.25,{tipo:'sine',vol:.05,solta:.3});nota(d,49,t+.28,.2,{tipo:'sine',vol:.035,solta:.3})}
   if(Math.random()<.38){const SINOS=[69,72,74,76,79,81],m=SINOS[Math.floor(Math.random()*SINOS.length)];nota(d,mtof(m),t,.05,{tipo:'sine',vol:.022,solta:2.4});nota(d,mtof(m),t+.42,.05,{tipo:'sine',vol:.008,solta:2})}
  }},
- // taverna: ré maior, animada: baixo, dedilhado de alaúde, melodia de rabeca e pandeiro
- tavern:{passo:60/112/2,toca(d,t,n,est){
-  const ACORDES=[[50,54,57],[50,54,57],[43,47,50],[45,49,52],[50,54,57],[43,47,50],[45,49,52],[50,54,57]],bar=Math.floor(n/8)%8,s=n%8,ac=ACORDES[bar],P=60/112/2;
-  if(s===0||s===4)nota(d,mtof(ac[0]-12),t,P*1.2,{tipo:'triangle',vol:.05,solta:.15});
-  if(s===2||s===6)nota(d,mtof(ac[2]-12),t,P,{tipo:'triangle',vol:.035,solta:.12});
-  if(s===2||s===6)ac.forEach((m,i)=>nota(d,mtof(m+12),t+i*.018,P*1.2,{tipo:'square',vol:.009,solta:.2,filtro:1700}));
-  const ESC=[62,64,66,67,69,71,73,74,76,78];
-  if(Math.random()<.7){est.mel=Math.max(0,Math.min(ESC.length-1,(est.mel??4)+[-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));nota(d,mtof(ESC[est.mel]),t,P*.9,{tipo:'triangle',vol:.022,ataque:.015,solta:.12,filtro:3200,vibrato:.004})}
-  if(s%2===1){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type='highpass';f.frequency.value=6500;g.gain.setValueAtTime(.012,t);g.gain.exponentialRampToValueAtTime(.0001,t+.06);src.connect(f);f.connect(g);g.connect(d);src.start(t,Math.random(),.07)}
-  if(s===0||s===4){const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+.18);o.connect(g);g.connect(d);o.start(t);o.stop(t+.2)}
- }}
+ // taverna: as 5 músicas de js/musica-taverna.js, no compasso do relógio do jogo (todos os jogadores ouvem igual):
+ // baixo, dedilhado de alaúde, melodia (rabeca/flauta), pandeiro e bumbo; aplauso entre as músicas
+ tavern:{sincronizada:true,tocaPasso(d,t,info){
+  const m=info.m,P=m.passos,k=info.passo,s=k%P,bar=Math.floor(k/P)%m.barras,pl=m.passo,forte=s===0||(P===8?s===4:s===3);
+  if(forte)nota(d,mtof(m.baixo[bar]),t,pl*1.3,{tipo:'triangle',vol:.05,solta:.15});
+  if(P===8?(s===2||s===6):(s===1||s===2||s===4||s===5))m.acorde[bar].forEach((q,i)=>nota(d,mtof(q+12),t+i*.018,pl*1.1,{tipo:'square',vol:.008,solta:.18,filtro:1700}));
+  const n=m.notas[k%(m.barras*P)],ultima=Math.floor(k/(m.barras*P))===m.voltas-1;
+  if(n){nota(d,mtof(n[0]),t,pl*n[1]*.92,{tipo:m.lead,vol:m.lead==='square'?.011:m.lead==='sine'?.03:.024,ataque:.015,solta:.14,filtro:m.lead==='square'?2400:3400,vibrato:m.vib});
+   if(ultima)nota(d,mtof(n[0]-12+(n[0]%2?3:4)),t,pl*n[1]*.9,{tipo:'triangle',vol:.01,ataque:.02,solta:.12,filtro:2600})} // última volta: segunda voz
+  if(s%2===1){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type='highpass';f.frequency.value=6500;g.gain.setValueAtTime(.011,t);g.gain.exponentialRampToValueAtTime(.0001,t+.06);src.connect(f);f.connect(g);g.connect(d);src.start(t,(k*.137)%1.5,.07)}
+  if(forte){const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);g.gain.setValueAtTime(.055,t);g.gain.exponentialRampToValueAtTime(.0001,t+.18);o.connect(g);g.connect(d);o.start(t);o.stop(t+.2)}
+ },
+ // aplauso e assobios curtos depois de cada música
+ aplauso(d,t){for(let i=0;i<46;i++){const ti=t+Math.random()*2.6*Math.pow(Math.random(),.5),g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type='bandpass';f.frequency.value=1400+Math.random()*1800;f.Q.value=1.2;const v=.01+Math.random()*.014;g.gain.setValueAtTime(v,ti);g.gain.exponentialRampToValueAtTime(.0001,ti+.05);src.connect(f);f.connect(g);g.connect(d);src.start(ti,Math.random(),.06)}
+  const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(1900,t+.4);o.frequency.exponentialRampToValueAtTime(2700,t+.7);o.frequency.exponentialRampToValueAtTime(1800,t+1);g.gain.setValueAtTime(.0001,t+.4);g.gain.linearRampToValueAtTime(.012,t+.45);g.gain.exponentialRampToValueAtTime(.0001,t+1.05);o.connect(g);g.connect(d);o.start(t+.4);o.stop(t+1.1)}}
 };
 /* ---------- ambiente gerado ---------- */
 // fundo contínuo (ruído filtrado) + eventos aleatórios (pássaros, goteiras, lareira...)
@@ -299,11 +303,22 @@ function trocar(canal,cena){
  if(canal==='ambiente'){const amb=AMBIENTES[cena];novo.nos=amb.montar(saida);novo.timers=amb.eventos.map(([a,b])=>t+a+Math.random()*(b-a))}
  ativos[canal]=novo;
 }
-// agenda um pouco à frente (o setInterval do navegador não é preciso)
+/* música sincronizada (taverna): o passo vem do relógio do jogo, não do contexto de áudio; base = relógio − tempo do áudio */
+function tocarSincronizada(m,t){
+ const tr=TRILHAS[m.cena],base=(window.TEMPO?TEMPO.agora():Date.now())/1000-t;
+ if(m.proxG==null||m.proxG<t+base-1)m.proxG=t+base+.05;
+ for(let guarda=0;m.proxG<t+base+.6&&guarda<64;guarda++){
+  const info=MUSICA_TAVERNA.em(m.proxG);
+  if(info.pausa){if(m.aplauso!==info.fimPausa){m.aplauso=info.fimPausa;try{tr.aplauso(m.saida,Math.max(t,m.proxG-base))}catch(e){}}m.proxG=info.fimPausa+.001;continue}
+  const ta=info.inicio-base;
+  if(ta>=t-.02&&info.inicio>(m.ultimo??-1)+1e-4){m.ultimo=info.inicio;try{tr.tocaPasso(m.saida,Math.max(t,ta),info)}catch(e){console.error('Música:',e)}m.n++}
+  m.proxG=info.inicio+info.m.passo+1e-4}
+}// agenda um pouco à frente (o setInterval do navegador não é preciso)
 setInterval(()=>{
  if(!audio||audio.state!=='running')return;
  const t=agora(),m=ativos.musica;
- if(m&&!m.parado){const tr=TRILHAS[m.cena];if(m.prox<t-1)m.prox=t+.05;while(m.prox<t+.6){try{tr.toca(m.saida,m.prox,m.n,m.est)}catch(e){console.error('Música:',e)}m.prox+=tr.passo;m.n++}}
+ if(m&&!m.parado&&TRILHAS[m.cena].sincronizada){if(window.MUSICA_TAVERNA)tocarSincronizada(m,t)}
+ else if(m&&!m.parado){const tr=TRILHAS[m.cena];if(m.prox<t-1)m.prox=t+.05;while(m.prox<t+.6){try{tr.toca(m.saida,m.prox,m.n,m.est)}catch(e){console.error('Música:',e)}m.prox+=tr.passo;m.n++}}
  const a=ativos.ambiente;
  if(a&&!a.parado){const ev=AMBIENTES[a.cena].eventos;ev.forEach(([mn,mx,fn],i)=>{if(a.timers[i]<t-2)a.timers[i]=t+mn;while(a.timers[i]<t+.3){try{fn(a.saida,Math.max(t,a.timers[i]))}catch(e){}a.timers[i]+=mn+Math.random()*(mx-mn)}})}
 },150);

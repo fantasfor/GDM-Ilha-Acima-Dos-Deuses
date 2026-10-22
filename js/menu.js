@@ -23,6 +23,8 @@ let started=MODO.teste||!!sessionStorage.getItem('ilha-skip'),view='main',paused
 const menu=$$('div');menu.id='menu';if(paused&&!MODO.motor)menu.className='open';document.body.appendChild(menu);
 if(started&&window.saveGame)saveGame();
 const upd0=upd;upd=function(dt){if(paused)return;upd0(dt)};
+// com conta: clicar no personagem na seleção (conta.js) já começa o jogo, sem passar pelo menu inicial
+window.iniciarJogo=()=>{if(MODO.motor)return;started=true;paused=false;view='main';menu.classList.remove('open');if(window.saveGame)saveGame()};
 function toggle(){if(MODO.motor)return;if(paused&&!started)started=true;paused=!paused;view='main';menu.classList.toggle('open',paused);if(paused)show()}
 /* O progresso é salvo sozinho o tempo todo (e na conta, quando há login): não existe carregar um
    ponto antigo, então o que o jogador faz não tem volta. Com conta, recomeçar é "Apagar conta" (js/conta.js). */
@@ -30,14 +32,13 @@ const hasSave=()=>!!ls.get(KEY);
 const restart=()=>{window._noSave=true;if(window.saveGame)window.saveGame=()=>{};ls.del(KEY);sessionStorage.setItem('ilha-skip','1');location.reload()};
 const B=(t,fn,c)=>{const b=$$('button','mb '+(c||''),t);b.onclick=fn;return b};
 function show(){const box=$$('div','mbox');menu.replaceChildren(box);
- const h=(t)=>{box.append($$('h1','',t||'Ilha do<br>Acampamento'),$$('div','sub','AVENTURA RPG'))},back=()=>box.append(B('← Voltar',()=>{view='main';show()}));
+ const h=(t)=>{box.append($$('h1','',t||'GDM<br>Ilha Acima dos Deuses'),$$('div','sub','AVENTURA RPG'))},back=()=>box.append(B('← Voltar',()=>{view='main';show()}));
  if(view=='main'){h(started?'Pausa':null);
   box.append(started?B('▶ Voltar ao jogo',toggle,'primario'):B(hasSave()?'▶ Continuar':'▶ Novo jogo',()=>{started=true;toggle();if(window.saveGame)saveGame()},'primario'));
   box.append(B('⚙ Opções',()=>{view='opt';show()}),B('⌨ Controles',()=>{view='help';show()}));
   box.append($$('p','msave','O jogo salva automaticamente.'));
-  // excluir fica escondido no fim, pequeno e vermelho: com conta exclui a conta; sem conta apaga o progresso
-  if(window.CONTA_ATIVA){const d=$$('button','mDel','Excluir conta');d.type='button';d.onclick=()=>{if(window.excluirConta)excluirConta(box)};box.append(d)}
-  else if(hasSave()||started){const d=$$('button','mDel','Apagar progresso');d.type='button';d.onclick=()=>{view='new';show()};box.append(d)}
+  // sem conta: apagar progresso fica escondido no fim. Com conta, o personagem é apagado na tela de seleção (conta.js)
+  if(!window.CONTA_ATIVA&&(hasSave()||started)){const d=$$('button','mDel','Apagar progresso');d.type='button';d.onclick=()=>{view='new';show()};box.append(d)}
   }
  else if(view=='new'){h('Apagar progresso');box.append($$('p','mhelp','Isso apaga todo o progresso deste navegador e não tem como desfazer. Tem certeza?'),B('Sim, começar do zero',()=>restart(),'danger'));back()}
  else if(view=='opt'){h('Opções');
@@ -89,7 +90,7 @@ function efeito(effect,c,r,x0,y0,px,py){const x=x0,y=y0-6;const s={effect};
 window.efeitoVisualHabilidade=efeito;
 /* projéteis e meteoros de outros jogadores: só visuais (não causam dano aqui) */
 const vproj=[],vmets=[];
-window.projetilVisual=(x,y,tx,ty,c,seta)=>{const d=Math.hypot(tx-x,ty-y)||1;vproj.push({x,y,vx:(tx-x)/d*190,vy:(ty-y)/d*190,t:Math.min(1.6,d/190),c,seta})};
+window.projetilVisual=(x,y,tx,ty,c,tipo)=>{const d=Math.hypot(tx-x,ty-y)||1;vproj.push({x,y,vx:(tx-x)/d*190,vy:(ty-y)/d*190,t:Math.min(1.6,d/190),c,seta:tipo===true||tipo==='s',vfx:tipo==='fogo'||tipo==='gelo'?tipo:null})};
 window.meteoroVisual=(x,y)=>vmets.push({x,y,t:.9});
 if(typeof hurtE=='function'){const h0=hurtE;hurtE=function(e,d,m){const r=h0.apply(this,arguments);if(e)burst(e.x,e.y-8,m?'#9bd4ff':'#ffd9a0',7,45,.35);return r}}
 if(typeof hurtP=='function'){const h1=hurtP;hurtP=function(d,m){const r=h1.apply(this,arguments);burst(p.x,p.y-8,'#ff6b6b',7,45,.35);return r}}
@@ -98,13 +99,12 @@ const draw0=draw;draw=function(){draw0();const dt=Math.min(.05,Math.max(0,time-p
  // sombras de nuvens
  if(!window.modoDesempenho)for(let i=0;i<6;i++){const x=(i*431+time*7)%(W+500)-250,y=(i*263+40)%W,g=ctx.createRadialGradient(x,y,4,x,y,110);g.addColorStop(0,'rgba(6,16,30,.13)');g.addColorStop(1,'rgba(6,16,30,0)');ctx.fillStyle=g;ctx.fillRect(x-110,y-110,220,220)}
  // rastro de projéteis e meteoros
- proj.forEach(q=>q.seta||part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3)));
+ proj.forEach(q=>q.seta||q.vfx||part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3)));
  const cur=mets.slice();pm.forEach(m=>{if(!cur.includes(m)){burst(m.x,m.y,'#ff8a2a',40,95,.7);burst(m.x,m.y,'#ffe08a',18,60,.5);ringFx(m.x,m.y,4,40,.5,'#f93');ringFx(m.x,m.y,2,26,.4,'#fff')}});pm=cur;
  // projéteis e meteoros que só existem na tela (habilidades de outros jogadores)
  for(let i=vproj.length;i--;){const q=vproj[i];q.t-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.t<=0){ringFx(q.x,q.y,2,12,.25,q.c||'#f93');vproj.splice(i,1);continue}
-  if(q.seta&&desenharSeta(q))continue;part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3));ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)}
+  if(q.seta&&desenharSeta(q))continue;if(q.vfx&&window.VFX&&VFX.projetil(ctx,q))continue;part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3));ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)}
  if(window.VFX)VFX.desenhar(ctx,dt); // efeitos desenhados das habilidades (corte, giro, investida, grito)
- if(window.EFX)EFX.desenhar(ctx,dt); // efeitos animados do pacote (habilidades e status)
  for(let i=vmets.length;i--;){const m=vmets[i];m.t-=dt;if(m.t<=0){burst(m.x,m.y,'#ff8a2a',40,95,.7);burst(m.x,m.y,'#ffe08a',18,60,.5);ringFx(m.x,m.y,4,40,.5,'#f93');ringFx(m.x,m.y,2,26,.4,'#fff');vmets.splice(i,1);continue}}
  cur.concat(vmets).forEach(m=>{const k=Math.max(0,m.t/.9),x=m.x+k*70,y=m.y-k*230;ctx.fillStyle='#ff5a1a';ctx.fillRect(Math.round(x-4),Math.round(y-4),8,8);ctx.fillStyle='#ffe08a';ctx.fillRect(Math.round(x-2),Math.round(y-2),4,4);part(x,y,R(-12,12),R(-12,12),.45,Math.random()<.5?'#ff8a2a':'#ffd36b',R(2,4))});
  for(let i=P.length;i--;){const q=P[i];q.l-=dt;if(q.l<=0){P.splice(i,1);continue}q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=q.g*dt;ctx.globalAlpha=Math.min(1,q.l/q.m*1.4);ctx.fillStyle=q.c;ctx.fillRect(Math.round(q.x),Math.round(q.y),q.s,q.s)}

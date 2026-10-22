@@ -439,7 +439,8 @@ function drawCampGate(){
  ctx.fillText(CAMP_WALL.gateOpen?'Portão aberto':'Portão fechado',x,y-44);
  if(pickCampGate(wpos())){ctx.fillStyle='#fff';ctx.fillText('Clique para '+(CAMP_WALL.gateOpen?'fechar':'abrir'),x,y-51)}
 }
-const fog=document.createElement('canvas'),fogCtx=fog.getContext('2d'),fogMaskCv=document.createElement('canvas'),fogMask=fogMaskCv.getContext('2d'),VISION_RANGE=200;
+const fogMaskCv=document.createElement('canvas'),fogMask=fogMaskCv.getContext('2d'),VISAO_ILHA=200;
+let VISION_RANGE=VISAO_ILHA; /* à noite a visão cai 10% (js/tempo.js); na DG não muda */
 const visionTrees=()=>window.inArena||window.inTaverna?[]:trees.filter(t=>Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);
 function treeHit(ox,oy,dx,dy,t){
  const x=(ox-t.x)/15,y=(oy-(t.y-17))/11,a=(dx/15)**2+(dy/11)**2,b=2*(x*dx/15+y*dy/11),c=x*x+y*y-1;
@@ -453,29 +454,16 @@ function treeExit(ox,oy,dx,dy,t){
  const disc=b*b-4*a*c;if(disc<0)return Infinity;
  const s=Math.sqrt(disc);return (-b-s)/(2*a)>0?(-b+s)/(2*a):Infinity
 }
-let fogPat=null;
-function fogPattern(){
- if(fogPat)return fogPat;
- const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
- for(let i=0;i<26;i++){
-  const x=Math.random()*256,y=Math.random()*256,rr=30+Math.random()*50,l=Math.random()<.5?'200,210,215':'20,26,30',al=.10+Math.random()*.12;
-  for(const ox of[-256,0,256])for(const oy of[-256,0,256]){
-   const gr=g.createRadialGradient(x+ox,y+oy,0,x+ox,y+oy,rr);gr.addColorStop(0,'rgba('+l+','+al+')');gr.addColorStop(1,'rgba('+l+',0)');
-   g.fillStyle=gr;g.fillRect(x+ox-rr,y+oy-rr,rr*2,rr*2)
-  }
- }
- return fogPat=fogCtx.createPattern(c,'repeat')
-}
 function canSee(x,y){
- const dx=x-p.x,dy=y-p.y,d=Math.hypot(dx,dy);if(d>VISION_RANGE)return false;if(d<.001)return true;
+ const dx=x-p.x,dy=y-p.y,d=Math.hypot(dx,dy);if(!window.inDungeon&&!window.inArena&&Math.hypot(x-CX,y-CY)<110)return true; /* luz da fogueira */if(d>VISION_RANGE)return false;if(d<.001)return true;
  return !visionTrees().some(t=>treeHit(p.x,p.y,dx,dy,t)<1)
 }
 function drawVision(){
  // a névoa é toda borrada: desenhada em resolução reduzida (Q) e ampliada, custa uma fração do tempo
  const Q=window.modoDesempenho?.2:.35,S0=S,FW=Math.max(1,Math.ceil(cv.width*Q)),FH=Math.max(1,Math.ceil(cv.height*Q));
- if(fog.width!=FW||fog.height!=FH){fog.width=FW;fog.height=FH;fogMaskCv.width=FW;fogMaskCv.height=FH}
+ if(fogMaskCv.width!=FW||fogMaskCv.height!=FH){fogMaskCv.width=FW;fogMaskCv.height=FH}
  {const S=S0*Q;
- const FOG_A=.80,FOG_RGB='58,66,72',W=fog.width,H=fog.height,cx=W/2,cy=H/2,r=VISION_RANGE*S;
+ const W=FW,H=FH,cx=W/2,cy=H/2,r=VISION_RANGE*S;
  // máscara de visão: polígono de raios (bloqueado pelas árvores), borrado e com borda radial suave
  const m=fogMask;m.setTransform(1,0,0,1,0,0);m.globalCompositeOperation='source-over';m.filter='none';m.clearRect(0,0,W,H);
  const trs=visionTrees(),N=240,R=VISION_RANGE+30;
@@ -489,28 +477,30 @@ function drawVision(){
  const edge=45*S,vis=m.createRadialGradient(cx,cy,Math.max(0,r-edge),cx,cy,r);
  vis.addColorStop(0,'rgba(0,0,0,1)');vis.addColorStop(1,'rgba(0,0,0,0)');
  m.globalCompositeOperation='destination-in';m.fillStyle=vis;m.fillRect(0,0,W,H);m.globalCompositeOperation='source-over';
- // névoa escura com neblina em movimento, recortada pela máscara
- fogCtx.setTransform(1,0,0,1,0,0);fogCtx.globalCompositeOperation='source-over';fogCtx.globalAlpha=1;fogCtx.clearRect(0,0,W,H);
- fogCtx.fillStyle='rgba('+FOG_RGB+','+FOG_A+')';fogCtx.fillRect(0,0,W,H);
- const tm=performance.now()/1000,pat=fogPattern();
- fogCtx.globalCompositeOperation='source-atop';fogCtx.fillStyle=pat;
- [[.012,.006,.5],[-.008,.01,.35]].forEach(([vx,vy,al],k)=>{
-  const ox=(tm*vx*600+k*97)%256,oy=(tm*vy*600+k*53)%256;
-  fogCtx.globalAlpha=al;fogCtx.setTransform(S*1.6,0,0,S*1.6,ox*S,oy*S);fogCtx.fillRect(-300,-300,W/(S*1.6)+600,H/(S*1.6)+600)
- });
- fogCtx.setTransform(1,0,0,1,0,0);fogCtx.globalAlpha=1;
- fogCtx.globalCompositeOperation='destination-out';fogCtx.drawImage(fogMaskCv,0,0);fogCtx.globalCompositeOperation='source-over';
+ // a fogueira do acampamento ilumina a área em volta dela: fica visível mesmo longe do herói
+ if(!window.inDungeon&&!window.inArena&&!window.inTaverna){const fx=cx+(CX-p.x)*S,fy=cy+(CY-6-p.y)*S,fr=135*S;if(fx>-fr&&fy>-fr&&fx<W+fr&&fy<H+fr){const lg=m.createRadialGradient(fx,fy,fr*.55,fx,fy,fr);lg.addColorStop(0,'#fff');lg.addColorStop(1,'rgba(255,255,255,0)');m.fillStyle=lg;m.fillRect(fx-fr,fy-fr,fr*2,fr*2)}}
  }
- ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='low';ctx.drawImage(fog,0,0,cv.width,cv.height);ctx.restore()
+ aplicarNevoa(fogMaskCv);
 }
+/* Névoa no estilo LoL/Dota: fora da visão o mapa continua à mostra, mas sem cor, mais escuro e azulado, com a borda
+   suave; quem está lá fora não aparece. A máscara (branco = visível) vem em resolução reduzida e é ampliada. */
+const nevoaCor=document.createElement('canvas'),nevoaCinza=document.createElement('canvas');
+function aplicarNevoa(mask,forca=1){
+ const W=mask.width,H=mask.height;for(const c of [nevoaCor,nevoaCinza])if(c.width!==W||c.height!==H){c.width=W;c.height=H}
+ const camada=(c,cor)=>{const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.fillStyle=cor;g.fillRect(0,0,W,H);g.globalCompositeOperation='destination-out';g.drawImage(mask,0,0);g.globalCompositeOperation='source-over'};
+ camada(nevoaCor,'rgba(8,16,34,'+(.5*forca)+')');
+ ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='low';
+ if(!window.modoDesempenho){camada(nevoaCinza,'#808080');ctx.globalAlpha=.85*forca;ctx.globalCompositeOperation='saturation';ctx.drawImage(nevoaCinza,0,0,cv.width,cv.height);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
+ ctx.drawImage(nevoaCor,0,0,cv.width,cv.height);ctx.restore()}
+window.aplicarNevoa=aplicarNevoa;
 function drawDynamicLighting(){
  if(window.modoDesempenho)return;
  const W=cv.width,H=cv.height;
  const sources=[],screen=(x,y)=>({x:W/2+(x-p.x)*S,y:H/2+(y-p.y)*S});
  const add=(x,y,r,color,power=1)=>{const pt=screen(x,y);if(pt.x+r<0||pt.x-r>W||pt.y+r<0||pt.y-r>H)return;sources.push({...pt,r:r*S,color,power})};
- const flicker=.94+.04*Math.sin(time*9)+.02*Math.sin(time*23);
- if(p.dead<=0)add(p.x,p.y-7,72,'185,210,255',.58);
- add(CX,CY-4,88,'255,150,60',flicker);
+ const flicker=.94+.04*Math.sin(time*9)+.02*Math.sin(time*23),nk=!window.inDungeon&&window.TEMPO?TEMPO.escuro():0; // à noite as luzes ficam maiores e mais fortes
+ if(p.dead<=0&&nk>0)add(p.x,p.y-7,60+40*nk,'255,235,200',.9*nk); // de dia o herói não tem halo (deixava a tela leitosa)
+ add(CX,CY-6,110+150*nk,'255,150,60',flicker*(1.15+2.6*nk)); // fogueira: ilumina bem o acampamento, mais ainda à noite
  (window.PORTALS||[]).forEach(q=>add(q.x,q.y-16,32,'170,105,255',.48));
  proj.slice(0,12).forEach(q=>add(q.x,q.y,18,q.c==='#ff7a1a'?'255,130,45':'140,190,255',.4));
  fxs.slice(0,12).forEach(f=>{
@@ -546,8 +536,21 @@ function drawCachoeira(){
  for(let k=0;k<10;k++){const q=(time*.35+hash(k,11))%1,r=6+q*14,x=f.x+(hash(k,13)-.5)*f.w*3,y=f.y+6+q*20;
   ctx.globalAlpha=(1-q)*.22;ctx.fillStyle='#e6f4fa';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
  ctx.globalAlpha=1}
-function draw(){
+/* morte do herói: cai de lado (gira 90° nos pés), afunda um pouco e fica translúcido; uma alminha sobe.
+   Depois de ~1 s aparece a tela com o botão Reaparecer (update.js reaparecer). */
+window.desenharHeroiMorto=function(){
+ if(!(p.dead>0)||p.dead>=1e8)return;const t0=p.morreuEm??time,k=Math.min(1,(time-t0)/.8),e=1-Math.pow(1-k,3),f=face(p),lado=f.fl<0?-1:1;
+ ctx.globalAlpha=1-.4*k;dr(heroImg(f.d,{}),p.x,p.y,f.fl,1,{dx:0,dy:2*e,sx:1,sy:1-.1*e,rot:lado*e*Math.PI/2});ctx.globalAlpha=1;
+ if(k<1&&k>.85){for(let i=0;i<6;i++){const a=i/6*Math.PI*2;ctx.fillStyle='#8a7a6a';ctx.fillRect(Math.round(p.x+Math.cos(a)*(6+(k-.85)*60)),Math.round(p.y+Math.sin(a)*2),1,1)}} // poeira ao bater no chão
+ const q=Math.min(1,Math.max(0,(time-t0-.6)/1.8));if(q>0&&q<1){ctx.globalAlpha=(1-q)*.8;const x=Math.round(p.x+Math.sin(q*9)*2),y=Math.round(p.y-10-q*30);
+  ctx.fillStyle='#e8f4ff';ctx.fillRect(x-2,y-3,5,5);ctx.fillRect(x-1,y+2,3,2);ctx.fillRect(x,y+4,1,1);ctx.fillStyle='#1a2a3a';ctx.fillRect(x-1,y-1,1,1);ctx.fillRect(x+1,y-1,1,1);ctx.globalAlpha=1}};
+const telaMorte=document.createElement('div');telaMorte.id='telaMorte';telaMorte.innerHTML='<b>Você caiu</b><small></small><button type="button">Reaparecer</button>';document.body.append(telaMorte);
+telaMorte.querySelector('button').onclick=e=>{e.stopPropagation();reaparecer()};
+function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&time-(p.morreuEm??time)>1.1;telaMorte.classList.toggle('on',on);
+ if(on)telaMorte.querySelector('small').textContent=window.inArena?'Você volta para a arena.':'Você volta para o acampamento. Metade do ouro ficou para trás.'}function draw(){
+ atualizarTelaMorte();
  if(MODO.motor)return;
+ VISION_RANGE=window.inDungeon||!window.TEMPO?VISAO_ILHA:Math.round(VISAO_ILHA*TEMPO.visao());
  if(window.inArena&&window.drawArena){drawArena();return}
  if(window.inTaverna&&window.drawTaverna){
   drawTaverna();
@@ -569,7 +572,7 @@ function draw(){
  // brilho da fogueira
  {const fl=.5+.12*Math.sin(time*9)+.06*Math.sin(time*23),g=ctx.createRadialGradient(CX,CY,4,CX,CY,95);g.addColorStop(0,'rgba(255,170,60,'+(.38*fl)+')');g.addColorStop(1,'rgba(255,120,30,0)');ctx.fillStyle=g;ctx.fillRect(CX-100,CY-100,200,200)}
  // alvos de meteoro
- mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();if(window.desenharTelegrafos)desenharTelegrafos();
+ mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();if(window.desenharTelegrafos)desenharTelegrafos();if(window.CURANDEIRO)CURANDEIRO.desenhar();
  const L=[];
  const occ=[];if(p.dead<=0)occ.push(p);en.forEach(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<300&&Math.abs(e.y-p.y)<220)occ.push(e)});NPCS.forEach(n=>occ.push(n));
  trees.forEach(t=>{if(Math.abs(t.x-p.x)<260&&Math.abs(t.y-p.y)<170){const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});
@@ -603,9 +606,11 @@ function draw(){
    ctx.fillStyle='#ffd84a';ctx.fillText(n.carpenter&&!questDone?'…':n.carpenter&&campPortalBuilt?'':n.carpenter&&sawQuestActive&&!sawObtained?'':n.carpenter?'!':n.blacksmith?'!':'!',n.x,n.y-26+Math.round(Math.sin(time*4)*1.5))}]);
  });
  if(!carpenterHelped&&Math.abs(carpenter.x-p.x)<260&&Math.abs(carpenter.y-p.y)<170)L.push([carpenter.y+3,()=>drawCarpenterDebris(carpenter)]);
- L.push([CY,()=>{ctx.fillStyle='#4a2c14';ctx.fillRect(CX-5,CY,10,2);ctx.fillRect(CX-4,CY-1,8,1);
-  const f=Math.sin(time*14)>0?1:0;ctx.fillStyle='#e8541e';ctx.fillRect(CX-3,CY-5-f,6,5+f);ctx.fillStyle='#ffb02e';ctx.fillRect(CX-2,CY-4-f,4,4);ctx.fillStyle='#fff3a0';ctx.fillRect(CX-1,CY-2,2,2)}]);
- en.forEach(e=>{if(e.hp>0&&canSee(e.x,e.y))L.push([e.y,()=>{const o=lunge(e,p,e.aw,e.wu),scale=ESCALA_MUNDO,spriteH=wh(e.img)*scale,labelY=e.y-spriteH-1;
+ // fogueira do acampamento: anel de pedras, lenha cruzada com brasas e chama em pixel art (js/fogo.js)
+ L.push([CY+2,()=>{for(let k=0;k<10;k++){const a=k/10*Math.PI*2,x=Math.round(CX+Math.cos(a)*9),y=Math.round(CY+1+Math.sin(a)*4);ctx.fillStyle=k%3?'#6e6660':'#8a827a';ctx.fillRect(x-2,y-2,4,3);ctx.fillStyle='#4a4440';ctx.fillRect(x-2,y,4,1)}
+  desenharLenha(ctx,CX,CY+1,14);desenharChama(ctx,CX,CY-1,9,15,.7)}]);
+ // desenho de um monstro (também usado pela arena: o Mestre de classe no duelo)
+ window.desenharMonstro=e=>{const o=lunge(e,p,e.aw,e.wu),scale=ESCALA_MUNDO,spriteH=wh(e.img)*scale,labelY=e.y-spriteH-1;
  if(hov==e||p.tgt==e)circ(e.x,e.y,12,hov==e?'#ff5':'#f55');
  if(e.elite&&!e.boss){const k=.5+.5*Math.sin(time*4+e.x*.1);ctx.save();ctx.globalAlpha=.22+.18*k;ctx.fillStyle='#f0a52e';ctx.beginPath();ctx.ellipse(e.x,e.y,9+k*1.5,4+k*.6,0,0,7);ctx.fill();ctx.globalAlpha=.55+.3*k;ctx.strokeStyle='#ffd36b';ctx.lineWidth=.6;ctx.stroke();ctx.restore()}
  ctx.globalAlpha=e.hit>0?.5:1;(f=>{const isSlime=e.ty==='sl'||e.base==='sl'||(MONSTER_TYPES[e.ty]&&/gosma|slime/i.test(MONSTER_TYPES[e.ty].name));const an=anim(e,e.wu,isSlime);dr(monsterSpriteFrame(e,f.d,an),e.x+o[0],e.y+o[1],f.fl,scale,an)})(face(e));ctx.globalAlpha=1;
@@ -622,19 +627,21 @@ function draw(){
  for(let segment=1;segment<hpSegments;segment++){const x=barX+Math.round(barW*100/maxHp*segment);ctx.fillStyle='#3a3a3a';ctx.fillRect(x,barY,t,1)}
  ctx.fillStyle='#10203a';ctx.fillRect(barX,barY+1+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(barX,barY+1+t,barW*mpRatio,1);
  ctx.font='5px monospace';ctx.textBaseline='middle';ctx.fillStyle='#fff2d7';ctx.fillText(String(e.lvl),barX+barW+3,barY+1.5); // efeitos do monstro: ícones abaixo da caixa do alvo (js/effects.js)
- ctx.textBaseline='alphabetic'}])});
- if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;(f=>{const an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an)})(face(p));ctx.globalAlpha=1;
+ ctx.textBaseline='alphabetic'};
+ en.forEach(e=>{if(e.hp>0&&canSee(e.x,e.y))L.push([e.y,()=>desenharMonstro(e)])});
+ if(p.dead<=0&&!cameraMenu.ativo)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;(f=>{const an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an)})(face(p));ctx.globalAlpha=1;
   const barW=28,t=1/S,barX=Math.round(p.x-barW/2),barY=Math.round(p.y-25-ACIMA_HEROI()),maxHp=mhp(),maxMp=mmp(),hpRatio=Math.max(0,Math.min(1,p.hp/maxHp)),mpRatio=Math.max(0,Math.min(1,p.mp/maxMp)),hpSegments=Math.ceil(maxHp/100);
   ctx.fillStyle='#3a3a3a';ctx.fillRect(barX-t,barY-t,barW+2*t,3+3*t);
   ctx.fillStyle='#173d1c';ctx.fillRect(barX,barY,barW,2);ctx.fillStyle='#4cd04f';ctx.fillRect(barX,barY,barW*hpRatio,2);
   for(let segment=1;segment<hpSegments;segment++){const sx=barX+Math.round(barW*100/maxHp*segment);ctx.fillStyle='#3a3a3a';ctx.fillRect(sx,barY,t,2)}
   ctx.fillStyle='#10203a';ctx.fillRect(barX,barY+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(barX,barY+2+t,barW*mpRatio,1);
  }]);
+ if(p.dead>0&&!cameraMenu.ativo)L.push([p.y,desenharHeroiMorto]);
  if(window.onlineDrawables)onlineDrawables(L);
  L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
  if(window.desenharLoot)desenharLoot(); // itens e moedas caídos dos monstros (js/loot.js)
  if(window.desenharConj)desenharConj(); // barra de conjuração (js/combat.js)
- proj.forEach(q=>{if(q.seta&&desenharSeta(q))return;ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)});
+ proj.forEach(q=>{if(q.seta&&desenharSeta(q))return;if(q.vfx&&window.VFX&&VFX.projetil(ctx,q))return;ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)});
  fxs.forEach((f,i)=>{const q=Math.max(0,Math.min(1,f.t/f.d)),fade=1-q,r=f.r*(.35+q),style=f.style||'ring';ctx.globalAlpha=fade;
   if(style=='fire'||style=='holy')circ(f.x,f.y,r*(style=='holy'?.8:1),f.c);
   else if(style=='frost'){circ(f.x,f.y,r,f.c);circ(f.x,f.y,r*.58,'#e9fbff')}
@@ -644,11 +651,12 @@ function draw(){
   if(style!='ring')for(let k=0;k<8;k++){const a=k*Math.PI/4+time*1.3,dist=r*(style=='holy'?.82:.72),size=style=='frost'?2:1.5;ctx.fillStyle=style=='fire'&&k%2?'#ffd36b':style=='shadow'&&k%2?'#b387e8':style=='nature'&&k%2?'#a8d86e':style=='holy'?'#fff4bb':f.c;ctx.fillRect(Math.round(f.x+Math.cos(a)*dist-size/2),Math.round(f.y+Math.sin(a)*dist-size/2),size,size)}
   if(style=='holy'){ctx.fillStyle='#fff7c4';ctx.fillRect(Math.round(f.x-1),Math.round(f.y-r*.55),2,Math.max(2,Math.round(r*1.1)));ctx.fillRect(Math.round(f.x-r*.45),Math.round(f.y-1),Math.max(2,Math.round(r*.9)),2)}
   ctx.globalAlpha=1});
+ if(window.desenharNoite){desenharNoite(1,[{x:CX,y:CY-6,r:170},...(p.dead<=0?[{x:p.x,y:p.y-8,r:60,a:.55}]:[]),...(window.PORTALS||[]).map(q=>({x:q.x,y:q.y-20,r:50,a:.6}))]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))} // noite: escurece o mundo (os números de dano e as luzes ficam por cima)
  ctx.font='6px monospace';ctx.textAlign='center';
- fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=f.c;ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));ctx.globalAlpha=1});
+ fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=corFt(f);ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));if(f.crit)iconeCrit(f);ctx.globalAlpha=1});
  drawDynamicLighting();drawVision();
- {ctx.setTransform(1,0,0,1,0,0);const g=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.42,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);g.addColorStop(0,'rgba(10,26,42,0)');g.addColorStop(1,'rgba(10,26,42,.38)');ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height)}
- if(p.dead>0){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0008';ctx.fillRect(0,0,cv.width,cv.height);ctx.fillStyle='#fff';ctx.font='28px monospace';ctx.textAlign='center';ctx.fillText('Você caiu... renasce em '+Math.ceil(p.dead)+'s',cv.width/2,cv.height/2)}
+ {ctx.setTransform(1,0,0,1,0,0);const g=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.42,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);g.addColorStop(0,'rgba(10,20,30,0)');g.addColorStop(1,'rgba(10,20,30,.22)');ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height)}
+ if(p.dead>0&&p.dead<1e8){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(0,0,0,'+Math.min(.45,(time-(p.morreuEm??time))*.4)+')';ctx.fillRect(0,0,cv.width,cv.height)} // a tela escurece aos poucos; o texto e o botão estão em #telaMorte
  // minimapa (js/minimapa.js)
  drawMinimap()}
 const restored=loadGame();
@@ -666,7 +674,14 @@ const restored=loadGame();
 let last=performance.now();
 // um erro num quadro não pode parar o jogo: o próximo quadro já fica agendado antes, e o erro é registrado
 let errosQuadro=0,ultimoErro='';
+/* câmera do menu de personagem (conta.js): o jogo para, o mundo segue animando, o herói some e a câmera passeia
+   devagar pelas regiões da ilha; ao entrar, o herói volta para onde estava */
+window.cameraMenu={ativo:false,t:0,real:null,
+ ligar(){if(this.ativo)return;this.ativo=true;this.real={x:p.x,y:p.y};this.t=Math.random()*60},
+ desligar(){if(!this.ativo)return;this.ativo=false;if(this.real){p.x=this.real.x;p.y=this.real.y}this.real=null},
+ passo(dt){this.t+=dt;const k=this.t*.03;p.x=CX+Math.cos(k)*W*.24+Math.cos(k*2.7)*W*.05;p.y=CY+Math.sin(k*1.4)*W*.2+Math.sin(k*.6)*W*.04}};
 (function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;if(MODO.motor)return;time+=dt;
+ if(cameraMenu.ativo){try{cameraMenu.passo(dt);draw()}catch(e){}return}
  for(const [nome,fn] of [['upd',()=>upd(dt)],['draw',draw],['hud',hud]]){
   try{fn()}catch(e){
    const msg=nome+': '+(e&&e.message||e);

@@ -15,18 +15,22 @@ const rollQ=()=>Math.round(100*Math.pow(Math.random(),CALC.qualExp)),qMul=q=>CAL
 qStats=(id,q)=>{const it=ITEMS[id],o={};for(const k of Object.keys(ITEM_STATS))if(it[k])o[k]=ITEM_STATS[k].percent||ITEM_STATS[k].fractional?it[k]*qMul(q):Math.max(1,Math.round(it[k]*qMul(q)));const range=gearType[id]==='sw'&&qualityWeaponRange(it,q);if(range)o.dmg=(range.min+range.max)/2;return o},
 qName=q=>q<20?'Ruim':q<45?'Comum':q<70?'Boa':q<90?'Rara':q<100?'Épica':'Perfeita',
 bonus=k=>Object.values(EQ).reduce((a,s)=>a+(s&&gearType[s.id]&&(k==='dmg'&&weaponDamageRolls?.has(s)?weaponDamageRolls.get(s):qStats(s.id,s.q)[k])||0),0)+playerAttributeBonus(k);
-let weaponDamageRolls=null;
+let weaponDamageRolls=null,weaponDamage2Rolls=null;
 function qualityWeaponRange(it,q){const range=weaponDamageRange(it);return range?{min:Math.round(range.min*qMul(q)),max:Math.round(range.max*qMul(q))}:null}
+function qualityWeaponRange2(it,q){const range=weaponDamage2Range(it);return range?{min:Math.round(range.min*qMul(q)),max:Math.round(range.max*qMul(q))}:null}
+/* segundo dano (do outro tipo) da arma de uma mão: sorteado no golpe; fora do golpe, a média */
+const danoExtraMao=mao=>{const s=EQ[mao];if(!s||gearType[s.id]!=='sw')return 0;if(weaponDamage2Rolls&&weaponDamage2Rolls.has(s))return weaponDamage2Rolls.get(s);const r=qualityWeaponRange2(ITEMS[s.id],s.q);return r?(r.min+r.max)/2:0};
 function withWeaponDamageRoll(action){
  if(weaponDamageRolls)return action();
- weaponDamageRolls=new Map();
+ weaponDamageRolls=new Map();weaponDamage2Rolls=new Map();
  try{
   for(const slot of ['sw','sh']){
-   const s=EQ[slot],range=s&&gearType[s.id]==='sw'&&qualityWeaponRange(ITEMS[s.id],s.q);
+   const s=EQ[slot],range=s&&gearType[s.id]==='sw'&&qualityWeaponRange(ITEMS[s.id],s.q),r2=s&&gearType[s.id]==='sw'&&qualityWeaponRange2(ITEMS[s.id],s.q);
    if(range)weaponDamageRolls.set(s,rollWeaponDamage(range));
+   if(r2)weaponDamage2Rolls.set(s,rollWeaponDamage(r2));
   }
   return action();
- }finally{weaponDamageRolls=null}
+ }finally{weaponDamageRolls=null;weaponDamage2Rolls=null}
 }
 const heroC={};
 function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const mana=window.HEROI_MANA&&HEROI_MANA.jogador(dir,an);if(mana)return mana; /* personagem Mana Seed (js/heroi-mana.js) */const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);let key=p.cls+p.sex+dir+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
@@ -45,7 +49,7 @@ function precoBase(id){
  if(it.use)return 5;if(it.material)return 3;
  const v=k=>Math.max(0,+it[k]||0),pct=k=>Math.max(0,+it[k]||0)*100;
  return Math.round((10+2*(v('dmg')+v('arm')+v('magicArm')+v('physicalDmg')+v('magicDmg'))+.25*(v('hp')+v('mp'))+3*(v('F')+v('A')+v('I'))+2*(v('regenHp')+v('regenMp'))
-  +.5*(pct('spd')+pct('moveSpeed')+pct('attackSpeed')+pct('castSpeed')+pct('area')+pct('cooldownReduction')+pct('critChance')+pct('critDamage')+pct('lifeSteal')+pct('magicLifeSteal')))*(it.th?1.2:1));
+  +.5*(pct('spd')+pct('moveSpeed')+pct('attackSpeed')+pct('castSpeed')+pct('area')+pct('cooldownReduction')+pct('critChance')+pct('critDamage')+pct('lifeSteal')+pct('magicLifeSteal')+pct('physicalPen')+pct('magicPen')+pct('healAmp')))*(it.th?1.2:1));
 }
 function precoVenda(id,q){const b=precoBase(id);return gearType[id]?Math.max(1,Math.round(b*(.5+(q==null?50:q)/100))):b}
 window.precoVenda=precoVenda;
@@ -100,10 +104,11 @@ const MONSTER_TYPES={
 };
 function monsterLevel(){return Math.max(1,p.lvl-10)+Math.floor(Math.random()*(p.lvl+10-Math.max(1,p.lvl-10)+1))}
 function configureMonster(e,type,level){
+ level=Math.max(1,Math.min(+CALC.maxLevel||10,level)); // ninguém passa do nível máximo do jogo
  const template=MONSTER_TYPES[type],growth=level-1;
  e.ty=type;e.lvl=level;
  // mesmo esquema da classe: atributos iniciais + "por nível" × (nível-1); sem "por nível", +1 de F/A/I por nível
- const per=template.perLevel,grow=k=>per?(+per[k]||0)*growth:['F','A','I'].includes(k)?growth:0,base=template.attributeStats||{};
+ const per=typeof atrNivel=='function'?atrNivel():{F:2,A:2,I:2},grow=k=>(+per[k]||0)*growth, /* mesmo ganho por nível das classes (Fórmulas) */base=template.attributeStats||{};
  e.attributeStats=Object.fromEntries([...new Set([...Object.keys(base),...Object.keys(per||{})])].map(k=>[k,(+base[k]||0)+grow(k)]));e.attributeBuffs=[];e.st=null;
  e.size=Math.max(.25,(+template.size||100)/100);
  if(template.custom&&template.sprite){e.img=template.sprite;e.sp=template.sp}
@@ -138,6 +143,8 @@ function configureMonster(e,type,level){
  e.max=Math.max(1,Math.round(e.max+(+own.hp||0)));e.maxMp=Math.max(0,Math.round(monMana(e.stats.I)+(e.equipmentStats?.mp||0)+(+own.mp||0)));e.mp=e.maxMp;
  e.armor=Math.round((e.armor??e.stats.A*CALC.monArmPerA)+(+own.arm||0));e.magicArmor=Math.round((e.magicArmor??monMagArm(e.stats.F,e.stats.A,e.stats.I))+(+own.magicArm||0));
  e.spd*=Math.max(0,1+attributeValue(own,'moveSpeed'));e.ac=Math.max(CALC.monMinInterval,e.ac*(1-Math.min(.9,attributeValue(own,'attackSpeed'))));
+ // XP: o do monstro (Engine, se maior que 0) ou a fórmula: XP por nível × nível (chefe e chefão multiplicam)
+ const fixo=+((typeof MB!=='undefined'&&MB[type]||{}).xpFixo)||0;e.xp=fixo>0?fixo:Math.round((+CALC.monXpPorNivel||5)*level*(e.bossType=='grandboss'?(+CALC.xpChefao||15):e.bossType=='boss'||e.boss?(+CALC.xpChefe||5):1));
 }
 // classes de referência do plano de balanceamento (js/balanceamento.js): Guerreiro (físico) e Mago (mágico) do projeto
 const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};

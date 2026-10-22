@@ -269,6 +269,8 @@ const POSES_ARMA={
  varinha:{s:[[-80],[-115],[-55],[-35]],d:[[-80],[-110],[-150],[160]],u:[[180],[150],[110],[80]]}
 };
 function poseArma(tipo,dir,hand,step){const P=POSES_ARMA[tipo]||POSES_ARMA.corte,tab=hand=='off'&&P.off&&P.off[dir]||P[dir]||POSES_ARMA.corte[dir],v=tab[step]||tab[0];return{a:v[0],dx:v[1]||0,dy:v[2]||0}}
+// tela temporária para girar a arma no tamanho real (reaproveitada por tamanho)
+const telasArma={};const armaGirada=D=>telasArma[D]||(telasArma[D]=Object.assign(document.createElement('canvas'),{width:D,height:D}));
 function gearWeapon(E,dir,swing,box,R,cx){
  const visualDir=dir;dir=dir[0];
  if(E.sh&&!E.shWeapon&&equippedArt(E.sh,visualDir))drawEquipmentLayers(E,['sh'],visualDir,cx);
@@ -276,11 +278,17 @@ function gearWeapon(E,dir,swing,box,R,cx){
  const drawHeld=(w,hand,step)=>{if(!w)return;
   const sprite=equippedArt(w,visualDir)||equipFrame(w,'w')||w.equippedSprite;if(!sprite&&!w.c)return;
   const [hx,hy]=maos[hand=='main'?0:1],pose=poseArma(w.ataque,sd?'s':bk?'u':'d',hand,step);
-  cx.save();cx.translate(hx+pose.dx,hy+pose.dy);cx.imageSmoothingEnabled=false;
+  // a mão fica na grade do herói (múltiplo de 2 na tela 2×) para a arma não ficar meio pixel deslocada
+  cx.save();cx.translate(Math.round((hx+pose.dx)/2)*2,Math.round((hy+pose.dy)/2)*2);cx.imageSmoothingEnabled=false;
   if(sprite){
-   // escalaMao 2: cada pixel do desenho = 1 pixel do herói (a tela do herói é 2× e depois reduzida)
-   const st=w.v?w.v.st:0,L=st==2?20:st==1?14:16,k2=w.escalaMao==2,h=k2?sprite.height*2:L*2,width=k2?sprite.width*2:Math.max(2,Math.round(h*sprite.width/sprite.height)),pega=w.pega??1;
-   cx.rotate((pose.a+90)*Math.PI/180);cx.drawImage(sprite,-width/2,-h*pega,width,h)}
+   // escalaMao 2: cada pixel do desenho = 1 pixel do herói. A arma é girada no tamanho real (pixels inteiros) e só
+   // depois ampliada 2×: girar direto na tela 2× deixava a arma com pixels menores que os do herói
+   const st=w.v?w.v.st:0,L=st==2?20:st==1?14:16,k2=w.escalaMao==2,sh=k2?sprite.height:L,sw=k2?sprite.width:Math.max(1,Math.round(sh*sprite.width/sprite.height)),pega=w.pega??1;
+   const D=(Math.ceil(Math.hypot(sw,sh)*2)+4)&~1,o=armaGirada(D),og=o.getContext('2d');og.setTransform(1,0,0,1,0,0);og.clearRect(0,0,D,D);og.imageSmoothingEnabled=false;
+   // a arma é desenhada com a lâmina para a direita: na mão do lado esquerdo da tela (mão 2 de frente, mão 1 de costas) espelha
+   const espelha=!sd&&((hand=='off')!==bk);
+   og.translate(D/2,D/2);og.rotate((pose.a+90)*Math.PI/180);if(espelha)og.scale(-1,1);og.drawImage(sprite,Math.round(-sw/2),Math.round(-sh*pega),sw,sh);
+   cx.drawImage(o,-D,-D,D*2,D*2)}
   else{
    // sem desenho da mão: o próprio ícone (arma na diagonal, ponta em cima à direita), na mesma escala do ícone
    const p=w.pega??.75;cx.rotate((pose.a+45)*Math.PI/180);cx.drawImage(w.c,-32*(1-p),-32*p,32,32)}
@@ -304,4 +312,4 @@ const fr=(set,d,an)=>an&&an.ph&&set.w?set.w[d][an.ph-1]:set[d];
 const HS={war:set3(human,'war'),mag:set3(human,'mag'),hea:set3(human,'hea'),sty:set3(human,'sty')};
 const SP={sk:set3(human,'sk'),sl:{d:slime('d'),u:slime('u'),s:slime('s'),ds:slime('ds'),us:slime('us')}};
 const FD=[['s',1],['ds',1],['d',1],['ds',-1],['s',-1],['us',-1],['u',1],['us',1]];
-function face(u){const x=u.fx||0,y=u.fy||0;if(!x&&!y)return{d:'d',fl:1};const a=Math.atan2(y,x),i=(Math.round(a/(Math.PI/4))+8)%8,k=u.fk;if(k!==undefined&&k!==i){const c=k*Math.PI/4,df=Math.abs(Math.atan2(Math.sin(a-c),Math.cos(a-c)));if(df<Math.PI/4+.25)return{d:FD[k][0],fl:FD[k][1]}}u.fk=i;return{d:FD[i][0],fl:FD[i][1]}}
+function face(u){if(u.canal&&u.canal.visual){const i=(Math.round(u.canal.ang/(Math.PI/4))%8+8)%8;return{d:FD[i][0],fl:FD[i][1]}} /* girando (Girar): o desenho segue a lâmina, mesmo andando */const x=u.fx||0,y=u.fy||0;if(!x&&!y)return{d:'d',fl:1};const a=Math.atan2(y,x),i=(Math.round(a/(Math.PI/4))+8)%8,k=u.fk;if(k!==undefined&&k!==i){const c=k*Math.PI/4,df=Math.abs(Math.atan2(Math.sin(a-c),Math.cos(a-c)));if(df<Math.PI/4+.25)return{d:FD[k][0],fl:FD[k][1]}}u.fk=i;return{d:FD[i][0],fl:FD[i][1]}}

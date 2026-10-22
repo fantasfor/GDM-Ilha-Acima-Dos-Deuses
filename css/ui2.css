@@ -284,3 +284,20 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #d9d0c7;out
 .contaMenu span{flex:1 1 100%;overflow-wrap:anywhere}
 .contaMenu .mb{flex:1;margin:0;padding:7px 10px;font-size:11px}
 @media (max-height:620px),(max-width:700px){.onlineChat{bottom:auto;top:calc(88px + env(safe-area-inset-top,0px));width:min(280px,calc(100vw - 20px))}.onlineLog{max-height:90px}}
+
+/* seleção de personagem (conta.js): a ilha aparece ao fundo com a câmera passeando */
+#conta.selecao{background:radial-gradient(ellipse at center,transparent 35%,#0d0d0dcc 100%);justify-content:flex-start;align-items:flex-end;padding:0 0 6vh 6vw}
+body.selecaoPersonagem #hud,body.selecaoPersonagem #top,body.selecaoPersonagem #quest,body.selecaoPersonagem #mon,body.selecaoPersonagem #touchpad{visibility:hidden}
+.selPainel{display:flex;flex-direction:column;gap:10px;width:300px;max-width:calc(100vw - 32px);padding:16px;background:#0d0d0de6;border:2px solid var(--c-cinza);font-family:monospace;color:var(--c-linho)}
+.selTitulo{margin:0;font-size:22px;letter-spacing:2px;color:var(--c-linho)}.selSub{font-size:10px;letter-spacing:3px;color:var(--c-pedra)}
+.selSlot{display:flex;align-items:center;gap:12px;padding:10px;background:var(--c-escuro);border:2px solid var(--c-cinza);color:var(--c-linho);cursor:pointer;text-align:left;font:inherit}
+.selSlot:hover,.selSlot:focus-visible{border-color:var(--c-linho);background:#2f2f2f}
+.selSprite{width:96px;height:96px;image-rendering:pixelated;background:var(--c-preto);flex:none}
+.selInfo{display:flex;flex-direction:column;gap:4px}.selInfo strong{font-size:15px}.selInfo span{font-size:11px;color:var(--c-pedra)}.selInfo em{font-size:10px;font-style:normal;color:var(--c-cinza)}
+.selBotoes{display:flex;gap:6px}.selBotoes .mb{flex:1}.selConta{font-size:9px;color:var(--c-cinza)}
+body.selecaoPersonagem #menu{display:none!important}
+body.selecaoPersonagem>*:not(#g):not(#conta){visibility:hidden!important}
+
+/* painel de habilidade e item (ui.js skTip/itemTip): rótulo cinza e cada informação com uma cor */
+#tip .tlin{margin:1px 0}#tip .tl{color:#8a8580}#tip .tnome{color:#f0e6dc}#tip .tdesc{color:#d9d0c7}#tip .tdano{color:#ff8f5a;font-weight:bold}#tip .tefeito{color:#c79bff}#tip .tmana{color:#6fb7ff;font-weight:bold}#tip .tcd{color:#ffd84a;font-weight:bold}#tip .tcast{color:#8fe38a;font-weight:bold}#tip .tarma,#tip .ttipo{color:#a69c94}#tip .tatr{color:#9fdc9f}#tip .thab{color:#72d9ff}
+/* dano físico + mágico na mesma arma/habilidade: degradê laranja → azul */#tip .tmisto{background:linear-gradient(90deg,#ff9a3c,#5fb4ff);-webkit-background-clip:text;background-clip:text;color:transparent}#tip .tmisto.inv{background:linear-gradient(90deg,#5fb4ff,#ff9a3c);-webkit-background-clip:text;background-clip:text}#tip .tcura{color:#6fe36f;font-weight:bold}#tip .talc{color:#e8d07a}#tip .tarea{color:#e8a87a}

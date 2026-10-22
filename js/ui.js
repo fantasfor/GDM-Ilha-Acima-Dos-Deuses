@@ -24,28 +24,38 @@ function drawPortrait(){const W=96,H=80,g=pt.createLinearGradient(0,0,0,H);g.add
  const sh2=Math.round(h*1.15),sw2=Math.round(sh2*16/20);pt.imageSmoothingEnabled=false;
  pt.drawImage(hi,12+(hi.ox||0),1+(hi.oy||0),16,20,Math.round((W-sw2)/2),H-4-sh2+bob+8,sw2,sh2)}
 const INV_CATEGORIES=[['all','Todos'],['consumables','Consumíveis'],['materials','Materiais'],['sw','Armas'],['he','Capacete'],['ch','Peito'],['le','Calça'],['bo','Bota'],['ca','Capa'],['ne','Colar'],['ri','Anel']];
-/* ícones 16×16 dos filtros da mochila: contorno escuro, três tons e um brilho */
+/* ícones 16×16 dos filtros da mochila: silhuetas simples em 2 tons da paleta da interface (contorno claro, miolo cinza) */
+const INV_ICON_COR={'#':'#d9d0c7','+':'#7d756e'};
 const INV_CATEGORY_ICONS={
- all:spr(["......oooo......",".....o3333o.....","....o3o..o3o....","...oooooooooo...","..o2222222222o..",".o222222222222o.",".o211111111112o.",".o21oooooooo12o.",".o21o4yyyy4o12o.",".o21o444444o12o.",".o21oooooooo12o.",".o211111111112o.",".o222222222222o.",".o122222222221o.","..oooooooooooo..","................"],{o:'#2a1708',1:'#7a4520',2:'#a8642c',3:'#c98a45',4:'#8a5226',y:'#f2c94c'}),
- consumables:spr(["......oooo......","......occo......","......occo......",".....oooooo.....","......owgo......","......owgo......",".....owgggo.....","....owrrrrro....","...owrRrrrrro...","...orRrrrrrdo...","...orrrrrrrdo...","...orrrrrrddo...","....orrrrddo....",".....oddddo.....","......oooo......","................"],{o:'#3a1a14',c:'#a0703a',g:'#cfe6f2',w:'#ffffff',r:'#d8343f',R:'#ff9a9a',d:'#8e1c28'}),
- materials:spr(["................",".....oooooo.....","...oo222222oo...","..o2211111122o..",".o221yyyyyy122o.",".o21yy1111yy12o.","o221y1yyyy1y122o","o21y1y1111y1y12o","o21y1y1oo1y1y12o","o21y1y1111y1y12o","o221y1yyyy1y122o",".o21yy1111yy12o.",".o221yyyyyy122o.","..o2211111122o..","...oo222222oo...",".....oooooo....."],{o:'#2e1a0c',2:'#6b4423',1:'#d6a466',y:'#a8733c'}),
- sw:spr([".............ooo","............owwo","...........owwso","..........owwso.",".........owwso..","........owwso...",".......owwso....","......owwso.....","..oo.owwso......","..oyoowso.......","...oyyoo........","...ohyyo........","..ohhoyyo.......",".ohho.oo........","obbo............","ooo............."],{o:'#1e2630',w:'#f4f8fc',s:'#9fb0c0',y:'#e0b040',h:'#7a4a24',b:'#e8c050'}),
- he:spr([".......rr.......","......orro......","....oooooooo....","...o23333222o...","..o2333322221o..","..o2332222221o..",".o232222222221o.",".o222222222211o.",".oooooooooooooo.",".o21kkk11kkk12o.",".o211111111112o.",".o2111o..o1112o.",".o211o....o112o.","..ooo......ooo..","................","................"],{o:'#1c2530',1:'#5d6f80',2:'#8ea2b4',3:'#dde8f0',k:'#0a0e14',r:'#c83a3a'}),
- ch:spr(["................","..ooo......ooo..",".o233oooooo332o.","o22333322333322o","o21122222222112o",".oo1223333221oo.","..o1223333221o..","..o1222332221o..","..o1222222221o..","..o1yyyBByyy1o..","..o1222222221o..","..o1122222211o..","...oooooooooo...","................","................","................"],{o:'#1a2433',1:'#4c6178',2:'#7f97ad',3:'#c9d8e4',y:'#6b4a2a',B:'#e8c050'}),
- le:spr(["................","...ooooooooooo..","...oyyyyByyyyo..","...o222222221o..","...o232222221o..","...o2322o2221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...o232o.o221o..","...okkko.okkko..","...ooooo.ooooo..","................","................"],{o:'#2a1c12',1:'#5e4024',2:'#8a6238',3:'#b48a56',y:'#3a2a1a',B:'#e0b848',k:'#4a3220'}),
- bo:spr(["................","................","....oooooo......","....o3222o......","....o3222o......","....o3221o......","....oyyyyo......","....o3221o......","....o32221oo....","....o3222221o...","...o3222222221o.","...o2222222221o.","...okkkkkkkkkko.","...oooooooooooo.","................","................"],{o:'#2a1a0e',1:'#6a4022',2:'#9a6438',3:'#c89060',y:'#e0b848',k:'#3a2414'}),
- ca:spr(["................","....oooooooo....","...oyoo22ooyo...","...o32222221o...","..o3322222211o..","..o3222222221o..","..o3222122221o..",".o332221222211o.",".o322221222221o.",".o322221222221o.","o33222212222211o","o32222212222221o","oo22oo2222oo22oo","..oo..oooo..oo..","................","................"],{o:'#2a0e12',1:'#78202c',2:'#b03040',3:'#e05a64',y:'#f0c850'}),
- ne:spr(["................",".oo..........oo.",".oyo........oyo.","..oyo......oyo..","...oyo....oyo...","....oyo..oyo....",".....oyooyo.....","......oyyo......",".....oooooo.....","....o3bbbbdo....","....obbbbbdo....","....obbbbddo....",".....obbddo.....","......oddo......",".......oo.......","................"],{o:'#3a2608',y:'#e8c050',3:'#d8f4ff',b:'#3aa0e8',d:'#1e5ea0'}),
- ri:spr(["................","......oooo......",".....o3bbdo.....",".....obbddo.....","......oooo......","....oyyyyyyo....","...oy3o..oyyo...","..oy3o....oyyo..","..oy3o....oyyo..","..oyyo....oy1o..","..oyyo....oy1o..","...oyyo..oy1o...","....oyyyy11o....",".....oooooo.....","................","................"],{o:'#3a2608',y:'#e8c050',3:'#fff2b0',1:'#a87820',b:'#e04060',d:'#901830'})
-};
-let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
+ all:spr(["................",".######..######.",".#++++#..#++++#.",".#++++#..#++++#.",".#++++#..#++++#.",".######..######.","................","................",".######..######.",".#++++#..#++++#.",".#++++#..#++++#.",".#++++#..#++++#.",".######..######.","................","................","................"],INV_ICON_COR),
+ consumables:spr(["................","......####......","......#++#......","......####......",".......##.......",".......##.......","......####......",".....##++##.....","....##++++##....","...##++++++##...","...#++++++++#...","...#++++++++#...","...##++++++##...","....########....","................","................"],INV_ICON_COR),
+ materials:spr(["................",".##############.",".#++++++++++++#.",".##############.",".#+#++++++++#+#.",".#++#++++++#++#.",".#+++#++++#+++#.",".#++++#++#++++#.",".#+++++##+++++#.",".#++++#++#++++#.",".#+++#++++#+++#.",".#++#++++++#++#.",".#+#++++++++#+#.",".##############.","................","................"],INV_ICON_COR),
+ sw:spr(["................","............##..","...........#+#..","..........#+#...",".........#+#....","........#+#.....",".......#+#......","..#...#+#.......","...#.#+#........","....###.........","....##..........","...#..#.........","..##............",".##.............","................","................"],INV_ICON_COR),
+ he:spr(["................","................",".....######.....","...##++++++##...","..#++++++++++#..","..#++++++++++#..",".#++++++++++++#.",".#++++++++++++#.",".##############.",".#++##++++##++#.",".#++#......#++#.",".#++#......#++#.",".####......####.","................","................","................"],INV_ICON_COR),
+ ch:spr(["................","..###......###..",".#+++######+++#.","#++++++++++++++#","#++##++++++##++#",".##.#++++++#.##.","....#++++++#....","....#++++++#....","....#++##++#....","....#++++++#....","....#++++++#....",".....######.....","................","................","................","................"],INV_ICON_COR),
+ le:spr(["................","..############..","..#++++++++++#..","..#++++++++++#..","..#++++##++++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#####..#####..","................","................","................","................","................"],INV_ICON_COR),
+ bo:spr(["................","....######......","....#++++#......","....#++++#......","....#++++#......","....#++++#......","....#++++#......","....#++++###....","....#+++++++##..","....#+++++++++#.","....###########.","................","................","................","................","................"],INV_ICON_COR),
+ ca:spr(["................","....########....","...#++++++++#...","...#+######+#...","..#++++++++++#..","..#++++++++++#..",".#++++++++++++#.",".#++++++++++++#.","#++++++++++++++#","#++++++++++++++#","##+##++++++##+##","................","................","................","................","................"],INV_ICON_COR),
+ ne:spr(["................",".##..........##.","..#..........#..","..##........##..","...#........#...","...##......##...","....##....##....",".....######.....","......####......",".....#++++#.....",".....#++++#.....","......#++#......",".......##.......","................","................","................"],INV_ICON_COR),
+ ri:spr(["................","......####......",".....#++++#.....","......####......","....########....","...##......##...","..##........##..","..#..........#..","..#..........#..","..##........##..","...##......##...","....########....","................","................","................","................"],INV_ICON_COR)
+};let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
 $('bag').onclick=e=>{e.stopPropagation();togInv()};
 INV_CATEGORIES.forEach(([id,label])=>{const button=document.createElement('button');button.type='button';button.className='invCategory';button.setAttribute('aria-pressed',id=='all'?'true':'false');button.setAttribute('aria-label',label);button.title=label;button.dataset.category=id;const icon=document.createElement('img');icon.src=INV_CATEGORY_ICONS[id].toDataURL();icon.alt='';icon.setAttribute('aria-hidden','true');button.appendChild(icon);button.onclick=e=>{e.stopPropagation();invCategory=id;invEquipSlot=null;renderInv()};$('invCategories').appendChild(button)});
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
 let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
 SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();window.mirarOuLancar?mirarOuLancar(s):cast(s)};const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
-const skTip=s=>!s.n?'<b>Habilidade da arma</b><div class=tm>Vazio: a arma equipada não tem habilidade para este espaço.</div>':'<b>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+(s.w?'<div class=tw>Habilidade da arma</div>':'')+'<div>'+s.d()+'</div><div class=tm>Mana: '+s.mana+' • Recarga: '+s.cd+'s · '+(s.castTime>0?'Conjuração: '+tempoConj(s).toFixed(1)+'s':'Instantânea')+'</div>'+(s.wt&&s.wt.length?'<div class=tm>Exige uma tag de arma: '+s.wt.join(', ')+'</div>':'')+(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe dona</div>':'');
+/* painel de habilidade e de item: "Rótulo: valor", cada tipo de informação com a sua cor (css/ui2.css #tip .t*) */
+const NOME_ARMA={espada:'Espada',espada_grande:'Espada grande',adaga:'Adaga',machadinha:'Machadinha',machado_2mao:'Machado',maca:'Maça',martelo_2mao:'Martelo',lanca:'Lança',arco:'Arco',besta:'Besta',manopla:'Manopla',escudo:'Escudo',cajado:'Cajado',cetro:'Cetro',orbe:'Orbe',serrote:'Serrote'};
+const nomeArma=k=>NOME_ARMA[k]||k;
+const tl=(rot,val,cls,cor)=>val===''||val==null?'':'<div class=tlin><span class=tl>'+rot+':</span> <span class='+cls+(cor?' style="color:'+cor+'"':'')+'>'+val+'</span></div>';
+const skTip=s=>{if(!s.n)return '<b>Habilidade da arma</b><div class=tm>Vazio: a arma equipada não tem habilidade para este espaço.</div>';
+ let i;try{i=s.info?s.info():{desc:s.d(),dano:'',efeito:''}}catch(e){i={desc:'',dano:'',efeito:''}}const cast=tempoConj(s);
+ return '<div class=tlin><span class=tl>Nome:</span> <b class=tnome>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+'</div>'
+  +tl('Descrição',i.desc,'tdesc')+tl('Dano',i.dano,i.dano2!=null?'tdano tmisto':'tdano')+tl('Cura',i.cura,'tcura')+tl('Recupera',i.mana,'tmana')
+  +tl('Alcance',i.alcance,'talc')+tl('Área',i.area,'tarea')+tl('Efeito',i.efeito,'tefeito')
+  +'<div class=tlin><span class=tl>Mana:</span> <span class=tmana>'+s.mana+'</span>  <span class=tl>Recarga:</span> <span class=tcd>'+s.cd+' s</span>  <span class=tl>Cast:</span> <span class=tcast>'+(cast>0?cast.toFixed(1)+' s':'instantâneo')+'</span></div>'
+  +(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe</div>':'')};
 const skillPanel=$('skillPanel');
 function renderSkillMenu(){
  if(!skillPanel)return;
@@ -53,7 +63,7 @@ function renderSkillMenu(){
  skillPanel.innerHTML='';const head=document.createElement('div');head.className='skillHead';
  const title=document.createElement('strong');title.textContent='Habilidades — '+CL[p.cls].n;
  const close=document.createElement('button');close.type='button';close.textContent='×';close.onclick=()=>skillPanel.classList.remove('open');
- const status=document.createElement('div');status.className='skillProgress';status.textContent='Personagem Nv '+p.lvl+'/30 · Rank da classe '+rank+'/10'+(need?' · XP de classe '+progress.xp+'/'+need:' · Rank máximo');
+ const status=document.createElement('div');status.className='skillProgress';status.textContent='Personagem Nv '+p.lvl+'/'+(+CALC.maxLevel||10)+' · Rank da classe '+rank+'/10'+(need?' · XP de classe '+progress.xp+'/'+need:' · Rank máximo');
  head.append(title,close);skillPanel.append(head,status);
  const own=document.createElement('h4');own.textContent='Árvore de habilidades da classe';skillPanel.appendChild(own);
  const entries=skillEntries(p.cls);
@@ -165,14 +175,19 @@ function compareEquipment(id,q,preferredSlot){
  const existing=current?ITEMS[current.id]:null,empty={ic:BLANK,n:'Vazio'};
  return'<div class=compareHead>Comparação — '+SLOT_LABEL[slot]+'</div><div class=compareGrid>'+panel(ITEMS[id],candidate,'Novo',q)+panel(existing||empty,equipped,'Equipado',current?.q)+'</div>'
 }
-function itemTip(id,q,preferredSlot){const it=ITEMS[id],t=gearType[id],m=it.n.match(/\(([^)]*)\)/);const qcol=t?QCOL[qi(q==null?50:q)]:null;let h='<b'+(qcol?' style="color:'+qcol+'" data-qc='+qcol:'')+'>'+it.n.split(' (')[0]+'</b>';
- if(t)h+='<div class=tw>'+(t=='ri'?'Anel':SLOT_LABEL[t])+'</div>';
- if(t)h+='<div class=tm style="color:'+qcol+'">Qualidade: '+(q==null?50:q)+'% ('+qName(q==null?50:q)+')</div>';const stats=t?qStats(id,q):it,st=statTxt(t==='sw'&&weaponDamageRange(it)?{...stats,dmg:0}:stats);if(st)h+='<div>'+st.split(', ').join('<br>')+'</div>';
- else if(it.use&&m)h+='<div>'+m[1]+'</div>';
- if(!t&&attributeText(it.bonuses))h+='<div class=tw>'+(it.use?'Bônus por '+it.bonusDuration+'s':'Atributos do material')+'</div><div>'+attributeText(it.bonuses).split(', ').join('<br>')+'</div>';
- if(t=='sw'){h+='<div class=tm>Tipo: '+(it.wt||'arma')+(it.th?' • duas mãos':' • uma mão')+'</div>';const range=qualityWeaponRange(it,q);if(range)h+='<div>Dano da arma: '+range.min+' - '+range.max+' (sorteado por ataque)</div>'}
+function itemTip(id,q,preferredSlot){const it=ITEMS[id],t=gearType[id],m=it.n.match(/\(([^)]*)\)/),qq=q==null?50:q,qcol=t?QCOL[qi(qq)]:'#d9d0c7';
+ const tipo=t=='sw'?'Arma · '+(it.th?'duas mãos':'uma mão')+(it.wt?' · '+nomeArma(weaponTag(it.wt)):''):t?(t=='ri'?'Anel':SLOT_LABEL[t]):it.use?'Consumível':'Material';
+ let h='<div class=tlin><span class=tl>Nome:</span> <b class=tnome style="color:'+qcol+'"'+(t?' data-qc='+qcol:'')+'>'+it.n.split(' (')[0]+'</b></div>'+tl('Tipo',tipo,'ttipo');
+ if(t)h+=tl('Qualidade',qq+'% ('+qName(qq)+')','tq',qcol);
+ // arma com os dois tipos de dano (ex.: 26 - 36 físico + 12 - 22 mágico): o texto fica em degradê laranja → azul
+ if(t=='sw'){const range=qualityWeaponRange(it,q),r2=qualityWeaponRange2(it,q),mg=(BASIC[id]&&BASIC[id].damageType||it.damageType)=='magic';
+  if(range)h+=tl('Dano',range.min+' - '+range.max+(mg?' mágico':' físico')+(r2?' + '+r2.min+' - '+r2.max+(mg?' físico':' mágico'):''),r2?'tdano tmisto'+(mg?' inv':''):'tdano')}
+ const stats=t?qStats(id,q):it,st=statTxt(t==='sw'&&weaponDamageRange(it)?{...stats,dmg:0}:stats);if(st)h+=tl('Atributos',st,'tatr');
+ else if(it.use&&m)h+=tl('Efeito',m[1],'tefeito');
+ if(!t&&attributeText(it.bonuses))h+=tl(it.use?'Bônus ('+it.bonusDuration+' s)':'Atributos',attributeText(it.bonuses),'tatr');
+ if(Array.isArray(it.fx)&&it.fx.length&&window.efeitoTexto)h+=tl('Efeito',efeitoTexto(it.fx),'tefeito');
+ if(t=='sw'){const hs=(WSK[id]||[]).filter(Boolean).map(s=>s.n);if(hs.length)h+=tl('Habilidades',hs.join(', '),'thab')}
  if(it.tags&&it.tags.length)h+='<div class=tm>Tags: '+it.tags.join(', ')+'</div>';
- if(t=='sw')h+='<div class=tm>Habilidades: '+(WSK[id]||WSK.sw).slice(0,1).map(s=>s.n).join(', ')+'</div>';
  if(t&&!(preferredSlot&&EQ[preferredSlot]&&EQ[preferredSlot].id==id&&EQ[preferredSlot].q===q))h+=compareEquipment(id,q,preferredSlot);
  return h}
 const tipEl=document.createElement('div');tipEl.id='tip';document.body.appendChild(tipEl);
@@ -191,7 +206,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0}},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0},missao:p.missao||null,quadro:p.quadro||null},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -204,7 +219,7 @@ function loadGame(){
   const d=JSON.parse(raw);if(!d||!d.p||!Array.isArray(d.items))return false;
   for(const k of ['x','y','hp','mp','lvl','xp','gold'])if(Number.isFinite(d.p[k]))p[k]=d.p[k];
   if(d.ilhaV!==2){p.x+=CHAO.ILHA_DESLOC;p.y+=CHAO.ILHA_DESLOC} // save da ilha menor: mesmo lugar em relação ao acampamento
-  p.lvl=Math.max(1,Math.min(30,Math.floor(p.lvl)));if(p.lvl>=CALC.maxLevel)p.xp=0;
+  p.lvl=Math.max(1,Math.min(+CALC.maxLevel||10,Math.floor(p.lvl)));if(p.lvl>=CALC.maxLevel)p.xp=0;
   if(CL[d.p.cls])p.cls=d.p.cls;
   p.classProgress={war:{rank:1,xp:0}};
   if(d.p.classProgress&&typeof d.p.classProgress=='object')Object.keys(d.p.classProgress).forEach(id=>{const v=d.p.classProgress[id];if(CL[id]&&v&&Number.isFinite(v.rank)&&Number.isFinite(v.xp))p.classProgress[id]={rank:Math.max(1,Math.min(10,Math.floor(v.rank))),xp:Math.max(0,v.xp)}});
@@ -213,6 +228,8 @@ function loadGame(){
   p.basicMode=BASIC_MODES.includes(d.p.basicMode)?d.p.basicMode:'sw';p.basicNext=d.p.basicNext=='sh'?'sh':'sw';
   lootMode=Object.prototype.hasOwnProperty.call(LOOT_MODES,d.lootMode)?d.lootMode:'manual';
   if(d.p.sex=='m'||d.p.sex=='f')p.sex=d.p.sex;
+  // missão do quadro da taverna (js/taverna.js) e as ofertas do dia
+  p.missao=d.p.missao&&typeof d.p.missao=='object'&&d.p.missao.tipo?d.p.missao:null;p.quadro=d.p.quadro&&typeof d.p.quadro=='object'?d.p.quadro:null;
   if(d.p.look&&typeof d.p.look=='object')p.look=window.APARENCIA?APARENCIA.normalizar(d.p.look,p.sex):d.p.look;
   // kits iniciais já recebidos; saves de antes dos kits contam as classes que o jogador já tinha
   p.kits={};if(d.p.kits&&typeof d.p.kits=='object'){for(const c in d.p.kits)if(d.p.kits[c])p.kits[c]=Array.isArray(d.p.kits[c])?d.p.kits[c]:true}else for(const c in p.classProgress)p.kits[c]=true;
@@ -248,7 +265,7 @@ addEventListener('beforeunload',saveGame);setInterval(saveGame,5000);
 const ap=document.createElement('div');ap.id='ap';document.querySelector('#invp .doll').prepend(ap);
 function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,d=0)=>Number(v).toFixed(d),value=(total,initial,d=0)=>{const delta=total-initial,sign=delta<0?' - ':' + ';return fmt(initial,d)+(Math.abs(delta)>0.0001?'<span class="statBonus">'+sign+fmt(Math.abs(delta),d)+'</span>':'')},row=(l,v,col)=>'<div><span'+(col?' style="color:'+col+'"':'')+'>'+l+'</span><i>'+v+'</i></div>';
  const passiveAttr=k=>c.pa?c.pa(k):0,baseF=a.F-passiveAttr('F'),baseA=a.A-passiveAttr('A'),baseI=a.I-passiveAttr('I');
- const effectSum=kind=>Object.keys(p.st||{}).reduce((sum,k)=>{const s=p.st[k];return FX_INFO[k]&&FX_INFO[k].kind==kind&&s.t>0?sum+s.pw*(s.n||1):sum},0);
+ const effectSum=kind=>stSum(p,kind);
  const hpBase=Math.round(CALC.hp0+baseF*CALC.hpPerF)+bonus('hp'),mpBase=Math.round(CALC.mp0+(baseI-3)*CALC.mpPerI)+bonus('mp');
  const regenHpBase=baseF*CALC.regenPerF+campB()+bonus('regenHp'),regenMpBase=baseI*CALC.regenPerI+campB()+bonus('regenMp'),hpRegenEffect=effectSum('hot');
  const damageFactor=(1+(c.pDmg||0))*(p.bf>0?1.5:1)*(1+effectSum('dmgup')/100);
@@ -256,7 +273,7 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
  const moveBase=Math.round(CALC.move*(1+bonus('spd')+bonus('moveSpeed')+baseA*CALC.spdPerA)),moveWithEffects=Math.round(CALC.move*(1+spdB()+(p.bf>0?.3:0))*hasteFactor);
  const armorBase=Math.round(baseA*CALC.armPerA+bonus('arm')),magicArmorBase=Math.round(baseI*CALC.magArmPerI+bonus('magicArm'));
  const intervalBase=Math.max(CALC.minInterval,(c.attackSpeed||1)*(1-baseA*CALC.atkSpdPerA)*(1-bonus('attackSpeed')));
- const guardEffect=Math.min(80,effectSum('guard')),protection=Math.round((1-(1-guardEffect/100)*(p.guard>0?.5:1))*100);
+ const guardEffect=Math.min(80,effectSum('guard')),protection=Math.round(guardEffect);
  ap.innerHTML='<h4>Atributos</h4>'+
   row('Força',value(a.F,baseF),'#f55')+row('Agilidade',value(a.A,baseA),'#5ee05a')+row('Inteligência',value(a.I,baseI),'#5aa8ff')+'<hr>'+
   row('Vida máx.',value(mhp(),hpBase))+row('Mana máx.',value(mmp(),mpBase))+
@@ -266,9 +283,9 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
   (protection?row('Proteção','<span class="statBonus">'+protection+'%</span>'):'')+
   row('Int. de ataque',value(attackInterval(),intervalBase,2)+'s')+row('Vel. movimento',value(moveWithEffects,moveBase))+
   row('Aumento de área',fmt(bonus('area')*100,1)+'%')+row('Redução de recarga',fmt((1-cooldownMultiplier(p))*100,1)+'%')+
-  row('Chance crítica',fmt(Math.max(0,Math.min(1,bonus('critChance')))*100,1)+'%')+
-  row('Dano crítico',fmt(Math.max(1,1.5+bonus('critDamage'))*100,1)+'%')+
-  row('Roubo de vida',fmt(Math.max(0,Math.min(1,bonus('lifeSteal')))*100,1)+'%')+row('Roubo de vida mág.',fmt(Math.max(0,Math.min(1,bonus('magicLifeSteal')))*100,1)+'%')+row('Nível',p.lvl);
+  row('Chance crítica',fmt(Math.max(0,Math.min(1,bonus('critChance')+critAgi(p)))*100,1)+'%')+
+  row('Dano crítico',fmt(Math.max(1,1.5+bonus('critDamage')+critAgi(p))*100,1)+'%')+
+  row('Roubo de vida',fmt(Math.max(0,Math.min(1,bonus('lifeSteal')))*100,1)+'%')+row('Roubo de vida mág.',fmt(Math.max(0,Math.min(1,bonus('magicLifeSteal')))*100,1)+'%')+row('Perfuração física',fmt(Math.max(0,Math.min(1,bonus('physicalPen')))*100,1)+'%')+row('Perfuração mágica',fmt(Math.max(0,Math.min(1,bonus('magicPen')))*100,1)+'%')+row('Amplificação de cura',fmt(Math.max(0,bonus('healAmp'))*100,1)+'%')+row('Nível',p.lvl);
  ap.style.display='block'}
 function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.hp),combat=inCombat();if(combat&&skillPicker.classList.contains('open'))closeSkillPicker();$('dock').classList.toggle('inCombat',combat);document.querySelectorAll('.skillSelect').forEach(button=>{const slot=Number(button.dataset.skillSlot),cooldown=SK[slot]&&SK[slot].t>0;button.disabled=combat||cooldown;button.title=combat?'Troca disponível apenas fora de combate':cooldown?'Aguarde a habilidade terminar a recarga':'Escolher habilidade'});$('hpb').style.width=hp/H*100+'%';$('hpt').textContent=Math.ceil(hp)+' / '+H;
  $('mpb').style.width=p.mp/M*100+'%';$('mpt').textContent=Math.floor(p.mp)+' / '+M;
@@ -316,6 +333,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  // visitando outra ilha: a missão mostrada é a sua, que continua quando voltar para casa
  if(window.MP&&MP.visitando&&!window.inDungeon&&!window.inTaverna){quest.classList.remove('done');quest.innerHTML='<b>VISITANDO</b>Você está na ilha de '+String(MP.nomeDe(MP.visitando)).replace(/[<>&]/g,'')+'. Sua missão continua quando voltar para a sua ilha.'}
  else quest.innerHTML='<b>'+(wallBuilt?'RESGATE DO FERREIRO':'PRIMEIRO OBJETIVO')+'</b>'+objective;
+ if(window.textoMissaoQuadro)quest.innerHTML+=textoMissaoQuadro(); // missão do quadro da taverna
  if(dirtyInv)renderInv()}
 const mm=$('mm').getContext('2d');mm.imageSmoothingEnabled=false;
 

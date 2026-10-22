@@ -38,7 +38,7 @@
    arte:grade(11,14,(R,P)=>{R(5,0,1,7,'s');P(5,0,'w');R(1,2,9,1,'S');P(0,3,'S');P(10,3,'S');P(5,2,'m');[[1,4],[2,5],[3,5],[4,6],[6,6],[7,5],[8,5],[9,4]].forEach(([x,y])=>P(x,y,'t'));R(4,6,3,6,'b');R(4,6,1,6,'l');P(6,10,'m');R(3,12,5,2,'B')})},
   cajado:{nome:'Cajado',tag:'cajado',ataque:'vertical',duasMaos:true,tipo:'magic',dano:[5,8],rng:120,proj:'#7cf0ff',stats:{mp:30,magicDmg:4},
    arte:grade(8,26,(R,P)=>{R(3,0,2,1,'c');R(2,1,4,4,'c');P(2,1,'w');P(3,2,'y');R(4,3,2,2,'C');R(1,3,1,3,'g');R(6,3,1,3,'g');P(1,2,'G');P(6,2,'G');R(2,5,4,1,'g');R(3,6,2,19,'b');R(4,6,1,19,'B');R(3,13,2,1,'g');R(3,25,2,1,'m')})},
-  vara:{nome:'Vara',tag:'vara',ataque:'varinha',duasMaos:false,tipo:'magic',dano:[3,5],rng:110,proj:'#b07bff',stats:{castSpeed:15},
+  vara:{nome:'Cetro',tag:'cetro',ataque:'varinha',duasMaos:false,tipo:'magic',dano:[3,5],rng:110,proj:'#b07bff',stats:{castSpeed:15},
    arte:grade(3,13,(R,P)=>{P(1,0,'p');R(0,1,3,2,'p');P(0,1,'w');P(2,2,'P');R(0,3,3,1,'g');R(1,4,1,8,'l');P(1,8,'b');P(1,12,'B')})},
   manopla:{nome:'Manopla',tag:'manopla',ataque:'soco',duasMaos:false,tipo:'physical',dano:[4,7],rng:16,stats:{attackSpeed:20},
    arte:grade(7,8,(R,P)=>{R(1,0,5,2,'s');R(1,0,5,1,'w');P(2,1,'S');P(4,1,'S');R(0,2,7,3,'s');R(0,2,1,3,'S');R(5,3,2,2,'S');R(1,5,5,2,'m');R(1,5,5,1,'g');P(5,6,'K')}),girarIcone:false},
