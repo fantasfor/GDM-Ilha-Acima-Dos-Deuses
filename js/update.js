@@ -6,10 +6,23 @@ const RESET_REGEN=.05;
 function naSalaDoChefe(e,a){const r=window.inDungeon&&e.boss&&e.dungeonRoomBounds;return !r||(a.x>=r.x-10&&a.x<=r.x+r.w+10&&a.y>=r.y-10&&a.y<=r.y+r.h+10)}
 // alcance extra contra alvos grandes (bosses): só o que excede o corpo de um monstro comum
 function targetReach(t){return Math.max(0,entityRadius(t)-9)}
+/* corpos sólidos: herói, monstros e NPCs não entram um no outro e ninguém empurra ninguém (só habilidade com empurrão,
+   que move o alvo direto). O passo é recusado se chega mais perto de um corpo já encostado; afastar-se sempre pode. */
+const raioCorpo=u=>u===p||u.pvp||!u.img?5:entityRadius(u);
+function corpoNoCaminho(e,x,y){
+ const re=raioCorpo(e),testa=b=>{if(b===e||!b||b.hp<=0&&b!==p)return false;const dx=x-b.x,dy=y-b.y,R=re+raioCorpo(b);if(Math.abs(dx)>R||Math.abs(dy)>R)return false;const d1=Math.hypot(dx,dy);return d1<R&&d1<Math.hypot(e.x-b.x,e.y-b.y)-1e-6};
+ if(e!==p&&p.dead<=0&&testa(p))return true;
+ for(const b of en)if(testa(b))return true;
+ if(!window.inDungeon&&!window.inTaverna&&!window.inArena)for(const n of NPCS)if(n.x>-1000&&testa(n))return true;
+ return false}
 function move(e,d,sp,dt){const dx=d.x-e.x,dy=d.y-e.y,L=Math.hypot(dx,dy);if(L<.001)return true;const st=Math.min(sp*dt,L),nx=e.x+dx/L*st,ny=e.y+dy/L*st,oldX=e.x,oldY=e.y,room=e.dungeonRoomBounds;
- const free=(x,y)=>walk(x,y)&&campWallSegmentClear(e,{x,y})&&(e===p||!insideCamp(x,y))&&(!window.inDungeon||!e.boss||!room||(x>=room.x+6&&x<=room.x+room.w-6&&y>=room.y+6&&y<=room.y+room.h-6));
+ const free=(x,y)=>walk(x,y)&&campWallSegmentClear(e,{x,y})&&(e===p||!insideCamp(x,y))&&(!window.inDungeon||!e.boss||!room||(x>=room.x+6&&x<=room.x+room.w-6&&y>=room.y+6&&y<=room.y+room.h-6))&&!corpoNoCaminho(e,x,y);
+ // esbarrou em alguém: contorna pelo lado (mantém o mesmo lado para não ficar indo e voltando); senão desliza na parede
+ const contornar=()=>{const bx=dx/L,by=dy/L,lado=e.ladoDesvio||1;for(const a of [.6,1.1,1.57,2.1].flatMap(a=>[a*lado,-a*lado])){const c=Math.cos(a),s=Math.sin(a),qx=(bx*c-by*s)*st,qy=(bx*s+by*c)*st;if(free(e.x+qx,e.y+qy)){e.x+=qx;e.y+=qy;e.ladoDesvio=Math.sign(a)||1;return true}}return false};
  if(free(nx,ny)){e.x=nx;e.y=ny}
+ else if(corpoNoCaminho(e,nx,ny)&&contornar()){}
  else{if(free(nx,e.y))e.x=nx;if(free(e.x,ny))e.y=ny}
+ // monstro travado na parede: tenta passar de lado
  if(e!==p&&e.x===oldX&&e.y===oldY){const bx=dx/L,by=dy/L;for(const a of [1.57,-1.57,.8,-.8,2.3,-2.3]){const c=Math.cos(a),s=Math.sin(a),qx=(bx*c-by*s)*st,qy=(bx*s+by*c)*st;if(free(e.x+qx,e.y+qy)){e.x+=qx;e.y+=qy;break}}}
  e.fx=dx;e.fy=dy;return e.x===oldX&&e.y===oldY}
 function snapWalk(x,y,avoid,agent){const room=agent&&agent.dungeonRoomBounds,ok=(a,b)=>walk(a,b)&&(!avoid||!insideCamp(a,b))&&(!window.inDungeon||!agent||!agent.boss||!room||(a>=room.x+6&&a<=room.x+room.w-6&&b>=room.y+6&&b<=room.y+room.h-6));if(ok(x,y))return{x,y};for(let r=4;r<=56;r+=4)for(let k=0;k<12;k++){const a=k*Math.PI/6,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(ok(px,py))return{x:px,y:py}}return{x,y}}
@@ -85,9 +98,9 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
  }
  else{
   tickAttributeBuffs(p,dt);SK.forEach(s=>s.t=Math.max(0,s.t-dt));p.acd-=dt;tickStatus(p,dt);if(window.tickDash)tickDash(dt);if(window.tickCanal)tickCanal(dt);if(window.CURANDEIRO)CURANDEIRO.tick(dt);const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
-  // conjuração em andamento (combat.js cast/lancar): andar, atacar ou ser atordoado interrompe; no fim a habilidade sai
-  if(p.conj){const c=p.conj,andando=['mover_direita','mover_esquerda','mover_baixo','mover_cima'].some(k=>held.has(k))||Math.hypot(p.joy.x,p.joy.y)>.08;
-   if(pst==0||p.dest||p.tgt||p.npcT||andando){p.conj=null;ft(p.x,p.y-24,'Conjuração interrompida','#ccc')}
+  // conjuração em andamento (combat.js cast/lancar): só ser atordoado interrompe (dá para andar); no fim a habilidade sai
+  if(p.conj){const c=p.conj;
+   if(pst==0){p.conj=null;ft(p.x,p.y-24,'Conjuração interrompida','#ccc')} // só atordoar/congelar interrompe; andar não cancela
    else if((c.r-=dt)<=0){p.conj=null;if(c.t&&c.t.hp<=0)ft(p.x,p.y-24,'Sem alvo','#ccc');else if(p.mp<c.s.mana)ft(p.x,p.y-24,'Sem mana','#ccc');else{lancar(c.s,c.w,c.t);if(c.volta&&c.volta.hp>0&&!p.canal)p.tgt=c.volta /* volta a atacar o alvo de antes */}}}
   if(p.aw>0){p.aw-=dt;p.dest=null;if(p.aw<=0){const t=p.wt,b=p.attackBasic||basicForDistance(t?dist(p,t):Infinity),landed=!!(t&&t.hp>0&&dist(p,t)-targetReach(t)<b.rng+8&&linhaLivre(p,t));if(landed){const {damage,bfx}=withWeaponDamageRoll(()=>({damage:basicAttackDamage(b),bfx:resolveFx(b.effects,charDamage(b.damageType))}));if(b.proj){const a=Math.atan2(t.y-8-p.y,t.x-p.x);proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:damage,magic:b.damageType=='magic',c:b.proj,tg:t,fx:bfx,seta:b.damageType!='magic'&&typeof armaDeTiro=='function'&&armaDeTiro(b.weaponSlot)})}else{hurtE(t,damage,b.damageType=='magic',bfx);ring(t.x,t.y-8,10,'#fff',.15)}if(p.basicMode=='alternate'&&b.weaponSlot)p.basicNext=b.weaponSlot=='sw'?'sh':'sw'}p.wt=null;p.attackBasic=null}}
   else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d),livre=linhaLivre(p,p.tgt);if(d>b.rng||!livre)approach(p,p.tgt,livre?Math.max(8,b.rng-3)+reach:6+reach);/* parede no meio: contorna até ver o alvo */else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}}}}

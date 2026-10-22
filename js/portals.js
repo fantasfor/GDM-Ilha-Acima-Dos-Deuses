@@ -114,15 +114,6 @@ function espalhar(dt){
 }
 /* um alerta: os da mesma matilha vêm ajudar */
 const h0=hurtE;hurtE=function(e){const r=h0.apply(this,arguments);if(e&&e.pack&&!e.boss)en.forEach(o=>{if(o!==e&&o.pack===e.pack&&o.hp>0){if(!(o.alert>0))ft(o.x,o.y-30,'!','#f66');o.alert=8}});return r};
-/* colisão entre entidades (herói, NPCs, monstros): ninguém fica em cima do outro */
-function separate(){const U=[];if(p.dead<=0)U.push({o:p,r:5,m:1.6,c:1});if(!window.inDungeon&&!window.inTaverna)NPCS.forEach(n=>U.push({o:n,r:5,m:1e9,c:1}));
- en.forEach(e=>{if(e.hp>0)U.push(e.pvp?{o:e,r:5,m:1e9}:{o:e,r:entityRadius(e),m:1})});
- const ok=(u,x,y)=>walk(x,y)&&(u.c||!insideCamp(x,y));
- for(let i=0;i<U.length;i++)for(let j=i+1;j<U.length;j++){const a=U[i],b=U[j],R=a.r+b.r,dx=b.o.x-a.o.x,dy=b.o.y-a.o.y;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;
-  let d=Math.hypot(dx,dy);if(d>=R)continue;let nx,ny;if(d<.01){const g=Math.random()*6.283;nx=Math.cos(g);ny=Math.sin(g);d=0}else{nx=dx/d;ny=dy/d}
-  const push=(R-d)*.5,wa=b.m/(a.m+b.m),wb=1-wa;
-  if(wa>.001&&ok(a,a.o.x-nx*push*wa,a.o.y-ny*push*wa)){a.o.x-=nx*push*wa;a.o.y-=ny*push*wa}
-  if(wb>.001&&ok(b,b.o.x+nx*push*wb,b.o.y+ny*push*wb)){b.o.x+=nx*push*wb;b.o.y+=ny*push*wb}}}
 const upd0=upd;upd=function(dt){upd0(dt);
  sawGoblin=questMonsterRequested('gob')?questMonsterTarget('gob'):null;
  // portais só na própria ilha: na taverna não há monstros e, visitando outra ilha, quem solta os monstros é o dono
@@ -138,7 +129,7 @@ const upd0=upd;upd=function(dt){upd0(dt);
   espalhar(dt);
  }
  if(!window.mpEspelho)seguirLider();
- separate();for(let i=en.length;i--;)if(en[i].gone)en.splice(i,1)};
+ for(let i=en.length;i--;)if(en[i].gone)en.splice(i,1)}; // sem empurrão entre corpos: a colisão sólida está em update.js (corpoNoCaminho)
 /* Portal de invocação: anel de luz vertical (como um portal mágico) na cor escolhida para ele na Engine (q.cor):
    brilho em volta, reflexo no chão, borda em degradê da cor (mais quente de um lado, mais fria do outro), um ponto
    de luz correndo pela borda, centro escuro com redemoinho e faíscas subindo. Abre crescendo e fecha encolhendo. */

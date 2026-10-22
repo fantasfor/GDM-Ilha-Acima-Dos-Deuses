@@ -145,10 +145,11 @@
    const altura=t=>t===p?(typeof heroImg=='function'?wh(heroImg('d')):26):typeof wh=='function'?wh(t.img):20;
    if(typeof p!=='undefined'&&tonto(p))espiral(g,p.x,p.y-altura(p)+5,rot);
    if(typeof en!=='undefined')for(const e of en)if(tonto(e))espiral(g,e.x,e.y-altura(e)+5,rot);
-   // área do canal no mouse (Chuva de meteoros): círculo pontilhado pulsando no chão enquanto dura
+   // área do canal no mouse (Chuva de meteoros): círculo contínuo pulsando no chão enquanto dura
    if(typeof p!=='undefined'&&p.canal&&p.canal.area){const a=p.canal.area,pul=.5+.5*Math.sin(performance.now()/1000*5),n=Math.max(32,Math.round(a.r*4));
-    for(let i=0;i<n;i++){if(i%4===3)continue;const t=i/n*Math.PI*2+performance.now()/4000;px(g,Math.round(a.x+Math.cos(t)*a.r),Math.round(a.y+Math.sin(t)*a.r*ACHATA),i%2?a.cor:'#ffe08a',.55+.3*pul)}
-    g.globalAlpha=.08+.05*pul;g.fillStyle=a.cor;g.beginPath();g.ellipse(a.x,a.y,a.r,a.r*ACHATA,0,0,7);g.fill();g.globalAlpha=1}
+    // linha contínua e brilho por dentro (mais forte na borda)
+    for(let i=0;i<n;i++){const t=i/n*Math.PI*2;px(g,Math.round(a.x+Math.cos(t)*a.r),Math.round(a.y+Math.sin(t)*a.r*ACHATA),a.cor,.75+.2*pul)}
+    {const gr=g.createRadialGradient(a.x,a.y,0,a.x,a.y,a.r);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,a.cor);g.globalAlpha=.18+.08*pul;g.fillStyle=gr;g.beginPath();g.ellipse(a.x,a.y,a.r,a.r*ACHATA,0,0,7);g.fill();g.globalAlpha=1}}
    // giro: lâmina girando junto com o herói (a ponta está no ângulo para onde ele olha)
    if(typeof p!=='undefined'&&p.canal&&p.canal.visual){const v=p.canal.visual,span=Math.PI*1.4;
     lamina(g,p.x,p.y-8,v.raio,p.canal.ang,-span,0,off=>1+off/span,v.cor,1)}

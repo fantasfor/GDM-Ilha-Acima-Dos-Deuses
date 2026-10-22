@@ -1303,7 +1303,8 @@
 
  for(const [theme,palette] of Object.entries(DUNGEON_THEME_COLORS)){
   for(const part of ['floor','wall'])gameArtRegister('dg-'+part+'-'+theme,(part==='floor'?'Chão':'Parede')+' da DG — '+({cave:'Caverna',underground:'Subterrâneo',forest:'Floresta'}[theme]),{
-   w:16,h:16,draw:g=>{
+   w:part==='wall'&&theme==='forest'?32:16,h:16,draw:g=>{
+    if(part==='wall'&&theme==='forest'&&window.CHAO){g.drawImage(pixelArt(CHAO.paredeFloresta()),0,0);return} // floresta: maciço de árvores (chao.js)
     g.fillStyle=part==='floor'?palette.inner:palette.wall;g.fillRect(0,0,16,16);
     g.fillStyle=part==='floor'?palette.texture:palette.shadow;
     if(part==='wall'){g.fillRect(0,7,16,1);g.fillRect(7,0,1,7);g.fillRect(3,8,1,8)}
@@ -1446,7 +1447,7 @@
   // com chão pintado as salas são só áreas lógicas: o chão e as paredes vêm da camada pintada
   const allBoxes = DUNGEON_CHAO ? [] : [...CAVE_ROOMS, ...CAVE_CORRIDORS];
   const palette = DUNGEON_THEME_COLORS[DUNGEON_THEME] || DUNGEON_THEME_COLORS.cave;
-  const floorData = DUNGEON_ART.floor||gameArtData('dg-floor-'+(getActiveDungeonConfig().theme||'cave')), wallData = DUNGEON_ART.wall||gameArtData('dg-wall-'+(getActiveDungeonConfig().theme||'cave'));
+  const floorData = DUNGEON_ART.floor||gameArtData('dg-floor-'+(getActiveDungeonConfig().theme||'cave')), wallData = DUNGEON_ART.wall||gameArtData('dg-wall-'+(getActiveDungeonConfig().theme||'cave'))||((getActiveDungeonConfig().theme==='forest'&&window.CHAO)?CHAO.paredeFloresta():null); // floresta: maciço de árvores (chao.js)
   const floorPattern = cachedDungeonPattern(floorData);
   const wallPattern = cachedDungeonPattern(wallData);
   if(DUNGEON_CHAO && window.CHAO){
@@ -1495,10 +1496,9 @@
    // Borda Norte
    for(let x = b.x; x < b.x + b.w; x += wallStep){
     const segW = Math.min(wallStep, b.x + b.w - x);
-    if(!isInsideOtherBox(x + segW / 2, b.y - 4, b)){
-     ctx.fillStyle = wallPattern || palette.wall; ctx.fillRect(x, b.y - 4, segW, 4);
-     ctx.fillStyle = palette.highlight; ctx.fillRect(x, b.y - 4, segW, 1);
-     ctx.fillStyle = palette.shadow; ctx.fillRect(x, b.y, segW, 2);
+    // parede de cima em visão 3/4: face de 32 px (2 ladrilhos) com o desenho da parede da DG, sem faixas de brilho/sombra
+    if(!isInsideOtherBox(x + segW / 2, b.y - 8, b)){
+     ctx.fillStyle = wallPattern || palette.wall; ctx.fillRect(x, b.y - 32, segW, 32);
     }
    }
    // Borda Sul

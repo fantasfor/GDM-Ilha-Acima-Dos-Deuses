@@ -38,7 +38,9 @@ const INV_CATEGORY_ICONS={
  ca:spr(["................","....########....","...#++++++++#...","...#+######+#...","..#++++++++++#..","..#++++++++++#..",".#++++++++++++#.",".#++++++++++++#.","#++++++++++++++#","#++++++++++++++#","##+##++++++##+##","................","................","................","................","................"],INV_ICON_COR),
  ne:spr(["................",".##..........##.","..#..........#..","..##........##..","...#........#...","...##......##...","....##....##....",".....######.....","......####......",".....#++++#.....",".....#++++#.....","......#++#......",".......##.......","................","................","................"],INV_ICON_COR),
  ri:spr(["................","......####......",".....#++++#.....","......####......","....########....","...##......##...","..##........##..","..#..........#..","..#..........#..","..##........##..","...##......##...","....########....","................","................","................","................"],INV_ICON_COR)
-};let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
+};/* ícones de filtro desenhados na Engine (Projeto › Artes › Interface: interface/filtro-<categoria>) substituem estes */
+window.INV_FILTRO_ORIGINAIS={...INV_CATEGORY_ICONS};for(const id in INV_CATEGORY_ICONS){const d=PROJ.art&&PROJ.art['interface/filtro-'+id],c=d&&pixelArt(d);if(c)INV_CATEGORY_ICONS[id]=c}
+let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
 $('bag').onclick=e=>{e.stopPropagation();togInv()};
 INV_CATEGORIES.forEach(([id,label])=>{const button=document.createElement('button');button.type='button';button.className='invCategory';button.setAttribute('aria-pressed',id=='all'?'true':'false');button.setAttribute('aria-label',label);button.title=label;button.dataset.category=id;const icon=document.createElement('img');icon.src=INV_CATEGORY_ICONS[id].toDataURL();icon.alt='';icon.setAttribute('aria-hidden','true');button.appendChild(icon);button.onclick=e=>{e.stopPropagation();invCategory=id;invEquipSlot=null;renderInv()};$('invCategories').appendChild(button)});
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
@@ -54,8 +56,8 @@ const skTip=s=>{if(!s.n)return '<b>Habilidade da arma</b><div class=tm>Vazio: a 
  return '<div class=tlin><span class=tl>Nome:</span> <b class=tnome>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+'</div>'
   +tl('Descrição',i.desc,'tdesc')+tl('Dano',i.dano,i.dano2!=null?'tdano tmisto':'tdano')+tl('Cura',i.cura,'tcura')+tl('Recupera',i.mana,'tmana')
   +tl('Alcance',i.alcance,'talc')+tl('Área',i.area,'tarea')+tl('Efeito',i.efeito,'tefeito')
-  +'<div class=tlin><span class=tl>Mana:</span> <span class=tmana>'+s.mana+'</span>  <span class=tl>Recarga:</span> <span class=tcd>'+s.cd+' s</span>  <span class=tl>Cast:</span> <span class=tcast>'+(cast>0?cast.toFixed(1)+' s':'instantâneo')+'</span></div>'
-  +(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe</div>':'')};
+  +'<div class=tlin><span class=tl>Mana:</span> <span class=tmana>'+(s.manaSeg?s.manaSeg+' por segundo':s.mana)+'</span>  <span class=tl>Recarga:</span> <span class=tcd>'+s.cd+' s</span>  <span class=tl>Cast:</span> <span class=tcast>'+(cast>0?cast.toFixed(1)+' s':'instantâneo')+'</span></div>'
+  +(s.wt&&s.wt.length?tl('Armas',s.wt.map(nomeArma).join(', '),'tarma'):'')+(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe</div>':'')};
 const skillPanel=$('skillPanel');
 function renderSkillMenu(){
  if(!skillPanel)return;
@@ -274,11 +276,15 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
  const armorBase=Math.round(baseA*CALC.armPerA+bonus('arm')),magicArmorBase=Math.round(baseI*CALC.magArmPerI+bonus('magicArm'));
  const intervalBase=Math.max(CALC.minInterval,(c.attackSpeed||1)*(1-baseA*CALC.atkSpdPerA)*(1-bonus('attackSpeed')));
  const guardEffect=Math.min(80,effectSum('guard')),protection=Math.round(guardEffect);
+ const fb=faixaBasico(),f0=faixaBasico(basic(),false),fx=(f,k)=>{const a=Math.round(f.min[k]),b=Math.round(f.max[k]);return a===b?String(a):a+' - '+b};
+ const danoTipo=(rot,k)=>{const com=fx(fb,k),sem=fx(f0,k);return row(rot,com===sem?com:'<span class="statBonus">'+com+'</span> <span class=tm>('+sem+' sem buffs)</span>')};
  ap.innerHTML='<h4>Atributos</h4>'+
   row('Força',value(a.F,baseF),'#f55')+row('Agilidade',value(a.A,baseA),'#5ee05a')+row('Inteligência',value(a.I,baseI),'#5aa8ff')+'<hr>'+
   row('Vida máx.',value(mhp(),hpBase))+row('Mana máx.',value(mmp(),mpBase))+
   row('Reg. vida',value(regenHp()+hpRegenEffect,regenHpBase,2)+'/s')+row('Reg. mana',value(regenMp(),regenMpBase,2)+'/s')+'<hr>'+
-  row('Dano físico',Math.round((physicalPower()+danoArma())*damageFactor*multDano('physical')))+row('Dano mágico',Math.round((magicPower()+danoArma())*damageFactor*multDano('magic')))+
+  // dano real do golpe por tipo (arma de cada tipo + Força/Inteligência + buffs); o aumento dos buffs aparece destacado
+  danoTipo('Dano físico','physical')+danoTipo('Dano mágico','magic')+
+  row('Força no dano físico','+'+fmt((multDano('physical')-1)*100,1)+'%')+row('Inteligência no dano mágico','+'+fmt((multDano('magic')-1)*100,1)+'%')+
   row('Def. física',value(armor(),armorBase))+row('Def. mágica',value(magicArmor(),magicArmorBase))+
   (protection?row('Proteção','<span class="statBonus">'+protection+'%</span>'):'')+
   row('Int. de ataque',value(attackInterval(),intervalBase,2)+'s')+row('Vel. movimento',value(moveWithEffects,moveBase))+

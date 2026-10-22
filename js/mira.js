@@ -21,7 +21,7 @@
  addEventListener('blur',cancelar);
  function circulo(x,y,r,ok,cheio=true){ctx.save();ctx.lineWidth=1/S*1.5;ctx.strokeStyle=ok?'rgba(255,230,140,.9)':'rgba(255,90,90,.9)';
   if(cheio){ctx.fillStyle=ok?'rgba(255,215,90,.13)':'rgba(255,70,70,.12)';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
-  ctx.setLineDash([4/S*2,3/S*2]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();ctx.restore()}
+  ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();ctx.restore()} // círculo de indicação: linha contínua
  function linha(x0,y0,x1,y1,ok){ctx.save();ctx.strokeStyle=ok?'rgba(255,230,140,.75)':'rgba(255,90,90,.8)';ctx.lineWidth=1/S*1.5;ctx.setLineDash([3/S*2,3/S*2]);ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();ctx.restore()}
  function desenhar(){
   const s=MIRA.s;if(!s||p.dead>0)return;

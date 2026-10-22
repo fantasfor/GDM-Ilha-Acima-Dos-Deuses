@@ -33,6 +33,7 @@
  window.MOTOR={
   // prévia das cenas fixas (arena, taverna) para o painel de cenas da Engine
   previaCena:id=>{const f=window.CENA_PREVIA&&CENA_PREVIA[id];return f?f():null},
+  infoHabilidade:id=>window.infoHabilidade?infoHabilidade(id):null,
   versao:1,
   mundo:()=>({W,T,N,CX,CY,campo:CAMP_SAFE_HALF_SIZE,portalAcampamento:{x:campPortal.x,y:campPortal.y},pontes:RBR.slice()}),
   terreno:()=>map,
@@ -147,6 +148,8 @@
     const d=mapArtOverride(t,vi),def=sceneryDefault(t,vi);add('mapa',t+'-'+(vi+1),d?pixelArt(d):def&&def.c,(MAP_ELEMENT_TYPES[t]?.name||'Árvore')+' '+(vi+1),{mapType:t,variant:vi,ax:d&&d.ax!=null?d.ax:def&&def.ax,ay:d&&d.ay!=null?d.ay:def&&def.ay});
    }
    for(const entry of gameArtEntries())add('ambiente',entry.id,gameArtCanvas(entry.id),entry.name);
+   // ícones dos filtros da mochila (ui.js): desenhe aqui para trocar no jogo
+   if(window.INV_FILTRO_ORIGINAIS)for(const [id,label] of INV_CATEGORIES)add('interface','filtro-'+id,INV_FILTRO_ORIGINAIS[id],'Filtro da mochila: '+label);
    add('mapa','arvore-legado',TREE,'Árvore original');add('mapa','tenda',TENT,'Tenda');
    add('personagens','ferreiro',SPRITE_BLACKSMITH.idle,'Ferreiro');
    for(const [id,c] of Object.entries(DG_BOSS_ICONS))add('masmorra',id,typeof c=='string'?await image(c):c,id);

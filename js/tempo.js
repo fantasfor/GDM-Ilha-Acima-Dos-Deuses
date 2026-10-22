@@ -40,10 +40,10 @@ window.desenharNoite=function(forca=1,luzes=[]){
 window.luzNoite=function(x,y,r,cor='255,170,80',forca=1){
  const k=TEMPO.escuro()*forca;if(k<=0)return;
  ctx.save();ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba('+cor+','+(.32*k)+')');g.addColorStop(1,'rgba('+cor+',0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);ctx.restore()};
-/* botão Dia/Noite (no alto, junto de Taverna): alterna só na sua tela entre o relógio do jogo (igual para todos),
+/* botão Dia/Noite (só no Play da Engine, no alto, junto de Taverna): alterna só na sua tela entre o relógio do jogo (igual para todos),
    dia fixo e noite fixa. Só muda o visual e a visão; o bônus da noite (monstros e recompensas) segue o relógio do jogo. */
 addEventListener('load',()=>{
- if(typeof MODO!=='undefined'&&MODO.motor)return;
+ if(typeof MODO==='undefined'||MODO.motor||!MODO.teste)return; // só no Play da Engine (para testar); no jogo vale o relógio (30 min de dia, 30 de noite)
  const MODOS=[['auto','Hora: jogo',null],['dia','Hora: dia',.25],['noite','Hora: noite',.75]];let i=0;
  const b=document.createElement('button');b.type='button';b.className='ib diaNoiteBtn';
  const mostrar=()=>{b.textContent=MODOS[i][1];b.title=i===0?'Dia e noite pelo relógio do jogo (igual para todos). Clique para fixar o dia.':i===1?'Dia fixo (só na sua tela). Clique para fixar a noite.':'Noite fixa (só na sua tela). Clique para voltar ao relógio do jogo.'};

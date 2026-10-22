@@ -47,6 +47,8 @@ const efeitoTexto=l=>(Array.isArray(l)?l:[]).filter(f=>f&&FX_INFO[f.type]).map(f
  return t+(ac||k=='stun'?'':' por '+dur+' s')+ch}).join(' · ');
 window.efeitoTexto=efeitoTexto;
 // tempo de conjuração: o da habilidade; sem valor, projéteis levam 0,5 s e o resto é instantâneo
+/* alcance de golpe corpo a corpo (Corte Horizontal…): o da arma, mas arma de tiro (cajado, arco) golpeia de perto */
+const alcanceCorpo=()=>{const b=basic();return Math.max(22,b.ranged||b.proj?24:Math.min(48,b.rng||22))};
 const CONJ_PROJETIL=.5,conj=s=>s.castTime!==undefined&&s.castTime!==''&&s.castTime!==null?Math.max(0,n(s.castTime)):s.effect=='projectile'?CONJ_PROJETIL:0;
 function makeSkill(s){
  if(s.category&&s.category!='ability')return null;
@@ -71,7 +73,7 @@ function makeSkill(s){
   case'buff':f=()=>{p.bf=n(s.base,8);ring(p.x,p.y,40,col,.5);ft(p.x,p.y-24,s.name+'!',col)};d=()=>'Por '+n(s.base,8)+' s aumenta o dano e a velocidade.';break;
   /* golpe corpo a corpo num arco à frente, no alcance da arma (Corte Horizontal). mira 'direcao' (padrão) = para onde
      o mouse aponta, sem alvo; mira 'alvo' = precisa de um inimigo e golpeia na direção dele */
-  case'golpe':{const arco=n(s.arc,140)/2*Math.PI/180,alc=()=>Math.max(22,basic().rng||22)+10,porAlvo=s.mira==='alvo';
+  case'golpe':{const arco=n(s.arc,140)/2*Math.PI/180,alc=()=>alcanceCorpo()+10,porAlvo=s.mira==='alvo';
    const golpe=a0=>{if(s.vfx==='corte'&&window.VFX)VFX.tocar('corte',{x:p.x,y:p.y-8,ang:a0,raio:Math.round(alc()+8),arco:arco*2,cor:col});
     else ring(p.x+Math.cos(a0)*12,p.y-6+Math.sin(a0)*12,14,col,.25);alvos(en,e=>dist(e,p)-(typeof targetReach=='function'?targetReach(e):0)<=alc()&&noArco(e,a0,arco))};
    f=porAlvo?Object.assign((w,t)=>golpe(Math.atan2(t.y-p.y,t.x-p.x)),{tg:1}):w=>golpe(Math.atan2(w.y-p.y,w.x-p.x));
@@ -119,13 +121,17 @@ function makeSkill(s){
  // partes para o painel (ui.js skTip): descrição, dano já calculado e efeito
  const extra=()=>s.effect==='projectile'&&area?area.pct+'% do dano em área de '+area.r+' px':s.effect==='aura'?'você e aliados a até '+r+' px':s.effect==='golpe'?'arco de '+n(s.arc,140)+'° à frente':s.effect==='investida'?'corre até '+n(s.alcance,120)+' px':s.effect==='canal'?(s.local==='mouse'?n(s.porGolpe,1)+' impactos por vez'+(n(s.totalGolpes)?', '+n(s.totalGolpes)+' no total':'')+' na área do mouse ('+r+' px)':'golpes em área ('+r+' px) a cada '+n(s.intervalo,1)+' s')+' por '+n(s.duracao,5)+' s'+(s.parado?'; parado, aperte de novo para cancelar':''):s.effect==='nova'?'área de '+r+' px em volta':'';
  /* painel (ui.js skTip): Descrição, Dano, Cura, Mana, Alcance, Área e Efeito (só o tipo e o número) */
- const alcanceTxt=()=>s.effect==='golpe'?Math.round(Math.max(22,basic().rng||22)+10)+' px (alcance da arma)':s.effect==='investida'?n(s.alcance,120)+' px':s.effect==='projectile'?'200 px (no alvo)':s.effect==='blink'?'80 px':s.effect==='meteor'||s.effect==='canal'&&s.local==='mouse'?'no ponto do mouse':'em você';
+ const alcanceTxt=()=>s.effect==='golpe'?Math.round(alcanceCorpo()+10)+' px (alcance da arma)':s.effect==='investida'?n(s.alcance,120)+' px':s.effect==='projectile'?'200 px (no alvo)':s.effect==='blink'?'80 px':s.effect==='meteor'||s.effect==='canal'&&s.local==='mouse'?'no ponto do mouse':'em você';
  const areaTxt=()=>s.effect==='projectile'?(area?area.r+' px em volta do alvo ('+area.pct+'% do dano)':''):s.effect==='golpe'?'arco de '+n(s.arc,140)+'° à frente':s.effect==='canal'?(s.local==='mouse'?r+' px; impactos de '+n(s.raioImpacto,22)+' px':r+' px em volta'):['nova','aura','meteor'].includes(s.effect)||s.effect==='heal'&&hl?r+' px'+(s.effect==='aura'?' (você e aliados)':''):s.effect==='blink'&&hasDamage()?'32 px':'';
  const curaTxt=()=>s.effect==='heal'?ampCura(+pv()||0)+' de vida':hl?ampCura(hl())+' de vida':'';
- const info=()=>{const v=hasDamage()&&s.effect!=='heal'?pv():null;return{desc:s.desc||dd(),dano:v==null?'':typeof v=='object'?damageText(v):Math.round(v)+' '+dmgTag(),dano2:v&&typeof v=='object'&&v.physical>=.5&&v.magic>=.5?v.magic/((v.physical+v.magic)||1):null,
-  cura:curaTxt(),mana:n(s.mpRestore)>0?'+'+n(s.mpRestore)+' de mana':'',alcance:alcanceTxt(),area:areaTxt(),efeito:efeitoTexto(s.effects),extra:extra(),...(extraInfo?extraInfo():{})}};
- return{id:s.id,category:s.category||'ability',n:s.name||s.id,effect:s.effect,radius:r,info,mana:n(s.mana),cd:Math.max(.3,n(s.cd,3)),castTime:conj(s),actionStats:s.actionStats,bonuses:s.bonuses,bonusDuration:n(s.bonusDuration,5),ic:sprite?sprite.toDataURL():window.iconeHabilidade&&iconeHabilidade(s.id)||SKI(s.icon||'orb',s.c1||'#4a6a96',s.c2||'#fff'),f,conjAtaque:conjAtq,efs:s.effect=='aura'?proprios:null,alcance:s.effect=='golpe'?()=>Math.max(22,basic().rng||22)+14:s.effect=='investida'?()=>n(s.alcance,120):null,d:s.desc?()=>s.desc+' ('+d()+')':d,wt:lc(s.weaponTypes).map(weaponTag),tags:tags(s.tags),cross:!!s.cross,vfx:s.vfx||'arcane',vfxColor:col}}
+ const info=()=>{const v=hasDamage()&&s.effect!=='heal'?pv():null;const vb=v==null?null:comBuffs(typeof v=='object'?v:magic?{physical:0,magic:+v||0}:{physical:+v||0,magic:0}); /* com os buffs ativos */
+  return{desc:s.desc||dd(),dano:vb==null?'':damageText(vb),dano2:v&&typeof v=='object'&&v.physical>=.5&&v.magic>=.5?v.magic/((v.physical+v.magic)||1):null,
+  cura:curaTxt(),mana:n(s.mpRestore)>0?'+'+n(s.mpRestore)+' de mana':'',alcance:alcanceTxt(),area:areaTxt(),efeito:efeitoTexto(s.effects),extra:extra(),...(extraInfo?extraInfo():{}),...textosProprios()}};
+ /* textos escritos na Engine (Caixa de informação) valem no lugar dos calculados; '-' esconde a linha */
+ const textosProprios=()=>{const o={},tx=s.textos&&typeof s.textos=='object'?s.textos:{};for(const k of ['dano','cura','mana','alcance','area','efeito']){const v=String(tx[k]??'').trim();if(v)o[k]=v==='-'?'':v}return o};
+ return{id:s.id,category:s.category||'ability',n:s.name||s.id,effect:s.effect,radius:r,info,mana:n(s.mana),manaSeg:s.effect==='auraContinua'?n(s.manaPorSeg,2):0,cd:Math.max(.3,n(s.cd,3)),castTime:conj(s),actionStats:s.actionStats,bonuses:s.bonuses,bonusDuration:n(s.bonusDuration,5),ic:sprite?sprite.toDataURL():window.iconeHabilidade&&iconeHabilidade(s.id)||SKI(s.icon||'orb',s.c1||'#4a6a96',s.c2||'#fff'),f,conjAtaque:conjAtq,efs:s.effect=='aura'?proprios:null,alcance:s.effect=='golpe'?()=>alcanceCorpo()+14:s.effect=='investida'?()=>n(s.alcance,120):null,d:s.desc?()=>s.desc+' ('+d()+')':d,wt:lc(s.weaponTypes).map(weaponTag),tags:tags(s.tags),cross:!!s.cross,vfx:s.vfx||'arcane',vfxColor:col}}
 L('skills').forEach(s=>{const o=makeSkill(s);if(o)SDEF[s.id]=o});
+window.infoHabilidade=id=>{const s=SDEF[id];if(!s||!s.info)return null;try{const i=s.info();return{dano:i.dano,cura:i.cura,mana:i.mana,alcance:i.alcance,area:i.area,efeito:i.efeito}}catch(e){return null}}; // a Engine mostra estes textos de exemplo
 
 /* ---------- itens ---------- */
 L('items').forEach(it=>{

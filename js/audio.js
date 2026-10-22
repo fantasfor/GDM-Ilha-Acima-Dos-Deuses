@@ -92,7 +92,9 @@ function refreshLoops(){
  if(unlocked&&audio){
   const quer=document.hidden?null:scene;
   trocar('musica',quer&&!(config[scene+'.music']&&config[scene+'.music'].src)?quer:null);
-  trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?quer:null);
+  // ilha: ambiente de dia (mar, vento, pássaros) ou de noite (grilos, coruja), pelo relógio do jogo (js/tempo.js)
+  const amb=quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':quer;
+  trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?amb:null);
  }
  lastScene=scene
 }
@@ -276,7 +278,12 @@ const AMBIENTES={
   const mar=fundo(d,'lowpass',520,.7,.045);const lfo=audio.createOscillator(),lg=audio.createGain();lfo.frequency.value=.09;lg.gain.value=.03;lfo.connect(lg);lg.connect(mar.gain);lfo.start();
   const vento=fundo(d,'bandpass',900,.5,.008);return [mar,vento,{parar:()=>lfo.stop()}];
  },eventos:[[2.5,7,(d,t)=>{const n=2+Math.floor(Math.random()*3),f0=2200+Math.random()*1400;for(let i=0;i<n;i++){const o=audio.createOscillator(),g=audio.createGain(),ti=t+i*.11;o.type='sine';o.frequency.setValueAtTime(f0,ti);o.frequency.exponentialRampToValueAtTime(f0*1.35,ti+.05);o.frequency.exponentialRampToValueAtTime(f0*.9,ti+.09);g.gain.setValueAtTime(.0001,ti);g.gain.linearRampToValueAtTime(.014,ti+.01);g.gain.exponentialRampToValueAtTime(.0001,ti+.1);o.connect(g);g.connect(d);o.start(ti);o.stop(ti+.12)}}]]},
- dungeon:{montar(d){return [fundo(d,'lowpass',110,.7,.07),fundo(d,'bandpass',300,3,.004)]},
+ // ilha à noite: mar mais baixo, vento leve, grilos (trilos agudos sem parar), coruja de vez em quando
+ worldNoite:{montar(d){
+  const mar=fundo(d,'lowpass',420,.7,.032);const lfo=audio.createOscillator(),lg=audio.createGain();lfo.frequency.value=.07;lg.gain.value=.02;lfo.connect(lg);lg.connect(mar.gain);lfo.start();
+  const vento=fundo(d,'bandpass',700,.5,.006);return [mar,vento,{parar:()=>lfo.stop()}];
+ },eventos:[[.25,.9,(d,t)=>{const f=4200+Math.random()*900,n=3+Math.floor(Math.random()*4),v=.004+Math.random()*.006;for(let i=0;i<n;i++){const o=audio.createOscillator(),g=audio.createGain(),ti=t+i*.045;o.type='sine';o.frequency.setValueAtTime(f,ti);g.gain.setValueAtTime(.0001,ti);g.gain.linearRampToValueAtTime(v,ti+.008);g.gain.exponentialRampToValueAtTime(.0001,ti+.035);o.connect(g);g.connect(d);o.start(ti);o.stop(ti+.05)}}],
+  [9,22,(d,t)=>{for(const [k,f0,dur] of [[0,420,.32],[.45,400,.5]]){const o=audio.createOscillator(),g=audio.createGain(),ti=t+k;o.type='sine';o.frequency.setValueAtTime(f0,ti);o.frequency.exponentialRampToValueAtTime(f0*.86,ti+dur);g.gain.setValueAtTime(.0001,ti);g.gain.linearRampToValueAtTime(.022,ti+.05);g.gain.exponentialRampToValueAtTime(.0001,ti+dur);o.connect(g);g.connect(d);o.start(ti);o.stop(ti+dur+.02)}}]]}, dungeon:{montar(d){return [fundo(d,'lowpass',110,.7,.07),fundo(d,'bandpass',300,3,.004)]},
   eventos:[[1.2,4,(d,t)=>{const f=900+Math.random()*700;for(const [k,v] of [[0,.03],[.27,.01],[.5,.004]]){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+k);o.frequency.exponentialRampToValueAtTime(f*.45,t+k+.07);g.gain.setValueAtTime(v,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.1);o.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.12)}}],
    [8,18,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(40,t+1.4);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.03,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+1.5);o.connect(g);g.connect(d);o.start(t);o.stop(t+1.6)}]]},
  tavern:{montar(d){

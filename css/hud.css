@@ -286,3 +286,8 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 #telaMorte{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:30;display:none;flex-direction:column;align-items:center;gap:8px;padding:18px 28px;background:#0d0d0df0;border:2px solid #0d0d0d;outline:1px solid #595959;outline-offset:-4px;font-family:monospace;color:#d9d0c7;text-align:center}
 #telaMorte.on{display:flex}#telaMorte b{font-size:22px;letter-spacing:3px;color:#f87171;text-transform:uppercase}#telaMorte small{font-size:12px;color:#a69c94}
 #telaMorte button{margin-top:6px;padding:8px 22px;font:bold 14px monospace;color:#d9d0c7;background:#262626;border:1px solid #a69c94;cursor:pointer}#telaMorte button:hover{background:#595959;border-color:#d9d0c7}
+/* aura ligada: borda dourada girando em volta do ícone da habilidade (hud.js .auraAtiva) */
+@property --auraAng{syntax:'<angle>';inherits:false;initial-value:0deg}
+.sk.auraAtiva{overflow:visible}
+.sk.auraAtiva::after{content:'';position:absolute;inset:-3px;padding:2px;border-radius:0;background:conic-gradient(from var(--auraAng),#ffd84a 0deg,rgba(255,216,74,0) 70deg,rgba(255,216,74,0) 180deg,#ffd84a 250deg,rgba(255,216,74,0) 320deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:auraGira 1.4s linear infinite;pointer-events:none;z-index:3}
+@keyframes auraGira{to{--auraAng:360deg}}

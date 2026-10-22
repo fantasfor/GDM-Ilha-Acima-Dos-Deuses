@@ -164,7 +164,7 @@
    if(dd<8||q.e.hp<=0){tiros.splice(i,1);if(q.e.hp>0){if(window.VFX)VFX.tocar(q.vfx==='gelo'?'explosaoGelo':'explosaoFogo',{x:q.x,y:q.y});golpeDoMestre(q.e,q.a,q.s)}continue}
    q.x+=q.vx*dt;q.y+=q.vy*dt}}
  function desenharTiros(){for(const q of tiros){if(window.VFX&&VFX.projetil(ctx,q))continue;R(ctx,q.x-3,q.y-3,6,6,q.cor);R(ctx,q.x-2,q.y-2,4,4,'#fff6d0')}
-  for(const e of en)if(e.canalM&&e.canalM.area){const A=e.canalM.area;ctx.save();ctx.globalAlpha=.25;ctx.strokeStyle='#ff7a1a';ctx.setLineDash([3,3]);ctx.beginPath();ctx.ellipse(A.x,A.y,A.r,A.r*.8,0,0,7);ctx.stroke();ctx.restore()}} /* fundo do painel da arena: o coliseu com a torcida, a câmera passando devagar */
+  for(const e of en)if(e.canalM&&e.canalM.area){const A=e.canalM.area;ctx.save();ctx.globalAlpha=.45;ctx.strokeStyle='#ff7a1a';ctx.beginPath();ctx.ellipse(A.x,A.y,A.r,A.r*.8,0,0,7);ctx.stroke();ctx.restore()}} /* fundo do painel da arena: o coliseu com a torcida, a câmera passando devagar */
  function animarFundoPainel(cv){if(cv._vivo)return;cv._vivo=true;const t0=performance.now();
   const passo=now=>{if(!cv.isConnected||!cv.closest('.open')){cv._vivo=false;return}
    const W=cv.clientWidth|0,H=cv.clientHeight|0;if(!W||!H){requestAnimationFrame(passo);return}if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}

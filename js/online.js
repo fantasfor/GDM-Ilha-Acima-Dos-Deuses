@@ -136,7 +136,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
    if(a[0]==='a'){if(ox!=null&&!window.inArena&&FX_INFO[a[1]]){const dur=Math.max(.5,n(a[3])/10);if(FX_INFO[a[1]].aura)marcarAura(ox,oy,n(a[4]),FX_INFO[a[1]].c,dur);
      if(p.hp>0&&!(p.dead>0)&&Math.hypot(p.x-ox,p.y-oy)<=n(a[4]))applyFx(p,[{caster:p,self:true,type:a[1],chance:100,dur,pw:n(a[2])}])}continue}
    // cura/buff de um aliado Curandeiro: vale para mim se eu estiver no raio (na arena, só se for da minha equipe)
-   if(a[0]==='h'){if(FX_INFO[a[1]]&&!(p.dead>0)&&(!window.inArena||quem&&window.ARENA&&ARENA.aliado(quem.uid))&&Math.hypot(p.x-n(a[5]),p.y-n(a[6]))<=n(a[4]))applyFx(p,[{caster:p,type:a[1],chance:100,pw:n(a[2])/100,dur:n(a[3])/10,limpa:n(a[7])}]);continue}
+   if(a[0]==='h'){if(FX_INFO[a[1]]&&!(p.dead>0)&&(!window.inArena||quem&&window.ARENA&&ARENA.aliado(quem.uid))&&Math.hypot(p.x-n(a[5]),p.y-n(a[6]))<=n(a[4]))applyFx(p,[{caster:p,type:a[1],chance:100,pw:n(a[2])/100,dur:n(a[3])/10,limpa:n(a[7]),silencioso:n(a[3])>0}]);continue}
    // efeitos desenhados (js/vfx-habilidades.js): v:tipo:x:y:ângulo×100:raio:arco×100:cor
    if(a[0]==='v'&&window.VFX){VFX.tocar(a[1],{x:n(a[2]),y:n(a[3]),ang:n(a[4])/100,raio:n(a[5]),arco:n(a[6])/100,cor:cor(a[7])||undefined});continue}
    // giro de um aliado: r:duração×10:raio:cor (a lâmina roda em volta dele)

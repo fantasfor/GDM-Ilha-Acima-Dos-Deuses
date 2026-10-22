@@ -90,6 +90,8 @@ const mmEl=$('mm'),go=e=>{if(p.dead>0)return;const r=mmEl.getBoundingClientRect(
 mmEl.addEventListener('pointerdown',e=>{if(e.button===2){e.preventDefault();go(e)}});mmEl.addEventListener('pointermove',e=>{if(e.buttons&2)go(e)});
 /* painel de status */
 let lastSt='';const hud0=hud;hud=function(){hud0();const a=attributes(),cell=(l,v)=>'<div class="sc"><span>'+l+'</span><b>'+v+'</b></div>',
- h='<div class="sg">'+cell('Dano',typeof dmgP=='function'?dmgP():physicalPower())+cell('Poder mág.',magicPower())+cell('Defesa',armor())+cell('Def. mág.',magicArmor())+cell('Vel. atq.',attackInterval().toFixed(2)+'s')+cell('Movim.',Math.round(CALC.move*(1+spdB())))+'</div><div class="fai2"><span><b style="color:#f55">F</b> '+a.F+'</span><span><b style="color:#5ee05a">A</b> '+a.A+'</span><span><b style="color:#5aa8ff">I</b> '+a.I+'</span></div><div class="gl">Ouro <b>'+(p.gold|0)+'</b></div>';
+ /* foto do herói: dano do ataque (mínimo–máximo, com buffs), crítico e defesas */
+ fx0=faixaBasico(),tot=k=>Math.round(fx0[k].physical+fx0[k].magic),crit=Math.max(0,Math.min(1,bonus('critChance')+critAgi(p))),
+ h='<div class="sg">'+cell('Dano',tot('min')+'–'+tot('max'))+cell('Crítico',Math.round(crit*1000)/10+'%')+cell('Defesa',armor())+cell('Def. mág.',magicArmor())+cell('Vel. atq.',attackInterval().toFixed(2)+'s')+cell('Movim.',Math.round(CALC.move*(1+spdB())))+'</div><div class="fai2"><span><b style="color:#f55">F</b> '+a.F+'</span><span><b style="color:#5ee05a">A</b> '+a.A+'</span><span><b style="color:#5aa8ff">I</b> '+a.I+'</span></div><div class="gl">Ouro <b>'+(p.gold|0)+'</b></div>';
  if(h!==lastSt){lastSt=h;$('st').innerHTML=h}};
 })();

@@ -74,7 +74,7 @@ function applyFx(t,fx){if(!fx||!fx.length)return;let k=0;for(const f of fx){if(M
   // gelo no máximo de acúmulos: congela (atordoado) e zera o gelo
   if(info.congela&&n>=max){delete tg.st[f.type];tg.st.stun={t:info.congela,d:info.congela,pw:0,n:1,tk:0};ft(tg.x,tg.y-36-k++*7,'Congelado!',info.c);continue}}
  else tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,n:info.good?1:Math.min(max,(o?o.n||1:0)+1)}; // buff não acumula: só renova
- ft(tg.x,tg.y-36-k++*7,info.n+(tg.st[f.type]&&tg.st[f.type].n>1?' x'+tg.st[f.type].n:''),info.c)}}
+ if(!f.silencioso)ft(tg.x,tg.y-36-k++*7,info.n+(tg.st[f.type]&&tg.st[f.type].n>1?' x'+tg.st[f.type].n:''),info.c)}} // silencioso: aura renovada a cada segundo não repete o nome
 function tickStatus(t,dt){
  if(!t.st)return;
  for(const k of Object.keys(t.st)){
@@ -308,8 +308,14 @@ function basicForDistance(distance=Infinity){
 }
 const basic=()=>p.attackBasic||basicForDistance(p.tgt?dist(p,p.tgt):Infinity);
 function cycleBasicMode(){const i=BASIC_MODES.indexOf(p.basicMode);p.basicMode=BASIC_MODES[(i+1)%BASIC_MODES.length];p.basicNext='sw';if(window.refreshBasicMode)refreshBasicMode();if(window.saveGame)saveGame()}
+/* buffs ativos no dano que você causa (Grito, Inspiração, Fúria, Presença…): usado nos painéis, para o número bater com o golpe */
+const buffDano=t=>(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100)*(1+stSum(p,t==='magic'?'magup':'physup')/100);
+const comBuffs=d=>d&&typeof d=='object'?{physical:(d.physical||0)*buffDano('physical'),magic:(d.magic||0)*buffDano('magic')}:d;
+/* faixa do ataque básico (mínimo e máximo das armas, com Força/Inteligência e buffs), sem defesa do alvo */
+function faixaBasico(b=basic(),buffs=true){const calc=pick=>{weaponDamageRolls=new Map();weaponDamage2Rolls=new Map();try{for(const sl of ['sw','sh']){const s=EQ[sl];if(!s||gearType[s.id]!=='sw')continue;const r=qualityWeaponRange(ITEMS[s.id],s.q),r2=qualityWeaponRange2(ITEMS[s.id],s.q);if(r)weaponDamageRolls.set(s,r[pick]);if(r2)weaponDamage2Rolls.set(s,r2[pick])}const d=basicAttackDamage(b),o=d&&typeof d=='object'?d:{physical:+d||0,magic:0};return buffs?comBuffs(o):o}finally{weaponDamageRolls=null;weaponDamage2Rolls=null}};return{min:calc('min'),max:calc('max')}}
+const textoFaixa=f=>{const parte=(k,n)=>{const a=Math.round(f.min[k]),b=Math.round(f.max[k]);return b>=1?(a===b?a:a+' - '+b)+' '+n:''};return[parte('physical','físico'),parte('magic','mágico')].filter(Boolean).join(' + ')||'0'};
 /* painel do ataque básico no mesmo formato das habilidades (rótulo: valor, com cores; ui.js) */
-const basicTip=()=>{const b=basic(),L=(r,v,c)=>'<div class=tlin><span class=tl>'+r+':</span> <span class='+c+'>'+v+'</span></div>';return '<div class=tlin><span class=tl>Nome:</span> <b class=tnome>Ataque básico · '+b.n+'</b></div>'+L('Descrição',b.t,'tdesc')+L('Dano',damageText(basicAttackDamage(b))+' ('+(b.damageType=='magic'?'mágico':'físico')+')','tdano')+'<div class=tlin><span class=tl>Alcance:</span> <span class=tarma>'+b.rng+'</span>  <span class=tl>Intervalo:</span> <span class=tcd>'+attackInterval().toFixed(2)+' s</span>  <span class=tl>Arma:</span> <span class=tarma>'+(b.weaponSlot=='sw'?'mão 1':b.weaponSlot=='sh'?'mão 2':'desarmado')+'</span></div><div class=tm>Modo: '+BASIC_MODE_LABEL[p.basicMode]+' · automático ao atacar</div>'};
+const basicTip=()=>{const b=basic(),L=(r,v,c)=>'<div class=tlin><span class=tl>'+r+':</span> <span class='+c+'>'+v+'</span></div>';return '<div class=tlin><span class=tl>Nome:</span> <b class=tnome>Ataque básico · '+b.n+'</b></div>'+L('Descrição',b.t,'tdesc')+L('Dano',textoFaixa(faixaBasico(b)),'tdano')+'<div class=tlin><span class=tl>Alcance:</span> <span class=tarma>'+b.rng+'</span>  <span class=tl>Intervalo:</span> <span class=tcd>'+attackInterval().toFixed(2)+' s</span>  <span class=tl>Arma:</span> <span class=tarma>'+(b.weaponSlot=='sw'?'mão 1':b.weaponSlot=='sh'?'mão 2':'desarmado')+'</span></div><div class=tm>Modo: '+BASIC_MODE_LABEL[p.basicMode]+' · automático ao atacar</div>'};
 const SK=['q','w','e','r','t','y','z','x'].map(k=>({k,t:0,n:''}));
 const BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 function classRank(id){return p.classProgress&&p.classProgress[id]?p.classProgress[id].rank:0}
@@ -340,7 +346,9 @@ const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
 }).concat([0,1].map(i=>weaponSlots[i]||null));
 L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
  const weapon=EQ[o.weaponSlot||'sw'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!skillWeaponAllowed(o,weapon&&ITEMS[weapon.id]);
- if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q W E R T Y) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?o.mana:''}});
+ if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q W E R T Y) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
+/* o que ainda está ativo de uma habilidade que saiu da barra para: aura, áreas, pulsos e canal (Girar, Chuva) */
+const naBarra=new Set(SK.filter(s=>s.n&&s.id).map(s=>s.id));if(window.CURANDEIRO)CURANDEIRO.sincronizar(naBarra);if(p.canal&&p.canal.id&&!naBarra.has(p.canal.id))p.canal=null;if(p.conj&&p.conj.s&&!naBarra.has(p.conj.s.id))p.conj=null;
 if(window.renderSkillMenu)renderSkillMenu()}
 applySkills();const carpenter={cls:'war',nm:'Carpinteiro',x:CX+290,y:CY-180,carpenter:true},blacksmith={cls:'war',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
 function placeCarpenter(){carpenter.x=carpenterHelped?CX+34:CX+290;carpenter.y=carpenterHelped?CY-48:CY-180}

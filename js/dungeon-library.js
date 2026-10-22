@@ -63,7 +63,7 @@
    const c=entry.config,tema=c.theme||'cave',temas=window.DG_DRAW&&DG_DRAW.temas||{},cores=temas[tema]||temas.cave;
    const tiles=c.pintado&&c.chao&&Object.keys(c.chao).length?c.chao:CHAO.dgDeSalas([...(c.rooms||[]),...(c.corridors||[])]);
    const arte=d=>d&&typeof pixelArt=='function'?pixelArt(d):null,gd=id=>window.gameArtData?gameArtData(id):null;
-   const camada=CHAO.dgCamada(tiles,CHAO.texturas(PROJ.pixel),{piso:arte(c.art&&c.art.floor||gd('dg-floor-'+tema)),parede:arte(c.art&&c.art.wall||gd('dg-wall-'+tema)),cores});
+   const camada=CHAO.dgCamada(tiles,CHAO.texturas(PROJ.pixel),{piso:arte(c.art&&c.art.floor||gd('dg-floor-'+tema)),parede:arte(c.art&&c.art.wall||gd('dg-wall-'+tema)||(tema==='forest'?CHAO.paredeFloresta():null)),cores});
    if(camada){
     const g=camada.c.getContext('2d');g.save();g.translate(-camada.x,-camada.y);for(const d of c.decorations||[])try{DG_DRAW.decoracao(d,g)}catch(e){}g.restore();
     const salas=(c.rooms||[]).map(r=>({x:r.x+r.w/2,y:r.y+r.h/2}));
