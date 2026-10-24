@@ -190,7 +190,7 @@
     "mesas": {
       "$mesa": {
         ".read": "auth != null",
-        ".write": "auth != null && $mesa.matches(/^bar[1-4]$/)"
+        ".write": "auth != null && $mesa.matches(/^(bar[1-4]|tav[1-5])$/)"
       }
     },
     "arenas": {

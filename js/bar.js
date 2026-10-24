@@ -15,7 +15,11 @@
  /* mesas de jogo: centro e os 4 lugares (norte, leste, sul, oeste) */
  const MESAS_JOGO=[['bar1',86,236],['bar2',196,236],['bar3',86,322],['bar4',196,322]].map(([id,x,y])=>({id,x,y}));
  const LUGARES=[[0,-19],[25,0],[0,15],[-25,0]];
- const lugar=(m,i)=>{const c=at(m.x,m.y);return{x:c.x+LUGARES[i][0],y:c.y+LUGARES[i][1]}};
+ // mesas da taverna (js/taverna.js TAVERNA_MESAS) já vêm com o centro e os lugares no mundo
+ const centro=m=>m.lugares?{x:m.cx,y:m.cy}:at(m.x,m.y);
+ const lugar=(m,i)=>{if(m.lugares)return m.lugares[i];const c=at(m.x,m.y);return{x:c.x+LUGARES[i][0],y:c.y+LUGARES[i][1]}};
+ const TODAS=()=>[...MESAS_JOGO,...(window.TAVERNA_MESAS||[])];
+ const naMesa=(m,w)=>{const c=centro(m);return m.lugares?Math.hypot(w.x-c.x,(w.y-c.y+6)*1.2)<19:Math.abs(w.x-c.x)<22&&w.y>c.y-16&&w.y<c.y+18};
  /* elementos do pacote (id, x, y) e os sólidos (raio) */
  const ELEM=[
   ['pk_bar_arvore',26,64],['pk_bar_arvore',412,346],['pk_bar_arvore',30,356],
@@ -31,7 +35,7 @@
  const DECK={x0:34,y0:206,x1:250,y1:350},QUIOSQUE={x0:294,x1:426,y0:24,y1:84},BARMAN={x:360,y:54,fx:0,fy:1,alvo:null,espera:2,nm:'Barman Tonho'};
  const pack=id=>window.PACOTE_MAPA&&PACOTE_MAPA.elementos[id];
  const arte=new Map();const canvasDe=d=>{if(!d)return null;let c=arte.get(d);if(!c){c=pixelArt(d);arte.set(d,c)}return c};
- const quadro=d=>window.CHAO&&CHAO.quadroEm?CHAO.quadroEm(d,window.time||0).data:d;
+ const quadro=d=>window.CHAO&&CHAO.quadroEm?CHAO.quadroEm(d,time).data:d;
  function desenharElem(g,id,x,y){const e=pack(id);if(!e)return;const c=canvasDe(quadro(e.data));if(c)g.drawImage(c,Math.round(x-c.width/2),Math.round(y-c.height+3))}
 
  /* ---- chão: calçamento, grama nas beiradas, deck das mesas, caminho de terra da porta, cerca ---- */
@@ -81,18 +85,29 @@
    if(tipo==='domino'){R(ctx,px,py,5,3,'#efe8d4');R(ctx,px+2,py,1,3,'#1a1a22')}else{R(ctx,px,py,4,5,tipo==='uno'?['#d8432f','#2f6fd0','#e0b62a'][k]:'#efe8d4');R(ctx,px,py,4,1,'#ffffff')}}}
   else{R(ctx,x-3,y-9,6,4,'#d9a441');R(ctx,x-2,y-10,4,1,'#fff6e0')} // caneca no meio
  }
- function banquinho(x,y){x=Math.round(x);y=Math.round(y);R(ctx,x-5,y+1,10,2,'#0004');R(ctx,x-4,y-4,1,5,'#3a2414');R(ctx,x+3,y-4,1,5,'#3a2414');R(ctx,x-5,y-6,10,3,'#8a5a32');R(ctx,x-5,y-6,10,1,'#a06c3e')}
+ /* cadeira das mesas do pátio: encosto do lado de fora (0 atrás, 1 direita, 2 frente, 3 esquerda), almofada vermelha
+    e contorno escuro para destacar do deck */
+ function cadeira(x,y,i){x=Math.round(x);y=Math.round(y);const C='#24140a',M='#b07a44',ML='#d09a5e',A='#b8322a',AL='#d8483a';
+  R(ctx,x-6,y+1,12,2,'#0005');R(ctx,x-5,y-3,2,5,C);R(ctx,x+3,y-3,2,5,C);
+  const encosto=(bx,by,w,h)=>{R(ctx,bx-1,by-1,w+2,h+2,C);R(ctx,bx,by,w,h,M);R(ctx,bx,by,w,1,ML);if(w>4)for(let k=bx+2;k<bx+w-1;k+=3)R(ctx,k,by+2,1,h-3,'#7c5230')};
+  if(i===0)encosto(x-6,y-17,12,10);if(i===1)encosto(x+5,y-17,3,14);if(i===3)encosto(x-8,y-17,3,14);
+  R(ctx,x-7,y-7,14,5,C);R(ctx,x-6,y-7,12,3,M);R(ctx,x-5,y-7,10,2,A);R(ctx,x-5,y-7,10,1,AL);
+  if(i===2)encosto(x-6,y-12,12,8)} // de frente para a mesa: o encosto fica entre quem vê e quem senta
 
  /* ---- botões em cima das mesas (Truco, Uno, Dominó, Assistir, Voltar ao jogo) e o convite em cima de quem convidou ---- */
  let botoes=[];
  function botao(x,y,txt,cor,fn){ctx.font='bold 5px monospace';const w=Math.ceil(ctx.measureText(txt).width)+8,h=9,bx=Math.round(x-w/2),by=Math.round(y);
   R(ctx,bx-1,by-1,w+2,h+2,'#0d0d0d');R(ctx,bx,by,w,h,cor);R(ctx,bx,by,w,1,'#ffffff55');ctx.textAlign='center';ctx.fillStyle='#0d0d0d';ctx.fillText(txt,bx+w/2,by+6.5);botoes.push({x:bx,y:by,w,h,fn})}
  function interfaceMesa(m){
-  if(!window.MESAS)return;const d=MESAS.dados[m.id],j=d.jogo,c=at(m.x,m.y),u=MESAS.eu(),sent=MESAS.sentado&&MESAS.sentado.mesa===m.id,perto=Math.hypot(p.x-c.x,p.y-c.y)<110;
+  if(!window.MESAS||!MESAS.dados[m.id])return;const d=MESAS.dados[m.id],j=d.jogo,c=centro(m),u=MESAS.eu(),sent=MESAS.sentado&&MESAS.sentado.mesa===m.id,perto=Math.hypot(p.x-c.x,p.y-c.y)<110;
   if(j&&(j.fase==='jogando'||j.fase==='fim')){
    const joga=Array.isArray(j.jog)&&j.jog.includes(u);
-   if(joga&&(perto||j.fase==='jogando'))botao(c.x,c.y-44,j.fase==='fim'?'Ver resultado':'Voltar ao jogo','#d9a441',()=>MESAS.abrirPainel(m.id));
-   else if(perto)botao(c.x,c.y-44,'Assistir','#a69c94',()=>MESAS.assistir(m.id));
+   const v=j.fase==='jogando'&&MESAS.infoVez(m.id);
+   if(v&&v.minha)botao(c.x,c.y-44,(Math.floor(time*2)%2?'>> ':'')+'SUA VEZ! '+v.resta+'s','#ffe28a',()=>MESAS.abrirPainel(m.id)); // pisca para chamar atenção
+   else if(joga&&(perto||j.fase==='jogando'))botao(c.x,c.y-44,j.fase==='fim'?'Ver resultado':'Voltar ao jogo','#d9a441',()=>MESAS.abrirPainel(m.id));
+   else if(!joga&&perto)botao(c.x,c.y-44,'Assistir','#a69c94',()=>MESAS.assistir(m.id));
+   // de quem é a vez (para todos perto da mesa), com o prazo
+   if(v&&!v.minha&&(perto||joga)){ctx.font='5px monospace';ctx.textAlign='center';const tx='Vez de '+v.nomes.join(' e ')+' · '+v.resta+'s';ctx.fillStyle='#000';ctx.fillText(tx,c.x+.4,c.y-54.6);ctx.fillStyle=v.resta<=5?'#f87171':'#e7dcc4';ctx.fillText(tx,c.x,c.y-55)}
    ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(J_NOME(j.tipo)+(j.fase==='fim'?' · fim':' · jogando'),c.x+.4,c.y-47.6);ctx.fillStyle='#ffe28a';ctx.fillText(J_NOME(j.tipo)+(j.fase==='fim'?' · fim':' · jogando'),c.x,c.y-48);
   }
   if(sent)botao(c.x,c.y+20,'Levantar','#a69c94',()=>{const s=lugar(m,MESAS.sentado.i),d=Math.hypot(s.x-c.x,s.y-c.y)||1;MESAS.levantar();p.x=s.x+(s.x-c.x)/d*10;p.y=s.y+(s.y-c.y)/d*10}); // um passo para longe da mesa
@@ -127,6 +142,13 @@
  }
 
  let alvoMesa=null; // {mesa, i}: indo sentar
+ // clique numa mesa (do pátio ou da taverna): vai até o lugar livre mais perto do clique e senta ao chegar
+ function clicarMesa(m,w){
+  if(window.MESAS&&MESAS.sentado&&MESAS.sentado.mesa===m.id)return true;
+  const ocup=window.MESAS&&MESAS.dados[m.id]?MESAS.dados[m.id].assentos:{},livres=[0,1,2,3].filter(i=>!ocup[i]);
+  if(!livres.length){ft(p.x,p.y-24,'Mesa cheia (4 pessoas).','#f87171');return true}
+  const d=i=>Math.hypot(lugar(m,i).x-w.x,lugar(m,i).y-w.y),i=livres.sort((a,b)=>d(a)-d(b))[0],s=lugar(m,i);
+  alvoMesa={mesa:m.id,i};setDest(s.x,s.y);return true}
  window.BAR={
   MESAS_JOGO,lugar,BW,BH,
   dentro:(x,y)=>x>=X0()&&x<X0()+BW&&y>=Y0()&&y<Y0()+BH,
@@ -150,10 +172,10 @@
     ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(B.nm,w.x+.5,w.y-21.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(B.nm,w.x,w.y-22-ACIMA_HEROI());ctx.fillStyle='#ffd84a';ctx.fillText('!',w.x,w.y-28+Math.round(Math.sin(time*4)*1.5))}]);
    L.push([Y0()+QUIOSQUE.y0-30,toldo]);
    for(const [id,x,y] of ELEM){const w=at(x,y);L.push([w.y-(id==='pk_bar_bandeirinhas'?400:0),()=>desenharElem(ctx,id,w.x,w.y)])}
-   for(const m of MESAS_JOGO){const c=at(m.x,m.y);for(let i=0;i<4;i++){const s=lugar(m,i);L.push([s.y-(i===2?0:1),()=>banquinho(s.x,s.y+2)])}L.push([c.y,()=>mesaJogo(m)])}
+   for(const m of MESAS_JOGO){const c=at(m.x,m.y);for(let i=0;i<4;i++){const s=lugar(m,i);L.push([s.y+(i===2?1:-1),()=>cadeira(s.x,s.y+2,i)])}L.push([c.y,()=>mesaJogo(m)])}
   },
   // por cima de tudo: botões e convites das mesas (fora da ordem de profundidade, para não ficarem atrás de ninguém)
-  interface(){for(const m of MESAS_JOGO)interfaceMesa(m)},
+  interface(){for(const m of TODAS())interfaceMesa(m)},
   luzes(){const ls=[];for(const [id,x,y] of ELEM){const w=at(x,y);if(id==='pk_bar_lampiao')ls.push({x:w.x,y:w.y-32,r:70,a:.75});if(id==='pk_bar_fogueira')ls.push({x:w.x,y:w.y-8,r:95});if(id==='pk_bar_churrasqueira')ls.push({x:w.x,y:w.y-14,r:40,a:.5})}
    for(const m of MESAS_JOGO){const c=at(m.x,m.y);ls.push({x:c.x,y:c.y-12,r:40,a:.4})}const k=at(360,60);ls.push({x:k.x,y:k.y,r:80,a:.6});return ls},
   brilho(nk){ctx.save();ctx.globalCompositeOperation='screen';
@@ -163,26 +185,21 @@
    if(nk>.15)for(let x=34;x<290;x+=12){const yy=Y0()+31+Math.round(Math.sin((x-30)/64*Math.PI%Math.PI)*5),a=nk*(.5+.5*Math.sin(time*2+x*.3));ctx.globalAlpha=a;R(ctx,X0()+x,yy,2,2,'#fff0a0');ctx.globalAlpha=a*.3;R(ctx,X0()+x-2,yy-2,6,6,'#ffd84a')}
    ctx.restore();particulas(1/60,nk)},
   click(w,mode){
-   if(!(BAR.dentro(w.x,w.y)||BAR.portaEm(w.x,w.y)))return false;
    for(const b of botoes)if(w.x>=b.x&&w.x<=b.x+b.w&&w.y>=b.y&&w.y<=b.y+b.h){b.fn();return true}
+   if(mode!=2)for(const m of TODAS())if(naMesa(m,w))return clicarMesa(m,w);
+   if(!(BAR.dentro(w.x,w.y)||BAR.portaEm(w.x,w.y)))return false;
    if(mode==2)return false;
    const bw=at(BARMAN.x,BARMAN.y);if(Math.hypot(w.x-bw.x,w.y-(bw.y-8))<14){if(Math.hypot(p.x-bw.x,p.y-bw.y)<60)falarBarman();else setDest(bw.x,bw.y+38);return true}
-   for(const m of MESAS_JOGO){const c=at(m.x,m.y);if(Math.abs(w.x-c.x)<22&&w.y>c.y-16&&w.y<c.y+18){
-    if(window.MESAS&&MESAS.sentado&&MESAS.sentado.mesa===m.id)return true;
-    const ocup=window.MESAS?MESAS.dados[m.id].assentos:{},livres=[0,1,2,3].filter(i=>!ocup[i]);
-    if(!livres.length){ft(p.x,p.y-24,'Mesa cheia (4 pessoas).','#f87171');return true}
-    const i=livres.sort((a,b)=>Math.hypot(lugar(m,a).x-w.x,lugar(m,a).y-w.y)-Math.hypot(lugar(m,b).x-w.x,lugar(m,b).y-w.y))[0],s=lugar(m,i);
-    alvoMesa={mesa:m.id,i};setDest(s.x,s.y);return true}}
    return false},
   atualizar(dt){
    andarBarman(dt);
-   if(alvoMesa){const m=MESAS_JOGO.find(x=>x.id===alvoMesa.mesa),s=lugar(m,alvoMesa.i);
+   if(alvoMesa){const m=TODAS().find(x=>x.id===alvoMesa.mesa),s=lugar(m,alvoMesa.i);
     if(Math.hypot(p.x-s.x,p.y-s.y)<9){const alvo=alvoMesa;alvoMesa=null;p.dest=null;p.path=[];
-     if(window.MESAS)MESAS.sentar(alvo.mesa,alvo.i).then(ok=>{if(ok){p.x=s.x;p.y=s.y;const c=at(m.x,m.y);p.fx=c.x-s.x;p.fy=c.y-s.y;ft(p.x,p.y-30,'Sentou na '+MESAS.NOME_MESA[alvo.mesa],'#ffe28a')}})}
+     if(window.MESAS)MESAS.sentar(alvo.mesa,alvo.i).then(ok=>{if(ok){p.x=s.x;p.y=s.y;const c=centro(m);p.fx=c.x-s.x;p.fy=c.y-s.y;ft(p.x,p.y-30,'Sentou na '+MESAS.NOME_MESA[alvo.mesa],'#ffe28a')}})}
     else if(!p.dest)alvoMesa=null}
    // levantou: andou para longe do lugar
    // levanta ao mandar andar (clique no chão) ou se algo tirou o herói do lugar; parado, fica na cadeira
-   if(window.MESAS&&MESAS.sentado){const m=MESAS_JOGO.find(x=>x.id===MESAS.sentado.mesa),s=lugar(m,MESAS.sentado.i);if(p.dest||(p.path&&p.path.length)||Math.hypot(p.x-s.x,p.y-s.y)>6)MESAS.levantar();else{p.x=s.x;p.y=s.y}}
+   if(window.MESAS&&MESAS.sentado){const m=TODAS().find(x=>x.id===MESAS.sentado.mesa);if(!m){MESAS.levantar();return}const s=lugar(m,MESAS.sentado.i);if(p.dest||(p.path&&p.path.length)||Math.hypot(p.x-s.x,p.y-s.y)>6)MESAS.levantar();else{p.x=s.x;p.y=s.y}}
   },
   minimapa(mm,ox,oy,k){if(fundo)mm.drawImage(fundo,ox+(X0()-G().OX)*k,oy+(Y0()-G().OY)*k,BW*k,BH*k)}
  };

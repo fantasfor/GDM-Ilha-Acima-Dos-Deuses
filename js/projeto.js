@@ -4867,6 +4867,10 @@ window.PROJETO={
      {
       "id": "clava_osso",
       "chance": 8
+     },
+     {
+      "id": "saw",
+      "chance": 20
      }
     ],
     "skills": [],
@@ -6770,6 +6774,10 @@ window.PROJETO={
      {
       "id": "espada_de_madeira",
       "chance": 1.5
+     },
+     {
+      "id": "saw",
+      "chance": 50
      }
     ],
     "skills": [],

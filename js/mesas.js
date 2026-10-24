@@ -10,7 +10,8 @@
    mesa local na memória, com o mesmo formato (MESAS.simular deixa um teste agir como outro jogador).
    Ouro: cada jogador paga a própria aposta quando a partida começa e recebe o prêmio quando vence (pote dividido). */
 (function(){
- const IDS=['bar1','bar2','bar3','bar4'],NOME_MESA={bar1:'Mesa 1',bar2:'Mesa 2',bar3:'Mesa 3',bar4:'Mesa 4'};
+ // 4 mesas no pátio do bar e as 5 mesas redondas de dentro da taverna
+ const IDS=['bar1','bar2','bar3','bar4','tav1','tav2','tav3','tav4','tav5'],NOME_MESA={bar1:'Mesa 1 do pátio',bar2:'Mesa 2 do pátio',bar3:'Mesa 3 do pátio',bar4:'Mesa 4 do pátio',tav1:'Mesa 1 da taverna',tav2:'Mesa 2 da taverna',tav3:'Mesa 3 da taverna',tav4:'Mesa 4 da taverna',tav5:'Mesa 5 da taverna'};
  const J=()=>window.JOGOS_MESA;
  const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
  const dados={};IDS.forEach(id=>dados[id]={assentos:{},jogo:null});
@@ -20,9 +21,14 @@
  const meuNome=()=>simulado?simulado.nome:online()&&NUVEM.nome?NUVEM.nome():(window.p&&p.name)||'Você';
  const nomeDe=(j,uid)=>(j&&j.nomes&&j.nomes[uid])||(window.MP&&MP.nomeDe?MP.nomeDe(uid):'Jogador');
  const aviso=(t,c)=>{if(window.ft&&window.p)ft(p.x,p.y-30,t,c||'#ffd84a')};
+ /* vez de cada um: 30 s para jogar; passou, perde a vez (regras: perderVez). O relógio é o do servidor (online), para
+    todos contarem o mesmo prazo. */
+ const PRAZO_MS=30000;let deslocamento=0;
+ const agora=()=>Date.now()+deslocamento;
+ const chaveVez=j=>{if(!j||j.fase!=='jogando')return '';const st=JSON.parse(j.estado);return JSON.stringify(J()[j.tipo].quemAge(st))+(st.mao&&st.mao.pedido?'p'+st.mao.pedido.valor:'')+(st.vez!=null?'v'+st.vez:'')};
 
  /* ---- armazenamento: Firebase ou memória, com a mesma interface ---- */
- const LOCAL={},escutando=new Set();
+ const LOCAL={},escutando=new Set();let relogioLigado=false;
  const caminho=(id,campo)=>campo?campo.split('/').reduce((o,k)=>o&&o[k],LOCAL[id]):LOCAL[id];
  function localDefine(id,campo,val){LOCAL[id]=LOCAL[id]||{};const ks=campo.split('/');let o=LOCAL[id];for(let i=0;i<ks.length-1;i++)o=o[ks[i]]=o[ks[i]]||{};if(val==null)delete o[ks[ks.length-1]];else o[ks[ks.length-1]]=clone(val);setTimeout(()=>chegou(id,clone(LOCAL[id])),0)}
  function transacao(id,campo,fn){
@@ -31,13 +37,13 @@
  }
  function escutar(id){
   if(escutando.has(id))return;escutando.add(id);
-  if(online()){NUVEM.db.ref('mesas/'+id).on('value',s=>chegou(id,s.val()))}
+  if(online()){NUVEM.db.ref('mesas/'+id).on('value',s=>chegou(id,s.val()));if(!relogioLigado){relogioLigado=true;NUVEM.db.ref('.info/serverTimeOffset').on('value',s=>{deslocamento=+s.val()||0})}}
  }
  function pararDeEscutar(){if(online())for(const id of escutando)NUVEM.db.ref('mesas/'+id).off();escutando.clear()}
  function chegou(id,v){
   dados[id]={assentos:(v&&v.assentos)||{},jogo:(v&&v.jogo)||null};
-  cobrarEPagar(id);
-  if(painel.mesa===id)desenharPainel();
+  cobrarEPagar(id);avisarVez(id);
+  if(painel.mesa===id){if(foraDoJogo(id)){painel.mesa=null;if(painel.el)painel.el.hidden=true}else desenharPainel()}
  }
 
  /* ---- lugares ---- */
@@ -56,7 +62,7 @@
   if(!sentado)return;const {mesa,i}=sentado;sentado=null;
   await transacao(mesa,'assentos/'+i,cur=>cur===eu()?null:undefined);
   // saindo da mesa: sai do convite (o jogo em andamento continua: dá para voltar pelo painel)
-  const j=dados[mesa].jogo;if(j&&j.fase==='convite')sairDoConvite(mesa);
+  const j=dados[mesa].jogo;if(j&&j.fase==='convite'){sairDoConvite(mesa);if(painel.mesa===mesa)fecharPainel()}
  }
 
  /* ---- jogo da mesa ---- */
@@ -94,18 +100,19 @@
   const jog=[...ordem.filter(u=>aceitos.includes(u)),...aceitos.filter(u=>!ordem.includes(u))].slice(0,G.max); // na ordem das cadeiras
   if(!G.valido(jog.length)){aviso(G.nome+': '+(j.tipo==='truco'?'2 ou 4 jogadores':G.min+' a '+G.max+' jogadores')+'.','#f87171');return}
   const st=G.novo(jog);
-  await transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='convite'||cur.dono!==eu())return undefined;cur.fase='jogando';cur.jog=jog;cur.estado=JSON.stringify(st);cur.t=Date.now();return cur});
+  await transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='convite'||cur.dono!==eu())return undefined;cur.fase='jogando';cur.jog=jog;cur.estado=JSON.stringify(st);cur.t=Date.now();cur.prazo=agora()+PRAZO_MS;return cur});
  }
  let erroJogo='';
  async function agir(id,acao){
   erroJogo='';
   await transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='jogando')return undefined;const i=cur.jog.indexOf(eu());if(i<0)return undefined;
-   try{const st=regras(cur).aplicar(JSON.parse(cur.estado),i,acao);cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';return cur}catch(e){erroJogo=e.message;return undefined}});
+   try{const antes=chaveVez(cur),st=regras(cur).aplicar(JSON.parse(cur.estado),i,acao);cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';else if(chaveVez(cur)!==antes)cur.prazo=agora()+PRAZO_MS;return cur}catch(e){erroJogo=e.message;return undefined}});
   if(erroJogo)desenharPainel();
  }
  async function desistir(id){
   await transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='jogando')return undefined;const i=cur.jog.indexOf(eu());if(i<0)return undefined;
-   const st=regras(cur).sair(JSON.parse(cur.estado),i);cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';return cur});
+   const antes=chaveVez(cur),st=regras(cur).sair(JSON.parse(cur.estado),i);cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';else if(chaveVez(cur)!==antes)cur.prazo=agora()+PRAZO_MS;return cur});
+  if(painel.mesa===id)fecharPainel(); // quem desiste sai do painel
  }
  async function assistir(id){
   await transacao(id,'jogo',cur=>{if(!cur)return undefined;cur.espect=cur.espect||{};cur.espect[eu()]=1;cur.nomes=cur.nomes||{};cur.nomes[eu()]=meuNome();return cur});
@@ -135,6 +142,14 @@
   }
  }
 
+ /* o painel fecha sozinho para quem não faz mais parte do jogo da mesa: convite cancelado, recusado, desistiu ou saiu
+    (quem jogou continua vendo o resultado no fim; quem assiste, enquanto estiver assistindo) */
+ function foraDoJogo(id){
+  const j=dados[id].jogo,u=eu();if(!j)return true;
+  if(j.fase==='convite')return j.dono!==u&&!(j.conv&&j.conv[u]);
+  const i=Array.isArray(j.jog)?j.jog.indexOf(u):-1;if(i>=0){const st=estado(j);return!!(st&&st.fora&&st.fora[i]&&!st.fim)}
+  return!(j.espect&&j.espect[u])&&!(j.fila&&j.fila[u]);
+ }
  /* ================= painel do jogo ================= */
  const painel={mesa:null,el:null,escolha:null};
  const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
@@ -175,6 +190,9 @@
   const st=estado(j),eu_i=meuIndice(j),jogador=eu_i>=0&&!st.fora[eu_i];
   const pote=(j.aposta||0)*j.jog.length;
   el.append(E('p','mesaInfo',(pote?'Pote: '+pote+' ouro · ':'')+j.jog.map((x,i)=>nomeDe(j,x)+(st.fora[i]?' (saiu)':'')).join(', ')+(jogador?'':' · você está assistindo')));
+  // faixa da vez: SUA VEZ bem clara (ou de quem é), com o prazo de 30 s correndo
+  const v=j.fase==='jogando'&&infoVez(id);painel.relogio=null;
+  if(v){const fx=E('div','mesaVez'+(v.minha?' minha':''));fx.append(E('b','',v.minha?(v.pedido?'SUA VEZ: responda o pedido!':'SUA VEZ!'):'Vez de '+(v.nomes.join(' e ')||'…')));const rel=E('span','mesaRelogio',v.resta+'s');fx.append(rel);fx.style.setProperty('--resta',(v.resta/30*100)+'%');painel.relogio=rel;el.append(fx)}
   const tab=E('div','mesaTab');el.append(tab);
   if(j.tipo==='truco')mesaTruco(tab,j,st,eu_i);else if(j.tipo==='uno')mesaUno(tab,j,st,eu_i);else mesaDomino(tab,j,st,eu_i);
   if(erroJogo)el.append(E('p','mesaErro',erroJogo));
@@ -233,6 +251,29 @@
    if(!st.fim&&vez(st,eu_i))bt.append(E('small','mesaDica','Sua vez.'));box.append(bt)}
  }
 
+ /* ---- vez: aviso, som e prazo ---- */
+ const minhaVezAntes={};
+ function infoVez(id){
+  const j=dados[id].jogo;if(!j||j.fase!=='jogando')return null;const st=estado(j),G=regras(j),q=G.quemAge(st),u=eu();
+  return{minha:q.some(i=>j.jog[i]===u),nomes:q.map(i=>nomeDe(j,j.jog[i])),resta:Math.max(0,Math.ceil(((j.prazo||0)-agora())/1000)),pedido:!!(st.mao&&st.mao.pedido)};
+ }
+ function avisarVez(id){
+  const v=infoVez(id),antes=!!minhaVezAntes[id];minhaVezAntes[id]=!!(v&&v.minha);
+  if(v&&v.minha&&!antes&&!simulado){if(window.playGameSound)playGameSound('suaVez');aviso(v.pedido?'RESPONDA O PEDIDO!':'SUA VEZ!','#ffd84a')}
+ }
+ let ultimoTique=-1;
+ setInterval(()=>{
+  for(const id of escutando){
+   const j=dados[id].jogo;if(!j||j.fase!=='jogando'||!j.prazo)continue;
+   const v=infoVez(id);
+   if(v&&v.minha&&v.resta<=5&&v.resta>0&&v.resta!==ultimoTique){ultimoTique=v.resta;if(window.playGameSound)playGameSound('tiqueVez')}
+   // passou do prazo (com 1 s de folga): qualquer um na mesa aplica a perda de vez; a transação garante uma vez só
+   if(agora()>j.prazo+1000){const prazo=j.prazo;transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='jogando'||cur.prazo!==prazo||agora()<=cur.prazo+1000)return undefined;
+    const st=regras(cur).perderVez(JSON.parse(cur.estado));cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';cur.prazo=agora()+PRAZO_MS;return cur})}
+  }
+  // relógio do painel aberto (sem redesenhar o painel inteiro)
+  if(painel.mesa&&painel.relogio){const v=infoVez(painel.mesa);if(v){painel.relogio.textContent=v.resta+'s';painel.relogio.parentElement.style.setProperty('--resta',(v.resta/30*100)+'%');painel.relogio.parentElement.classList.toggle('urgente',v.resta<=5)}}
+ },250);
  /* ---- ciclo: entra/sai da taverna (as mesas só são lidas lá) ---- */
  let naTaverna=false;
  setInterval(()=>{
@@ -243,7 +284,7 @@
  },400);
 
  window.MESAS={IDS,NOME_MESA,dados,eu,sentar,levantar,get sentado(){return sentado},assentoDe,sentados,convidar,aceitar,iniciar,agir,desistir,assistir,pedirVaga,novaPartida,encerrar,definirAposta,
-  abrirPainel,fecharPainel,get painelAberto(){return painel.mesa},estado,meuIndice,ativo,nomeDe,
+  abrirPainel,fecharPainel,infoVez,get painelAberto(){return painel.mesa},estado,meuIndice,ativo,nomeDe,
   // testes: agir como outro jogador (só na mesa local)
   simular(uid,nome,fn){if(online())return;const ant=simulado;simulado={uid,nome};try{return fn()}finally{simulado=ant}},
   simSentar(mesa,i,uid){if(!online())localDefine(mesa,'assentos/'+i,uid)},

@@ -196,6 +196,9 @@ const sounds={
  // subir de nível: fanfarra curta
  levelUp:()=>{arpejo([60,64,67,72],.09,{tipo:'square',vol:.022,dur:.14});const t=agora()+.38;[72,76,79,84].forEach(m=>nota(bus.efeitos,mtof(m),t,.6,{tipo:'triangle',vol:.03*escala,solta:.8}));noise(.6,.01,6000,.38,'highpass',9000,.6)},
  rankUp:()=>{arpejo([67,71,74,79,83],.07,{tipo:'triangle',vol:.03,brilho:4})},
+ // jogos de mesa (js/mesas.js): sininho claro quando chega a sua vez e tique nos últimos segundos do prazo
+ suaVez:()=>{const t=agora();[[76,0],[83,.13]].forEach(([m,d])=>{nota(bus.efeitos,mtof(m),t+d,.5,{tipo:'triangle',vol:.05*escala,solta:.6});nota(bus.efeitos,mtof(m+12),t+d,.35,{tipo:'sine',vol:.02*escala,solta:.5})})},
+ tiqueVez:()=>{tone(1400,1300,.05,'square',.008);tone(700,650,.04,'sine',.01)},
  quest:()=>{arpejo([62,66,69,74],.11,{tipo:'triangle',vol:.035,dur:.22});const t=agora()+.48;[62,66,69,74].forEach(m=>nota(bus.efeitos,mtof(m+12),t,.7,{tipo:'sine',vol:.02*escala,solta:.9}))},
  // pegar item por raridade (somRaridade): cada nível é maior e mais brilhante que o anterior
  lootComum:()=>{tone(700,900,.09,'sine',.02);tone(1050,1250,.12,'sine',.014,.06)},

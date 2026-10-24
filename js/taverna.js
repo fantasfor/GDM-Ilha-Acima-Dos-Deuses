@@ -204,7 +204,9 @@
    const x=Math.round(n.x+Math.sin(n.t*3+n.o)*3),y=Math.round(n.y-n.t*n.v*2);ctx.globalAlpha=Math.min(1,(1.8-n.t)/.6);R(ctx,x,y,2,2,n.cor);R(ctx,x+1,y-4,1,4,n.cor);R(ctx,x+2,y-4,2,1,n.cor);ctx.globalAlpha=1}}
 
  /* ---- desenho da cena ---- */
- const bancos=[];MESAS.forEach(m=>{bancos.push({x:m.x-21,y:m.y+1,lado:-1},{x:m.x+21,y:m.y+1,lado:1},{x:m.x,y:m.y+14,lado:0})});
+ // 4 cadeiras por mesa (atrás, direita, frente, esquerda): as mesas da taverna também são mesas de jogo (js/mesas.js, js/bar.js)
+ const bancos=[];MESAS.forEach(m=>{bancos.push({x:m.x,y:m.y-15,lado:0},{x:m.x+21,y:m.y+1,lado:1},{x:m.x,y:m.y+14,lado:0},{x:m.x-21,y:m.y+1,lado:-1})});
+ window.TAVERNA_MESAS=MESAS.map((m,k)=>({id:'tav'+(k+1),cx:m.x,cy:m.y,lugares:[{x:m.x,y:m.y-15},{x:m.x+21,y:m.y+1},{x:m.x,y:m.y+14},{x:m.x-21,y:m.y+1}]}));
  window.drawTaverna=function(){
   if(!fundo)fundo=desenharFundo();
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0806';ctx.fillRect(0,0,cv.width,cv.height);

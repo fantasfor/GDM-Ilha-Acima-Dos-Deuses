@@ -86,6 +86,13 @@
    const sobra=vivos.findIndex(v=>v.length)>=0&&vivos.filter(v=>v.length).length===1?vivos.findIndex(v=>v.length):-1;
    if(sobra>=0){st.fim={vencedores:st.times[sobra],motivo:'o outro time desistiu'};anota(st,'Time '+(sobra+1)+' venceu: o outro time desistiu.');return st}
    st.auto[i]=true;autoTruco(st);return st}, // 2×2: o parceiro continua; a mão de quem saiu joga sozinha
+  // quem precisa agir agora: o time que responde a um pedido, ou quem tem a vez
+  quemAge(st){if(st.fim)return [];const m=st.mao;if(m.pedido)return st.times.find((t,k)=>k!==m.pedido.time).filter(i=>!st.fora[i]);return st.fora[m.vez]?[]:[m.vez]},
+  // tempo esgotado (30 s): não dá para pular no truco, então joga a carta mais fraca; pedido sem resposta é aceito
+  perderVez(st){if(st.fim)return st;const m=st.mao;
+   if(m.pedido){const i=TRUCO.quemAge(st)[0];if(i==null)return st;const s=TRUCO.aplicar(st,i,{t:'aceitar'});anota(s,'Tempo esgotado: pedido aceito.');return s}
+   const i=m.vez,c=m.cartas[i];if(!c||!c.length)return st;let k=0;c.forEach((x,n)=>{if(forca(x,m.vira)<forca(c[k],m.vira))k=n});
+   const s=TRUCO.aplicar(st,i,{t:'jogar',k});anota(s,'Tempo esgotado: jogou a carta mais fraca.');return s},
   forca,NOME_NAIPE,NOME_VALOR,timeDe
  };
 
@@ -124,6 +131,9 @@
   sair(st0,i){const st=clone(st0);if(st.fim||st.fora[i])return st;st.fora[i]=true;st.monte=embaralhar(st.monte.concat(st.maos[i]));st.maos[i]=[];anota(st,'Um jogador desistiu.');
    const v=ativos(st);if(v.length===1){st.fim={vencedores:v,motivo:'os outros desistiram'};return st}
    if(st.vez===i){st.comprou=false;st.vez=proximo(st,i,st.dir)}return st},
+  quemAge(st){return st.fim||st.fora[st.vez]?[]:[st.vez]},
+  // tempo esgotado: compra uma carta (se ainda não comprou) e passa a vez
+  perderVez(st0){const st=clone(st0);if(st.fim)return st;const i=st.vez;if(!st.comprou)comprarUno(st,i,1);st.comprou=false;st.vez=proximo(st,i,st.dir);anota(st,'Tempo esgotado: comprou e passou a vez.');return st},
   NOME_COR,corDe,simb,podeJogar:podeJogarUno
  };
 
@@ -162,6 +172,9 @@
   sair(st0,i){const st=clone(st0);if(st.fim||st.fora[i])return st;st.fora[i]=true;st.maos[i]=[];anota(st,'Um jogador desistiu.');
    const v=ativos(st);if(v.length===1){st.fim={vencedores:v,motivo:'os outros desistiram'};return st}
    if(st.vez===i)st.vez=proximo(st,i);return st},
+  quemAge(st){return st.fim||st.fora[st.vez]?[]:[st.vez]},
+  // tempo esgotado: passa a vez (não conta para trancar o jogo)
+  perderVez(st0){const st=clone(st0);if(st.fim)return st;st.vez=proximo(st,st.vez);anota(st,'Tempo esgotado: perdeu a vez.');return st},
   pedra,pontosMao,podeJogar:podeDomino
  };
 

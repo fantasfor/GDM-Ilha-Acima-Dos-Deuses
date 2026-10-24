@@ -334,3 +334,11 @@ button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
 .pedra .meia{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;padding:1px}.pedra .meia+.meia{border-top:1px solid #0d0d0d}.pedra.deitada .meia+.meia{border-top:0;border-left:1px solid #0d0d0d}
 .pedra .meia i{width:3px;height:3px;background:#1a1a22;border-radius:50%}
 .pedra.costas{background:#3a2414}
+/* faixa da vez nos jogos de mesa: a barra embaixo mostra o tempo que resta (30 s) */
+.mesaVez{position:relative;display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px;padding:8px 10px 10px;background:var(--c-escuro);border:2px solid var(--c-cinza);font:bold 14px monospace;letter-spacing:1px}
+.mesaVez::after{content:"";position:absolute;left:0;bottom:0;height:4px;width:var(--resta,100%);background:var(--c-pedra);transition:width .25s linear}
+.mesaVez.minha{background:var(--c-linho);border-color:var(--c-linho);color:var(--c-preto);font-size:17px;animation:mesaPisca 1s ease-in-out infinite alternate}
+.mesaVez.minha::after{background:var(--c-preto)}
+.mesaVez.urgente{border-color:#a8392f}.mesaVez.urgente::after{background:#a8392f}
+.mesaRelogio{font-size:14px}
+@keyframes mesaPisca{from{outline:2px solid transparent}to{outline:2px solid var(--c-pedra);outline-offset:2px}}
