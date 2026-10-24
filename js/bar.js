@@ -95,6 +95,7 @@
    else if(perto)botao(c.x,c.y-44,'Assistir','#a69c94',()=>MESAS.assistir(m.id));
    ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(J_NOME(j.tipo)+(j.fase==='fim'?' · fim':' · jogando'),c.x+.4,c.y-47.6);ctx.fillStyle='#ffe28a';ctx.fillText(J_NOME(j.tipo)+(j.fase==='fim'?' · fim':' · jogando'),c.x,c.y-48);
   }
+  if(sent)botao(c.x,c.y+20,'Levantar','#a69c94',()=>{const s=lugar(m,MESAS.sentado.i),d=Math.hypot(s.x-c.x,s.y-c.y)||1;MESAS.levantar();p.x=s.x+(s.x-c.x)/d*10;p.y=s.y+(s.y-c.y)/d*10}); // um passo para longe da mesa
   // sentado e sem jogo rolando: os 3 jogos (somem quando um jogo começa)
   if(sent&&!MESAS.ativo(j)){let x=c.x-32;for(const [tipo,nome] of [['truco','Truco'],['uno','Uno'],['domino','Dominó']]){botao(x,c.y-58,nome,'#d9d0c7',()=>MESAS.convidar(m.id,tipo));x+=32}}
   // convite: balão em cima de quem convidou
@@ -180,7 +181,8 @@
      if(window.MESAS)MESAS.sentar(alvo.mesa,alvo.i).then(ok=>{if(ok){p.x=s.x;p.y=s.y;const c=at(m.x,m.y);p.fx=c.x-s.x;p.fy=c.y-s.y;ft(p.x,p.y-30,'Sentou na '+MESAS.NOME_MESA[alvo.mesa],'#ffe28a')}})}
     else if(!p.dest)alvoMesa=null}
    // levantou: andou para longe do lugar
-   if(window.MESAS&&MESAS.sentado){const m=MESAS_JOGO.find(x=>x.id===MESAS.sentado.mesa),s=lugar(m,MESAS.sentado.i);if(Math.hypot(p.x-s.x,p.y-s.y)>6)MESAS.levantar();else{p.x=s.x;p.y=s.y}}
+   // levanta ao mandar andar (clique no chão) ou se algo tirou o herói do lugar; parado, fica na cadeira
+   if(window.MESAS&&MESAS.sentado){const m=MESAS_JOGO.find(x=>x.id===MESAS.sentado.mesa),s=lugar(m,MESAS.sentado.i);if(p.dest||(p.path&&p.path.length)||Math.hypot(p.x-s.x,p.y-s.y)>6)MESAS.levantar();else{p.x=s.x;p.y=s.y}}
   },
   minimapa(mm,ox,oy,k){if(fundo)mm.drawImage(fundo,ox+(X0()-G().OX)*k,oy+(Y0()-G().OY)*k,BW*k,BH*k)}
  };
