@@ -145,7 +145,7 @@
    for(const d of GAMEDATA.skills){const ic=d.sprite?pixelArt(d.sprite):skillIcon(d.id);add('habilidades',d.id,typeof ic=='string'?await image(ic):ic,d.name)}
    for(const [id,f] of Object.entries(FX_INFO))add('efeitos',id,await image(fxIcon(id)),f.n);
    for(const d of [...GAMEDATA.passives,...GAMEDATA.skills.filter(d=>d.category=='passive')])add('passivas',d.id,await image(passIcon(d)),d.name);
-   for(const t of ['tree',...sceneryArtTypes()])for(let vi=0;vi<(t=='tree'?TREEV.length:sceneryVariants(t));vi++){
+   for(const t of ['tree'])for(let vi=0;vi<(t=='tree'?TREEV.length:sceneryVariants(t));vi++){
     const d=mapArtOverride(t,vi),def=sceneryDefault(t,vi);add('mapa',t+'-'+(vi+1),d?pixelArt(d):def&&def.c,(MAP_ELEMENT_TYPES[t]?.name||'Árvore')+' '+(vi+1),{mapType:t,variant:vi,ax:d&&d.ax!=null?d.ax:def&&def.ax,ay:d&&d.ay!=null?d.ay:def&&def.ay});
    }
    for(const entry of gameArtEntries())add('ambiente',entry.id,gameArtCanvas(entry.id),entry.name);
@@ -154,7 +154,7 @@
    add('mapa','arvore-legado',TREE,'Árvore original');add('mapa','tenda',TENT,'Tenda');
    add('personagens','ferreiro',SPRITE_BLACKSMITH.idle,'Ferreiro');
    for(const [id,c] of Object.entries(DG_BOSS_ICONS))add('masmorra',id,typeof c=='string'?await image(c):c,id);
-   for(const tier of ['blue','purple','gold'])for(const style of ['classic','wood','crystal','cursed','royal'])for(const opened of [false,true])add('baus',tier+'-'+style+'-'+(opened?'aberto':'fechado'),dungeonChestSprite(tier,style,opened),'Baú '+tier+' '+style+(opened?' aberto':' fechado'));
+   for(const [tier] of (window.BAUS?BAUS.TIPOS:[]))for(const opened of [false,true])add('baus',tier+'-'+(opened?'aberto':'fechado'),dungeonChestSprite(tier,'',opened),BAUS.NOME[tier]+(opened?' aberto':' fechado'));
    return arts
   }
  };

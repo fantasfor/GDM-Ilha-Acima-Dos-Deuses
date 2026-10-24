@@ -50,7 +50,7 @@
   // decorações sólidas (árvores, lápides, troncos...) numa grade de 32 px para a colisão ficar barata
   DECOR_SOLIDOS = new Map();
   for(const d of DUNGEON_DECORATIONS) if(d.solido){ const k = Math.floor(d.x / 32) + ',' + Math.floor(d.y / 32); if(!DECOR_SOLIDOS.has(k)) DECOR_SOLIDOS.set(k, []); DECOR_SOLIDOS.get(k).push(d); }
-  DUNGEON_THEME = ['cave', 'underground', 'forest'].includes(cfg.theme) ? cfg.theme : 'cave';
+  DUNGEON_THEME = ['cave', 'underground', 'forest', 'ossos', 'chamas'].includes(cfg.theme) ? cfg.theme : 'cave'; // ossos e chamas: 2026-10-24
   DUNGEON_ART = cfg.art && typeof cfg.art === 'object' ? cfg.art : {};
   DUNGEON_NAME = cfg.name || 'Masmorra';
   window.CAVE_ROOMS = CAVE_ROOMS;
@@ -73,7 +73,9 @@
     da ilha (variante de TREEV), dec.sprite = desenho próprio. Sempre 1 pixel do desenho = 1 pixel do mundo. */
  function arteDecoracao(dec){
   if(dec.arvore != null && window.TREEV) return TREEV[dec.arvore % TREEV.length];
-  if(dec.el){ const d = (window.PIXLIB && PIXLIB[dec.el]) || (window.PACOTE_MAPA && PACOTE_MAPA.elementos[dec.el] && PACOTE_MAPA.elementos[dec.el].data); return d ? cachedDungeonArt(d) : null; }
+  // barril, caixote e flor antigos (desenhados por código, saíram em 2026-10-24) aparecem como os elementos do pacote
+  const el = dec.el || (!dec.sprite && dec.arvore == null ? { crate: 'pk_gue_caixote', barrel: 'pk_gue_barril', flower: 'pk_flo_arbusto' }[dec.type] : null);
+  if(el){ const d = (window.PIXLIB && PIXLIB[el]) || (window.PACOTE_MAPA && PACOTE_MAPA.elementos[el] && PACOTE_MAPA.elementos[el].data); return d ? cachedDungeonArt(window.CHAO&&CHAO.quadroEm?CHAO.quadroEm(d,time).data:d) : null; } // elemento animado: o quadro da hora
   return dec.sprite ? cachedDungeonArt(dec.sprite) : null;
  }
  window.decorSolida = (x, y) => { const i = Math.floor(x / 32), j = Math.floor(y / 32); for(let b = -1; b <= 1; b++) for(let a = -1; a <= 1; a++){ const l = DECOR_SOLIDOS.get((i + a) + ',' + (j + b)); if(l) for(const d of l){ const r = d.raio || 6; if(Math.abs(x - d.x) < r && Math.abs(y - d.y) < r * .7 && Math.hypot(x - d.x, (y - d.y) * 1.4) < r) return true; } } return false; };
@@ -87,8 +89,14 @@
  const DUNGEON_THEME_COLORS = {
   cave: { outer: '#1c1613', inner: '#29201b', wall: '#423329', highlight: '#5c483b', shadow: '#100c09', texture: '#140f0c' },
   underground: { outer: '#0d1b22', inner: '#12313a', wall: '#214854', highlight: '#397080', shadow: '#071115', texture: '#0a2028' },
-  forest: { outer: '#1a2b18', inner: '#294526', wall: '#3b5a2f', highlight: '#62864a', shadow: '#111d12', texture: '#172817' }
+  forest: { outer: '#1a2b18', inner: '#294526', wall: '#3b5a2f', highlight: '#62864a', shadow: '#111d12', texture: '#172817' },
+  // temas novos (2026-10-24, pedido do usuário): DG de ossos e DG de chamas ardentes (chão, parede e moldura próprios)
+  ossos: { outer: '#18161a', inner: '#2a2628', wall: '#4a4440', highlight: '#8a8270', shadow: '#0e0c0e', texture: '#1e1a1c' },
+  chamas: { outer: '#1a0e0c', inner: '#2a1614', wall: '#4a2018', highlight: '#ff7a1a', shadow: '#0e0606', texture: '#1e100e' }
  };
+ const NOME_TEMA_DG = { cave: 'Caverna', underground: 'Subterrâneo', forest: 'Floresta escura', ossos: 'DG de ossos', chamas: 'DG de chamas ardentes' };
+ const ESTILO_TEMA_DG = { cave: 'pedra', underground: 'tijolos', forest: 'floresta', ossos: 'cripta', chamas: 'chamas' }; // parede e moldura padrão (js/paredes-dg.js); a DG pode escolher outra (config.paredeEstilo)
+ const PISO_TEMA_DG = { ossos: 'pk_os_lajes', chamas: 'pk_ch_rocha' };          // chão da DG (textura do pacote de mapa)
  const dungeonArtCache = new WeakMap();
  const dungeonPatternCache = new WeakMap();
  function cachedDungeonArt(data){
@@ -130,129 +138,13 @@
   return dungeonBosses.length > 0 && dungeonBosses.every(enemy => enemy.hp <= 0);
  }
 
- /* ---------- Sprites em Pixel Art dos Baús (Azul, Roxo, Dourado) ---------- */
- const CHEST_SPRITES = {};
- function initChestSprites(){
-  if(CHEST_SPRITES.blue_closed) return;
-  const tiers = {
-   blue:   { body1: '#1e3a8a', body2: '#2563eb', trim1: '#334155', trim2: '#64748b', lock: '#67e8f9', glow: '#38bdf8' },
-   purple: { body1: '#4c1d95', body2: '#7c3aed', trim1: '#2e1065', trim2: '#a855f7', lock: '#f472b6', glow: '#c084fc' },
-   gold:   { body1: '#78350f', body2: '#d97706', trim1: '#451a03', trim2: '#fbbf24', lock: '#ef4444', glow: '#f59e0b' }
-  };
-
-  for(const [tier, col] of Object.entries(tiers)){
-   // Baú Fechado (20x16)
-   CHEST_SPRITES[tier + '_closed'] = paint(20, 16, (R, E) => {
-    // Sombra da base
-    R(2, 13, 16, 3, '#09080c');
-    // Corpo inferior
-    R(2, 7, 16, 7, col.body1);
-    R(3, 8, 14, 5, col.body2);
-    // Tampa abaulada
-    R(2, 2, 16, 5, col.body1);
-    R(3, 3, 14, 4, col.body2);
-    R(4, 2, 12, 1, col.trim2);
-    // Travessas e ferragens reforçadas
-    R(2, 2, 2, 12, col.trim1);
-    R(16, 2, 2, 12, col.trim1);
-    R(9, 2, 2, 12, col.trim1);
-    R(2, 6, 16, 2, col.trim1);
-    R(3, 7, 14, 1, col.trim2);
-    // Fechadura reluzente
-    R(9, 6, 2, 3, col.lock);
-    R(9, 7, 1, 1, '#ffffff');
-   });
-
-   // Baú Aberto (20x20)
-   CHEST_SPRITES[tier + '_open'] = paint(20, 20, (R, E) => {
-    // Sombra da base
-    R(2, 17, 16, 3, '#09080c');
-    // Fundo interno escuro do baú
-    R(3, 9, 14, 8, '#0b060d');
-    R(4, 10, 12, 6, '#180e1b');
-    // Tesouro brilhando dentro
-    R(5, 12, 10, 4, col.glow);
-    R(7, 11, 6, 2, '#ffffff');
-    // Paredes e bordas da base
-    R(2, 10, 16, 7, col.body1);
-    R(2, 10, 2, 7, col.trim1);
-    R(16, 10, 2, 7, col.trim1);
-    R(2, 15, 16, 2, col.trim1);
-    R(3, 16, 14, 1, col.trim2);
-    // Tampa aberta reclinada para trás
-    R(2, 2, 16, 6, col.body1);
-    R(3, 3, 14, 4, col.body2);
-    R(2, 2, 2, 6, col.trim1);
-    R(16, 2, 2, 6, col.trim1);
-    R(9, 2, 2, 6, col.trim1);
-    R(4, 2, 12, 1, col.trim2);
-    // Fechadura na tampa
-    R(9, 7, 2, 2, col.lock);
-    R(9, 7, 1, 1, '#ffffff');
-   });
-  }
-
-  const styles = {
-   wood: { body1: '#543018', body2: '#925626', trim1: '#302016', trim2: '#d6a45e', lock: '#f1d27a', glow: '#d6a45e' },
-   crystal: { body1: '#30234f', body2: '#6448a3', trim1: '#211631', trim2: '#b49bff', lock: '#67e8f9', glow: '#a5f3fc' },
-   cursed: { body1: '#241623', body2: '#59313d', trim1: '#130d18', trim2: '#a35d68', lock: '#a3e635', glow: '#a3e635' },
-   royal: { body1: '#501724', body2: '#92283a', trim1: '#35130f', trim2: '#f6c453', lock: '#fff1a8', glow: '#facc15' }
-  };
-  Object.entries(styles).forEach(([style, col]) => {
-   ['blue', 'purple', 'gold'].forEach(tier => {
-    CHEST_SPRITES[tier + '_' + style + '_closed'] = paint(22, 18, R => {
-     R(2, 14, 18, 3, '#09080c');
-     R(2, 7, 18, 8, col.body1); R(3, 8, 16, 6, col.body2);
-     R(2, 2, 18, 6, col.body1); R(3, 3, 16, 4, col.body2);
-     R(2, 2, 2, 13, col.trim1); R(18, 2, 2, 13, col.trim1);
-     R(2, 7, 18, 2, col.trim1); R(3, 8, 16, 1, col.trim2);
-     R(10, 7, 2, 4, col.lock); R(10, 8, 1, 1, '#ffffff');
-     if(style === 'wood'){
-      R(6, 3, 2, 4, '#bc7a3c'); R(14, 3, 2, 4, '#bc7a3c');
-      R(5, 10, 2, 3, col.trim2); R(15, 10, 2, 3, col.trim2);
-     } else if(style === 'crystal'){
-      R(4, 1, 3, 2, '#a5f3fc'); R(5, 0, 1, 2, '#e0ffff');
-      R(15, 1, 3, 2, '#a5f3fc'); R(16, 0, 1, 2, '#e0ffff');
-      R(6, 4, 2, 1, '#d9faff');
-     } else if(style === 'cursed'){
-      R(5, 4, 3, 1, '#a3e635'); R(14, 4, 3, 1, '#a3e635');
-      R(9, 11, 4, 2, '#ded3c2'); R(10, 11, 1, 1, '#261923'); R(12, 11, 1, 1, '#261923');
-     } else if(style === 'royal'){
-      R(5, 0, 2, 3, col.trim2); R(7, 1, 2, 2, col.trim2);
-      R(10, 0, 2, 3, col.trim2); R(13, 1, 2, 2, col.trim2); R(15, 0, 2, 3, col.trim2);
-      R(6, 4, 2, 1, '#fff1a8'); R(14, 4, 2, 1, '#fff1a8');
-     }
-    });
-    CHEST_SPRITES[tier + '_' + style + '_open'] = paint(22, 22, R => {
-     R(2, 19, 18, 3, '#09080c');
-     R(3, 11, 16, 7, col.body1); R(4, 12, 14, 5, col.body2);
-     R(5, 13, 12, 3, col.glow); R(8, 12, 6, 1, '#ffffff');
-     R(2, 11, 2, 7, col.trim1); R(18, 11, 2, 7, col.trim1);
-     R(2, 16, 18, 2, col.trim1); R(3, 17, 16, 1, col.trim2);
-     R(2, 2, 18, 7, col.body1); R(3, 3, 16, 5, col.body2);
-     R(2, 2, 2, 7, col.trim1); R(18, 2, 2, 7, col.trim1);
-     R(10, 2, 2, 7, col.trim1); R(5, 2, 12, 1, col.trim2);
-     R(10, 8, 2, 3, col.lock);
-     if(style === 'crystal'){
-      R(4, 1, 3, 2, '#a5f3fc'); R(15, 1, 3, 2, '#a5f3fc');
-     } else if(style === 'cursed'){
-      R(8, 14, 2, 1, '#a3e635'); R(12, 14, 2, 1, '#a3e635');
-     } else if(style === 'royal'){
-      R(6, 0, 2, 2, col.trim2); R(10, 0, 2, 2, col.trim2); R(14, 0, 2, 2, col.trim2);
-     } else if(style === 'wood'){
-      R(5, 3, 2, 5, '#bc7a3c'); R(15, 3, 2, 5, '#bc7a3c');
-     }
-    });
-   });
-  });
- }
+ /* ---------- Baús (js/baus.js): madeira, verde, azul, roxo e dourado ----------
+    arte própria do projeto em Artes do jogo › baus/<categoria>-fechado|aberto; senão a arte de js/baus.js */
  window.dungeonChestSprite = (tier, style, opened) => {
-  const artId = `baus/${tier || 'blue'}-${style || 'classic'}-${opened ? 'aberto' : 'fechado'}`;
-  const customArt = PROJ.art[artId];
+  tier = window.BAUS ? BAUS.tipo(tier) : (tier || 'blue');
+  const customArt = PROJ.art['baus/' + tier + '-' + (opened ? 'aberto' : 'fechado')];
   if(customArt) return cachedDungeonArt(customArt);
-  initChestSprites();
-  const key = (tier || 'blue') + '_' + ((style && style !== 'classic') ? style + '_' : '') + (opened ? 'open' : 'closed');
-  return CHEST_SPRITES[key] || CHEST_SPRITES.blue_closed;
+  return window.BAUS ? cachedDungeonArt(BAUS.arte(tier, !!opened)) : null;
  };
 
  function makeBlacksmithSprite(chained=false){
@@ -492,58 +384,29 @@
 
   // Abre o baú com sucesso!
   chest.opened = true;
-  ring(chest.x, chest.y, 30, chest.tier === 'gold' ? '#f59e0b' : chest.tier === 'purple' ? '#c084fc' : '#38bdf8', 0.5);
+  ring(chest.x, chest.y, 30, (window.BAUS && BAUS.COR[BAUS.tipo(chest.tier)]) || '#38bdf8', 0.5);
 
-  let gold = 0, items = [], qualityRange = [40, 70];
-  if(chest.randomTier){
-   qualityRange = chest.tier === 'gold' ? [90, 100] : chest.tier === 'purple' ? [70, 92] : [40, 75];
-  }
-  if(chest.loot && Array.isArray(chest.loot.items)){
-   const loot = chest.loot;
-   const goldMin = Math.max(0, Math.floor(Number(loot.goldMin) || 0));
-   const goldMax = Math.max(goldMin, Math.floor(Number(loot.goldMax) || goldMin));
-   gold = Math.floor(rnd(goldMin, goldMax + 1));
-   const qualityMin = Math.max(1, Math.min(100, Math.floor(Number(loot.qualityMin) || 1)));
-   const qualityMax = Math.max(qualityMin, Math.min(100, Math.floor(Number(loot.qualityMax) || qualityMin)));
-   if(!chest.randomTier) qualityRange = [qualityMin, qualityMax];
-   loot.items.forEach(drop => {
-    if(!drop || typeof drop !== 'object' || NUNCA_CAI.includes(drop.id)) return; // arma ADM/teste nunca sai de baú (js/custom.js)
-    const chance = Math.max(0, Math.min(100, Number(drop.chance) || 0));
-    if(ITEMS[drop.id] && Math.random() * 100 < chance) items.push(drop.id);
-   });
-  } else if(chest.tier === 'blue'){
-   gold = Math.floor(rnd(45, 90));
-   qualityRange = [40, 75];
-   items = ['hp', 'mp'];
-   if(Math.random() < 0.8) items.push(rndChoice(['sw', 'he1', 'ch1', 'le1', 'bo', 'wood']));
-   if(Math.random() < 0.4) items.push(rndChoice(['sw2', 'ca1', 'ne1', 'ri1']));
-  } else if(chest.tier === 'purple'){
-   gold = Math.floor(rnd(140, 260));
-   qualityRange = [70, 92];
-   items = ['hp', 'mp'];
-   items.push(rndChoice(['sw2', 'he2', 'ch2', 'le2', 'bo2']));
-   if(Math.random() < 0.75) items.push(rndChoice(['ca2', 'ne2', 'ri2', 'magicWood', 'saw']));
-  } else if(chest.tier === 'gold'){
-   gold = Math.floor(rnd(400, 750));
-   qualityRange = [90, 100];
-   items = ['hp', 'mp'];
-   items.push(rndChoice(['sw3', 'he3', 'ch3', 'le3', 'bo3']));
-   items.push(rndChoice(['ca3', 'ne3', 'ri3', 'magicWood']));
-   if(Math.random() < 0.6) items.push(rndChoice(['saw', 'sw3', 'magicWood']));
-  }
-
+  // cada baú tem a sua tabela (ouro, qualidade, itens com chance); sem tabela, a padrão da categoria (js/baus.js)
+  const loot = chest.loot && Array.isArray(chest.loot.items) ? chest.loot : (window.BAUS ? BAUS.lootPadrao(chest.tier) : { goldMin: 0, goldMax: 0, items: [] });
+  const goldMin = Math.max(0, Math.floor(Number(loot.goldMin) || 0));
+  const goldMax = Math.max(goldMin, Math.floor(Number(loot.goldMax) || goldMin));
+  let gold = Math.floor(rnd(goldMin, goldMax + 1)), items = [];
+  // faixa de qualidade da tabela + o aumento de qualidade deste baú
+  const qualityRange = window.BAUS ? BAUS.faixaQualidade({ tier: chest.tier, loot, qualidadeBonus: chest.qualidadeBonus }) : [40, 70];
+  loot.items.forEach(drop => {
+   if(!drop || typeof drop !== 'object' || (typeof NUNCA_CAI !== 'undefined' ? NUNCA_CAI : ['nova_arma', 'teste']).includes(drop.id)) return; // arma ADM/teste nunca sai de baú (js/custom.js)
+   const chance = Math.max(0, Math.min(100, Number(drop.chance) || 0));
+   if(ITEMS[drop.id] && Math.random() * 100 < chance) items.push(drop.id);
+  });
+  items = items.filter(id => window.podeCairDeMissao ? podeCairDeMissao(id) : true); // itens de missão só com a missão ativa
   p.gold += gold;
   ft(chest.x, chest.y - 26, `+${gold} Ouro!`, '#ffd700');
-  ft(chest.x, chest.y - 38, `BAÚ ${chest.tier.toUpperCase()} ABERTO!`, chest.tier === 'gold' ? '#f59e0b' : chest.tier === 'purple' ? '#c084fc' : '#38bdf8');
+  ft(chest.x, chest.y - 38, ((window.BAUS && BAUS.NOME[BAUS.tipo(chest.tier)]) || 'Baú').toUpperCase() + ' ABERTO!', (window.BAUS && BAUS.COR[BAUS.tipo(chest.tier)]) || '#38bdf8');
   if(window.playGameSound) playGameSound('item');
 
   // Dispara animação de moedas e itens saltando para fora do baú
   spawnChestFlyLoot(chest.x, chest.y, gold, items, qualityRange, chest.tier);
   saveGame();
- }
-
- function rndChoice(arr){
-  return arr[Math.floor(Math.random() * arr.length)];
  }
 
  function spawnChestFlyLoot(cx, cy, gold, items, qualityRange, tier){
@@ -572,7 +435,7 @@
    const q = gearType[id] ? Math.floor(rnd(qualityRange[0], qualityRange[1] + 1)) : null;
    const itemRarityColors = ['#9a9a9a', '#f0f0f0', '#4fd860', '#4f9af0', '#c060f0', '#ffb830'];
    const qualityIndex = q == null ? -1 : q < 20 ? 0 : q < 45 ? 1 : q < 70 ? 2 : q < 90 ? 3 : q < 100 ? 4 : 5;
-   const tierColor = tier === 'gold' ? '#f59e0b' : tier === 'purple' ? '#c084fc' : '#38bdf8';
+   const tierColor = (window.BAUS && BAUS.COR[BAUS.tipo(tier)]) || '#38bdf8';
    const angle = Math.random() * Math.PI * 2;
    const distance = rnd(14, 28);
    flyingLoots.push({
@@ -610,7 +473,6 @@
  const CHEFE_DG = 'rei_esqueleto_covil';
  const tipoChefeDG = () => MONSTER_TYPES[CHEFE_DG] ? CHEFE_DG : MONSTER_TYPES.esqueleto_rei ? 'esqueleto_rei' : 'goblin';
  function spawnDungeonBoss(bx, by, blvl){
-  initChestSprites();
   const ty = tipoChefeDG(), bossLvl = blvl || Math.max(5, p.lvl + 1);
   dungeonBoss = spawnAt(bx != null ? bx : 780, by != null ? by : 480, ty, bossLvl);
   Object.assign(dungeonBoss, { boss: true, bossType: 'grandboss', isDungeonMob: true, rt: 0, roamT: 5, roamRadius: 30 });
@@ -734,7 +596,6 @@
  /* ---------- Entrada e Saída da Masmorra ---------- */
  function enterGoblinDungeon(){
   if(window.getDungeonLibrary&&!window.getDungeonLibrary().dungeons.length){alert('Nenhuma DG disponível no momento.');return}
-  initChestSprites();
   window.campPortalTheme = 'goblin';
   window.inDungeon = true;
   bossDefeatedEvent = false;
@@ -778,7 +639,8 @@
     y: ch.y,
     opened: false,
     bossChest: !!ch.bossChest,
-    style: ch.style || 'classic',
+    sprite: ch.sprite || null,
+    qualidadeBonus: +ch.qualidadeBonus || 0,
     loot: ch.loot && Array.isArray(ch.loot.items) ? ch.loot : null
    };
   });
@@ -915,143 +777,10 @@
    else ctx.drawImage(arte, Math.round(x - w / 2), Math.round(y - h + 3), w, h);
    return;
   }
-  if(type === 'barrel'){
-   // Barril de goblin com aros de ferro
-   ctx.fillStyle = '#451a03'; ctx.fillRect(x - 6, y - 10, 12, 10);
-   ctx.fillStyle = '#78350f'; ctx.fillRect(x - 5, y - 9, 10, 8);
-   ctx.fillStyle = '#92400e'; ctx.fillRect(x - 4, y - 8, 8, 6);
-   // Aros de ferro
-   ctx.fillStyle = '#334155';
-   ctx.fillRect(x - 6, y - 8, 12, 1.5);
-   ctx.fillRect(x - 6, y - 3, 12, 1.5);
-   ctx.fillStyle = '#64748b';
-   ctx.fillRect(x - 4, y - 8, 2, 1.5);
-  } else if(type === 'crate'){
-   // Caixote de madeira reforçado
-   ctx.fillStyle = '#5c3a1e'; ctx.fillRect(x - 7, y - 10, 14, 10);
-   ctx.fillStyle = '#854d0e'; ctx.fillRect(x - 6, y - 9, 12, 8);
-   ctx.fillStyle = '#a16207'; ctx.fillRect(x - 5, y - 8, 10, 6);
-   // Ripas cruzadas
-   ctx.fillStyle = '#451a03';
-   ctx.fillRect(x - 6, y - 5, 12, 1);
-   ctx.fillRect(x - 1, y - 9, 2, 8);
-   // Pregos de ferro nos cantos
-   ctx.fillStyle = '#cbd5e1';
-   ctx.fillRect(x - 5, y - 8, 1, 1);
-   ctx.fillRect(x + 4, y - 8, 1, 1);
-   ctx.fillRect(x - 5, y - 3, 1, 1);
-   ctx.fillRect(x + 4, y - 3, 1, 1);
-  } else if(type === 'bones'){
-   // Pilha de ossos e crânios de aventureiros
-   ctx.fillStyle = '#0f172a'; ctx.fillRect(x - 6, y - 4, 12, 4);
-   ctx.fillStyle = '#cbd5e1';
-   ctx.fillRect(x - 5, y - 3, 10, 2);
-   ctx.fillRect(x - 2, y - 6, 4, 4); // crânio
-   ctx.fillStyle = '#f8fafc';
-   ctx.fillRect(x - 1, y - 5, 2, 2);
-   ctx.fillStyle = '#0f172a';
-   ctx.fillRect(x - 1, y - 4, 1, 1); // órbita
-   ctx.fillRect(x, y - 4, 1, 1);
-  } else if(type === 'stalagmite'){
-   // Estalagmite de rocha pontiaguda
-   ctx.fillStyle = '#1e293b';
-   ctx.beginPath();
-   ctx.moveTo(x - 6, y);
-   ctx.lineTo(x, y - 14);
-   ctx.lineTo(x + 6, y);
-   ctx.closePath();
-   ctx.fill();
-   ctx.fillStyle = '#334155';
-   ctx.beginPath();
-   ctx.moveTo(x - 4, y);
-   ctx.lineTo(x, y - 12);
-   ctx.lineTo(x + 2, y);
-   ctx.closePath();
-   ctx.fill();
-   // Brilho úmido da rocha
-   ctx.fillStyle = '#64748b';
-   ctx.fillRect(x - 1, y - 10, 1, 6);
-  } else if(type === 'puddle'){
-   // Poça d'água subterrânea com reflexo
-   ctx.fillStyle = '#0f172a';
-   ctx.beginPath(); ctx.ellipse(x, y, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
-   ctx.fillStyle = '#1e293b';
-   ctx.beginPath(); ctx.ellipse(x, y, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
-   // Brilho sutil da água ondulando
-   const wave = Math.sin(time * 3 + x) * 1.5;
-   ctx.fillStyle = 'rgba(56,189,248,0.35)';
-   ctx.fillRect(x - 5 + wave, y - 1, 6, 1.5);
-  } else if(type === 'crystal'){
-   // Cristais mágicos luminescentes da caverna
-   ctx.fillStyle = 'rgba(16,185,129,0.18)';
-   ctx.beginPath(); ctx.ellipse(x, y, 14, 7, 0, 0, Math.PI * 2); ctx.fill();
-   // Formação de cristais pontiagudos
-   ctx.fillStyle = '#047857';
-   ctx.fillRect(x - 4, y - 10, 3, 10);
-   ctx.fillRect(x, y - 13, 3, 13);
-   ctx.fillRect(x + 3, y - 8, 3, 8);
-   ctx.fillStyle = '#10b981';
-   ctx.fillRect(x - 3, y - 9, 2, 8);
-   ctx.fillRect(x + 1, y - 12, 2, 11);
-   ctx.fillRect(x + 4, y - 7, 2, 6);
-   ctx.fillStyle = '#6ee7b7';
-   ctx.fillRect(x + 1, y - 11, 1, 5);
-   ctx.fillStyle = '#a7f3d0';
-   ctx.fillRect(x + 1, y - 9, 1, 2);
-  } else if(type === 'web'){
-   // Teia de aranha de canto na caverna
-   ctx.fillStyle = 'rgba(241,245,249,0.35)';
-   ctx.beginPath();
-   ctx.moveTo(x, y);
-   ctx.lineTo(x + 12, y);
-   ctx.lineTo(x, y + 12);
-   ctx.closePath();
-   ctx.fill();
-   ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-   ctx.lineWidth = 0.8;
-   ctx.beginPath();
-   ctx.moveTo(x, y); ctx.lineTo(x + 10, y + 10);
-   ctx.moveTo(x + 5, y); ctx.lineTo(x, y + 5);
-   ctx.moveTo(x + 9, y); ctx.lineTo(x, y + 9);
-   ctx.stroke();
-  } else if(type === 'banner'){
-   // Estandarte tribal goblin pendurado na parede
-   ctx.fillStyle = '#451a03'; ctx.fillRect(x - 6, y - 8, 12, 2);
-   ctx.fillStyle = '#7f1d1d'; ctx.fillRect(x - 5, y - 6, 10, 10);
-   ctx.fillStyle = '#991b1b'; ctx.fillRect(x - 4, y - 5, 8, 8);
-   ctx.fillStyle = '#fef08a'; ctx.fillRect(x - 2, y - 4, 4, 3);
-   ctx.fillStyle = '#450a0a'; ctx.fillRect(x - 1, y - 3, 1, 1); ctx.fillRect(x + 1, y - 3, 1, 1);
-   ctx.fillStyle = '#7f1d1d';
-   ctx.fillRect(x - 5, y + 4, 3, 3);
-   ctx.fillRect(x + 2, y + 4, 3, 3);
-  } else if(type === 'tree'){
-   ctx.fillStyle = '#16301c'; ctx.fillRect(x - 3, y - 8, 6, 9);
-   ctx.fillStyle = '#5b3a29'; ctx.fillRect(x - 2, y - 9, 4, 10);
-   ctx.fillStyle = '#1f5b35';
-   ctx.fillRect(x - 10, y - 20, 20, 10);
-   ctx.fillRect(x - 7, y - 25, 14, 8);
-   ctx.fillRect(x - 13, y - 17, 5, 7);
-   ctx.fillRect(x + 8, y - 17, 5, 7);
-   ctx.fillStyle = '#4a9a3a';
-   ctx.fillRect(x - 7, y - 20, 5, 5);
-   ctx.fillRect(x + 3, y - 24, 4, 4);
-   ctx.fillRect(x + 7, y - 16, 4, 4);
-  } else if(type === 'bush'){
-   ctx.fillStyle = '#1f5b35';
-   ctx.fillRect(x - 10, y - 7, 20, 7);
-   ctx.fillRect(x - 7, y - 11, 14, 7);
-   ctx.fillStyle = '#4a9a3a';
-   ctx.fillRect(x - 6, y - 9, 5, 3);
-   ctx.fillRect(x + 2, y - 12, 4, 4);
-  } else if(type === 'flower'){
-   ctx.fillStyle = '#2f6b32'; ctx.fillRect(x, y - 9, 2, 9);
-   ctx.fillRect(x - 3, y - 4, 4, 2);
-   ctx.fillStyle = '#f472b6';
-   ctx.fillRect(x - 3, y - 13, 3, 3);
-   ctx.fillRect(x + 2, y - 13, 3, 3);
-   ctx.fillRect(x - 1, y - 16, 3, 3);
-   ctx.fillRect(x - 1, y - 10, 3, 3);
-   ctx.fillStyle = '#fbbf24'; ctx.fillRect(x, y - 12, 2, 2);
+  // decorações desenhadas por código (barril, caixote, ossos, estalagmite, poça, cristal, teia, estandarte, árvore, arbusto e flor)
+  // saíram do jogo (2026-10-24, pedido do usuário): ficam a escada e os elementos de mapa (el, arvore, sprite), desenhados acima
+  if(type === 'escada' && window.PAREDES_DG){ // escada de madeira subindo para dentro da parede (paredes-dg.js)
+   const a = pixelArt(PAREDES_DG.escada()); if(a) ctx.drawImage(a, Math.round(x - a.width / 2), Math.round(y - a.height + 3));
   }
  }
 
@@ -1154,7 +883,7 @@
  }
 
  function drawCustomDungeonObject(item,alpha=1){
-  const sprite=cachedDungeonArt(item.sprite);if(!sprite)return false;
+  const sprite=cachedDungeonArt(window.CHAO&&CHAO.quadroEm?CHAO.quadroEm(item.sprite,time).data:item.sprite);if(!sprite)return false; // desenho próprio animado (quadros na aba Parado)
   const q=sprite.q||1;ctx.save();ctx.globalAlpha=alpha;
   ctx.drawImage(sprite,item.x-sprite.width/q/2,item.y-sprite.height/q,sprite.width/q,sprite.height/q);ctx.restore();return true;
  }
@@ -1167,6 +896,14 @@
   const width = Math.max(8, Number(door.w) || (vertical ? 12 : 56));
   const height = Math.max(8, Number(door.h) || (vertical ? 56 : 12));
   if(!original&&gameArtDraw('dg-door-'+(vertical?'vertical':'horizontal')+(open?'-open':'-closed'),ctx,door.x,door.y,width,height))return;
+  // porta do tema (js/portas-dg.js); arte própria por tema em Artes do jogo › dg-door-<tema>-…
+  const tema = door.tema || DUNGEON_THEME || 'cave';
+  if(window.PORTAS_DG){
+   const a = PORTAS_DG.arte(tema, vertical, open, width, height, door.estilo); // door.estilo: variação escolhida na Engine
+   if(!original&&!door.estilo&&gameArtDraw('dg-door-'+tema+'-'+(vertical?'vertical':'horizontal')+(open?'-open':'-closed'),ctx,door.x,door.y+a.dy+a.c.height,a.c.width,a.c.height))return; // âncora: pé da arte
+   ctx.drawImage(a.c, Math.round(door.x + a.dx), Math.round(door.y + a.dy));
+   return;
+  }
   const frame = '#451a03';
   const metal = open ? '#4ade80' : '#ef4444';
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -1202,26 +939,39 @@
  }
 
  for(const [theme,palette] of Object.entries(DUNGEON_THEME_COLORS)){
-  for(const part of ['floor','wall'])gameArtRegister('dg-'+part+'-'+theme,(part==='floor'?'Chão':'Parede')+' da DG — '+({cave:'Caverna',underground:'Subterrâneo',forest:'Floresta'}[theme]),{
-   w:part==='wall'&&theme==='forest'?32:16,h:16,draw:g=>{
-    if(part==='wall'&&theme==='forest'&&window.CHAO){g.drawImage(pixelArt(CHAO.paredeFloresta()),0,0);return} // floresta: maciço de árvores (chao.js)
+  const estilo = ESTILO_TEMA_DG[theme], piso = PISO_TEMA_DG[theme] && window.PACOTE_MAPA && PACOTE_MAPA.texturas[PISO_TEMA_DG[theme]];
+  for(const part of ['floor','wall'])gameArtRegister('dg-'+part+'-'+theme,(part==='floor'?'Chão':'Parede')+' da DG — '+NOME_TEMA_DG[theme],{
+   w:part==='wall'&&estilo?64:16,h:part==='wall'&&estilo?32:16,draw:g=>{
+    if(part==='wall'&&estilo&&window.PAREDES_DG){g.drawImage(pixelArt(PAREDES_DG.face(estilo)),0,0);return} // face da parede do estilo do tema (paredes-dg.js)
+    if(part==='floor'&&piso){g.drawImage(pixelArt(piso.data),0,0);return}
     g.fillStyle=part==='floor'?palette.inner:palette.wall;g.fillRect(0,0,16,16);
     g.fillStyle=part==='floor'?palette.texture:palette.shadow;
     if(part==='wall'){g.fillRect(0,7,16,1);g.fillRect(7,0,1,7);g.fillRect(3,8,1,8)}
     else for(let i=0;i<12;i++)g.fillRect(i*7%16,i*11%16,2,1);
    }
   });
+  // moldura grossa em volta do chão e das paredes (chao.js dgCamada), no estilo do tema (paredes-dg.js)
+  gameArtRegister('dg-borda-'+theme,'Borda da DG — '+NOME_TEMA_DG[theme],{w:16,h:16,draw:g=>{
+   if(estilo&&window.PAREDES_DG){g.drawImage(pixelArt(PAREDES_DG.borda(estilo)),0,0);return}
+   g.fillStyle=palette.shadow;g.fillRect(0,0,16,16);g.fillStyle=palette.wall;
+   for(let i=0;i<10;i++)g.fillRect(i*5%16,i*9%16,3,2);
+  }});
  }
  for(const type of ['return','exit'])for(const active of [true,false])gameArtRegister('portal-dg-'+type+(active?'':'-locked'),(type==='return'?'Portal de retorno da DG':'Portal de saída da DG')+(active?' — ativo':' — bloqueado'),{
   w:40,h:48,ay:42/48,draw:g=>drawDungeonGate(20,42,type,active,g,true)
  });
+ // portas de cada tema (js/portas-dg.js), no tamanho padrão, editáveis em Artes do jogo (pé da arte no pé da porta)
+ for(const tema of Object.keys(DUNGEON_THEME_COLORS))for(const orientation of ['vertical','horizontal'])for(const open of [false,true]){
+  const vertical=orientation==='vertical',a=window.PORTAS_DG&&PORTAS_DG.arte(tema,vertical,open,vertical?12:56,vertical?56:12);if(!a)continue;
+  gameArtRegister('dg-door-'+tema+'-'+orientation+(open?'-open':'-closed'),'Porta da DG — '+NOME_TEMA_DG[tema]+' — '+(vertical?'vertical':'horizontal')+(open?' aberta':' fechada'),{w:a.c.width,h:a.c.height,ay:1,draw:g=>g.drawImage(a.c,0,0)});
+ }
  for(const orientation of ['vertical','horizontal'])for(const open of [false,true]){
   const vertical=orientation==='vertical',w=vertical?12:56,h=vertical?56:12;
   gameArtRegister('dg-door-'+orientation+(open?'-open':'-closed'),'Porta da DG — '+(vertical?'vertical':'horizontal')+(open?' aberta':' fechada'),{
    w,h,ay:.5,draw:g=>drawDungeonDoor({x:w/2,y:h/2,w,h,orientation,previewOpen:open},g,true)
   });
  }
- for(const [type,name] of Object.entries({barrel:'Barril',crate:'Caixote',bones:'Ossos',stalagmite:'Estalagmite',puddle:'Poça',crystal:'Cristal',web:'Teia',banner:'Estandarte',tree:'Árvore',bush:'Arbusto',flower:'Flor'})){
+ for(const [type,name] of Object.entries({escada:'Escada'})){
   gameArtRegister('dg-decor-'+type,name+' da DG',{w:40,h:48,ay:42/48,draw:g=>drawDungeonDecoration({x:20,y:42,type},g,true)});
  }
  gameArtRegister('dg-torch','Tocha da DG',{w:12,h:16,ay:12/16,draw:g=>{
@@ -1230,8 +980,8 @@
  }});
  // Desenho dos elementos da DG para a Engine montar a cena com as mesmas artes do jogo.
  window.DG_DRAW={
-  temas:DUNGEON_THEME_COLORS,
-  decoracoes:{barrel:'Barril',crate:'Caixote',bones:'Ossos',stalagmite:'Estalagmite',puddle:'Poça',crystal:'Cristal',web:'Teia',banner:'Estandarte',tree:'Árvore',bush:'Arbusto',flower:'Flor'},
+  temas:DUNGEON_THEME_COLORS, estiloTema:ESTILO_TEMA_DG, pisoTema:PISO_TEMA_DG,
+  decoracoes:{escada:'Escada'},
   decoracao:(d,g)=>drawDungeonDecoration(d,g),
   porta:(d,g)=>drawDungeonDoor(d,g),
   portal:(x,y,tipo,ativo,g)=>drawDungeonGate(x,y,tipo,ativo,g)
@@ -1347,12 +1097,20 @@
   // com chão pintado as salas são só áreas lógicas: o chão e as paredes vêm da camada pintada
   const allBoxes = DUNGEON_CHAO ? [] : [...CAVE_ROOMS, ...CAVE_CORRIDORS];
   const palette = DUNGEON_THEME_COLORS[DUNGEON_THEME] || DUNGEON_THEME_COLORS.cave;
-  const floorData = DUNGEON_ART.floor||gameArtData('dg-floor-'+(getActiveDungeonConfig().theme||'cave')), wallData = DUNGEON_ART.wall||gameArtData('dg-wall-'+(getActiveDungeonConfig().theme||'cave'))||((getActiveDungeonConfig().theme==='forest'&&window.CHAO)?CHAO.paredeFloresta():null); // floresta: maciço de árvores (chao.js)
+  // artes da DG: a própria (config.art), a editada em Artes do jogo, ou a padrão do tema (piso do pacote, parede e moldura de paredes-dg.js)
+  const temaDG = getActiveDungeonConfig().theme||'cave', estiloEscolhido = getActiveDungeonConfig().paredeEstilo, estiloDG = estiloEscolhido || ESTILO_TEMA_DG[temaDG], pisoDG = PISO_TEMA_DG[temaDG] && window.PACOTE_MAPA && PACOTE_MAPA.texturas[PISO_TEMA_DG[temaDG]];
+  const floorData = DUNGEON_ART.floor||gameArtData('dg-floor-'+temaDG)||(pisoDG?pisoDG.data:null), wallData = DUNGEON_ART.wall||(estiloEscolhido&&window.PAREDES_DG?PAREDES_DG.face(estiloEscolhido):null)||gameArtData('dg-wall-'+temaDG)||(estiloDG&&window.PAREDES_DG?PAREDES_DG.face(estiloDG):null);
   const floorPattern = cachedDungeonPattern(floorData);
   const wallPattern = cachedDungeonPattern(wallData);
   if(DUNGEON_CHAO && window.CHAO){
-   if(!dungeonCamada) dungeonCamada = CHAO.dgCamada(DUNGEON_CHAO, texturasChao(), { piso: cachedDungeonArt(floorData), parede: cachedDungeonArt(wallData), cores: palette });
-   if(dungeonCamada) ctx.drawImage(dungeonCamada.c, dungeonCamada.x, dungeonCamada.y);
+   const bordaData = DUNGEON_ART.borda||(estiloEscolhido&&window.PAREDES_DG?PAREDES_DG.borda(estiloEscolhido):null)||gameArtData('dg-borda-'+temaDG)||(estiloDG&&window.PAREDES_DG?PAREDES_DG.borda(estiloDG):null);
+   if(!dungeonCamada) dungeonCamada = CHAO.dgCamada(DUNGEON_CHAO, texturasChao(), { piso: CHAO.comAnim(cachedDungeonArt(floorData), floorData, cachedDungeonArt), parede: CHAO.comAnim(cachedDungeonArt(wallData), wallData, cachedDungeonArt), borda: cachedDungeonArt(bordaData), largura: getActiveDungeonConfig().bordaLargura, cores: palette, estilos: window.PAREDES_DG ? PAREDES_DG.estilosDe(getActiveDungeonConfig(), cachedDungeonArt) : null });
+   if(dungeonCamada){
+    ctx.drawImage(dungeonCamada.c, dungeonCamada.x, dungeonCamada.y);
+    // piso e parede animados (lava, pântano, sangue, rachaduras, paredes de chamas e cripta): só o que está à vista
+    const mw = cv.width / S / 2 + 48, mh = cv.height / S / 2 + 64;
+    CHAO.dgAnimar(ctx, dungeonCamada, time, { x0: p.x - mw, y0: p.y - mh, x1: p.x + mw, y1: p.y + mh });
+   }
   }
 
   // Base escura de todas as salas e corredores
@@ -1471,7 +1229,7 @@
   // Baús da Masmorra
   dungeonChests.forEach(ch => {
    renderList.push([ch.y, () => {
-    const spr = cachedDungeonArt(ch.sprite)||window.dungeonChestSprite(ch.tier, ch.style || 'classic', ch.opened);
+    const spr = (!ch.opened && cachedDungeonArt(ch.sprite))||window.dungeonChestSprite(ch.tier, '', ch.opened);
     if(spr){
      const isHov = dist(wpos(), ch) < 18;
      if(isHov){
@@ -1481,10 +1239,9 @@
      ctx.drawImage(spr, Math.round(ch.x - spr.width / 2), Math.round(ch.y - spr.height + 2));
 
      ctx.font = '5px monospace'; ctx.textAlign = 'center';
-     const tierNames = { blue: 'Baú Azul', purple: 'Baú Roxo', gold: 'Baú Dourado' };
-     const tierColors = { blue: '#60a5fa', purple: '#c084fc', gold: '#fbbf24' };
-     ctx.fillStyle = tierColors[ch.tier] || '#fff';
-     ctx.fillText(tierNames[ch.tier] || 'Baú', ch.x, ch.y - 18);
+     const tipoBau = window.BAUS ? BAUS.tipo(ch.tier) : ch.tier;
+     ctx.fillStyle = (window.BAUS && BAUS.COR[tipoBau]) || '#fff';
+     ctx.fillText((window.BAUS && BAUS.NOME[tipoBau]) || 'Baú', ch.x, ch.y - 18);
      if(!ch.opened && isHov){
       ctx.fillStyle = '#ffffff';
       ctx.fillText('Clique para abrir', ch.x, ch.y - 25);
@@ -1592,7 +1349,7 @@
     const it = ITEMS[fl.id];
     if(it && it.ic){
      ctx.save();
-     ctx.shadowColor = fl.rarityColor || (fl.tier === 'gold' ? '#f59e0b' : fl.tier === 'purple' ? '#c084fc' : '#38bdf8');
+     ctx.shadowColor = fl.rarityColor || ((window.BAUS && BAUS.COR[BAUS.tipo(fl.tier)]) || '#38bdf8');
      ctx.shadowBlur = 4;
      ctx.fillStyle = '#0f172a';
      ctx.fillRect(Math.round(fl.x - 6), Math.round(fl.y - 6), 12, 12);
@@ -1815,7 +1572,7 @@
   // Baús no minimapa
   dungeonChests.forEach(ch => {
    if(ch.opened || Math.hypot(ch.x - p.x, ch.y - p.y) > VISION_RANGE) return;
-   mm.fillStyle = ch.tier === 'gold' ? '#fbbf24' : ch.tier === 'purple' ? '#c084fc' : '#38bdf8';
+   mm.fillStyle = (window.BAUS && BAUS.COR[BAUS.tipo(ch.tier)]) || '#38bdf8';
    mm.fillRect(toMmX(ch.x) - 2, toMmY(ch.y) - 2, 4, 4);
   });
 

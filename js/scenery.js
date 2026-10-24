@@ -252,7 +252,8 @@ window.sceneryFor=function(e){
  }
  const f=FAM[t];if(f){const vi=vari(e,f[0]),key=t+vi;if(cache[key])return cache[key];const d=artOv(t,vi),c=d&&pixelArt(d);
   if(c)return cache[key]={c,ax:d.ax!=null?d.ax:c.width/2,ay:d.ay!=null?d.ay:c.height-1};return cache[key]=f[2]?f[1](f[2],vi):f[1](vi)}
- if(t.startsWith('px:')){const key=t,en=window.PIXLIB&&PIXLIB[t.slice(3)];if(!en)return null;if(cache[key]&&cache[key].src===en)return cache[key];const c=pixelArt(en);if(!c)return null;return cache[key]={c,ax:c.width/2,ay:c.height-1,src:en}}
+ if(t.startsWith('px:')){const base=window.PIXLIB&&PIXLIB[t.slice(3)];if(!base)return null;const q=window.CHAO&&CHAO.quadroEm?CHAO.quadroEm(base,window.time||0):{i:0,data:base},key=t+'#'+q.i,en=q.data; // elemento animado: um cache por quadro
+ if(cache[key]&&cache[key].src===en)return cache[key];const c=pixelArt(en);if(!c)return null;return cache[key]={c,ax:c.width/2,ay:c.height-1,src:en}}
  return null};
 /* Mesma arte do jogo para a Engine: as conexões de cercas e muros vêm da lista da cena em edição. */
 window.sceneryArt=function(e,list){

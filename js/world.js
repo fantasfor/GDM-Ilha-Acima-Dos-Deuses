@@ -159,6 +159,7 @@ RBR.forEach(b=>{
 /* chão pintado na Engine (js/chao.js): texturas por ladrilho por cima do terreno; líquidos bloqueiam a passagem */
 const CHAO_TEX=window.CHAO?CHAO.texturas(PROJ.pixel):{},CHAO_TILES=window.CHAO&&PROJETO.mundo&&PROJETO.mundo.chao||{},CHAO_GRID=new Array(N*N).fill(null);
 for(const [k,id] of Object.entries(CHAO_TILES)){const [i,j]=k.split(',').map(Number),t=CHAO_TEX[id];if(!t||!(i>=0&&j>=0&&i<N&&j<N))continue;CHAO_GRID[j*N+i]={id,name:t.name,liquido:!!t.liquido};for(let y=j*T;y<j*T+T;y++)for(let x=i*T;x<i*T+T;x++)islandTerrainMask[y*W+x]=6}
+window.ILHA_CHAO_ANIM=window.CHAO&&CHAO.animados?CHAO.animados(CHAO_TILES,CHAO_TEX):null; // água pintada corre (render.js)
 const mapBase=mkCanvas(W,W);
 function paintChao(){
  mapBase.getContext('2d').drawImage(map,0,0);
@@ -189,19 +190,9 @@ window.applyIslandTerrainArt=()=>{
  g.putImageData(image,0,0);
  paintChao();
 };
-const MAP_ELEMENT_TYPES={
- rock:{name:'Pedra pequena',radius:6,blocks:true},
- boulder:{name:'Pedra grande',radius:10,blocks:true},
- bush:{name:'Arbusto',radius:5,blocks:false},
- log:{name:'Tronco',radius:9,blocks:true},
- fence:{name:'Cerca',radius:9,blocks:true},
- crystal:{name:'Cristal',radius:6,blocks:true},
- mushroom:{name:'Cogumelo',radius:4,blocks:false},
- cactus:{name:'Cacto',radius:6,blocks:true},
- stump:{name:'Toco',radius:6,blocks:true},
- sign:{name:'Placa',radius:4,blocks:false},
- stonewall:{name:'Muro de pedra',radius:8,blocks:true}
-};
+/* tipos de elemento do mapa: só os dos pacotes (js/pacote-mapa.js) e da biblioteca do projeto (2026-10-24, pedido do usuário:
+ os elementos embutidos — pedras, arbusto, tronco, cerca, cristal, cogumelo, cacto, toco, placa e muro — não eram usados na ilha e saíram) */
+const MAP_ELEMENT_TYPES={};
 window.PIXLIB={};
 /* elementos do pacote de mapa (js/pacote-mapa.js); um elemento da biblioteca do projeto com o mesmo id tem prioridade */
 for(const [id,e] of Object.entries(window.PACOTE_MAPA&&PACOTE_MAPA.elementos||{})){PIXLIB[id]={...e.data,name:e.name};MAP_ELEMENT_TYPES['px:'+id]={name:e.name,radius:e.raio||6,blocks:!!e.solido}}

@@ -301,3 +301,36 @@ body.selecaoPersonagem>*:not(#g):not(#conta){visibility:hidden!important}
 /* painel de habilidade e item (ui.js skTip/itemTip): rótulo cinza e cada informação com uma cor */
 #tip .tlin{margin:1px 0}#tip .tl{color:#8a8580}#tip .tnome{color:#f0e6dc}#tip .tdesc{color:#d9d0c7}#tip .tdano{color:#ff8f5a;font-weight:bold}#tip .tefeito{color:#c79bff}#tip .tmana{color:#6fb7ff;font-weight:bold}#tip .tcd{color:#ffd84a;font-weight:bold}#tip .tcast{color:#8fe38a;font-weight:bold}#tip .tarma,#tip .ttipo{color:#a69c94}#tip .tatr{color:#9fdc9f}#tip .thab{color:#72d9ff}
 /* dano físico + mágico na mesma arma/habilidade: degradê laranja → azul */#tip .tmisto{background:linear-gradient(90deg,#ff9a3c,#5fb4ff);-webkit-background-clip:text;background-clip:text;color:transparent}#tip .tmisto.inv{background:linear-gradient(90deg,#5fb4ff,#ff9a3c);-webkit-background-clip:text;background-clip:text}#tip .tcura{color:#6fe36f;font-weight:bold}#tip .talc{color:#e8d07a}#tip .tarea{color:#e8a87a}
+
+/* ---- mesas de jogo do bar (js/mesas.js): painel médio, cartas de truco e uno, pedras de dominó ---- */
+.mesaPainel{position:fixed;right:12px;top:56px;z-index:60;width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 140px);overflow:auto;box-sizing:border-box;padding:12px 14px;background:var(--c-preto);border:2px solid var(--c-cinza);outline:1px solid var(--c-escuro);outline-offset:-5px;color:var(--c-linho);font:12px monospace}
+.mesaTopo{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.mesaTopo b{font-size:14px;letter-spacing:1px}
+.mesaFechar{width:26px;height:26px;border:2px solid var(--c-cinza);background:var(--c-escuro);color:var(--c-linho);font:bold 14px monospace;cursor:pointer}.mesaFechar:hover{background:var(--c-cinza)}
+.mesaInfo{margin:4px 0 8px;color:var(--c-pedra)}.mesaErro{color:#f87171;margin:4px 0}.mesaFim{margin:6px 0;padding:6px;border:2px solid var(--c-pedra);color:var(--c-linho)}
+.mesaAviso{margin:6px 0;padding:4px 6px;background:var(--c-escuro);border-left:3px solid var(--c-pedra)}
+.mesaLista{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}.mesaJog{display:flex;justify-content:space-between;padding:4px 6px;background:var(--c-escuro)}.mesaJog small{color:var(--c-pedra)}
+.mesaAposta{display:flex;align-items:center;gap:6px;margin:6px 0}.mesaAposta input{width:80px;padding:3px;background:var(--c-escuro);color:var(--c-linho);border:2px solid var(--c-cinza);font:12px monospace}
+.mesaAcoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px}
+.mesaBtn{padding:6px 10px;border:2px solid var(--c-cinza);background:var(--c-escuro);color:var(--c-linho);font:bold 12px monospace;cursor:pointer}.mesaBtn:hover{background:var(--c-cinza)}.mesaBtn:disabled{opacity:.45;cursor:default}
+.mesaBtn.primario{background:var(--c-pedra);border-color:var(--c-pedra);color:var(--c-preto)}.mesaBtn.primario:hover{background:var(--c-linho)}.mesaBtn.perigo{border-color:#a8392f}
+.mesaDica{color:var(--c-pedra)}
+.mesaTab{padding:8px;background:#1d3a26;border:2px solid #0d0d0d;outline:1px solid #2c5232;outline-offset:-4px}
+.mesaOutros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}.mesaOutro{padding:3px 6px;background:#0d0d0d99;display:flex;flex-direction:column}.mesaOutro small{color:var(--c-pedra)}.mesaOutro.vez{outline:2px solid #e0b62a}
+.mesaMao{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;padding-top:6px;border-top:1px dashed #2c5232}
+.mesaLog{margin-top:6px;color:var(--c-pedra);font-size:11px;max-height:62px;overflow:auto}
+.carta{width:34px;height:48px;border-radius:4px;border:2px solid #0d0d0d;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font:bold 13px monospace;padding:0;box-sizing:border-box}
+button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
+.carta.truco{background:#efe8d4;color:#1a1a22}.carta.truco.verm{color:#c0342a}.carta.truco span{font-size:15px}.carta.destaque{outline:2px solid #e0b62a}
+.carta.costas{background:#7a2622;outline:2px solid #d9a441;outline-offset:-5px}
+.carta.uno{color:#fff;text-shadow:1px 1px #0d0d0d;font-size:15px}.carta.uno.apagada{opacity:.45}.carta.uno.costas{background:#262626!important}
+.truPlacar{display:flex;justify-content:space-between;gap:6px;margin-bottom:6px}.truPlacar span{padding:2px 6px;background:#0d0d0d99}.truPlacar .meu{outline:1px solid #e0b62a}
+.truCentro{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.truVira{display:flex;flex-direction:column;align-items:center}.truMesa{display:flex;gap:6px;min-height:62px}
+.truJogada{display:flex;flex-direction:column;align-items:center}.truJogada.antiga{opacity:.5}.truValor{color:#e0b62a;font-weight:bold}
+.unoCentro{display:flex;align-items:center;gap:10px}.unoCor{width:18px;height:18px;border:2px solid #0d0d0d}
+.unoEscolha{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}.unoCorBtn{width:28px;height:28px;border:2px solid #0d0d0d;cursor:pointer}
+.domMesa{display:flex;flex-wrap:wrap;gap:2px;align-items:center;min-height:40px;margin-bottom:4px}
+.pedra{display:inline-flex;flex-direction:column;width:20px;height:40px;background:#efe8d4;border:2px solid #0d0d0d;border-radius:3px;padding:0;box-sizing:border-box}
+.pedra.deitada{flex-direction:row;width:40px;height:20px}button.pedra{cursor:pointer}button.pedra:hover{outline:2px solid #e0b62a}
+.pedra .meia{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;padding:1px}.pedra .meia+.meia{border-top:1px solid #0d0d0d}.pedra.deitada .meia+.meia{border-top:0;border-left:1px solid #0d0d0d}
+.pedra .meia i{width:3px;height:3px;background:#1a1a22;border-radius:50%}
+.pedra.costas{background:#3a2414}

@@ -163,7 +163,7 @@ function killMonster(e){
   // cada item da lista do monstro tem a sua chance (%) e é sorteado sozinho; sem lista, não cai nada
   // elite (tipo Elite ou monstro que nasceu elite): chance de drop × Fórmulas › Drops › Elite (1,5); chefe: só a lista dele, sem bônus
   const eliteDrop=(e.bossType==='boss'||e.elite)&&e.bossType!=='grandboss'?Math.max(0,+(CALC.eliteDrop??1.5)):1;
-  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&Math.random()*100<d.chance*noite*eliteDrop)largar(d.id);
+  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&podeCairDeMissao(d.id)&&Math.random()*100<d.chance*noite*eliteDrop)largar(d.id);
   // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível
 
  }}
@@ -359,7 +359,7 @@ const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
 L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
  // arma exigida: vale a arma de qualquer mão (escudo na mão 2), a mesma regra do cast
  const maos=o.weaponSlot?[o.weaponSlot]:['sw','sh'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!(maos.some(sl=>EQ[sl]&&skillWeaponAllowed(o,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(o,null));
- if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q E R F T G) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
+ if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q W E R T Y) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
 /* o que ainda está ativo de uma habilidade que saiu da barra para: aura, áreas, pulsos e canal (Girar, Chuva) */
 const naBarra=new Set(SK.filter(s=>s.n&&s.id).map(s=>s.id));if(window.CURANDEIRO)CURANDEIRO.sincronizar(naBarra);if(p.canal&&p.canal.id&&!naBarra.has(p.canal.id))p.canal=null;if(p.conj&&p.conj.s&&!naBarra.has(p.conj.s.id))p.conj=null;
 if(window.renderSkillMenu)renderSkillMenu()}
@@ -411,7 +411,7 @@ document.addEventListener('click',e=>{
  else if(button.hasAttribute('data-build-wall')){
   if(wallBuilt||!sawObtained||!woodQuestActive)return;
   if(!consumeItems('wood',WALL_WOOD_REQUIRED)){ft(p.x,p.y-28,'Precisa de 20 madeiras!','#f66');showCarpenterDialogue();return}
-  wallBuilt=true;CAMP_WALL.gateOpen=true;syncCampWall();showCarpenterDialogue();ft(p.x,p.y-28,'PALIÇADA CONSTRUÍDA!','#ffd84a');if(window.playGameSound)playGameSound('quest');ring(campGate.x,campGate.y,42,'#d5a85b',.7);saveGame()
+  wallBuilt=true;limparItensDeMissao();CAMP_WALL.gateOpen=true;syncCampWall();showCarpenterDialogue();ft(p.x,p.y-28,'PALIÇADA CONSTRUÍDA!','#ffd84a');if(window.playGameSound)playGameSound('quest');ring(campGate.x,campGate.y,42,'#d5a85b',.7);saveGame()
  }
  else if(button.hasAttribute('data-start-magic-wood-quest')){
   if(!wallBuilt||campPortalBuilt)return;
@@ -420,7 +420,7 @@ document.addEventListener('click',e=>{
  else if(button.hasAttribute('data-build-camp-portal')){
   if(!wallBuilt||!magicWoodQuestActive||campPortalBuilt)return;
   if(!consumeItems('magicWood',PORTAL_WOOD_REQUIRED)){ft(p.x,p.y-28,'Precisa de 10 madeiras mágicas!','#f66');showCarpenterDialogue();return}
-  campPortalBuilt=true;showCarpenterDialogue();ft(campPortal.x,campPortal.y-40,'PORTAL CONSTRUÍDO!','#bb88ff');if(window.playGameSound)playGameSound('quest');ring(campPortal.x,campPortal.y,32,'#bb88ff',.7);saveGame()
+  campPortalBuilt=true;limparItensDeMissao();showCarpenterDialogue();ft(campPortal.x,campPortal.y-40,'PORTAL CONSTRUÍDO!','#bb88ff');if(window.playGameSound)playGameSound('quest');ring(campPortal.x,campPortal.y,32,'#bb88ff',.7);saveGame()
  }
  else if(button.hasAttribute('data-open-dungeon-menu')){
   $('dialogue').classList.remove('open');

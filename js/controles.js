@@ -6,9 +6,10 @@
 (function(){
  // v2 (2026-10-22): habilidades em Q E R F T G; teclas salvas da versão antiga ficam para trás.
  // 2026-10-23: andar pelo teclado (WASD e setas) saiu do jogo, a pedido do usuário: o herói anda com o mouse (e o toque no celular)
- const KEY='ilha-rpg-teclas-v2';
+ // v3 (2026-10-24, pedido do usuário): habilidades em Q W E R T Y e Z X; das teclas salvas na v2 ficam só as que não são de habilidade
+ const KEY='ilha-rpg-teclas-v3';
  const ACOES=[
-  ['Habilidades',[['hab1','Habilidade 1','KeyQ'],['hab2','Habilidade 2','KeyE'],['hab3','Habilidade 3','KeyR'],['hab4','Habilidade 4','KeyF'],['hab5','Habilidade 5','KeyT'],['hab6','Habilidade 6','KeyG'],['hab7','Ataque básico 1','KeyZ'],['hab8','Ataque básico 2','KeyX']]],
+  ['Habilidades',[['hab1','Habilidade 1','KeyQ'],['hab2','Habilidade 2','KeyW'],['hab3','Habilidade 3','KeyE'],['hab4','Habilidade 4','KeyR'],['hab5','Habilidade 5','KeyT'],['hab6','Habilidade 6','KeyY'],['hab7','Ataque básico 1','KeyZ'],['hab8','Ataque básico 2','KeyX']]],
   ['Itens',[['item1','Atalho de item 1','Digit1'],['item2','Atalho de item 2','Digit2'],['item3','Atalho de item 3','Digit3'],['item4','Atalho de item 4','Digit4'],['item5','Atalho de item 5','Digit5'],['item6','Atalho de item 6','Digit6'],['pegar','Aceitar item encontrado','Space']]],
   ['Janelas',[['mochila','Mochila','KeyI'],['painel_hab','Habilidades','KeyK'],['enciclopedia','Enciclopédia','KeyJ'],['jogadores','Jogadores e amigos','KeyP']]],
   ['Online',[['chat','Abrir o chat','Enter'],['falar','Apertar para falar (voz)','KeyV']]],
@@ -17,7 +18,10 @@
  const PADRAO={},NOMES={};
  for(const [,lista] of ACOES)for(const [id,nome,tecla] of lista){PADRAO[id]=tecla;NOMES[id]=nome}
  let mapa={...PADRAO};
- try{Object.assign(mapa,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+ try{const v2=localStorage.getItem('ilha-rpg-teclas-v2'),v3=localStorage.getItem(KEY);
+  if(v3)Object.assign(mapa,JSON.parse(v3));
+  else if(v2){const o=JSON.parse(v2),usadas=new Set(Object.entries(PADRAO).filter(([id])=>/^hab/.test(id)).map(([,t])=>t));
+   for(const [id,t] of Object.entries(o))if(!/^hab/.test(id)&&!usadas.has(t))mapa[id]=t}}catch(e){}
  for(const k of Object.keys(mapa))if(!(k in PADRAO))delete mapa[k]; // ações que saíram (ex.: andar com WASD) não valem mais
  const salvar=()=>{try{localStorage.setItem(KEY,JSON.stringify(mapa))}catch(e){}};
  const ROT={Space:'Espaço',Enter:'Enter',Escape:'Esc',Tab:'Tab',Backspace:'Apagar',ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',ShiftLeft:'Shift',ShiftRight:'Shift dir.',ControlLeft:'Ctrl',ControlRight:'Ctrl dir.',AltLeft:'Alt',AltRight:'Alt Gr',Equal:'+',Minus:'-',NumpadAdd:'Num +',NumpadSubtract:'Num -',Backquote:"'",Semicolon:'Ç',Comma:',',Period:'.',Slash:';',BracketLeft:'´',BracketRight:'[',Backslash:']',Quote:'~',CapsLock:'Caps'};

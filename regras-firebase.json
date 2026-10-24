@@ -187,6 +187,12 @@
         }
       }
     },
+    "mesas": {
+      "$mesa": {
+        ".read": "auth != null",
+        ".write": "auth != null && $mesa.matches(/^bar[1-4]$/)"
+      }
+    },
     "arenas": {
       "$lider": {
         ".read": "auth != null",

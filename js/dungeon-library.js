@@ -30,7 +30,7 @@
  const E=(t,c,text)=>{const e=document.createElement(t);if(c)e.className=c;if(text!=null)e.textContent=text;return e};
  const src=c=>!c?'':typeof c=='string'?c:c.toDataURL?c.toDataURL():'';
  const THEME={cave:'Caverna',underground:'Subterrâneo',forest:'Floresta'};
- const TIER={blue:['Azul','#4f9af0'],purple:['Roxo','#c060f0'],gold:['Dourado','#ffb830'],random:['Aleatório','#c9b88f']};
+ const TIER={madeira:['Madeira','#d0a070'],verde:['Verde','#6fd47a'],blue:['Azul','#4f9af0'],purple:['Roxo','#c060f0'],gold:['Dourado','#ffb830'],random:['Aleatório','#c9b88f']};
  const isBossMob=m=>!!m.isBoss||['boss','grandboss'].includes(MONSTER_TYPES[m.type]?.bossType);
  function monsterImg(m){
   if(m.sprite&&typeof pixelArt=='function'){const c=pixelArt(m.sprite);if(c)return src(c)}
@@ -62,7 +62,8 @@
    const c=entry.config,tema=c.theme||'cave',temas=window.DG_DRAW&&DG_DRAW.temas||{},cores=temas[tema]||temas.cave;
    const tiles=c.pintado&&c.chao&&Object.keys(c.chao).length?c.chao:CHAO.dgDeSalas([...(c.rooms||[]),...(c.corridors||[])]);
    const arte=d=>d&&typeof pixelArt=='function'?pixelArt(d):null,gd=id=>window.gameArtData?gameArtData(id):null;
-   const camada=CHAO.dgCamada(tiles,CHAO.texturas(PROJ.pixel),{piso:arte(c.art&&c.art.floor||gd('dg-floor-'+tema)),parede:arte(c.art&&c.art.wall||gd('dg-wall-'+tema)||(tema==='forest'?CHAO.paredeFloresta():null)),cores});
+   const est=c.paredeEstilo||window.DG_DRAW&&DG_DRAW.estiloTema&&DG_DRAW.estiloTema[tema],pt=window.DG_DRAW&&DG_DRAW.pisoTema&&DG_DRAW.pisoTema[tema],pisoT=pt&&window.PACOTE_MAPA&&PACOTE_MAPA.texturas[pt]?PACOTE_MAPA.texturas[pt].data:null; // padrão do tema
+   const camada=CHAO.dgCamada(tiles,CHAO.texturas(PROJ.pixel),{piso:arte(c.art&&c.art.floor||gd('dg-floor-'+tema)||pisoT),parede:arte(c.art&&c.art.wall||(c.paredeEstilo&&window.PAREDES_DG?PAREDES_DG.face(c.paredeEstilo):null)||gd('dg-wall-'+tema)||(est&&window.PAREDES_DG?PAREDES_DG.face(est):null)),borda:arte(c.art&&c.art.borda||(c.paredeEstilo&&window.PAREDES_DG?PAREDES_DG.borda(c.paredeEstilo):null)||gd('dg-borda-'+tema)||(est&&window.PAREDES_DG?PAREDES_DG.borda(est):null)),largura:c.bordaLargura,cores,estilos:window.PAREDES_DG?PAREDES_DG.estilosDe(c,arte):null});
    if(camada){
     const g=camada.c.getContext('2d');g.save();g.translate(-camada.x,-camada.y);for(const d of c.decorations||[])try{DG_DRAW.decoracao(d,g)}catch(e){}g.restore();
     const salas=(c.rooms||[]).map(r=>({x:r.x+r.w/2,y:r.y+r.h/2}));

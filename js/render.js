@@ -635,7 +635,7 @@ function draw(){
  }
  drawEspaco();
  ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));ctx.imageSmoothingEnabled=false;
- {/* só o pedaço visível do mapa (desenhar o mapa inteiro escalado a cada quadro custava caro) */const vw=cv.width/S,vh=cv.height/S,sx=Math.max(0,Math.floor(p.x-vw/2)-2),sy=Math.max(0,Math.floor(p.y-vh/2)-2),sw=Math.min(map.width-sx,Math.ceil(vw)+4),sh=Math.min(map.height-sy,Math.ceil(vh)+4);if(sw>0&&sh>0)ctx.drawImage(map,sx,sy,sw,sh,sx,sy,sw,sh)}
+ {/* só o pedaço visível do mapa (desenhar o mapa inteiro escalado a cada quadro custava caro) */const vw=cv.width/S,vh=cv.height/S,sx=Math.max(0,Math.floor(p.x-vw/2)-2),sy=Math.max(0,Math.floor(p.y-vh/2)-2),sw=Math.min(map.width-sx,Math.ceil(vw)+4),sh=Math.min(map.height-sy,Math.ceil(vh)+4);if(sw>0&&sh>0)ctx.drawImage(map,sx,sy,sw,sh,sx,sy,sw,sh);if(window.ILHA_CHAO_ANIM)CHAO.dgAnimar(ctx,ILHA_CHAO_ANIM,time,{x0:sx,y0:sy,x1:sx+sw,y1:sy+sh})}
  drawCachoeira();
  if(window.ILHA_VIVA)ILHA_VIVA.chao(); // grama e juncos ao vento, brilhos, ondinhas e peixes (js/ilha-viva.js)
  {const r=CAMP_SAFE_HALF_SIZE;ctx.fillStyle='#72bf7410';ctx.fillRect(CX-r,CY-r,r*2,r*2);ctx.strokeStyle='#9ad78460';ctx.lineWidth=1;ctx.strokeRect(CX-r,CY-r,r*2,r*2)}
@@ -649,14 +649,14 @@ function draw(){
  mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();if(window.desenharTelegrafos)desenharTelegrafos();if(window.CURANDEIRO)CURANDEIRO.desenhar();
  const L=[];
  const occ=[];if(p.dead<=0)occ.push(p);en.forEach(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<300&&Math.abs(e.y-p.y)<220)occ.push(e)});NPCS.forEach(n=>occ.push(n));
- /* fora do campo de visão árvores e elementos somem (aparecem de novo, suaves, quando entram): a árvore conta como vista
-    se a base ou a copa estão à vista; a luz da fogueira mostra o acampamento */
- const visto=(o,alvo)=>{const v=o.vis==null?alvo:o.vis;o.vis=v+(alvo-v)*.16;return o.vis};
- trees.forEach(t=>{if(Math.abs(t.x-p.x)<260&&Math.abs(t.y-p.y)<170){const vv=visto(t,canSee(t.x,t.y)||canSee(t.x,t.y-26)?1:0);if(vv<.02)return;const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a*vv;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});
- mapElements.forEach(e=>{if(Math.abs(e.x-p.x)<260&&Math.abs(e.y-p.y)<170){const vv=visto(e,canSee(e.x,e.y)||canSee(e.x,e.y-10)?1:0);if(vv<.02)return;L.push([e.y,()=>{ctx.globalAlpha=vv;drawMapElement(e);ctx.globalAlpha=1}])}});
+ // árvores e elementos do mapa ficam sempre à vista, dentro ou fora do campo de visão (pedido do usuário, 2026-10-24)
+ // desenha tudo o que cabe na tela (com folga para a copa alta), qualquer que seja o zoom
+ const naTela=(x,y)=>Math.abs(x-p.x)<cv.width/S/2+60&&y-p.y>-cv.height/S/2-20&&y-p.y<cv.height/S/2+80;
+ trees.forEach(t=>{if(naTela(t.x,t.y)){const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});
+ mapElements.forEach(e=>{if(naTela(e.x,e.y))L.push([e.y,()=>drawMapElement(e)])});
  if(wallBuilt){
-  for(const post of campWallPosts)if(Math.abs(post.x-p.x)<300&&Math.abs(post.y-p.y)<220)L.push([post.y,()=>drawCampLog(post.x,post.y)]);
-  if(Math.abs(campGate.x-p.x)<300&&Math.abs(campGate.y-p.y)<220)L.push([campGate.y+1,drawCampGate])
+  for(const post of campWallPosts)if(naTela(post.x,post.y))L.push([post.y,()=>drawCampLog(post.x,post.y)]);
+  if(naTela(campGate.x,campGate.y))L.push([campGate.y+1,drawCampGate])
  }
  if(campPortalBuilt)L.push([campPortal.y,drawCampPortal]);
  if(window.blacksmithSaved){

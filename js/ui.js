@@ -263,6 +263,7 @@ function loadGame(){
    if(!o||(o.id!='wood'&&o.id!='magicWood'&&o.id!='saw')||!ITEMS[o.id])continue;
    drops.push({id:o.id,k:++dropSeq,q:gearType[o.id]&&Number.isFinite(o.q)?o.q:null,n:Number.isInteger(o.n)&&o.n>0?o.n:1,questReward:o.id=='saw'&&o.questReward===true})
   }
+  if(window.limparItensDeMissao)limparItensDeMissao(); // sobras de missões já terminadas (itens de missão são temporários)
   showDrop();
   drops.slice().filter(autoAccepts).forEach(acceptDrop);
   if(sawQuestActive&&!sawObtained&&window.resumeSawQuest)resumeSawQuest();
@@ -306,7 +307,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  $('pname').textContent=CL[p.cls].n;$('hpr').textContent='+'+regenHp().toFixed(2);$('mpr').textContent='+'+regenMp().toFixed(2);
  $('gold').textContent='● '+p.gold;
  SK.forEach(s=>{s.u.style.height=s.t/s.cd*100+'%';s.cn.textContent=s.lock?'R'+s.lock:s.t>0?Math.ceil(s.t):'';s.el.style.opacity=p.mp<s.mana||s.lock||s.bad?.5:1});
- $('top').textContent='Botão direito: mover/atacar • Botão esquerdo: inspecionar/NPC • Q E R F T G e Z X habilidades • I bolsa';
+ $('top').textContent='Botão direito: mover/atacar • Botão esquerdo: inspecionar/NPC • Q W E R T Y e Z X habilidades • I bolsa';
  if(insp&&insp.hp<=0)insp=null;
  window.insp=insp;
  const isDungeonBossTarget = window.inDungeon && window.dungeonBoss && (p.tgt === window.dungeonBoss || insp === window.dungeonBoss);

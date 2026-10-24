@@ -8,6 +8,7 @@
    O mapa é desenhado aqui em pixel art; a colisão está em tavernaWalk(). */
 (function(){
  const OX=24,OY=24,TW=480,TH=320,DOOR={x:OX+TW/2,y:OY+TH-6};
+ window.TAVERNA_GEO={OX,OY,TW,TH}; // o pátio do bar (js/bar.js) fica do lado direito
  const ENTRADA={x:OX+TW/2,y:OY+TH-30};
  /* taverneira: anda atrás do balcão (para trás, até as prateleiras, e para os lados); clicada, vem até o balcão */
  // o chão atrás do balcão vai da parede (y 52) até a beirada de trás do balcão (y ~84): ela pisa ali, nunca no tampo
@@ -40,6 +41,7 @@
 
  /* ---- colisão ---- */
  window.tavernaWalk=(x,y)=>{
+  if(window.BAR){if(BAR.portaEm(x,y))return true;if(BAR.dentro(x,y))return BAR.walk(x,y)} // porta e pátio do bar
   if(x<OX+12||x>OX+TW-12||y<OY+54||y>OY+TH-12)return Math.abs(x-DOOR.x)<10&&y>=OY+TH-12&&y<=OY+TH-2;
   if(x<OX+196&&y<OY+92)return false;                       // balcão e área da taverneira
   if(x>OX+372&&x<OX+458&&y<OY+66)return false;             // lareira
@@ -207,7 +209,7 @@
   if(!fundo)fundo=desenharFundo();
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0806';ctx.fillRect(0,0,cv.width,cv.height);
   ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(fundo,OX,OY);
+  ctx.drawImage(fundo,OX,OY);if(window.BAR)BAR.chao();
   for(const wx of JANELAS)janela(wx);
   raioDeSol();papeisDoQuadro();
   fogo();
@@ -242,20 +244,23 @@
   if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
    const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25-ACIMA_HEROI()),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
+  if(window.BAR)BAR.objetos(L);
   if(window.onlineDrawables)onlineDrawables(L);
   L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
   notasMusicais();
   // noite: a taverna fica um pouco mais escura e as velas, a lareira e as lanternas do palco brilham mais
   const nk=window.TEMPO?TEMPO.escuro():0;
-  if(window.desenharNoite){desenharNoite(.4,[{x:LAREIRA.x,y:OY+50,r:120},...MESAS.map(m=>({x:m.x,y:m.y-14,r:55,a:.7})),{x:PALCO.x0+8,y:PALCO.y0-24,r:60,a:.6},{x:PALCO.x1-8,y:PALCO.y0-24,r:60,a:.6}]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))}
+  if(window.desenharNoite){desenharNoite(.4,[{x:LAREIRA.x,y:OY+50,r:120},...MESAS.map(m=>({x:m.x,y:m.y-14,r:55,a:.7})),{x:PALCO.x0+8,y:PALCO.y0-24,r:60,a:.6},{x:PALCO.x1-8,y:PALCO.y0-24,r:60,a:.6},...(window.BAR?BAR.luzes():[])]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))}
   ctx.save();ctx.globalCompositeOperation='screen';
   for(const m of MESAS){const g=ctx.createRadialGradient(m.x,m.y-16,1,m.x,m.y-16,46+16*nk);g.addColorStop(0,'rgba(255,190,90,'+(.20+.14*nk)+')');g.addColorStop(1,'rgba(255,160,60,0)');ctx.fillStyle=g;ctx.fillRect(m.x-62,m.y-78,124,124)}
   for(const lx of [PALCO.x0+8,PALCO.x1-8]){const g=ctx.createRadialGradient(lx,PALCO.y0-20,1,lx,PALCO.y0-20,70);g.addColorStop(0,'rgba(255,200,120,'+(.16+.12*nk)+')');g.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=g;ctx.fillRect(lx-70,PALCO.y0-90,140,140)}
   ctx.restore();
+  if(window.BAR)BAR.brilho(nk);
   for(const lx of [PALCO.x0+8,PALCO.x1-8]){R(ctx,lx-1,PALCO.y0-24,2,6,'#3e2210');R(ctx,lx-2,PALCO.y0-30,4,6,'#ffb02e');R(ctx,lx-1,PALCO.y0-29,2,3,'#fff3a0')}
   proj.forEach(q=>{R(ctx,q.x-3,q.y-3,6,6,q.c||'#ff7a1a')});
   fxs.forEach(f=>{const q=Math.max(0,Math.min(1,f.t/f.d));ctx.globalAlpha=1-q;circ(f.x,f.y,f.r*(.35+q),f.c);ctx.globalAlpha=1});
   ctx.font='6px monospace';ctx.textAlign='center';
+  if(window.BAR)BAR.interface(); // botões e convites das mesas, por cima de tudo
   fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=corFt(f);ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));if(f.crit)iconeCrit(f);ctx.globalAlpha=1});
   ctx.setTransform(1,0,0,1,0,0);
   const v=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.35,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);
@@ -263,9 +268,9 @@
   minimapa();
  };
  function minimapa(){
-  const mm=$('mm').getContext('2d'),SZ=160,k=(SZ-16)/TW,ox=8,oy=(SZ-TH*k)/2;
+  const mm=$('mm').getContext('2d'),SZ=160,k=(SZ-16)/(TW+(window.BAR?BAR.BW:0)),ox=8,oy=(SZ-TH*k)/2; // a taverna e o pátio do bar
   mm.setTransform(1,0,0,1,0,0);mm.fillStyle='#0b0806';mm.fillRect(0,0,SZ,SZ);
-  mm.imageSmoothingEnabled=false;if(fundo)mm.drawImage(fundo,ox,oy,TW*k,TH*k);
+  mm.imageSmoothingEnabled=false;if(fundo)mm.drawImage(fundo,ox,oy,TW*k,TH*k);if(window.BAR)BAR.minimapa(mm,ox,oy,k);
   const at=(x,y)=>[ox+(x-OX)*k,oy+(y-OY)*k];
   if(window.onlineMinimap)onlineMinimap(mm,OX-ox/k,OY-oy/k,k,SZ);
   const [px,py]=at(p.x,p.y);mm.fillStyle='#000';mm.fillRect(px-3,py-3,6,6);mm.fillStyle='#fff';mm.fillRect(px-2,py-2,4,4);
@@ -309,6 +314,7 @@
  const quadroEm=w=>w.x>OX+QUADRO.x0-4&&w.x<OX+QUADRO.x0+QUADRO.w+4&&w.y>OY+QUADRO.y0-4&&w.y<OY+QUADRO.y0+QUADRO.h+6;
  const pertoDoQuadro=()=>Math.hypot(p.x-QUADRO.x,p.y-(OY+62))<36;
  window.tavernaClick=(w,mode)=>{
+  if(window.BAR&&BAR.click(w,mode))return true;
   mestreAlvo=null;lanceiroAlvo=false;quadroAlvo=false;
   if(Math.hypot(w.x-DOOR.x,w.y-(DOOR.y-4))<16){if(dist(p,DOOR)<34)sair();else setDest(DOOR.x,DOOR.y-12);return true}
   if(taverneiraEm(w)&&mode!=2){chamarTaverneira();return true}
@@ -438,7 +444,7 @@
  // a porta também funciona ao chegar nela andando
  const upd0=upd;upd=function(dt){upd0(dt);
   if(!window.inTaverna)return;
-  andarTaverneira(dt);
+  andarTaverneira(dt);if(window.BAR)BAR.atualizar(dt);
   for(const m of MESTRES){if(dist(p,m)<70){m.fx=p.x-m.x;m.fy=p.y-m.y}else{m.fx=0;m.fy=1}}
   const w=wpos();
   mestreSob=mestreEm(w);quadroSob=quadroEm(w);taverneiraSob=taverneiraEm(w);lanceiroSob=Math.hypot(w.x-LANCEIRO.x,w.y-(LANCEIRO.y-10))<13;

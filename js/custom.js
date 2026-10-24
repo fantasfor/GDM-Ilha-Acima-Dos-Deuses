@@ -54,6 +54,10 @@ if(!MODO.motor&&Array.isArray(D.items))D.items=D.items.filter(i=>!(i&&i.pacote==
  const NOVOS={...M,rei_esqueleto_covil:A.esqueleto_rei};delete NOVOS.sl;
  for(const k of Object.keys(A))if(/^(lobo_|glooc_|esqueleto_|javaporco)/.test(k))NOVOS[k]=A[k];
  GAMEDATA.monsters=GAMEDATA.monsters.map(m=>{const d=m&&NOVOS[m.id];return d&&d.direcoes?{...m,sprite:d.sprite,animation:d.animation,direcoes:d.direcoes}:m})})();
+/* esqueletos de lado corrigidos (2026-10-24: bacia e pés): valem até a Engine gravar (mundo.ajustesV 16) */
+(()=>{const A=window.ARTE_CRIATURAS;if(!A||+(PROJETO.mundo&&PROJETO.mundo.ajustesV)>=16)return;
+ const E={sk:A.esqueleto_comum,gob:A.esqueleto_serrote,rei_esqueleto_covil:A.esqueleto_rei};
+ GAMEDATA.monsters=GAMEDATA.monsters.map(m=>{const d=m&&(E[m.id]||(/^esqueleto_/.test(m.id)?A[m.id]:null));return d&&d.direcoes?{...m,sprite:d.sprite,animation:d.animation,direcoes:{...(m.direcoes||{}),esquerda:d.direcoes.esquerda}}:m})})();
 ITEMS.sw.wt='espada';ITEMS.sw2.wt='machado_2mao';ITEMS.sw3.wt='cajado';
 /* arma do pacote (js/pacote-armas.js) de um tipo; as armas embutidas usam o desenho dela no ícone e na mão (mesma escala) */
 const armaDoPacote=t=>{const A=window.PACOTE_ARMAS&&PACOTE_ARMAS.ARMAS;return A&&t?Object.values(A).find(a=>weaponTag(a.tag)===t)||null:null};

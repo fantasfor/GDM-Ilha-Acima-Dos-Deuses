@@ -4,6 +4,15 @@ const I=Array(40).fill(null);let dirtyInv=true;
 // (Serrote e Madeira: até a paliçada ficar pronta; Madeira Mágica: até o portal do acampamento)
 const ITENS_MISSAO={saw:()=>!wallBuilt,wood:()=>!wallBuilt,magicWood:()=>!campPortalBuilt};
 window.ehMissao=(id,quest)=>!!(ITENS_MISSAO[id]?ITENS_MISSAO[id]():quest||(ITEMS[id]&&ITEMS[id].quest));
+/* itens de missão são temporários (2026-10-24, pedido do usuário): só caem (de monstro ou baú) enquanto a missão que pede o
+   item foi aceita e não terminou; quando ela termina, as sobras saem da mochila e dos itens encontrados */
+const MISSAO_ATIVA={saw:()=>sawQuestActive&&!sawObtained&&!wallBuilt,wood:()=>woodQuestActive&&!wallBuilt,magicWood:()=>magicWoodQuestActive&&!campPortalBuilt};
+const MISSAO_ACABOU={saw:()=>wallBuilt,wood:()=>wallBuilt,magicWood:()=>campPortalBuilt};
+window.podeCairDeMissao=id=>!MISSAO_ATIVA[id]||MISSAO_ATIVA[id]();
+window.limparItensDeMissao=()=>{let n=0;
+ for(const id of Object.keys(MISSAO_ACABOU))if(MISSAO_ACABOU[id]()){const c=itemCount(id);if(c){consumeItems(id,c);n+=c}
+  if(typeof drops!=='undefined')for(let i=drops.length-1;i>=0;i--)if(drops[i]&&drops[i].id===id){n+=drops[i].n||1;drops.splice(i,1)}}
+ return n};
 /* bestiário (enciclopédia): quantos de cada monstro o jogador matou e quais itens cada um já deixou cair */
 const BESTIARIO={k:{},d:{}};window.BESTIARIO=BESTIARIO;
 window.anotarMorte=ty=>{if(ty)BESTIARIO.k[ty]=(BESTIARIO.k[ty]||0)+1};
