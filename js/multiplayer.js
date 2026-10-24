@@ -82,9 +82,9 @@
   }
  }
  // aplica a escala do tamanho atual do grupo a partir dos valores originais (pode subir e descer durante a DG)
- // a escala da DG pelo número de jogadores fica em update.js (escalarDG: ×1,5 sozinho, +1 por jogador)
+ // a escala da DG pelo número de jogadores fica em update.js (escalarDG: cada jogador a mais = vida ×1,7 e dano ×1,3)
  function escalar(e){if(window.inDungeon&&window.escalarDG)escalarDG(e)}
- MP.escalaTexto=n=>'monstros ×'+(Math.max(1,n)+.5).toString().replace('.',',')+' (vida, dano e atributos; o Chefe não muda)';
+ MP.escalaTexto=n=>{const k=window.escalaGrupoDG?escalaGrupoDG(n):{vida:1,dano:1},f=v=>v.toFixed(2).replace(/\.?0+$/,'').replace('.',',');return 'vida ×'+f(k.vida)+' e dano ×'+f(k.dano)+' em todos os monstros, chefe também'};
  const codificar=e=>[e.ty,e.lvl||1,Math.round(e.x),Math.round(e.y),Math.max(0,Math.ceil(e.hp)),Math.round(monsterMaxHp(e)),
   (e.elite?1:0)|(e.boss?2:0)|(e.aw>0?4:0),Math.sign(Math.round(e.fx||0)),e.dungeonRoomId==null?'':e.dungeonRoomId].join('|');
  function publicar(agora){
@@ -449,7 +449,7 @@
     amizade vale 7 dias; convite de ilha ou de grupo, 10 minutos. */
  const VALIDADE={amizade:7*86400000,ilha:600000,grupo:600000,arena:600000};
  const pendentes=new Map(); // de -> {tipo,nome,t,toast}
- const TEXTO={ilha:n=>n+' convidou você para a ilha dele(a).',amizade:n=>n+' quer ser seu amigo.',grupo:n=>n+' convidou você para o grupo.',arena:(n,c)=>n+' chamou você para a arena ('+((c&&c.modo)||1)+'x'+((c&&c.modo)||1)+').'};
+ const TEXTO={ilha:n=>n+' convidou você para a ilha dele(a).',amizade:n=>n+' quer ser seu amigo.',grupo:(n,c)=>c&&c.dg?n+' chamou você para o grupo da masmorra '+(c.dgNome||'')+'.':n+' convidou você para o grupo.',arena:(n,c)=>n+' chamou você para a arena ('+((c&&c.modo)||1)+'x'+((c&&c.modo)||1)+').'};
  const ROTULO_ACEITAR={ilha:'Ir',amizade:'Aceitar',grupo:'Entrar',arena:'Lutar'};
  const vencido=c=>Date.now()+(N.offset||0)-(c.t||0)>(VALIDADE[c.tipo]||CONVITE_S*1000);
  function recusarConvite(de){const c=pendentes.get(de);if(c&&c.toast)c.toast.remove();pendentes.delete(de);ref('convites/'+uid+'/'+de).remove().catch(()=>{});atualizarCorreio()}
@@ -466,7 +466,9 @@
    catch(e){aviso('Não foi possível aceitar a amizade.','#f87171')}
   }else if(c.tipo==='grupo'){
    if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
-   try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
+   try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff');
+    // convite feito na tela de montar grupo da DG: abre a mesma tela, na mesma masmorra, esperando o líder começar
+    if(c.dg&&window.showProjectDungeonMenu&&!window.inDungeon)showProjectDungeonMenu({grupoDg:c.dg})}
    catch(e){if(/permission[_ ]denied/i.test(String(e&&(e.code||e.message))))falhou(e,'a entrada no grupo');else aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
   }else if(c.tipo==='arena'&&window.ARENA)await ARENA.aceitarConvite(de,c);
  }
@@ -511,6 +513,8 @@
  let toastDg=null;
  function convidarDg(g){
   if(toastDg)toastDg.remove();
+  // esperando na tela de montar grupo da DG: entra direto quando o líder começa
+  if(window.telaGrupoDgAberta&&telaGrupoDgAberta()){entrarDgDoGrupo();return}
   toastDg=toast('Seu grupo entrou na masmorra '+(g.dg.nome||'')+'.',[['Entrar',entrarDgDoGrupo,'mpBtn ok'],['Depois',null]],60000);
  }
  // o aviso some quando o jogador já está na DG do grupo (ou ela acabou)

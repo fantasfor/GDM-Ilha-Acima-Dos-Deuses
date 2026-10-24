@@ -84,13 +84,16 @@ function iaDuelista(e,a,d,ve,dt){
 window.reaparecer=function(){if(!(p.dead>0)||p.dead>=1e8)return;p.dead=0;p.morreuEm=null;if(window.inArena&&window.ARENA){ARENA.renascer();return}if(window.inTutorial&&window.TUTORIAL){TUTORIAL.renascer();return}p.x=CX;p.y=CY+34;p.dest=null;p.path=[];p.hp=mhp();p.mp=mmp();ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');saveGame()};
 /* monstros da DG mais fortes: vida, dano, atributos e defesas × (jogadores + 0,5): sozinho 1,5×, 2 jogadores 2,5×,
    3 → 3,5×, 4 → 4,5×. Elites também; o Chefe (grandboss) não. Recalcula se o grupo muda, a partir dos valores originais. */
+/* dificuldade da DG pelo grupo (pedido do usuário, 2026-10-23): sozinho é o normal; cada jogador a mais multiplica a vida
+   máxima por 1,7 e o dano por 1,3 (2 jogadores: ×1,7 e ×1,3; 3: ×2,89 e ×1,69; 4: ×4,91 e ×2,2). Vale para todos, chefe também */
+const escalaGrupoDG=n=>({vida:Math.pow(1.7,Math.max(0,n-1)),dano:Math.pow(1.3,Math.max(0,n-1))});
+window.escalaGrupoDG=escalaGrupoDG;
 window.escalarDG=function(e){
- if(!e||e.pvp||e.duelo)return;const n=Math.max(1,window.MP&&MP.tamanhoGrupo||1),k=e.bossType==='grandboss'?1:n+.5;if(e.dgK===k)return;
- if(!e.dgBase)e.dgBase={max:e.max,dmg:e.dmg,wm:e.weaponDamageMultiplier||1,wb:e.weaponDamageBase,arm:e.armor,marm:e.magicArmor,st:e.stats?{...e.stats}:null};
- const b=e.dgBase,parte=e.max>0?e.hp/e.max:1;e.max=Math.round(b.max*k);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
- e.dmg=Math.round(b.dmg*k);e.weaponDamageMultiplier=b.wm*k;if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*k);
- if(b.st)e.stats={F:Math.round(b.st.F*k),A:Math.round(b.st.A*k),I:Math.round(b.st.I*k)};if(b.arm!=null)e.armor=Math.round(b.arm*k);if(b.marm!=null)e.magicArmor=Math.round(b.marm*k);
- e.dgK=k};
+ if(!e||e.pvp||e.duelo)return;const n=Math.max(1,window.MP&&MP.tamanhoGrupo||1);if(e.dgK===n)return;
+ if(!e.dgBase)e.dgBase={max:e.max,dmg:e.dmg,wm:e.weaponDamageMultiplier||1,wb:e.weaponDamageBase};
+ const b=e.dgBase,{vida,dano}=escalaGrupoDG(n),parte=e.max>0?e.hp/e.max:1;e.max=Math.round(b.max*vida);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
+ e.dmg=Math.round(b.dmg*dano);e.weaponDamageMultiplier=b.wm*dano;if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*dano);
+ e.dgK=n};
 function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
  fxs.forEach(f=>f.t+=dt);for(let i=fxs.length;i--;)if(fxs[i].t>fxs[i].d)fxs.splice(i,1);
  fts.forEach(f=>{f.y-=14*dt;f.a-=dt*.9});for(let i=fts.length;i--;)if(fts[i].a<=0)fts.splice(i,1);

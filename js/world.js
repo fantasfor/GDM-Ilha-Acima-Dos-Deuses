@@ -86,12 +86,10 @@ window.biomaIlha=biomaIlha;window.floridoIlha=floridoIlha;
   seco:['#5d7a34','#73903c','#8aa548','#a3b656','#bfc86c'].map(hx)};
  const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
- const tom=(rampa,v,x,y)=>{v=Math.max(0,Math.min(.999,v))*(rampa.length-1);const i=Math.floor(v),f=v-i;return rampa[Math.min(rampa.length-1,i+(f*16>BAY[y&3][x&3]+.5?1:0))]};
- const gramaEm=(x,y)=>{const b=biomaIlha(x,y),n=vn(x,y,48)*.7+vn(x,y,17)*.3,cl=vn(x+50,y+20,30);
-  let c=b>.64?tom(G.mata,n,x,y):b<.32?tom(G.seco,n,x,y):tom(G.campo,n,x,y);
-  if(b>.56&&b<=.64)c=mix(c,tom(G.mata,n,x,y),(b-.56)/.08*.8);else if(b>=.32&&b<.4)c=mix(c,tom(G.seco,n,x,y),(.4-b)/.08*.8);
-  if(cl>.78)c=mix(c,G.campo[4],.15);                                   // manchas de trevo, bem leves
-  return c};
+ // poucos tons (pedido do usuário: menos pixels de cores diferentes): 3 faixas lisas por bioma, sem pontilhado
+ const tom=(rampa,v)=>rampa[v<.42?1:v<.62?2:3];
+ const gramaEm=(x,y)=>{const b=biomaIlha(x,y),n=vn(x,y,48)*.7+vn(x,y,17)*.3;
+  return b>.64?tom(G.mata,n):b<.32?tom(G.seco,n):tom(G.campo,n)};
  for(let y=0;y<W;y++)for(let x=0;x<W;x++){
   const wob=(vn(x,y,24)-.5)*2.2+(vn(x,y,9)-.5)*.8,v=Vp(x,y)+wob;
   if(v>28.6){islandTerrainMask[y*W+x]=2;continue} // vazio: fica transparente (o espaço aparece por trás)
@@ -100,8 +98,8 @@ window.biomaIlha=biomaIlha;window.floridoIlha=floridoIlha;
   if(v>26.2){c=mix(C.sand,C.sand2,n);if(v>28)c=mix(c,C.r1,Math.min(1,(v-28)/.6)*.7)}
   else{c=gramaEm(x,y);if(v>25)c=mix(c,C.sand,(v-25)/1.2*.6)}
   if(v<26.8&&dc>=5.4){const pd=caminhoDist(x+(vn(x,y,40)-.5)*16,y+(vn(x+77,y,40)-.5)*16),pw=6+(vn(x,y,12)-.5)*3;
-   if(pd<pw+2){let d=mix(n>.5?C.d1:C.d2,C.d3,f);if(px>.95)d=mix(d,C.d2,.9);if(pd<pw){c=d;kind=3}else c=mix(c,d,.5*(1-(pd-pw)/2))}}
-  if(dc<5.9){const t=Math.max(0,Math.min(1,(5.9-dc)/1.2));let d=mix(n>.5?C.d1:C.d2,C.d3,f);if(px>.96)d=mix(d,C.d2,.9);c=mix(c,d,t>.5?1:t*2*(px>.4?1:.6));kind=3}
+   if(pd<pw+2){const d=n>.5?C.d1:C.d2;if(pd<pw){c=d;kind=3}else c=mix(c,d,.5)}}
+  if(dc<5.9){const t=Math.max(0,Math.min(1,(5.9-dc)/1.2)),d=n>.5?C.d1:C.d2;c=t>.5?d:mix(c,d,.5);kind=3}
   {const [rd,rw0]=rioDist(x,y),rw=rw0+(vn(x,y,18)-.5)*3;
    if(rd<rw+9){
     if(rd<rw){const t=1-rd/rw,lago=rw0>20;                             // t: 0 na margem, 1 no meio

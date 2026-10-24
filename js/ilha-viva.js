@@ -9,7 +9,7 @@
 (function(){
  if(typeof map==='undefined'||typeof islandTerrainMask==='undefined')return;
  const h=(a,b)=>hash(a,b),R=Math.round;
- const escuro=()=>window.TEMPO&&TEMPO.escuro?TEMPO.escuro():0;
+ const escuro=()=>window.cameraMenu&&cameraMenu.ativo?0:window.TEMPO&&TEMPO.escuro?TEMPO.escuro():0; // no menu é sempre dia
  // vento: onda lenta que atravessa a ilha + rajadas (a grama e os juncos de um lugar dobram juntos)
  const vento=(x,y,t)=>{const rajada=Math.max(0,Math.sin(t*.45-x*.006-y*.002)),base=Math.sin(t*1.9+x*.045+y*.03);return base*(.35+.25*rajada)+rajada*.9};
  const tipoChao=(x,y)=>{x|=0;y|=0;return x>=0&&y>=0&&x<W&&y<W?islandTerrainMask[y*W+x]:2};

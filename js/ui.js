@@ -306,7 +306,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  $('pname').textContent=CL[p.cls].n;$('hpr').textContent='+'+regenHp().toFixed(2);$('mpr').textContent='+'+regenMp().toFixed(2);
  $('gold').textContent='● '+p.gold;
  SK.forEach(s=>{s.u.style.height=s.t/s.cd*100+'%';s.cn.textContent=s.lock?'R'+s.lock:s.t>0?Math.ceil(s.t):'';s.el.style.opacity=p.mp<s.mana||s.lock||s.bad?.5:1});
- $('top').textContent='WASD ou botão direito: mover/atacar • Botão esquerdo: inspecionar/NPC • Q E R F T G e Z X habilidades • I bolsa';
+ $('top').textContent='Botão direito: mover/atacar • Botão esquerdo: inspecionar/NPC • Q E R F T G e Z X habilidades • I bolsa';
  if(insp&&insp.hp<=0)insp=null;
  window.insp=insp;
  const isDungeonBossTarget = window.inDungeon && window.dungeonBoss && (p.tgt === window.dungeonBoss || insp === window.dungeonBoss);

@@ -163,7 +163,7 @@
  /* ---- etapas ---- */
  const ETAPAS=[
   {id:'intro',texto:'Ouça o Anjo.'},
-  {id:'andar',texto:'Clique no chão (ou use WASD) para andar até o círculo dourado.'},
+  {id:'andar',texto:'Clique no chão para andar até o círculo dourado.'},
   {id:'atacar',texto:'Derrote os 3 monstros: clique em um deles para atacar.'},
   {id:'habilidade',texto:'Use a sua habilidade: aperte Q perto de um monstro (ou clique no ícone Q).'},
   {id:'elite',texto:'Cuidado! Um Elite apareceu: mais forte e brilhando em dourado. Derrote-o!'},
@@ -198,7 +198,7 @@
   ],retratoAnjo,()=>ir(1))}
  function ir(i,retomando){p.tutorial.etapa=i;const id=ETAPAS[i].id;habUsada=false;
   if(id==='intro')introducao();
-  if(id==='andar'&&!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Muito bem, recruta! Primeiro, ande até o círculo dourado: clique no chão ou use WASD.'}],retratoMestre);
+  if(id==='andar'&&!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Muito bem, recruta! Primeiro, ande até o círculo dourado: clique no chão.'}],retratoMestre);
   if(id==='atacar'){soltar(3,false);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Monstros! Clique em um deles para atacar com a sua arma. Derrote os três.'}],retratoMestre)}
   if(id==='habilidade'){soltar(2,false);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Agora a sua habilidade: chegue perto de um monstro e aperte Q (ou clique no ícone Q da barra).'}],retratoMestre)}
   if(id==='elite'){soltar(1,true);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Cuidado! Um Elite: mais forte, brilha em dourado e deixa mais tesouros. Derrote-o!'}],retratoMestre)}

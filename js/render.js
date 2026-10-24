@@ -507,6 +507,7 @@ function treeExit(ox,oy,dx,dy,t){
  const s=Math.sqrt(disc);return (-b-s)/(2*a)>0?(-b+s)/(2*a):Infinity
 }
 function canSee(x,y){
+ if(window.cameraMenu&&cameraMenu.ativo)return true; // menu de personagem: a ilha inteira à vista
  if(window.inArena&&window.ARENA&&ARENA.ve)return ARENA.ve(x,y); // arena: visão sua e dos aliados, com as colunas
  const dx=x-p.x,dy=y-p.y,d=Math.hypot(dx,dy);if(!window.inDungeon&&!window.inArena&&!window.inTutorial&&Math.hypot(x-CX,y-CY)<110)return true; /* luz da fogueira */if(d>VISION_RANGE)return false;if(d<.001)return true;
  return !visionTrees().some(t=>treeHit(p.x,p.y,dx,dy,t)<1)
@@ -605,7 +606,20 @@ telaMorte.onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
 function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&time-(p.morreuEm??time)>1.1;telaMorte.classList.toggle('on',on);
  const dg=!!window.inDungeon,al=dg&&window.MORTE_DG?MORTE_DG.aliados().length:0;
  telaMorte.querySelector('[data-a=volta]').textContent=dg?'Sair da dungeon':'Reaparecer';telaMorte.querySelector('[data-a=assistir]').hidden=!dg||!al;
- if(on)telaMorte.querySelector('small').textContent=dg?(al?'Na masmorra não dá para renascer: saia ou assista os aliados terminarem.':'Sozinho na masmorra: você sai e ela recomeça do zero. Nada foi perdido.'):window.inArena?'Você volta para a arena.':window.inTutorial?'Você volta para o começo do santuário.':'Você volta para o acampamento. Nada foi perdido.'}function draw(){
+ if(on)telaMorte.querySelector('small').textContent=dg?(al?'Na masmorra não dá para renascer: saia ou assista os aliados terminarem.':'Sozinho na masmorra: você sai e ela recomeça do zero. Nada foi perdido.'):window.inArena?'Você volta para a arena.':window.inTutorial?'Você volta para o começo do santuário.':'Você volta para o acampamento. Nada foi perdido.'}/* projéteis e efeitos de habilidade no chão (fogo, gelo, luz, sombra, natureza): os mesmos na ilha e na DG (dungeon.js) */
+window.desenharEfeitosMundo=function(){
+ proj.forEach(q=>{if(q.seta&&desenharSeta(q))return;if(q.vfx&&window.VFX&&VFX.projetil(ctx,q))return;ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)});
+ fxs.forEach((f,i)=>{const q=Math.max(0,Math.min(1,f.t/f.d)),fade=1-q,r=f.r*(.35+q),style=f.style||'ring';ctx.globalAlpha=fade;
+  if(style=='fire'||style=='holy')circ(f.x,f.y,r*(style=='holy'?.8:1),f.c);
+  else if(style=='frost'){circ(f.x,f.y,r,f.c);circ(f.x,f.y,r*.58,'#e9fbff')}
+  else if(style=='shadow'){circ(f.x,f.y,r,'#271b3d');circ(f.x,f.y,r*.68,f.c)}
+  else if(style=='nature'){circ(f.x,f.y,r,f.c);circ(f.x,f.y,r*.7,'#b7e98a')}
+  else circ(f.x,f.y,r,f.c);
+  if(style!='ring')for(let k=0;k<8;k++){const a=k*Math.PI/4+time*1.3,dist=r*(style=='holy'?.82:.72),size=style=='frost'?2:1.5;ctx.fillStyle=style=='fire'&&k%2?'#ffd36b':style=='shadow'&&k%2?'#b387e8':style=='nature'&&k%2?'#a8d86e':style=='holy'?'#fff4bb':f.c;ctx.fillRect(Math.round(f.x+Math.cos(a)*dist-size/2),Math.round(f.y+Math.sin(a)*dist-size/2),size,size)}
+  if(style=='holy'){ctx.fillStyle='#fff7c4';ctx.fillRect(Math.round(f.x-1),Math.round(f.y-r*.55),2,Math.max(2,Math.round(r*1.1)));ctx.fillRect(Math.round(f.x-r*.45),Math.round(f.y-1),Math.max(2,Math.round(r*.9)),2)}
+  ctx.globalAlpha=1});
+};
+function draw(){
  atualizarTelaMorte();
  if(MODO.motor)return;
  VISION_RANGE=window.inDungeon||!window.TEMPO?VISAO_ILHA:Math.round(VISAO_ILHA*TEMPO.visao());
@@ -709,22 +723,13 @@ window.desenharMonstro=e=>{const o=[0,0],scale=ESCALA_MUNDO,spriteH=wh(e.img)*sc
  L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
  if(window.desenharLoot)desenharLoot(); // itens e moedas caídos dos monstros (js/loot.js)
  if(window.desenharConj)desenharConj(); // barra de conjuração (js/combat.js)
- proj.forEach(q=>{if(q.seta&&desenharSeta(q))return;if(q.vfx&&window.VFX&&VFX.projetil(ctx,q))return;ctx.fillStyle=q.c||'#ff7a1a';ctx.fillRect(Math.round(q.x-3),Math.round(q.y-3),6,6);ctx.fillStyle='#ffe28a';ctx.fillRect(Math.round(q.x-2),Math.round(q.y-2),4,4)});
- fxs.forEach((f,i)=>{const q=Math.max(0,Math.min(1,f.t/f.d)),fade=1-q,r=f.r*(.35+q),style=f.style||'ring';ctx.globalAlpha=fade;
-  if(style=='fire'||style=='holy')circ(f.x,f.y,r*(style=='holy'?.8:1),f.c);
-  else if(style=='frost'){circ(f.x,f.y,r,f.c);circ(f.x,f.y,r*.58,'#e9fbff')}
-  else if(style=='shadow'){circ(f.x,f.y,r,'#271b3d');circ(f.x,f.y,r*.68,f.c)}
-  else if(style=='nature'){circ(f.x,f.y,r,f.c);circ(f.x,f.y,r*.7,'#b7e98a')}
-  else circ(f.x,f.y,r,f.c);
-  if(style!='ring')for(let k=0;k<8;k++){const a=k*Math.PI/4+time*1.3,dist=r*(style=='holy'?.82:.72),size=style=='frost'?2:1.5;ctx.fillStyle=style=='fire'&&k%2?'#ffd36b':style=='shadow'&&k%2?'#b387e8':style=='nature'&&k%2?'#a8d86e':style=='holy'?'#fff4bb':f.c;ctx.fillRect(Math.round(f.x+Math.cos(a)*dist-size/2),Math.round(f.y+Math.sin(a)*dist-size/2),size,size)}
-  if(style=='holy'){ctx.fillStyle='#fff7c4';ctx.fillRect(Math.round(f.x-1),Math.round(f.y-r*.55),2,Math.max(2,Math.round(r*1.1)));ctx.fillRect(Math.round(f.x-r*.45),Math.round(f.y-1),Math.max(2,Math.round(r*.9)),2)}
-  ctx.globalAlpha=1});
+ desenharEfeitosMundo();
  if(window.ILHA_VIVA)ILHA_VIVA.ar(); // borboletas, libélulas, pássaros, folhas caindo e pólen
- if(window.desenharNoite){desenharNoite(1,[{x:CX,y:CY-6,r:170},...(p.dead<=0?[{x:p.x,y:p.y-8,r:60,a:.55}]:[]),...(window.PORTALS||[]).map(q=>({x:q.x,y:q.y-20,r:50,a:.6}))]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))} // noite: escurece o mundo (os números de dano e as luzes ficam por cima)
+ if(window.desenharNoite&&!cameraMenu.ativo){desenharNoite(1,[{x:CX,y:CY-6,r:170},...(p.dead<=0?[{x:p.x,y:p.y-8,r:60,a:.55}]:[]),...(window.PORTALS||[]).map(q=>({x:q.x,y:q.y-20,r:50,a:.6}))]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))} // noite: escurece o mundo (os números de dano e as luzes ficam por cima)
  if(window.ILHA_VIVA)ILHA_VIVA.luzes(); // vaga-lumes por cima da noite
  ctx.font='6px monospace';ctx.textAlign='center';
  fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=corFt(f);ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));if(f.crit)iconeCrit(f);ctx.globalAlpha=1});
- drawDynamicLighting();drawVision();
+ if(!cameraMenu.ativo){drawDynamicLighting();drawVision()} // menu de personagem: de dia, sem névoa, tudo claro
  {ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));if(window.alvoMissao&&window.SETA_MISSAO){const a=alvoMissao();if(a)SETA_MISSAO.desenhar(a)}} // seta da missão (js/seta-missao.js), por cima da névoa
  {ctx.setTransform(1,0,0,1,0,0);const g=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.42,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);g.addColorStop(0,'rgba(10,20,30,0)');g.addColorStop(1,'rgba(10,20,30,.22)');ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height)}
  if(p.dead>0&&p.dead<1e8){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(0,0,0,'+Math.min(.45,(time-(p.morreuEm??time))*.4)+')';ctx.fillRect(0,0,cv.width,cv.height)} // a tela escurece aos poucos; o texto e o botão estão em #telaMorte

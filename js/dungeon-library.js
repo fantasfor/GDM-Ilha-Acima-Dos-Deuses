@@ -94,7 +94,7 @@
  }
  function difficulty(rec){const d=rec-p.lvl;return d<=-5?['Fácil','#7bd389']:d<=1?['Normal','#e7cb88']:d<=4?['Difícil','#f0a052']:['Mortal','#ff6b5a']}
  let selected=null;try{selected=localStorage.getItem('ilha-rpg-dg-escolhida')}catch(e){}
- window.showProjectDungeonMenu=()=>{
+ window.showProjectDungeonMenu=(opts={})=>{
   const box=document.getElementById('dialogue');
   box.replaceChildren();box.classList.add('dgModal','open');
   const close=()=>box.classList.remove('open','dgModal');
@@ -195,15 +195,19 @@
     if(!cand.length)conv.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
     for(const cnd of cand){const li=E('div','dgm-cand');li.append(E('span','',cnd.nome+' · Nv '+cnd.nivel+(cnd.amigo?' · amigo':'')),E('small','',cnd.onde));
      const b=E('button','dgm-convite',enviados.has(cnd.id)?'Enviado':'Convidar');b.type='button';b.disabled=enviados.has(cnd.id);
-     b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';if(await MP.convidar(cnd.id,'grupo'))enviados.set(cnd.id,cnd.nome);abertoConvite=false;render();conv.hidden=true};
+     // o convite leva a masmorra: quem aceitar abre esta mesma tela de montar grupo (js/multiplayer.js)
+     b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';if(await MP.convidar(cnd.id,'grupo',{dg:entry.id,dgNome:c.name||'Masmorra'}))enviados.set(cnd.id,cnd.nome);abertoConvite=false;render();conv.hidden=true};
      li.append(b);conv.append(li)}
    }
    render();comecar.focus();
+   window.telaGrupoDgAberta=()=>box.classList.contains('open')&&root.contains(slots)&&root.isConnected;
    // atualiza enquanto a tela está aberta (alguém aceitou, saiu ou ficou online)
    const vivo=setInterval(()=>{if(!box.classList.contains('open')||!root.contains(slots)){clearInterval(vivo);return}if(!conv.contains(document.activeElement))render()},1500);
   }
   const head0=head;
   renderList();renderDetail();
+  // aberta por um convite de grupo da DG: vai direto para a tela de montar grupo daquela masmorra
+  if(opts.grupoDg){const e=library.dungeons.find(d=>String(d.id)===String(opts.grupoDg));if(e){selected=e.id;montarGrupo(e);return}}
   root.addEventListener('keydown',e=>{const ids=library.dungeons.map(d=>d.id),k=ids.indexOf(selected);
    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selected=ids[(k+(e.key==='ArrowDown'?1:-1)+ids.length)%ids.length];renderList();renderDetail();list.querySelector('.on')?.focus()}
    else if(e.key==='Enter'&&e.target.closest('.dgm-item')){e.preventDefault();enter(library.dungeons[k])}});

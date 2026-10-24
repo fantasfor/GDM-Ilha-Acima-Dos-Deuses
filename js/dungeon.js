@@ -746,6 +746,7 @@
 
   // Sincroniza configuração mais recente da masmorra (salas, corredores, tochas, baús, mobs)
   syncDungeonFromConfig();
+  window.zerarMemoriaDG(); // minimapa começa sem nada explorado
   const cfg = (window.getActiveDungeonConfig && window.getActiveDungeonConfig()) || {};
 
   // Salva os monstros do mapa da ilha para restaurar ao sair
@@ -1462,6 +1463,7 @@
 
   // 5. Avisos das mecânicas de chefe no chão e auras (js/chefes.js)
   if(window.desenharTelegrafos) desenharTelegrafos();
+  if(window.CURANDEIRO) CURANDEIRO.desenhar(); // áreas e pulsos do Curandeiro (antes não apareciam na DG)
 
   // 6. Lista de Entidades para desenhar com ordenação por Y (Y-sort)
   const renderList = [];
@@ -1606,17 +1608,8 @@
   if(window.desenharLoot) desenharLoot();
   if(window.desenharConj) desenharConj();
 
-  // Efeitos visuais e feitiços (fxs e proj)
-  proj.forEach(q => {
-   ctx.fillStyle = q.c || '#ff7a1a';
-   ctx.fillRect(Math.round(q.x - 3), Math.round(q.y - 3), 6, 6);
-  });
-  fxs.forEach(f => {
-   const q = Math.max(0, Math.min(1, f.t / f.d)), fade = 1 - q, r = f.r * (.35 + q);
-   ctx.globalAlpha = fade;
-   circ(f.x, f.y, r, f.c);
-   ctx.globalAlpha = 1;
-  });
+  // Efeitos visuais e feitiços: os mesmos da ilha (projéteis com efeito, explosões de fogo, gelo, luz...)
+  if(window.desenharEfeitosMundo) desenharEfeitosMundo();
 
   // 7. Campo de Visão / Névoa de Guerra Dinâmica (Atmosfera Escura da Caverna)
   drawDungeonVision(W, H, shakeX, shakeY);
@@ -1757,6 +1750,25 @@
  }
 
  /* ---------- MINIMAPA DA MASMORRA ---------- */
+ /* memória do minimapa (2026-10-23): o que o herói já viu fica desenhado (mais escuro); o campo de visão de agora, claro.
+    Chão pintado: 1 pixel por ladrilho num desenho guardado; salas e corredores: os que já entraram no campo de visão.
+    Zera ao entrar na DG. */
+ let memDG = null;
+ window.zerarMemoriaDG = () => { memDG = null; };
+ function memoriaDG(){
+  if(!memDG){
+   memDG = { salas: new Set(), t: -1 };
+   if(DUNGEON_CHAO && DUNGEON_CAIXA){ const c = document.createElement('canvas'); c.width = DUNGEON_CAIXA.i1 - DUNGEON_CAIXA.i0 + 1; c.height = DUNGEON_CAIXA.j1 - DUNGEON_CAIXA.j0 + 1; memDG.cv = c; memDG.g = c.getContext('2d'); memDG.g.fillStyle = '#5a4a3e'; }
+  }
+  if(time - memDG.t < .15) return memDG;
+  memDG.t = time;
+  const R = VISION_RANGE;
+  if(memDG.cv){
+   const i0 = Math.floor((p.x - R) / 16), i1 = Math.floor((p.x + R) / 16), j0 = Math.floor((p.y - R) / 16), j1 = Math.floor((p.y + R) / 16);
+   for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j] && Math.hypot((i + .5) * 16 - p.x, (j + .5) * 16 - p.y) <= R) memDG.g.fillRect(i - DUNGEON_CAIXA.i0, j - DUNGEON_CAIXA.j0, 1, 1);
+  } else [...CAVE_ROOMS, ...CAVE_CORRIDORS].forEach((b, k) => { const dx = Math.max(b.x - p.x, 0, p.x - b.x - b.w), dy = Math.max(b.y - p.y, 0, p.y - b.y - b.h); if(Math.hypot(dx, dy) <= R) memDG.salas.add(k); });
+  return memDG;
+ }
  function drawDungeonMinimap(){
   const sz = 160;
   mm.fillStyle = '#050508';
@@ -1776,13 +1788,17 @@
   const toMmX = x => offsetX + (x - minX) * scale;
   const toMmY = y => offsetY + (y - minY) * scale;
 
-  // Salas e corredores: só o trecho dentro do campo de visão agora (sem memória do que já foi visto)
+  // o que já foi visto (memória, mais escuro)
+  const mem = memoriaDG();
+  if(mem.cv){ mm.imageSmoothingEnabled = false; mm.drawImage(mem.cv, toMmX(DUNGEON_CAIXA.i0 * 16), toMmY(DUNGEON_CAIXA.j0 * 16), mem.cv.width * 16 * scale, mem.cv.height * 16 * scale); }
+  else { mm.fillStyle = '#5a4a3e'; [...CAVE_ROOMS, ...CAVE_CORRIDORS].forEach((b, k) => { if(mem.salas.has(k)) mm.fillRect(toMmX(b.x), toMmY(b.y), b.w * scale, b.h * scale); }); }
+  // o campo de visão de agora, mais claro
   const near = (x, y) => Math.hypot(x - p.x, y - p.y) <= VISION_RANGE;
   mm.save();
   mm.beginPath();
   mm.arc(toMmX(p.x), toMmY(p.y), VISION_RANGE * scale, 0, Math.PI * 2);
   mm.clip();
-  mm.fillStyle = '#261f1c';
+  mm.fillStyle = '#a08a74';
   if(DUNGEON_CHAO){
    const i0 = Math.floor((p.x - VISION_RANGE) / 16), i1 = Math.floor((p.x + VISION_RANGE) / 16), j0 = Math.floor((p.y - VISION_RANGE) / 16), j1 = Math.floor((p.y + VISION_RANGE) / 16);
    for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j]) mm.fillRect(toMmX(i * 16), toMmY(j * 16), 16 * scale + .5, 16 * scale + .5);
