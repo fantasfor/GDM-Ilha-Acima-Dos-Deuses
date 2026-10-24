@@ -76266,9 +76266,7 @@ window.PROJETO={
     "stats": {
      "F": 28,
      "A": 12,
-     "I": 16,
-     "arm": 18,
-     "magicArm": 12
+     "I": 16
     },
     "xp": 0,
     "gold": 150,
