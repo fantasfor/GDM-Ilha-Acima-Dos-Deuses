@@ -181,7 +181,7 @@
   if(!e){
    if(!MONSTER_TYPES[ty])ty='sl';
    e=spawnAt(x,y,ty,lvl);
-   if(ty==='boss'&&SP.sk){e.img=SP.sk.d;e.sp=SP.sk;e.boss=true}
+   if(ty==='boss'&&SP.glooc){e.img=SP.glooc.d;e.sp=SP.glooc;e.boss=true}
    if(flags&1)makeElite(e);
    if(flags&2)e.boss=true;
    if(window.inDungeon)e.isDungeonMob=true;

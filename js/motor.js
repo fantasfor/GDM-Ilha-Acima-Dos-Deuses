@@ -46,6 +46,7 @@
   tipoTerrenoBase(x,y){x=Math.floor(x);y=Math.floor(y);if(!(x>=0&&y>=0&&x<W&&y<W))return 'fora';const v=V(x/T|0,y/T|0);return v>28.6?'vazio':inRiver(x,y)?(onBridge(x,y)?'ponte':'rio'):v>26.2?'areia':Math.hypot((x-CX)/T,(y-CY)/T)<5.9||caminhoDist(x,y)<6?'terra':'grama'},
   /* árvores dos bosques da borda nova (a Engine grava no projeto ao converter uma ilha antiga) */
   arvoresDoAnel:existentes=>arvoresDoAnel(existentes),
+  arvoresDaIlha:()=>arvoresDaIlha(),noCaminho:(x,y)=>caminhoDist(x,y)<9||inRiver(x,y,4),
   npcs:()=>NPCS.filter(n=>n.x>-1000).map(n=>({nome:n.nm,cls:n.cls,x:n.x,y:n.y,sprite:(CL[n.cls]&&CL[n.cls].sprite)||HS[n.cls]?.d||null})),
   tiposElemento:()=>Object.entries(MAP_ELEMENT_TYPES).filter(([id])=>!id.startsWith('px:')).map(([id,t])=>({id,nome:t.name,raio:t.radius,solido:!!t.blocks,variantes:sceneryVariants(id)})),
   arteArvore:(x,y)=>(window.TREEV&&TREEV[treeVar({x,y})])||TREE,
@@ -144,7 +145,7 @@
    for(const d of GAMEDATA.skills){const ic=d.sprite?pixelArt(d.sprite):skillIcon(d.id);add('habilidades',d.id,typeof ic=='string'?await image(ic):ic,d.name)}
    for(const [id,f] of Object.entries(FX_INFO))add('efeitos',id,await image(fxIcon(id)),f.n);
    for(const d of [...GAMEDATA.passives,...GAMEDATA.skills.filter(d=>d.category=='passive')])add('passivas',d.id,await image(passIcon(d)),d.name);
-   for(const t of ['tree',...sceneryArtTypes()])for(let vi=0;vi<(t=='tree'?4:sceneryVariants(t));vi++){
+   for(const t of ['tree',...sceneryArtTypes()])for(let vi=0;vi<(t=='tree'?TREEV.length:sceneryVariants(t));vi++){
     const d=mapArtOverride(t,vi),def=sceneryDefault(t,vi);add('mapa',t+'-'+(vi+1),d?pixelArt(d):def&&def.c,(MAP_ELEMENT_TYPES[t]?.name||'Árvore')+' '+(vi+1),{mapType:t,variant:vi,ax:d&&d.ax!=null?d.ax:def&&def.ax,ay:d&&d.ay!=null?d.ay:def&&def.ay});
    }
    for(const entry of gameArtEntries())add('ambiente',entry.id,gameArtCanvas(entry.id),entry.name);

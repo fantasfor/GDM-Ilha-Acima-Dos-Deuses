@@ -171,7 +171,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
  /* ---- sincronização com o servidor ---- */
  function snapshot(){
   const eq={};for(const slot of ['he','ch','le','bo','ca','ne','sw','sh'])if(EQ[slot])eq[slot]=EQ[slot].id;
-  return {id:myId,name:cfg.name,cls:p.cls,sex:p.sex,ap:window.APARENCIA?APARENCIA.codificar(APARENCIA.normalizar(p.look,p.sex)):'',lvl:p.lvl,x:Math.round(p.x),y:Math.round(p.y),fx:Math.sign(p.fx||0),fy:Math.sign(p.fy||0),
+  return {id:myId,name:cfg.name,cls:p.cls,sex:p.sex,ap:window.APARENCIA?APARENCIA.codificar(APARENCIA.normalizar(p.look,p.sex)):'',lvl:p.lvl,x:Math.round(p.espectando?p.morteX:p.x),y:Math.round(p.espectando?p.morteY:p.y), /* assistindo na DG: o corpo fica onde caiu */fx:Math.sign(p.fx||0),fy:Math.sign(p.fy||0),
    hp:Math.max(0,Math.min(1,p.hp/Math.max(1,mhp()))),mp:Math.max(0,Math.min(1,p.mp/Math.max(1,mmp()))),dead:p.dead>0,dg:!!window.inDungeon,eq,sala:minhaSala(),
    ping:window.REDE?REDE.ping:0,sons:filaSons.splice(0)};
  }

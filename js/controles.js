@@ -4,11 +4,12 @@
    A tela de edição fica em Menu › Controles: clique numa ação e aperte a nova tecla;
    se ela já estiver em uso, as duas ações trocam de tecla. */
 (function(){
- const KEY='ilha-rpg-teclas';
+ // v2 (2026-10-22): WASD anda (as setas continuam valendo) e as habilidades foram para Q E R F T G; teclas salvas da versão antiga ficam para trás
+ const KEY='ilha-rpg-teclas-v2';
  const ACOES=[
-  ['Movimento',[['mover_cima','Andar para cima','ArrowUp'],['mover_baixo','Andar para baixo','ArrowDown'],['mover_esquerda','Andar para a esquerda','ArrowLeft'],['mover_direita','Andar para a direita','ArrowRight']]],
-  ['Habilidades',[['hab1','Habilidade 1','KeyQ'],['hab2','Habilidade 2','KeyW'],['hab3','Habilidade 3','KeyE'],['hab4','Habilidade 4','KeyR'],['hab5','Habilidade 5','KeyT'],['hab6','Habilidade 6','KeyY'],['hab7','Ataque básico 1','KeyZ'],['hab8','Ataque básico 2','KeyX']]],
-  ['Itens',[['item1','Atalho de item 1','Digit1'],['item2','Atalho de item 2','Digit2'],['item3','Atalho de item 3','Digit3'],['item4','Atalho de item 4','Digit4'],['item5','Atalho de item 5','Digit5'],['item6','Atalho de item 6','Digit6'],['pegar','Aceitar item encontrado','KeyF']]],
+  ['Movimento',[['mover_cima','Andar para cima','KeyW'],['mover_baixo','Andar para baixo','KeyS'],['mover_esquerda','Andar para a esquerda','KeyA'],['mover_direita','Andar para a direita','KeyD']]],
+  ['Habilidades',[['hab1','Habilidade 1','KeyQ'],['hab2','Habilidade 2','KeyE'],['hab3','Habilidade 3','KeyR'],['hab4','Habilidade 4','KeyF'],['hab5','Habilidade 5','KeyT'],['hab6','Habilidade 6','KeyG'],['hab7','Ataque básico 1','KeyZ'],['hab8','Ataque básico 2','KeyX']]],
+  ['Itens',[['item1','Atalho de item 1','Digit1'],['item2','Atalho de item 2','Digit2'],['item3','Atalho de item 3','Digit3'],['item4','Atalho de item 4','Digit4'],['item5','Atalho de item 5','Digit5'],['item6','Atalho de item 6','Digit6'],['pegar','Aceitar item encontrado','Space']]],
   ['Janelas',[['mochila','Mochila','KeyI'],['painel_hab','Habilidades','KeyK'],['enciclopedia','Enciclopédia','KeyJ'],['jogadores','Jogadores e amigos','KeyP']]],
   ['Online',[['chat','Abrir o chat','Enter'],['falar','Apertar para falar (voz)','KeyV']]],
   ['Câmera',[['zoom_mais','Aproximar','Equal'],['zoom_menos','Afastar','Minus']]]
@@ -29,7 +30,7 @@
   return code;
  }
  // atalhos extras que sempre funcionam além da tecla escolhida (teclado numérico e "+" sem Shift)
- const EXTRA={zoom_mais:['NumpadAdd'],zoom_menos:['NumpadSubtract'],mochila:['KeyB']};
+ const EXTRA={zoom_mais:['NumpadAdd'],zoom_menos:['NumpadSubtract'],mochila:['KeyB'],mover_cima:['ArrowUp'],mover_baixo:['ArrowDown'],mover_esquerda:['ArrowLeft'],mover_direita:['ArrowRight']};
  const digitando=e=>e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target instanceof HTMLSelectElement||(e.target&&e.target.isContentEditable);
  let capturando=null;
  const T=window.TECLAS={

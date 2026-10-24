@@ -3,6 +3,10 @@ function entityRadius(e){return e&&e.img?Math.min(9,Math.max(4,(e.img.width||12)
 // monstro resetando (fora de combate) recupera esta fração da vida e da mana máximas por segundo
 const RESET_REGEN=.05;
 // chefe da DG só luta com quem está dentro da sala dele (dungeonRoomBounds, com 10 px de folga); fora da DG, sempre
+const emConversa=()=>!!(window.DIALOGO&&DIALOGO.aberto());let conversando=false;
+/* alcance do ataque básico: o da arma (ou 20 px) crescendo com o tamanho do monstro — um monstro maior (ex.: Glooc
+   Saqueador, 130%) encosta no herói mais longe e antes não chegava a ficar no alcance, então nunca batia */
+const alcanceBasicoMonstro=e=>(e.weaponBasic?e.weaponBasic.rng:20)*Math.max(1,+e.size||1);
 function naSalaDoChefe(e,a){const r=window.inDungeon&&e.boss&&e.dungeonRoomBounds;return !r||(a.x>=r.x-10&&a.x<=r.x+r.w+10&&a.y>=r.y-10&&a.y<=r.y+r.h+10)}
 // alcance extra contra alvos grandes (bosses): só o que excede o corpo de um monstro comum
 function targetReach(t){return Math.max(0,entityRadius(t)-9)}
@@ -52,7 +56,7 @@ function moveAlong(agent,speed,dt){
  if(d<1)return false;
  const before=agent.x,oldY=agent.y;
  move(agent,{x:agent.x+dx/d*Math.min(speed*dt,d),y:agent.y+dy/d*Math.min(speed*dt,d)},speed,dt);
- if(agent.x===before&&agent.y===oldY){agent.blk=(agent.blk||0)+dt;if(agent===p||agent.blk>.6){agent.dest=null;agent.path=[];agent.pathKey='';agent.blk=0;if(agent===p){p.tgt=null;p.npcT=null;p.gateT=false}return false}agent.path=buildPath(agent,agent.dest,agent!==p);agent.pathI=0}else agent.blk=0
+ if(agent.x===before&&agent.y===oldY){agent.blk=(agent.blk||0)+dt;if(agent===p||agent.blk>.6){agent.dest=null;agent.path=[];agent.pathKey='';agent.blk=0;if(agent===p){p.tgt=null;p.npcT=null;p.gateT=false}return false}if(agent===p||!(agent.repathEm>time)){agent.repathEm=time+.25;agent.path=buildPath(agent,agent.dest,agent!==p);agent.pathI=0} /* monstro preso: recalcula o caminho no máximo 4× por segundo (era a cada quadro) */}else agent.blk=0
  if(dist(agent,agent.dest)<Math.max(3,speed*dt)){agent.dest=null;agent.path=[];agent.pathKey='';if(agent!==p&&!agent.boss&&!agent.chasing)agent.roamT=5}
  return agent.x!==before||agent.y!==oldY
 }
@@ -87,16 +91,12 @@ window.escalarDG=function(e){
  e.dmg=Math.round(b.dmg*k);e.weaponDamageMultiplier=b.wm*k;if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*k);
  if(b.st)e.stats={F:Math.round(b.st.F*k),A:Math.round(b.st.A*k),I:Math.round(b.st.I*k)};if(b.arm!=null)e.armor=Math.round(b.arm*k);if(b.marm!=null)e.magicArmor=Math.round(b.marm*k);
  e.dgK=k};
-function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
+function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
  fxs.forEach(f=>f.t+=dt);for(let i=fxs.length;i--;)if(fxs[i].t>fxs[i].d)fxs.splice(i,1);
  fts.forEach(f=>{f.y-=14*dt;f.a-=dt*.9});for(let i=fts.length;i--;)if(fts[i].a<=0)fts.splice(i,1);
  p.hit-=dt;
  if(p.dead>0){
-  p.conj=null;
-  if(window.inDungeon&&window.exitDungeon){
-   exitDungeon(false);
-   ft(CX,CY-30,'VOCÊ FOI DERROTADO E EXPULSO DA MASMORRA!','#ff4444');
-  }
+  p.conj=null; // na DG não renasce: a tela de morte oferece Sair da dungeon ou Assistir (js/morte-dg.js)
   // morto: a animação de queda roda (render.js desenharHeroiMorto) e o jogador volta pelo botão Reaparecer (reaparecer abaixo)
  }
  else{
@@ -109,7 +109,7 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
    else if((c.r-=dt)<=0){p.conj=null;if(c.t&&c.t.hp<=0)ft(p.x,p.y-24,'Sem alvo','#ccc');else if(p.mp<c.s.mana)ft(p.x,p.y-24,'Sem mana','#ccc');else{lancar(c.s,c.w,c.t);if(c.volta&&c.volta.hp>0&&!p.canal)p.tgt=c.volta /* volta a atacar o alvo de antes */}}}
   if(p.aw>0){p.aw-=dt;p.dest=null;if(p.aw<=0){const t=p.wt,b=p.attackBasic||basicForDistance(t?dist(p,t):Infinity),landed=!!(t&&t.hp>0&&dist(p,t)-targetReach(t)<b.rng+8&&linhaLivre(p,t));if(landed){const {damage,bfx}=withWeaponDamageRoll(()=>({damage:basicAttackDamage(b),bfx:resolveFx(b.effects,charDamage(b.damageType))}));if(b.proj){const a=Math.atan2(t.y-8-p.y,t.x-p.x);proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:damage,magic:b.damageType=='magic',c:b.proj,tg:t,fx:bfx,seta:b.damageType!='magic'&&typeof armaDeTiro=='function'&&armaDeTiro(b.weaponSlot)})}else{hurtE(t,damage,b.damageType=='magic',bfx);ring(t.x,t.y-8,10,'#fff',.15)}if(p.basicMode=='alternate'&&b.weaponSlot)p.basicNext=b.weaponSlot=='sw'?'sh':'sw'}p.wt=null;p.attackBasic=null}}
   else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d),livre=linhaLivre(p,p.tgt);if(d>b.rng||!livre)approach(p,p.tgt,livre?Math.max(8,b.rng-3)+reach:6+reach);/* parede no meio: contorna até ver o alvo */else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}else if(window.playGameSound)playGameSound(b.proj?(b.damageType=='magic'?'feitico':'arco'):'swing',.8)}}}
-  if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(window.MP&&MP.soDono&&MP.soDono()){}else if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Guardião Esqueleto primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
+  if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(window.MP&&MP.soDono&&MP.soDono()){}else if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Glooc Saqueador primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
   if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))toggleCampGate()}
   if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))showDungeonMenu()}
   const kx=(held.has('mover_direita')?1:0)-(held.has('mover_esquerda')?1:0)+p.joy.x;
@@ -127,13 +127,21 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
   if(e.hp<=0){if(!e.boss&&(e.rt-=dt)<=0)e.gone=1;continue}
   // monstro de outro jogador (multijogador): só acompanha a posição enviada pelo dono da sala
   if(e.mpProxy){if(window.MP)MP.moverProxy(e,dt);continue}
+  // conversando (diálogo do tutorial ou de NPC aberto): os monstros ficam parados e não atacam
+  if(conversando){e.aw=0;e.skillWindup=false;e.dest=null;continue}
   tickAttributeBuffs(e,dt);e.cd-=dt;e.hit-=dt;e.alert=Math.max(0,(e.alert||0)-dt);e.giveUp=Math.max(0,(e.giveUp||0)-dt);tickStatus(e,dt);if(e.hp<=0)continue;e.skillCd=Math.max(0,e.skillCd-dt);const ea=monsterAttributes(e);e.hp=Math.min(monsterMaxHp(e),e.hp+(ea.F*CALC.monRegenPerF+monsterAttribute(e,'regenHp'))*dt);e.mp=Math.min(monsterMaxMp(e),e.mp+(ea.I*CALC.monRegenPerI+monsterAttribute(e,'regenMp'))*dt);
   // reset: CALC.monsterReset s fora de combate (sem perseguir nem apanhar) e o monstro volta para casa recuperando 5% da vida máxima por segundo
   if(e.chasing)e.foraCombate=0;else e.foraCombate=(e.foraCombate||0)+dt;
   if(e.foraCombate>=(CALC.monsterReset||10)){const mx=monsterMaxHp(e),mm=monsterMaxMp(e);
    if(e.hp<mx||e.mp<mm){if(!e.resetando){e.resetando=true;e.st=null;ring(e.x,e.y,14,'#7fe08a',.45);if(e.mec&&window.CHEFES)CHEFES.reset(e)}e.hp=Math.min(mx,e.hp+mx*RESET_REGEN*dt);e.mp=Math.min(mm,e.mp+mm*RESET_REGEN*dt)}
    else e.resetando=false}
-  if(e.st&&statusSpeed(e)==0){e.dest=null;e.aw=0;e.skillWindup=false;continue}
+  if(e.st&&statusSpeed(e)==0){e.dest=null;e.aw=0;e.skillWindup=false;e.dashM=null;continue}
+  /* investida de monstro (habilidade effect 'investida', ex.: Javaporco): corre em linha reta até onde o alvo estava e, se
+     chegar perto dele, aplica o dano e os efeitos (atordoar) */
+  if(e.dashM){const m=e.dashM;m.t+=dt;const k=Math.min(1,m.t/m.dur),nx=m.x0+(m.x1-m.x0)*k,ny=m.y0+(m.y1-m.y0)*k;if(walk(nx,ny)){e.x=nx;e.y=ny}else m.t=m.dur;e.fx=m.x1-m.x0;e.fy=m.y1-m.y0;
+   if(Math.random()<.5)fxs.push({x:e.x+(Math.random()-.5)*8,y:e.y,r:4,c:'#c9b08a',t:0,d:.35,style:'ring'});
+   if(m.t>=m.dur){e.dashM=null;const al=m.alvo;if(al&&al.dead<=0&&dist(e,al)<28){hitTarget(al,m.dano,m.mag,m.fx,null,e);if(window.VFX)VFX.tocar('impacto',{x:al.x,y:al.y-8});if(window.playGameSound&&dist(e,p)<260)playGameSound('investida',.6)}}
+   continue}
   const a=monsterTarget(e),d=dist(e,a),home={x:e.hx,y:e.hy};
   if(e.aw>0){
    e.aw-=dt;
@@ -148,17 +156,21 @@ function upd(dt){if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null
         if(skill.damageModel!='split')damage[skill.magic?'magic':'physical']+=legacy}
        else damage=legacy;skillFx=resolveFx(skill.effects,cd,monsterCtx(e,weaponDelta))}
       else damage=skill.magic?skill.damage*(1+e.stats.I*monMagPerI()/100):attackDamage*(skill.multiplier||1);
-      if(['heal','buff','guard'].includes(skill.effect)){
+      if(skill.effect==='curaAliados'){const r=(skill.radius||90)*areaMultiplier(e),fam=window.mesmaFamilia||((x,y)=>x.ty===y.ty);for(const o of en){if(o.hp<=0||o.pvp||o.mpProxy||!(o===e||fam(o,e))||Math.hypot(o.x-e.x,o.y-e.y)>r)continue;const mx=monsterMaxHp(o);if(o.hp>=mx)continue;const v=Math.round(mx*Math.max(1,skill.damage||15)/100);o.hp=Math.min(mx,o.hp+v);ft(o.x,o.y-28,'+'+v,'#6fe36f');fxs.push({x:o.x,y:o.y,r:14,c:'#6fe36f',t:0,d:.6,style:'holy'})}ring(e.x,e.y,r,'#6fe36f',.4)} /* Esqueleto Curador: cura a família por perto */
+      else if(skill.effect==='investida'){const len=Math.max(1,d),para=Math.max(0,len-10);e.dashM={x0:e.x,y0:e.y,x1:e.x+(a.x-e.x)/len*para,y1:e.y+(a.y-e.y)/len*para,t:0,dur:Math.max(.12,para/360),dano:damage,fx:skillFx,mag:skill.magic,alvo:a}}
+      else if(['heal','buff','guard'].includes(skill.effect)){
        if(skill.effect==='heal')e.hp=Math.min(monsterMaxHp(e),e.hp+Math.max(0,skill.damage+skill.per*e.lvl));
        const action=skill.actionStats||{};if(action.physicalDmg||action.magicDmg)hitTarget(a,{physical:Math.max(0,+action.physicalDmg||0),magic:Math.max(0,+action.magicDmg||0)},false,skillFx,null,e);
       }else hitTarget(a,damage,skill.magic,skillFx,null,e);
       ring(a.x,a.y,(skill.radius||18)*areaMultiplier(e),skill.magic?'#9cf':'#f90',.3);if(skill.vfx&&skill.vfx!='none')fxs.push({x:a.x,y:a.y,r:Math.max(16,Math.min(52,skill.radius||24)),c:skill.vfxColor||'#9bd4ff',t:0,d:.55,style:skill.vfx})}
     }else if(e.castOnly){e.castOnly=false}
-    else if(d<(e.weaponBasic?e.weaponBasic.rng:30)&&linhaLivre(e,a)){const extra=k=>attributeValue(e.attributeStats,k)+statusAttributeBonus(e,k),damage=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:attackDamage+extra('magicDmg')+statusAttributeBonus(e,'I')*monMagPerI()}:{physical:attackDamage+extra('physicalDmg')+statusAttributeBonus(e,'F')*monPhysPerF(),magic:monsterAttribute(e,'magicDmg')};hitTarget(a,damage,!!e.attackMagic,resolveFx(e.weaponFx,attackDamage,monsterCtx(e,weaponDelta)),null,e)}
+    else if(d<alcanceBasicoMonstro(e)+6&&linhaLivre(e,a)){const extra=k=>attributeValue(e.attributeStats,k)+statusAttributeBonus(e,k),damage=e.attackMagic?{physical:monsterAttribute(e,'physicalDmg'),magic:attackDamage+extra('magicDmg')+statusAttributeBonus(e,'I')*monMagPerI()}:{physical:attackDamage+extra('physicalDmg')+statusAttributeBonus(e,'F')*monPhysPerF(),magic:monsterAttribute(e,'magicDmg')};hitTarget(a,damage,!!e.attackMagic,resolveFx(e.weaponFx,attackDamage,monsterCtx(e,weaponDelta)),null,e)}
    }
   }
   else if(a.dead<=0&&!insideCamp(a.x,a.y)&&!(e.giveUp>0)&&naSalaDoChefe(e,a)&&(e.chasing?d<(e.bossType=='grandboss'?620:e.boss?420:Math.max(CALC.loseMin,e.aggro*CALC.loseMul)):(d<e.aggro||(e.alert>0&&d<Math.max(CALC.loseMin,e.aggro*CALC.loseMul))))){e.chasing=true;if(a===p)marcarCombate();e.noAtk=(e.noAtk||0)+dt;if(e.noAtk>CALC.giveUp&&e.bossType!='grandboss'){e.giveUp=8;e.noAtk=0;e.alert=0}
-   const hasSkill=e.skill&&e.skill.cost<999999,attackRange=hasSkill?e.skill.range*(e.skill.radius?areaMultiplier(e):1):(e.weaponBasic?e.weaponBasic.rng:20),ve=linhaLivre(e,a);
+   /* alcance para parar e golpear: o da habilidade só quando ela está pronta (mana e recarga); senão o do ataque básico.
+      Antes valia sempre o da habilidade: com a Investida (110 px) ou o Golpe Real, o monstro golpeava de longe e nunca acertava */
+   const hasSkill=e.skill&&e.skill.cost<999999,skillPronta=hasSkill&&e.mp>=e.skill.cost&&e.skillCd<=0,alcanceBasico=alcanceBasicoMonstro(e),attackRange=skillPronta?Math.max(alcanceBasico,e.skill.range*(e.skill.radius?areaMultiplier(e):1)):alcanceBasico,ve=linhaLivre(e,a);
    if(window.CHEFES&&CHEFES.tick(e,dt,a,d)){e.noAtk=0} // mecânica de chefe (js/chefes.js)
    else if(iaTatica(e,a,d,attackRange,ve,dt)){} // distância, desvio de área, fuga e truques do duelista (abaixo)
    else if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);

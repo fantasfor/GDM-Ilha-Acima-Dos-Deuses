@@ -33,50 +33,83 @@ function campWallSegmentClear(from,to){
  for(let i=1;i<=steps;i++){const f=i/steps;if(campWallBlocks(from.x+(to.x-from.x)*f,from.y+(to.y-from.y)*f))return false}
  return true
 }
-/* rio: nasce num lago ao norte, desce longe do acampamento (a leste) com duas pontes e cai no vazio no sul */
-const RIO_Y0=CY-560,RBR=[CY-180,CY+200];
+/* ---------- água (refeita em 2026-10-23: ilha mais viva) ----------
+   O rio nasce no Lago Grande ao norte (o único lago), desce a leste do acampamento (duas pontes) e cai no vazio no sul.
+   A margem do lago é irregular (o raio muda com o ângulo) e ele é um pouco mais largo que alto (perspectiva de cima). */
+const RIO_Y0=CY-470,RBR=[CY-180,CY+200];
 const riverX=y=>CX+380+34*Math.sin(y/70)+14*Math.sin(y/23);
 const riverW=y=>y<RIO_Y0?0:9+5*Math.min(1,(y-RIO_Y0)/700)+2*Math.sin(y/50);
-const LAGO={x:Math.round(riverX(RIO_Y0)),y:RIO_Y0,r:30};
-// [distância ao centro da água, meia largura] do rio ou do lago (o que estiver mais perto)
-const rioDist=(x,y)=>{let rd=Infinity,rw=1;if(y>=RIO_Y0){rd=Math.abs(x-riverX(y));rw=riverW(y)}const ld=Math.hypot(x-LAGO.x,(y-LAGO.y)*1.3);if(ld-LAGO.r<rd-rw){rd=ld;rw=LAGO.r}return [rd,rw]};
+const LAGO={x:Math.round(riverX(RIO_Y0)),y:RIO_Y0,r:74,nome:'Lago Grande',s:3};
+const LAGOS=[LAGO];
+window.LAGOS=LAGOS;
+const lagoR=(L,a)=>L.r*(1+.13*Math.sin(3*a+L.s)+.08*Math.sin(5*a+L.s*2)+.04*Math.sin(9*a+L.s*3));
+// [distância ao centro, raio da margem naquela direção] (o y conta 1,25× para o lago ficar mais largo)
+const lagoDist=(L,x,y)=>{const dx=x-L.x,dy=(y-L.y)*1.25;return [Math.hypot(dx,dy),lagoR(L,Math.atan2(dy,dx))]};
+// [distância ao centro da água, meia largura] do rio ou do lago mais perto
+const rioDist=(x,y)=>{let rd=Infinity,rw=1;if(y>=RIO_Y0){rd=Math.abs(x-riverX(y));rw=riverW(y)}
+ for(const L of LAGOS){if(Math.abs(x-L.x)>L.r*1.4+30||Math.abs(y-L.y)>L.r*1.2+30)continue;const [ld,lr]=lagoDist(L,x,y);if(ld-lr<rd-rw){rd=ld;rw=lr}}return [rd,rw]};
 const inRiver=(x,y,m=0)=>{const [rd,rw]=rioDist(x,y);return rd<rw+m};
 const onBridge=(x,y)=>RBR.some(b=>Math.abs(y-b)<11&&Math.abs(x-riverX(b))<riverW(b)+14);
-/* caminhos de terra: saem do acampamento para as pontes, o lago, a floresta e a cachoeira */
-const CAMINHOS=(()=>{const [B1,B2]=RBR,b1=riverX(B1),b2=riverX(B2),w1=riverW(B1)+18,w2=riverW(B2)+18;return [
- [[CX,CY+140],[CX+20,CY+200],[b2-140,B2+14],[b2-w2,B2]],[[b2+w2,B2],[b2+130,B2+40],[b2+200,B2+170]],
- [[CX+140,CY-10],[CX+230,CY-100],[b1-90,B1+6],[b1-w1,B1]],[[b1+w1,B1],[b1+140,B1-60],[b1+120,B1-230],[LAGO.x+LAGO.r+40,LAGO.y+20]],
- [[CX-140,CY+10],[CX-300,CY+30],[CX-480,CY-40],[CX-560,CY-170]],
- [[CX-10,CY-140],[CX-40,CY-300],[CX+30,CY-470]],
- [[CX+20,CY+200],[CX-50,CY+380],[CX+110,CY+540],[riverX(CY+620)-70,CY+620]]]})();
-const CAMINHO_SEGS=CAMINHOS.flatMap(l=>l.slice(1).map((q,i)=>[l[i],q]));
+/* caminhos de terra (refeitos em 2026-10-23): estradas curvas (pontos de passagem suavizados) que saem das 4 saídas do
+   acampamento: ao sul até a cachoeira, a leste pelas duas pontes, ao norte até o lago e a oeste até a floresta */
+const CAMINHOS=(()=>{const [B1,B2]=RBR,b1=riverX(B1),b2=riverX(B2),w1=riverW(B1)+18,w2=riverW(B2)+18;
+ // curva suave por dentro dos pontos (Catmull-Rom), em trechos curtos
+ const suave=pts=>{const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+  for(let k=0;k<8;k++){const t=k/8,t2=t*t,t3=t2*t,f=(a,b,c,d)=>.5*(2*b+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3);out.push([f(p0[0],p1[0],p2[0],p3[0]),f(p0[1],p1[1],p2[1],p3[1])])}}
+  out.push(pts[pts.length-1]);return out};
+ return [
+  [[CX,CY+140],[CX-20,CY+250],[CX-40,CY+350],[CX+40,CY+470],[CX+120,CY+560],[riverX(CY+620)-70,CY+620]],             // sul: cachoeira
+  [[CX-25,CY+300],[CX+120,CY+260],[b2-150,B2+24],[b2-w2,B2]],[[b2+w2,B2],[b2+120,B2+50],[b2+190,B2+150],[b2+230,B2+260]], // sudeste: ponte de baixo
+  [[CX+140,CY],[CX+230,CY-50],[b1-110,B1+10],[b1-w1,B1]],[[b1+w1,B1],[b1+110,B1-30],[b1+150,B1-160],[LAGO.x+LAGO.r+50,LAGO.y+30]], // leste: ponte de cima e lago
+  [[CX,CY-140],[CX-30,CY-260],[CX+40,CY-380],[LAGO.x-LAGO.r-60,LAGO.y+50],[LAGO.x-LAGO.r-12,LAGO.y+20]],             // norte: margem do lago
+  [[CX-140,CY],[CX-280,CY+30],[CX-420,CY-20],[CX-520,CY-110],[CX-560,CY-200]],                                          // oeste: floresta
+  [[CX-280,CY+30],[CX-370,CY+170],[CX-440,CY+330]]].map(suave)})();const CAMINHO_SEGS=CAMINHOS.flatMap(l=>l.slice(1).map((q,i)=>[l[i],q]));
 function caminhoDist(x,y){let best=Infinity;for(const [a,b] of CAMINHO_SEGS){if(x<Math.min(a[0],b[0])-24||x>Math.max(a[0],b[0])+24||y<Math.min(a[1],b[1])-24||y>Math.max(a[1],b[1])+24)continue;
  const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy))),d=Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);if(d<best)best=d}return best}
 const map=document.createElement('canvas');map.width=map.height=W;
 const islandTerrainKinds=['grass','sand','void','camp','river','bridge'],islandTerrainMask=new Uint8Array(W*W);
-/* terreno suave: campo contínuo (interpolado) + ruído por pixel, sem bordas retas entre tiles */
+/* biomas da grama (js/ilha-viva.js usa as mesmas regras para os tufos e as flores animadas):
+   bioma < .32 campo seco (verde-amarelado), > .64 mata fechada (verde escuro), no meio o campo; flores em manchas */
+const biomaIlha=(x,y)=>vnoise(x,y,170);
+const floridoIlha=(x,y)=>vnoise(x+311,y-97,70);
+window.biomaIlha=biomaIlha;window.floridoIlha=floridoIlha;
+/* terreno: campo contínuo (interpolado) + ruído por pixel e pontilhado ordenado (Bayer) entre os tons, sem bordas retas */
 (function(){const m=map.getContext('2d'),img=m.createImageData(W,W),D=img.data,vn=vnoise;
  const Vp=(x,y)=>{const a=x/T-.5,b=y/T-.5,i=Math.floor(a),j=Math.floor(b),u=a-i,v=b-j;
   return (V(i,j)*(1-u)+V(i+1,j)*u)*(1-v)+(V(i,j+1)*(1-u)+V(i+1,j+1)*u)*v};
  const hx=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
- const C={deep:hx('#1a5f8d'),wat:hx('#1f6a9a'),sh:hx('#3b8dbd'),foam:hx('#cfe8f0'),sand:hx('#e3cc8f'),sand2:hx('#d4b878'),g1:hx('#4f9d4a'),g2:hx('#46903f'),g3:hx('#5aa955'),g4:hx('#3d8238'),d1:hx('#8c6c49'),d2:hx('#7f6140'),d3:hx('#9a7a55'),
-  r1:hx('#6b5848'),r2:hx('#4d3f34'),r3:hx('#1d1712'),moss:hx('#3f6b34')};
+ const C={deep:hx('#173f73'),deep2:hx('#1c5a8c'),wat:hx('#2775a8'),sh:hx('#3f97c4'),raso:hx('#62b6d2'),reflexo:hx('#a6dcec'),foam:hx('#dff2f6'),
+  sand:hx('#e3cc8f'),sand2:hx('#d4b878'),molhada:hx('#a8905e'),lama:hx('#7d6a46'),
+  d1:hx('#8c6c49'),d2:hx('#7f6140'),d3:hx('#9a7a55'),r1:hx('#6b5848'),r2:hx('#4d3f34'),r3:hx('#1d1712'),moss:hx('#3f6b34')};
+ // rampas da grama (escuro → claro) por bioma
+ const G={campo:['#2f6e31','#3c843a','#4b9a44','#5dae50','#78c260'].map(hx),mata:['#1f4f2a','#29622f','#347536','#418843','#55a04e'].map(hx),
+  seco:['#5d7a34','#73903c','#8aa548','#a3b656','#bfc86c'].map(hx)};
+ const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+ const tom=(rampa,v,x,y)=>{v=Math.max(0,Math.min(.999,v))*(rampa.length-1);const i=Math.floor(v),f=v-i;return rampa[Math.min(rampa.length-1,i+(f*16>BAY[y&3][x&3]+.5?1:0))]};
+ const gramaEm=(x,y)=>{const b=biomaIlha(x,y),n=vn(x,y,48)*.7+vn(x,y,17)*.3,cl=vn(x+50,y+20,30);
+  let c=b>.64?tom(G.mata,n,x,y):b<.32?tom(G.seco,n,x,y):tom(G.campo,n,x,y);
+  if(b>.56&&b<=.64)c=mix(c,tom(G.mata,n,x,y),(b-.56)/.08*.8);else if(b>=.32&&b<.4)c=mix(c,tom(G.seco,n,x,y),(.4-b)/.08*.8);
+  if(cl>.78)c=mix(c,G.campo[4],.15);                                   // manchas de trevo, bem leves
+  return c};
  for(let y=0;y<W;y++)for(let x=0;x<W;x++){
   const wob=(vn(x,y,24)-.5)*2.2+(vn(x,y,9)-.5)*.8,v=Vp(x,y)+wob;
   if(v>28.6){islandTerrainMask[y*W+x]=2;continue} // vazio: fica transparente (o espaço aparece por trás)
   const dc=Math.hypot((x-CX)/T,(y-CY)/T)+(vn(x,y,20)-.5)*2.4,n=vn(x,y,14),f=vn(x,y,4),px=hash(x*3+1,y*7+2);
   let c,kind=v>26.2?1:0;
-  if(v>26.2){c=mix(C.sand,C.sand2,n);if(px>.96)c=mix(c,C.sand2,.8);if(v>28)c=mix(c,C.r1,Math.min(1,(v-28)/.6)*.7)}
-  else{c=mix(n>.5?C.g1:C.g2,C.g3,f*.8);if(vn(x,y,30)>.62)c=mix(c,C.g4,.5);
-   if(v>25)c=mix(c,C.sand,(v-25)/1.2*.6);
-   if(px>.97)c=mix(c,C.g4,.8);else if(px<.02)c=mix(c,C.g3,1)}
+  if(v>26.2){c=mix(C.sand,C.sand2,n);if(v>28)c=mix(c,C.r1,Math.min(1,(v-28)/.6)*.7)}
+  else{c=gramaEm(x,y);if(v>25)c=mix(c,C.sand,(v-25)/1.2*.6)}
   if(v<26.8&&dc>=5.4){const pd=caminhoDist(x+(vn(x,y,40)-.5)*16,y+(vn(x+77,y,40)-.5)*16),pw=6+(vn(x,y,12)-.5)*3;
    if(pd<pw+2){let d=mix(n>.5?C.d1:C.d2,C.d3,f);if(px>.95)d=mix(d,C.d2,.9);if(pd<pw){c=d;kind=3}else c=mix(c,d,.5*(1-(pd-pw)/2))}}
   if(dc<5.9){const t=Math.max(0,Math.min(1,(5.9-dc)/1.2));let d=mix(n>.5?C.d1:C.d2,C.d3,f);if(px>.96)d=mix(d,C.d2,.9);c=mix(c,d,t>.5?1:t*2*(px>.4?1:.6));kind=3}
   {const [rd,rw0]=rioDist(x,y),rw=rw0+(vn(x,y,18)-.5)*3;
-   if(rd<rw+5){if(rd<rw){const t=rd/rw;c=mix(mix(C.sh,C.wat,.3+t*.5),C.deep,Math.max(0,t-.55)*.9);if(px>.94)c=mix(c,C.foam,.45)}
-    else if(rd<rw+1.6)c=mix(C.foam,C.sand,.45);else c=mix(c,C.sand2,.55*(1-(rd-rw-1.6)/3.4))}
+   if(rd<rw+9){
+    if(rd<rw){const t=1-rd/rw,lago=rw0>20;                             // t: 0 na margem, 1 no meio
+     c=t<.12?mix(C.raso,C.sh,t/.12):t<.4?mix(C.sh,C.wat,(t-.12)/.28):mix(C.wat,lago?C.deep:C.deep2,Math.min(1,(t-.4)/.6));
+     if(t>.2&&t<.75){const k=vn(x*.7,y*1.6,9);if(Math.abs(k-.5)<.012&&hash(x,y)>.35)c=mix(c,C.reflexo,.28)} // reflexos (ondas finas, deitadas)
+     if(rd>rw-1.3)c=mix(c,C.foam,.6)}
+    else if(rd<rw+1.6)c=mix(C.molhada,C.lama,px);                      // margem molhada
+    else if(rd<rw+(rw0>20?6:4))c=mix(c,C.sand2,.75*(1-(rd-rw-1.6)/(rw0>20?4.4:2.4)))}
    if(rd<rw0)kind=4}
   islandTerrainMask[y*W+x]=kind;
   const o=(y*W+x)*4;D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];D[o+3]=255}
@@ -93,20 +126,32 @@ const islandTerrainKinds=['grass','sand','void','camp','river','bridge'],islandT
   for(let x=x0;x<x1;x+=3){m.fillStyle=(x/3|0)%2?'#a47a45':'#946b3a';m.fillRect(x,y0,2,20);m.fillStyle='#c79a5e';m.fillRect(x,y0,2,1)}
   m.fillStyle='#5a3b1c';m.fillRect(x0,y0,x1-x0,2);m.fillRect(x0,y0+18,x1-x0,2);
   for(let x=x0;x<x1;x+=8){m.fillStyle='#3b2610';m.fillRect(x,y0-2,2,4);m.fillRect(x,y0+18,2,4)}});
- // detalhes: flores, tufos, pedras e conchas
+ // detalhes fixos: flores em manchas (cada mancha com as suas cores), tufos, cogumelos na mata, pedrinhas com musgo, conchas
  const dot=(x,y,w,h,col)=>{m.fillStyle=col;m.fillRect(x,y,w,h)};
- for(let n=0;n<5800;n++){const x=Math.floor(hash(n,1)*W),y=Math.floor(hash(n,2)*W),v=Vp(x,y),dc=Math.hypot((x-CX)/T,(y-CY)/T);
-  if(v<24.5&&dc>6.4&&caminhoDist(x,y)>9){const r=hash(n,3);
-   if(r<.45){dot(x,y,1,3,'#2f6f2c');dot(x-1,y+1,1,2,'#2f6f2c');dot(x+1,y+1,1,2,'#6bbf5f')}
-   else if(r<.6){const c=['#f2d24a','#f2f2f2','#e86a9a','#b58cff'][n%4];dot(x,y,2,2,c);dot(x,y+2,1,2,'#2f6f2c')}
-   else if(r<.7){dot(x,y,3,2,'#8a8f96');dot(x,y,2,1,'#b8bec6')}}
+ const CORES_FLOR=[['#f2d24a','#fff6c0'],['#f2f2f2','#f2d24a'],['#e86a9a','#ffd0e0'],['#b58cff','#efe0ff'],['#ff8a4a','#ffe0a0'],['#6ab4ff','#e0f0ff']];
+ const livreDeAgua=(x,y,m0)=>!inRiver(x,y,m0)&&caminhoDist(x,y)>9;
+ for(let n=0;n<6500;n++){const x=Math.floor(hash(n,1)*W),y=Math.floor(hash(n,2)*W),v=Vp(x,y),dc=Math.hypot((x-CX)/T,(y-CY)/T);
+  if(v<24.5&&dc>6.4&&livreDeAgua(x,y,3)){const r=hash(n,3),b=biomaIlha(x,y),fl=floridoIlha(x,y);
+   if(fl>.68&&b>.3&&r<.7){const [p,q]=CORES_FLOR[Math.floor(vnoise(x,y,220)*CORES_FLOR.length)%CORES_FLOR.length];dot(x,y+1,1,2,'#2f6f2c');dot(x-1,y,3,1,p);dot(x,y-1,1,3,p);dot(x,y,1,1,q)}
+   else if(r<.18){const esc=b>.64?'#1d4a24':'#2f6f2c',cla=b<.32?'#c2c86a':'#6bbf5f';dot(x,y,1,3,esc);dot(x+1,y+1,1,2,cla)}
+   else if(r<.38&&b>.64){dot(x,y,1,2,'#e8dcc0');dot(x-1,y-1,3,1,n%2?'#c0392b':'#a8743a');if(n%3==0){dot(x+3,y+1,1,1,'#e8dcc0');dot(x+2,y,3,1,'#c0392b')}}
+   else if(r<.43){dot(x,y,3,2,'#8a8f96');dot(x,y,2,1,'#b8bec6');if(b>.5)dot(x,y-1,2,1,'#4f7d3a')}
+   }
   else if(v>26.4&&v<28&&hash(n,4)<.35){dot(x,y,2,1,hash(n,5)<.5?'#f2e8d0':'#b89868')}
   else if(dc<5&&dc>1.5&&hash(n,6)<.3){dot(x,y,2,1,'#6a4f33');dot(x+2,y+1,1,1,'#a88660')}}
- // juncos e pedrinhas nas margens do rio
- for(let n=0;n<900;n++){const y=Math.floor(hash(n,9)*W);if(y<RIO_Y0)continue;const s=hash(n,10)<.5?-1:1,x=Math.floor(riverX(y)+s*(riverW(y)+3+hash(n,11)*6));
-  if(Vp(x,y)<26.5&&!RBR.some(b=>Math.abs(y-b)<16)){if(n%3){dot(x,y-3,1,4,'#3f7a35');dot(x+1,y-4,1,3,'#6bbf5f');if(n%6==0)dot(x,y-5,2,2,'#7a4a24')}else{dot(x,y,3,2,'#8a8f96');dot(x,y,2,1,'#b8bec6')}}}
-})();
-/* onde o rio cai no vazio (render.js desenha a água caindo e a névoa) */
+ // margens: juncos, taboas e pedrinhas no rio e nos lagos
+ const junco=(x,y,n)=>{if(n%4){dot(x,y-3,1,4,'#3f7a35');dot(x+1,y-4,1,3,'#6bbf5f');if(n%4==1){dot(x,y-6,1,2,'#7a4a24');dot(x,y-7,1,1,'#3f7a35')}}else{dot(x,y,3,2,'#8a8f96');dot(x,y,2,1,'#b8bec6')}};
+ for(let n=0;n<1100;n++){const y=Math.floor(hash(n,9)*W);if(y<RIO_Y0)continue;const s=hash(n,10)<.5?-1:1,x=Math.floor(riverX(y)+s*(riverW(y)+3+hash(n,11)*6));
+  if(Vp(x,y)<26.5&&!RBR.some(b=>Math.abs(y-b)<16)&&!LAGOS.some(L=>Math.hypot(x-L.x,y-L.y)<L.r+12))junco(x,y,n)}
+ LAGOS.forEach((L,li)=>{const qtd=Math.round(L.r*3.2);
+  for(let n=0;n<qtd;n++){const a=hash(n,li*7+21)*Math.PI*2,r=lagoR(L,a)+2+hash(n,li*7+22)*5,x=Math.round(L.x+Math.cos(a)*r),y=Math.round(L.y+Math.sin(a)*r/1.25);
+   if(caminhoDist(x,y)>10&&!(L===LAGO&&Math.abs(x-riverX(y))<riverW(y)+6&&y>L.y))junco(x,y,n+li)}
+  // ninfeias (folhas redondas com um corte e flor branca ou rosa) nas lagoas
+  const nf=L.ninfeias?26:L===LAGO?10:4;
+  for(let n=0;n<nf;n++){const a=hash(n,li*5+40)*Math.PI*2,r=lagoR(L,a)*(.35+.5*hash(n,li*5+41)),x=Math.round(L.x+Math.cos(a)*r),y=Math.round(L.y+Math.sin(a)*r/1.25);
+   m.fillStyle='#2f7a3a';m.beginPath();m.ellipse(x,y,3,2,0,0,7);m.fill();m.fillStyle='#4fa04a';m.fillRect(x-2,y-1,3,1);m.fillStyle='#1f5a2a';m.fillRect(x,y,3,1);
+   if(n%3==0){dot(x-1,y-2,2,1,n%2?'#ffffff':'#ff9ac0');dot(x,y-3,1,1,'#ffe07a')}}});
+})();/* onde o rio cai no vazio (render.js desenha a água caindo e a névoa) */
 const RIO_FIM=(()=>{for(let y=W-1;y>RIO_Y0;y--){const x=Math.round(riverX(y));if(islandTerrainMask[y*W+x]===4)return {x,y,w:riverW(y)}}return null})();
 const islandTerrainOriginal=map.getContext('2d').getImageData(0,0,W,W);
 RBR.forEach(b=>{
@@ -182,16 +227,41 @@ const longeDeArvores=(x,y)=>{if(window.inDungeon||window.inTaverna||window.inAre
 window.longeDeArvores=longeDeArvores;
 for(let n=0;n<1200&&trees.length<72;n++){const x=rnd(0,W),y=rnd(0,W);if(V(x/T|0,y/T|0)<25.5&&Math.hypot(x-CX,y-CY)>95&&!inRiver(x,y,16))trees.push({x,y})}
 if(Array.isArray(PROJ.map&&PROJ.map.trees)){trees.splice(0,trees.length,...PROJ.map.trees.filter(t=>t&&Number.isFinite(t.x)&&Number.isFinite(t.y)&&t.x>=0&&t.x<W&&t.y>=0&&t.y<W).map(t=>({x:t.x,y:t.y})))}
+// lagos novos (2026-10-23): árvores e elementos sólidos que ficaram dentro da água ou na margem saem
+{const seco=o=>!inRiver(o.x,o.y,7);for(const l of [trees,mapElements]){const ok=l.filter(seco);l.splice(0,l.length,...ok)}}
 /* bosques da borda nova (ilha maior): gerados onde a ilha antiga não chegava. A Engine grava estas mesmas árvores
    no projeto ao abrir um projeto antigo (motor.js arvoresDoAnel); aqui aparecem enquanto o projeto não foi salvo. */
 function arvoresDoAnel(existentes){const out=[],todas=[...(existentes||[])],ANTIGA=30*T;
  for(let y=T;y<W-T;y+=13)for(let x=T;x<W-T;x+=13){const jx=x+(hash(x,y)-.5)*10,jy=y+(hash(y,x)-.5)*10;
   if(Math.max(Math.abs(jx-CX),Math.abs(jy-CY))<ANTIGA||vnoise(jx,jy,90)<.56||hash(x*7,y*3)<.35)continue;
-  if(V(jx/T|0,jy/T|0)>=25.5||inRiver(jx,jy,18)||caminhoDist(jx,jy)<16||Math.hypot(jx-LAGO.x,jy-LAGO.y)<LAGO.r+24)continue;
+  if(V(jx/T|0,jy/T|0)>=25.5||inRiver(jx,jy,18)||caminhoDist(jx,jy)<16)continue;
   if(todas.some(t=>Math.abs(t.x-jx)<12&&Math.abs(t.y-jy)<12))continue;
   const t={x:Math.round(jx),y:Math.round(jy)};out.push(t);todas.push(t)}
  return out}
 if(ILHA_MIGROU)trees.push(...arvoresDoAnel(trees));
+/* layout da ilha (2026-10-23, mundo.ilhaLayout 1): florestas fechadas nas bordas e em manchas, bosques soltos, árvores isoladas
+   no campo, um anel de árvores na margem do lago e do rio (sem encostar na água), clareira grande em volta do acampamento
+   e nada em cima dos caminhos. Determinístico (mesma ilha sempre); a Engine grava estas árvores no projeto uma vez. */
+function arvoresDaIlha(){const out=[],perto=new Map(),cel=(x,y)=>(x>>4)+','+(y>>4);
+ const ocupado=(x,y,d)=>{for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const l=perto.get(((x>>4)+i)+','+((y>>4)+j));if(l)for(const t of l)if(Math.abs(t.x-x)<d&&Math.abs(t.y-y)<d*.8)return true}return false};
+ const poe=(x,y)=>{const t={x:Math.round(x),y:Math.round(y)};out.push(t);const k=cel(t.x,t.y);if(!perto.has(k))perto.set(k,[]);perto.get(k).push(t)};
+ for(let y=T;y<W-T;y+=9)for(let x=T;x<W-T;x+=9){const jx=x+(hash(x,y*3)-.5)*8,jy=y+(hash(y,x*5)-.5)*8,v=V(jx/T|0,jy/T|0);
+  if(v>=25.6)continue;                                                                  // praia e borda
+  const dc=Math.hypot(jx-CX,jy-CY);if(dc<CAMP_SAFE_HALF_SIZE+60)continue;                 // clareira do acampamento
+  // longe da água e dos caminhos, e a copa (que sobe ~40 px) também não cobre o caminho nem o lago
+  if(inRiver(jx,jy,16)||inRiver(jx,jy-24,10)||caminhoDist(jx,jy)<20||caminhoDist(jx,jy-22)<16||onBridge(jx,jy+12))continue;
+  if(Math.hypot(jx-LAGO.x,(jy-LAGO.y)*1.25)<LAGO.r*1.25+46)continue;                       // clareira em volta do lago
+  const borda=Math.max(0,(v-20.5)/5),mancha=vnoise(jx,jy,150),mata=biomaIlha(jx,jy)>.62?.18:0;
+  const dens=borda*.62+Math.max(0,mancha-.52)*1.7+mata-(dc<CAMP_SAFE_HALF_SIZE+200?.3:0);
+  const r=hash(jx*7|0,jy*3|0);
+  if(dens>.6){if(r<.62&&!ocupado(jx,jy,12))poe(jx,jy)}                                     // floresta fechada
+  else if(dens>.38){if(r<.26&&!ocupado(jx,jy,16))poe(jx,jy)}                                // bosque solto
+  else if(r<.016&&!ocupado(jx,jy,44))poe(jx,jy)}                                          // árvore sozinha no campo
+ return out}
+window.arvoresDaIlha=arvoresDaIlha;
+if(!(+(PROJETO&&PROJETO.mundo&&PROJETO.mundo.ilhaLayout)>=1)){trees.splice(0,trees.length,...arvoresDaIlha());
+ // elementos do projeto que caíram em cima dos caminhos novos saem (pedras e troncos no meio da estrada)
+ const fora=mapElements.filter(e=>caminhoDist(e.x,e.y)<9);for(const e of fora)mapElements.splice(mapElements.indexOf(e),1)}
 /* grade de passagem (2×2 px): o chão primeiro, depois cada árvore, elemento sólido e NPC "carimba" só as células em volta
    (mesmas regras do walkRaw, sem testar todas as árvores em cada célula da ilha grande) */
 function rebuildWG(){window.sceneryDirty&&sceneryDirty();WG=new Uint8Array(GW*GW);

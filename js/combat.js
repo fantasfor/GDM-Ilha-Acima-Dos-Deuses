@@ -61,7 +61,7 @@ function vulnMult(t){let m=0;if(t.st)for(const k in t.st)if(fxKind(k)=='vuln')m=
 const charDamage=t=>typedPower(t)+danoArma();
 const monsterWeaponDamageDelta=e=>(e.weaponRanges||[]).reduce((sum,range)=>sum+rollWeaponDamage(range)-(range.min+range.max)/2,0);
 function monsterCtx(e,weaponDelta=0){const s=monsterAttributes(e),equipmentDamage=monsterAttribute(e,'dmg')+weaponDelta,ph=(monsterAttribute(e,'physicalDmg')+equipmentDamage)*(1+s.F*monPhysPerF()/100),mg=(monsterAttribute(e,'magicDmg')+equipmentDamage)*(1+s.I*monMagPerI()/100);return{phys:ph,mag:mg,entity:e,attr:k=>k=='none'||!k?0:k=='physicalPower'?monsterAttribute(e,'physicalDmg'):k=='magicPower'?monsterAttribute(e,'magicDmg'):k=='dmg'?equipmentDamage:k=='weaponPower'||k=='charDamage'?(e.attackMagic?mg:ph):s[k]||0}}
-function resolveFx(list,cd,ctx){ctx=ctx||{phys:charDamage('physical'),mag:charDamage('magic'),entity:p,attr:k=>k=='none'||!k?0:scaleBase(k,'physical')};return(Array.isArray(list)?list:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const dot=fxKind(f.type)=='dot',src=f.src=='physical'?ctx.phys:f.src=='magic'?ctx.mag:cd;return{caster:ctx.entity||p,self:f.target=='self',type:f.type,chance:f.chance==null||f.chance===''?100:+f.chance,dur:Math.max(.5,+f.dur||FX_INFO[f.type].dur||3),pw:(+f.power||FX_INFO[f.type].power||0)+(dot?(+f.pct||0)/100*src+(+f.attrPct||0)/100*ctx.attr(f.attr):0)}})}
+function resolveFx(list,cd,ctx){ctx=ctx||{phys:charDamage('physical'),mag:charDamage('magic'),entity:p,attr:k=>k=='none'||!k?0:scaleBase(k,'physical')};return(Array.isArray(list)?list:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const dot=fxKind(f.type)=='dot',src=f.src=='physical'?ctx.phys:f.src=='magic'?ctx.mag:cd;return{caster:ctx.entity||p,self:f.target=='self',type:f.type,chance:f.chance==null||f.chance===''?100:+f.chance,dur:Math.max(.5,+f.dur||FX_INFO[f.type].dur||3),acumulos:Math.max(1,Math.round(+f.acumulos||1)),pw:(+f.power||FX_INFO[f.type].power||0)+(dot?(+f.pct||0)/100*src+(+f.attrPct||0)/100*ctx.attr(f.attr):0)}})}
 /* efeitos negativos que acumulam (dano contínuo, lentidão, gelo…): cada acerto soma 1 acúmulo (até o máximo) e o
    efeito perde 1 acúmulo a cada 2 s; a força vale por acúmulo (fogo: 3 por acúmulo). Os outros duram o tempo do efeito. */
 const ACUMULO_S=2;
@@ -70,10 +70,10 @@ function applyFx(t,fx){if(!fx||!fx.length)return;let k=0;for(const f of fx){if(M
  /* curas instantâneas (Curandeiro): % da vida máxima do alvo (curapct) ou valor fixo (curaabs); limpa acúmulos de veneno e sangramento */
  if(info.kind==='curapct'||info.kind==='curaabs'){const mx=tg===p?mhp():monsterMaxHp(tg),v=Math.max(1,Math.round(info.kind==='curapct'?mx*(+f.pw||0)/100:+f.pw||0));tg.hp=Math.min(mx,tg.hp+v);ft(tg.x,tg.y-30-k++*7,'+'+v,'#6fe36f');
   const lp=+f.limpa||0;if(lp>0)for(const d of ['poison','bleed']){const s=tg.st[d];if(!s)continue;s.n=(s.n||1)-lp;if(s.n<=0)delete tg.st[d];else s.t=s.n*ACUMULO_S-(s.q||0)}continue}
- if(decai(f.type)){const n=Math.min(max,(o?o.n||1:0)+1);tg.st[f.type]={n,q:o?o.q:0,t:n*ACUMULO_S-(o?o.q:0),d:max*ACUMULO_S,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0};
+ if(decai(f.type)){const n=Math.min(max,(o?o.n||1:0)+Math.max(1,f.acumulos||1)); /* acumulos: quantos acúmulos este golpe põe de uma vez (ex.: Mordida do lobo = 3) */tg.st[f.type]={n,q:o?o.q:0,t:n*ACUMULO_S-(o?o.q:0),d:max*ACUMULO_S,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0};
   // gelo no máximo de acúmulos: congela (atordoado) e zera o gelo
   if(info.congela&&n>=max){delete tg.st[f.type];tg.st.stun={t:info.congela,d:info.congela,pw:0,n:1,tk:0};ft(tg.x,tg.y-36-k++*7,'Congelado!',info.c);continue}}
- else tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,n:info.good?1:Math.min(max,(o?o.n||1:0)+1)}; // buff não acumula: só renova
+ else tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,n:info.good?1:Math.min(max,(o?o.n||1:0)+Math.max(1,f.acumulos||1))}; // buff não acumula: só renova
  if(!f.silencioso)ft(tg.x,tg.y-36-k++*7,info.n+(tg.st[f.type]&&tg.st[f.type].n>1?' x'+tg.st[f.type].n:''),info.c)}} // silencioso: aura renovada a cada segundo não repete o nome
 function tickStatus(t,dt){
  if(!t.st)return;
@@ -126,6 +126,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(
   if(window.TEMPO){const n=TEMPO.forcaMonstro(e);pt.f/=n;pt.m/=n} /* noite na ilha: o monstro aguenta 5% a mais */
   const pen=k=>Math.max(0,Math.min(1,bonus(k))); /* perfuração: ignora essa parte da defesa do alvo */
   const fi=Math.max(0,pt.f-physicalDefense*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicalDefense*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
+ if(window.TRAPACA&&TRAPACA.dano&&!e.mpProxy)d=Math.max(d,Math.ceil(e.hp)); // teste da Engine: dano infinito (mata no golpe)
  d=Math.round(d);if(!dot)drainLife(p,Math.min(e.hp,d),stealRatio(roll,share));
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
@@ -152,7 +153,9 @@ function killMonster(e){
   const noite=window.TEMPO?TEMPO.premio(e):1; /* noite na ilha: +5% de XP, ouro e chance de drop */
   const xp=Math.max(1,Math.round(e.xp*parte*noite)),gold=Math.round(e.g*parte*noite);
   gainPlayerXp(xp);p.gold+=gold;gainClassXp(Math.round((+CALC.rankXpPorAbate||25)*parte*(e.boss||e.bossType=='boss'?5:e.bossType=='grandboss'?15:1))); /* rank: XP fixo por abate (~1 h até o rank 10) */ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound&&!window.soltarMoedas)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
-  if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GUARDIÃO ESQUELETO DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
+  if(typeof cacaFeita!=='undefined'&&!cacaFeita&&!e.tutorial&&!e.pvp&&!e.duelo&&!e.boss&&!window.inTutorial&&!window.inArena&&!(window.MP&&MP.visitando)){cacaMortes++; /* missão inicial: 10 monstros quaisquer */
+   if(cacaMortes>=CACA_ALVO){cacaFeita=true;p.gold+=30;gainPlayerXp(30);ft(e.x,e.y-45,'MISSÃO CONCLUÍDA: 10 MONSTROS!','#ffd84a');if(window.playGameSound)playGameSound('quest')}saveGame()}
+  if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GLOOC SAQUEADOR DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
   // os itens caem no chão onde o monstro morreu e depois voam até o jogador (js/loot.js)
   const largar=(id,quest=false)=>{if(window.anotarDrop)anotarDrop(e.ty,id);return window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest}):offerDrop(id,quest)};
   if(gold>0&&window.soltarMoedas)soltarMoedas(e.x,e.y,gold);
@@ -164,7 +167,8 @@ function killMonster(e){
   // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível
 
  }}
-function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window.marcarCombate)marcarCombate();const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
+function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window.DIALOGO&&DIALOGO.aberto())return; // conversando: ninguém machuca o herói
+ if(window.marcarCombate)marcarCombate();const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  // mesma regra dos monstros (hurtE): (físico − defesa física) + (mágico − defesa mágica), sem piso nem mínimo
  let share=mg?1:0,roll=null;const pt=partesDano(d,mg);
  if(dot&&tr)d=pt.f+pt.m;
@@ -173,8 +177,9 @@ function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window
   // perfuração do atacante (monstro: atributo dele; jogador na arena: vem junto do golpe em perf {f,m})
   const pen=k=>Math.max(0,Math.min(1,perf?+perf[k==='physicalPen'?'f':'m']||0:attacker&&attacker!==p&&typeof monsterAttribute=='function'?monsterAttribute(attacker,k)||0:0));
   const fi=Math.max(0,pt.f-armor()*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicArmor()*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
+ if(window.TRAPACA&&TRAPACA.vida)d=0; // teste da Engine: vida infinita (não perde vida)
  d=Math.round(d);if(roll&&attacker)drainLife(attacker,Math.min(p.hp,d),stealRatio(roll,share));
- p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;if(!window.inArena&&!window.inTutorial)p.gold=Math.floor(p.gold/2); /* cair na arena (duelo, treino) ou no tutorial não custa ouro */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
+ p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;/* morrer não custa nada (nem ouro, nem itens, nem XP) */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
 const CL={war:{n:'Guerreiro',F:17,A:7,I:2,perLevel:{F:6,A:3,I:1},attackSpeed:1.25},mag:{n:'Mago',F:2,A:2,I:12,perLevel:{F:1,A:2,I:5},attackSpeed:1},hea:{n:'Curandeiro',F:4,A:4,I:10,perLevel:{F:2,A:2,I:4},attackSpeed:1.1}};
 p.classProgress=p.classProgress||{war:{rank:1,xp:0}};
 function gainClassXp(value){
@@ -354,12 +359,15 @@ const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
 L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
  // arma exigida: vale a arma de qualquer mão (escudo na mão 2), a mesma regra do cast
  const maos=o.weaponSlot?[o.weaponSlot]:['sw','sh'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!(maos.some(sl=>EQ[sl]&&skillWeaponAllowed(o,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(o,null));
- if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q W E R T Y) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
+ if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q E R F T G) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
 /* o que ainda está ativo de uma habilidade que saiu da barra para: aura, áreas, pulsos e canal (Girar, Chuva) */
 const naBarra=new Set(SK.filter(s=>s.n&&s.id).map(s=>s.id));if(window.CURANDEIRO)CURANDEIRO.sincronizar(naBarra);if(p.canal&&p.canal.id&&!naBarra.has(p.canal.id))p.canal=null;if(p.conj&&p.conj.s&&!naBarra.has(p.conj.s.id))p.conj=null;
 if(window.renderSkillMenu)renderSkillMenu()}
-applySkills();const carpenter={cls:'war',nm:'Carpinteiro',x:CX+290,y:CY-180,carpenter:true},blacksmith={cls:'war',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
-function placeCarpenter(){carpenter.x=carpenterHelped?CX+34:CX+290;carpenter.y=carpenterHelped?CY-48:CY-180}
+applySkills();const carpenter={cls:'carpinteiro',nm:'Carpinteiro',x:CX+260,y:CY-360,carpenter:true},blacksmith={cls:'ferreiro',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
+/* na missão o carpinteiro fica escondido num canto da ilha (nordeste, perto da beira), atrás de uma tora */
+const ESCONDERIJO={x:CX+260,y:CY-360};
+// o carpinteiro só aparece escondido atrás da tora quando chega a missão de ajudá-lo (depois dos 10 monstros, state.js cacaFeita)
+function placeCarpenter(){if(!carpenterHelped&&typeof cacaFeita!=='undefined'&&!cacaFeita){carpenter.x=carpenter.y=-9999;return}carpenter.x=carpenterHelped?CX+34:ESCONDERIJO.x;carpenter.y=carpenterHelped?CY-48:ESCONDERIJO.y}
 function placeBlacksmith(){const saved=(typeof blacksmithSaved!=='undefined'&&blacksmithSaved)||window.blacksmithSaved;blacksmith.x=saved?CX+64:-9999;blacksmith.y=saved?CY-36:-9999}
 placeCarpenter();placeBlacksmith();
 window.placeBlacksmith=placeBlacksmith;
@@ -374,22 +382,22 @@ function showCarpenterDialogue(){
  const box=$('dialogue');
  box.classList.remove('dgModal');
  box.innerHTML=!carpenterHelped
-  ?'<b>Carpinteiro</b><p>Obrigado por me salvar do Guardião Esqueleto! Vou até seu acampamento e ficarei com os outros moradores.</p><button type="button" data-join-camp>Venha para o acampamento</button>'
+  ?'<b>Carpinteiro</b><p>Obrigado por me salvar do Glooc Saqueador! Vou até seu acampamento e ficarei com os outros moradores.</p><button type="button" data-join-camp>Venha para o acampamento</button>'
   :campPortalBuilt&&blacksmithSaved
   ?'<b>Carpinteiro</b><p>Você salvou meu irmão ferreiro! Ele já está trabalhando na forja do acampamento. Nunca poderei agradecer o suficiente, herói! O portal continua ativo caso você queira explorar o covil dos goblins novamente para saquear baús raros e lendários!</p><button type="button" data-open-dungeon-menu>Abrir Masmorras no Portal</button> <button type="button" data-close-dialog>Fechar</button>'
   :campPortalBuilt
-  ?'<b>Carpinteiro</b><p>O portal para a DG dos Goblins está ativo! Meu irmão ferreiro está preso lá dentro nas mãos do terrível Lorde Goblin Demoníaco. Cuidado com as áreas de ataque telegrafadas no chão do lorde: elas causam dano quase letal! Traga meu irmão de volta são e salvo!</p><button type="button" data-open-dungeon-menu>Abrir Masmorras no Portal</button> <button type="button" data-close-dialog>Fechar</button>'
+  ?'<b>Carpinteiro</b><p>O portal para a DG dos Goblins está ativo! Meu irmão ferreiro está preso lá dentro nas mãos do terrível Rei Esqueleto. Cuidado com as áreas de ataque telegrafadas no chão do rei: elas causam dano quase letal! Traga meu irmão de volta são e salvo!</p><button type="button" data-open-dungeon-menu>Abrir Masmorras no Portal</button> <button type="button" data-close-dialog>Fechar</button>'
   :wallBuilt&&!magicWoodQuestActive
-  ?'<b>Carpinteiro</b><p>A paliçada está pronta, mas precisamos construir um portal logo! Os goblins jogaram meu irmão ferreiro em um portal, e precisamos salvá-lo. Ele poderá nos ajudar com equipamentos. Preciso de 10 madeiras mágicas: elas são deixadas pelas árvores vivas, os Brotos Vivos da ilha.</p><button type="button" data-start-magic-wood-quest>Vou buscar as madeiras mágicas</button>'
+  ?'<b>Carpinteiro</b><p>A paliçada está pronta, mas precisamos construir um portal logo! Os goblins jogaram meu irmão ferreiro em um portal, e precisamos salvá-lo. Ele poderá nos ajudar com equipamentos. Preciso de 10 madeiras mágicas: elas são deixadas pelas árvores vivas, os Tocos Vivos da ilha.</p><button type="button" data-start-magic-wood-quest>Vou buscar as madeiras mágicas</button>'
   :wallBuilt
-  ?'<b>Carpinteiro</b><p>Madeira mágica coletada: '+itemCount('magicWood')+'/'+PORTAL_WOOD_REQUIRED+'. '+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'Já podemos construir o portal para procurar meu irmão ferreiro!':'Derrote as árvores vivas (Brotos Vivos) e aceite as madeiras mágicas nos itens encontrados. Seu peso de spawn aumenta em 20% enquanto faltarem materiais.')+'</p>'+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'<button type="button" data-build-camp-portal>Entregar 10 madeiras mágicas e construir o portal</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira mágica</button>')
+  ?'<b>Carpinteiro</b><p>Madeira mágica coletada: '+itemCount('magicWood')+'/'+PORTAL_WOOD_REQUIRED+'. '+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'Já podemos construir o portal para procurar meu irmão ferreiro!':'Derrote as árvores vivas (Tocos Vivos) e aceite as madeiras mágicas nos itens encontrados. Seu peso de spawn aumenta em 20% enquanto faltarem materiais.')+'</p>'+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'<button type="button" data-build-camp-portal>Entregar 10 madeiras mágicas e construir o portal</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira mágica</button>')
   :!sawQuestActive
-  ?'<b>Carpinteiro</b><p>Quero construir um muro para proteger o acampamento, mas preciso de um serrote. Um Goblin do Serrote aparece naturalmente junto aos outros monstros pela ilha. Quando ele surgir, um ponto de exclamação vai indicar onde está.</p><button type="button" data-start-saw-quest>Vou buscar o serrote</button>'
+  ?'<b>Carpinteiro</b><p>Quero construir um muro para proteger o acampamento, mas preciso de um serrote. Um Esqueleto do Serrote aparece naturalmente junto aos outros monstros pela ilha. Quando ele surgir, um ponto de exclamação vai indicar onde está.</p><button type="button" data-start-saw-quest>Vou buscar o serrote</button>'
   :sawObtained&&!woodQuestActive
-  ?'<b>Carpinteiro</b><p>Você encontrou o serrote! Agora preciso de 20 madeiras. Derrote os Brotos Vivos, pequenas árvores que aparecem naturalmente pela ilha, e recolha a madeira que eles deixam. Enquanto a missão precisar deles, seu peso de spawn aumenta em 20%.</p><button type="button" data-start-wood-quest>Vou coletar as madeiras</button>'
+  ?'<b>Carpinteiro</b><p>Você encontrou o serrote! Agora preciso de 20 madeiras. Derrote os Tocos Vivos, tocos de árvore que andam pela ilha, e recolha a madeira que eles deixam. Enquanto a missão precisar deles, seu peso de spawn aumenta em 20%.</p><button type="button" data-start-wood-quest>Vou coletar as madeiras</button>'
   :woodQuestActive
-  ?'<b>Carpinteiro</b><p>Madeira coletada: '+itemCount('wood')+'/'+WALL_WOOD_REQUIRED+'. '+(itemCount('wood')>=WALL_WOOD_REQUIRED?'Já temos o material para construir a paliçada de toras e o portão ao sul.':'Derrote Brotos Vivos e aceite as madeiras nos itens encontrados.')+'</p>'+(itemCount('wood')>=WALL_WOOD_REQUIRED?'<button type="button" data-build-wall>Entregar 20 madeiras e construir</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira</button>')
-  :'<b>Carpinteiro</b><p>Procure o Goblin do Serrote entre os monstros que aparecem naturalmente pela ilha. Quando ele surgir, você verá um ponto de exclamação indicando a posição.</p><button type="button" data-close-dialog>Fechar</button>';
+  ?'<b>Carpinteiro</b><p>Madeira coletada: '+itemCount('wood')+'/'+WALL_WOOD_REQUIRED+'. '+(itemCount('wood')>=WALL_WOOD_REQUIRED?'Já temos o material para construir a paliçada de toras e o portão ao sul.':'Derrote Tocos Vivos e aceite as madeiras nos itens encontrados.')+'</p>'+(itemCount('wood')>=WALL_WOOD_REQUIRED?'<button type="button" data-build-wall>Entregar 20 madeiras e construir</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira</button>')
+  :'<b>Carpinteiro</b><p>Procure o Esqueleto do Serrote entre os monstros que aparecem naturalmente pela ilha. Quando ele surgir, você verá um ponto de exclamação indicando a posição.</p><button type="button" data-close-dialog>Fechar</button>';
  box.classList.add('open')
 }
 document.addEventListener('click',e=>{
@@ -398,7 +406,7 @@ document.addEventListener('click',e=>{
  else if(button.hasAttribute('data-start-saw-quest')){if(window.startSawQuest)startSawQuest();$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal')}
  else if(button.hasAttribute('data-start-wood-quest')){
   if(!sawObtained||wallBuilt)return;
-  woodQuestActive=true;$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'Colete 20 madeiras dos Brotos Vivos!','#ffd84a');saveGame()
+  woodQuestActive=true;$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'Colete 20 madeiras dos Tocos Vivos!','#ffd84a');saveGame()
  }
  else if(button.hasAttribute('data-build-wall')){
   if(wallBuilt||!sawObtained||!woodQuestActive)return;
@@ -407,7 +415,7 @@ document.addEventListener('click',e=>{
  }
  else if(button.hasAttribute('data-start-magic-wood-quest')){
   if(!wallBuilt||campPortalBuilt)return;
-  magicWoodQuestActive=true;$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'Colete 10 madeiras mágicas dos Brotos Vivos!','#bb88ff');saveGame()
+  magicWoodQuestActive=true;$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'Colete 10 madeiras mágicas dos Tocos Vivos!','#bb88ff');saveGame()
  }
  else if(button.hasAttribute('data-build-camp-portal')){
   if(!wallBuilt||!magicWoodQuestActive||campPortalBuilt)return;

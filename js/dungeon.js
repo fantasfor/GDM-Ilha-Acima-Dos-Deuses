@@ -12,7 +12,7 @@
  let flyingLoots = [];
  let dungeonShake = 0;
  window.tremerDG = v => { dungeonShake = Math.max(dungeonShake, v); }; // mecânicas de chefe (js/chefes.js)
- const limparTelegrafos = () => { if(window.TELEGRAFOS) TELEGRAFOS.length = 0; };
+ const limparTelegrafos = () => { for(const l of [window.TELEGRAFOS, window.NUVENS_VENENO, window.CAVEIRAS_FOGO]) if(l) l.length = 0; };
  let bossDefeatedEvent = false;
  let clearRecorded = false;
  let dungeonTorches = [];
@@ -26,9 +26,6 @@
   if(!MONSTER_TYPES.goblin){
    MONSTER_TYPES.goblin = { name: 'Goblin', stats: { F: 14, A: 8, I: 4 }, bossType: 'normal' };
   }
-  if(!MONSTER_TYPES.goblinBoss){
-   MONSTER_TYPES.goblinBoss = { name: 'Lorde Goblin Demoníaco', stats: { F: 28, A: 12, I: 16 }, bossType: 'grandboss' };
-  }
  }
 
  // Geometria Dinâmica e Configuração da Masmorra
@@ -38,7 +35,7 @@
  let DUNGEON_DECORATIONS = [];
  let DUNGEON_THEME = 'cave';
  let DUNGEON_ART = {};
- let DUNGEON_NAME = 'Covil do Lorde Goblin';
+ let DUNGEON_NAME = 'Covil do Rei Esqueleto';
  let DUNGEON_ENTRANCE_PORTAL = { x: 125, y: 210, name: 'Portal de Retorno' };
  let DUNGEON_EXIT_PORTAL = { x: 920, y: 480, name: 'Portal Mágico de Saída' };
  let DUNGEON_BLACKSMITH_POS = { x: 890, y: 560, name: 'Ferreiro Prisioneiro' };
@@ -50,6 +47,9 @@
   CAVE_CORRIDORS = (cfg.corridors || []).map(c => ({ ...c }));
   DUNGEON_DOORS = (cfg.doors || []).map(door => ({ ...door }));
   DUNGEON_DECORATIONS = (cfg.decorations || []).map(d => ({ ...d }));
+  // decorações sólidas (árvores, lápides, troncos...) numa grade de 32 px para a colisão ficar barata
+  DECOR_SOLIDOS = new Map();
+  for(const d of DUNGEON_DECORATIONS) if(d.solido){ const k = Math.floor(d.x / 32) + ',' + Math.floor(d.y / 32); if(!DECOR_SOLIDOS.has(k)) DECOR_SOLIDOS.set(k, []); DECOR_SOLIDOS.get(k).push(d); }
   DUNGEON_THEME = ['cave', 'underground', 'forest'].includes(cfg.theme) ? cfg.theme : 'cave';
   DUNGEON_ART = cfg.art && typeof cfg.art === 'object' ? cfg.art : {};
   DUNGEON_NAME = cfg.name || 'Masmorra';
@@ -68,7 +68,15 @@
   DUNGEON_CAIXA = DUNGEON_CHAO && window.CHAO ? CHAO.dgCaixa(DUNGEON_CHAO) : null;
   dungeonCamada = null;
  }
- let DUNGEON_CHAO = null, DUNGEON_CAIXA = null, dungeonCamada = null, dungeonTexturas = null;
+ let DUNGEON_CHAO = null, DUNGEON_CAIXA = null, dungeonCamada = null, dungeonTexturas = null, DECOR_SOLIDOS = new Map();
+ /* desenho de uma decoração: dec.el = elemento do pacote de mapa ou da biblioteca (js/pacote-mapa.js), dec.arvore = árvore
+    da ilha (variante de TREEV), dec.sprite = desenho próprio. Sempre 1 pixel do desenho = 1 pixel do mundo. */
+ function arteDecoracao(dec){
+  if(dec.arvore != null && window.TREEV) return TREEV[dec.arvore % TREEV.length];
+  if(dec.el){ const d = (window.PIXLIB && PIXLIB[dec.el]) || (window.PACOTE_MAPA && PACOTE_MAPA.elementos[dec.el] && PACOTE_MAPA.elementos[dec.el].data); return d ? cachedDungeonArt(d) : null; }
+  return dec.sprite ? cachedDungeonArt(dec.sprite) : null;
+ }
+ window.decorSolida = (x, y) => { const i = Math.floor(x / 32), j = Math.floor(y / 32); for(let b = -1; b <= 1; b++) for(let a = -1; a <= 1; a++){ const l = DECOR_SOLIDOS.get((i + a) + ',' + (j + b)); if(l) for(const d of l){ const r = d.raio || 6; if(Math.abs(x - d.x) < r && Math.abs(y - d.y) < r * .7 && Math.hypot(x - d.x, (y - d.y) * 1.4) < r) return true; } } return false; };
  const texturasChao = () => dungeonTexturas || (dungeonTexturas = window.CHAO ? CHAO.texturas(PROJ.pixel) : {});
  const chaoDG = (x, y) => DUNGEON_CHAO && DUNGEON_CHAO[Math.floor(x / 16) + ',' + Math.floor(y / 16)];
  // caixas que cobrem o mapa da DG (caminhos, minimapa): salas, corredores e a área pintada
@@ -247,78 +255,6 @@
   return CHEST_SPRITES[key] || CHEST_SPRITES.blue_closed;
  };
 
- /* ---------- Sprite do Lorde Goblin Demoníaco (Full-Body) ---------- */
- function makeBossGoblinSprite(){
-  return paint(36, 40, (R, E) => {
-   // Sombra nos pés
-   E(18, 38, 14, 4, '#080509');
-   // Pernas musculosas com calçadeiras de ferro
-   R(9, 26, 6, 10, '#2d5c1e');
-   R(21, 26, 6, 10, '#2d5c1e');
-   R(8, 33, 8, 5, '#1e1a17');
-   R(20, 33, 8, 5, '#1e1a17');
-   R(9, 34, 6, 3, '#483526');
-   R(21, 34, 6, 3, '#483526');
-
-   // Saiote tribal de couro e caveira no cinto
-   R(9, 21, 18, 7, '#3d2516');
-   R(11, 22, 14, 6, '#5a3a22');
-   R(15, 22, 6, 5, '#e0d5be'); // Caveira no cinto
-   R(17, 24, 1, 1, '#222');R(19, 24, 1, 1, '#222');
-
-   // Tronco imponente e musculoso de goblin demoníaco
-   R(9, 11, 18, 12, '#387226');
-   R(11, 12, 14, 9, '#4d9834');
-   // Tatuagens / veias de magma demoníaco pulsante
-   R(12, 14, 4, 1, '#dc2626');R(14, 15, 2, 3, '#ea580c');R(13, 18, 3, 1, '#f59e0b');
-   R(20, 14, 4, 1, '#dc2626');R(20, 15, 2, 3, '#ea580c');R(20, 18, 3, 1, '#f59e0b');
-
-   // Ombreiras colossais pontiagudas de ferro negro com cravos de sangue
-   R(4, 9, 7, 7, '#241a1c');
-   R(25, 9, 7, 7, '#241a1c');
-   R(5, 10, 5, 5, '#423135');
-   R(26, 10, 5, 5, '#423135');
-   R(3, 7, 3, 4, '#7f1d1d');R(2, 6, 2, 2, '#ef4444'); // Espinho esquerdo
-   R(30, 7, 3, 4, '#7f1d1d');R(32, 6, 2, 2, '#ef4444'); // Espinho direito
-
-   // Braços fortes
-   R(6, 14, 5, 11, '#387226');
-   R(25, 14, 5, 11, '#387226');
-   R(5, 21, 6, 4, '#241a1c'); // Braceletes
-   R(25, 21, 6, 4, '#241a1c');
-
-   // Arma demoníaca: Grande Cutelo Denteado de Magma
-   R(29, 13, 3, 18, '#523722'); // Cabo
-   R(30, 8, 4, 14, '#1c1917');  // Lâmina pesada
-   R(31, 9, 3, 12, '#7f1d1d');
-   R(32, 10, 2, 9, '#ea580c');
-   R(33, 12, 1, 5, '#fef08a');  // Fio em brasa
-   R(34, 10, 1, 2, '#fff');R(34, 14, 1, 2, '#fff'); // Serrilhado
-
-   // Cabeça e mandíbula demoníaca
-   E(18, 8, 7, 6, '#387226');
-   E(18, 8, 6, 5, '#4d9834');
-   // Orelhas pontudas
-   R(8, 7, 4, 3, '#387226');R(6, 8, 2, 1, '#4d9834');
-   R(24, 7, 4, 3, '#387226');R(28, 8, 2, 1, '#4d9834');
-   // Chifres superiores da testa
-   R(12, 2, 3, 5, '#3b1216');R(11, 0, 2, 3, '#7f1d1d');R(10, 0, 1, 1, '#ef4444');
-   R(21, 2, 3, 5, '#3b1216');R(23, 0, 2, 3, '#7f1d1d');R(25, 0, 1, 1, '#ef4444');
-   // Olhos demoníacos em brasa
-   R(13, 6, 3, 2, '#7f1d1d');R(14, 6, 2, 2, '#ef4444');R(15, 6, 1, 1, '#fef08a');
-   R(19, 6, 3, 2, '#7f1d1d');R(20, 6, 2, 2, '#ef4444');R(21, 6, 1, 1, '#fef08a');
-   // Nariz achatado
-   R(17, 8, 2, 2, '#2d5c1e');
-   // Boca e presas
-   R(14, 10, 8, 4, '#120404');
-   R(15, 10, 1, 1, '#ffffff');R(20, 10, 1, 1, '#ffffff');
-   // CHIFRES CURVADOS SAINDO DA BOCA / MANDÍBULA
-   R(11, 11, 3, 3, '#78592d');R(9, 8, 3, 4, '#ab8446');R(8, 5, 2, 4, '#e0bb72');R(8, 4, 1, 1, '#ffffff');
-   R(22, 11, 3, 3, '#78592d');R(24, 8, 3, 4, '#ab8446');R(26, 5, 2, 4, '#e0bb72');R(27, 4, 1, 1, '#ffffff');
-  });
- }
-
- /* ---------- Sprite do Ferreiro Prisioneiro e Resgatado ---------- */
  function makeBlacksmithSprite(chained=false){
   return paint(24, 26, (R, E) => {
    // Sombra
@@ -354,7 +290,7 @@
   });
  }
  window.makeBlacksmithSprite = makeBlacksmithSprite;
- window.SPRITE_BLACKSMITH = { idle: makeBlacksmithSprite(false) };
+ window.SPRITE_BLACKSMITH = { idle: typeof HS === 'object' && HS.ferreiro ? HS.ferreiro.d : makeBlacksmithSprite(false) }; // ferreiro no estilo do herói (js/sprites.js)
 
  /* ---------- Verificação de Caminhada (Paredes da Caverna) ---------- */
  function dungeonWalk(x, y){
@@ -387,6 +323,9 @@
    const halfH = Math.max(8, Number(door.h) || 56) / 2 + pad;
    if(Math.abs(x - door.x) <= halfW && Math.abs(y - door.y) <= halfH) return false;
   }
+
+  // decorações sólidas (árvores, lápides, troncos)
+  if(DECOR_SOLIDOS.size && window.decorSolida(x, y)) return false;
 
   // Colisão com baús não abertos (baús abertos não bloqueiam passagem)
   for(let i = 0; i < dungeonChests.length; i++){
@@ -568,7 +507,7 @@
    const qualityMax = Math.max(qualityMin, Math.min(100, Math.floor(Number(loot.qualityMax) || qualityMin)));
    if(!chest.randomTier) qualityRange = [qualityMin, qualityMax];
    loot.items.forEach(drop => {
-    if(!drop || typeof drop !== 'object') return;
+    if(!drop || typeof drop !== 'object' || NUNCA_CAI.includes(drop.id)) return; // arma ADM/teste nunca sai de baú (js/custom.js)
     const chance = Math.max(0, Math.min(100, Number(drop.chance) || 0));
     if(ITEMS[drop.id] && Math.random() * 100 < chance) items.push(drop.id);
    });
@@ -666,66 +605,24 @@
   return 'gold';
  }
 
- /* ---------- Configuração e IA do Boss Goblin Demoníaco ---------- */
+ /* ---------- Chefe padrão da DG: Rei Esqueleto do Covil (o Lorde Goblin saiu do jogo, pedido do usuário 2026-10-23) ----------
+    É um monstro do projeto como os outros (Engine › Chefes); sem ele no projeto, o Rei Esqueleto comum vira chefe. */
+ const CHEFE_DG = 'rei_esqueleto_covil';
+ const tipoChefeDG = () => MONSTER_TYPES[CHEFE_DG] ? CHEFE_DG : MONSTER_TYPES.esqueleto_rei ? 'esqueleto_rei' : 'goblin';
  function spawnDungeonBoss(bx, by, blvl){
   initChestSprites();
-  const bossLvl = blvl || Math.max(5, p.lvl + 1);
-  const bossSprite = makeBossGoblinSprite();
-  SP.goblinBoss = one(bossSprite);
-
-  dungeonBoss = {
-   boss: true,
-   bossType: 'grandboss',
-   ty: 'goblinBoss',
-   name: 'Lorde Goblin Demoníaco',
-   img: SP.goblinBoss.d,
-   sp: SP.goblinBoss,
-   max: 850 + p.lvl * 90,
-   dmg: 28 + p.lvl * 4,
-   spd: 70,
-   xp: 320,
-   g: 150,
-   aggro: 480,
-   wu: 0.45,
-   ac: 1.3,
-   weaponBasic: { rng: 40 },
-   lvl: bossLvl,
-   stats: { F: 28 + p.lvl * 3, A: 12 + p.lvl, I: 16 + p.lvl },
-   equipmentStats: { arm: 18, magicArm: 12, dmg: 14 },
-   size: 1.4,
-   armor: 22,
-   magicArmor: 18,
-   isDungeonMob: true,
-   rt: 0
-  };
-
-  dungeonBoss.x = dungeonBoss.hx = (bx != null ? bx : 780);
-  dungeonBoss.y = dungeonBoss.hy = (by != null ? by : 480);
-  if(MONSTER_TYPES.goblinBoss?.custom)configureMonster(dungeonBoss,'goblinBoss',bossLvl);
-  dungeonBoss.hp = dungeonBoss.max;
-  dungeonBoss.mp = 100;
-  dungeonBoss.fx = -1;
-  dungeonBoss.fy = 0;
-  dungeonBoss.aw = 0;
-  dungeonBoss.cd = 0;
-  dungeonBoss.hit = 0;
-  dungeonBoss.rt = 0;
-  dungeonBoss.dest = null;
-  dungeonBoss.path = [];
-  dungeonBoss.pathI = 0;
-  dungeonBoss.pathKey = '';
-  dungeonBoss.roamT = 5;
-  dungeonBoss.roamRadius = 30;
-  // mecânicas (js/chefes.js): as do projeto, se o Lorde Goblin tiver sido editado na Engine; senão as originais
-  if(!MONSTER_TYPES.goblinBoss?.mecanicas) dungeonBoss.mecanicas = window.MECANICAS_LORDE_GOBLIN;
-  if(!MONSTER_TYPES.goblinBoss?.furia) dungeonBoss.furiaPct = 25;
+  const ty = tipoChefeDG(), bossLvl = blvl || Math.max(5, p.lvl + 1);
+  dungeonBoss = spawnAt(bx != null ? bx : 780, by != null ? by : 480, ty, bossLvl);
+  Object.assign(dungeonBoss, { boss: true, bossType: 'grandboss', isDungeonMob: true, rt: 0, roamT: 5, roamRadius: 30 });
+  if(ty !== CHEFE_DG) dungeonBoss.size = 1.3;
+  // mecânicas (js/chefes.js): as do projeto; sem nenhuma, as padrão do chefe da DG
+  if(!MONSTER_TYPES[ty]?.mecanicas) dungeonBoss.mecanicas = window.MECANICAS_CHEFE_DG;
+  if(!MONSTER_TYPES[ty]?.furia) dungeonBoss.furiaPct = 25;
   dungeonBoss.delayedHp = dungeonBoss.max;
-
   window.dungeonBoss = dungeonBoss;
   en.push(dungeonBoss);
   return dungeonBoss;
  }
-
  function updateBossAI(dt){
   if(!dungeonBoss) return;
   // Animação de barra de dano recente (delayedHp)
@@ -739,7 +636,7 @@
     bossDefeatedEvent = true;
     dungeonShake = 0.6;
     ring(dungeonBoss.x, dungeonBoss.y, 60, '#f59e0b', 1.0);
-    ft(dungeonBoss.x, dungeonBoss.y - 30, '✦ LORDE GOBLIN DERROTADO! ✦', '#ffd700');
+    ft(dungeonBoss.x, dungeonBoss.y - 30, '✦ ' + String(dungeonBoss.name || 'Chefe').toUpperCase() + ' DERROTADO! ✦', '#ffd700');
     if(!DUNGEON_EXIT_PORTAL.disabled)ft(DUNGEON_EXIT_PORTAL.x, DUNGEON_EXIT_PORTAL.y - 20, 'PORTAL DE SAÍDA ATIVADO!', '#38bdf8');
     if(!window.blacksmithSaved&&!DUNGEON_BLACKSMITH_POS.disabled){
      ft(DUNGEON_BLACKSMITH_POS.x, DUNGEON_BLACKSMITH_POS.y - 20, 'O ferreiro está livre! Fale com ele!', '#ffd84a');
@@ -898,12 +795,12 @@
    const targetLvl = m.lvl || Math.max(4, p.lvl);
    const isBoss = !!m.isBoss || !!(MONSTER_TYPES[mobType] && ['boss', 'grandboss'].includes(MONSTER_TYPES[mobType].bossType));
    let mon;
-   if(mobType === 'goblinBoss'){
+   if(mobType === 'goblinBoss' || mobType === CHEFE_DG){ // goblinBoss: DG salva antes de o Lorde Goblin sair
     mon = spawnDungeonBoss(m.x, m.y, targetLvl);
    } else {
     // Usa a mesma construção do catálogo da ilha para qualquer tipo selecionado no editor.
     mon = spawnAt(m.x, m.y, mobType, targetLvl);
-    const fallbackSprites = { gob: SP.goblinSaw, sprout: SP.sprout, sk: SP.sk, sl: SP.sl, goblin: SP.goblin };
+    const fallbackSprites = { gob: SP.goblinSaw, sl: SP.sl, goblin: SP.goblin, boss: SP.glooc };
     const fallbackSprite = fallbackSprites[mobType];
     const monsterTemplate = MONSTER_TYPES[mobType];
     if(fallbackSprite && !(monsterTemplate && monsterTemplate.custom && monsterTemplate.sprite)){
@@ -931,6 +828,9 @@
     mon.dungeonAnimation.durations = { ...m.animation.durations };
    }
    if(m.name) mon.name = m.name;
+   // elite e mecânicas próprias deste monstro nesta DG (ex.: Flor Selvagem elite com a fumaça venenosa)
+   if(m.elite && window.makeElite && !mon.elite) makeElite(mon);
+   if(Array.isArray(m.mecanicas) && m.mecanicas.length) mon.mecanicas = m.mecanicas.map(x => ({ ...x }));
    if(Number(m.maxHp) > 0){
     mon.max = Math.round(Number(m.maxHp));
     mon.hp = mon.max;
@@ -1005,15 +905,14 @@
  function drawDungeonDecoration(dec,target,original=false){
   const ctx=target||cv.getContext('2d');
   const { x, y, type } = dec;
-  if(!dec.sprite&&!original&&gameArtDraw('dg-decor-'+type,ctx,x,y))return;
-  if(dec.sprite){
-   const sprite = cachedDungeonArt(dec.sprite);
-   if(sprite){
-    const scale = Math.min(32 / sprite.width, 32 / sprite.height);
-    const width = sprite.width * scale, height = sprite.height * scale;
-    ctx.drawImage(sprite, Math.round(x - width / 2), Math.round(y - height), width, height);
-    return;
-   }
+  if(!dec.sprite&&dec.el==null&&dec.arvore==null&&!original&&gameArtDraw('dg-decor-'+type,ctx,x,y))return;
+  const arte = arteDecoracao(dec);
+  if(arte){
+   // 1:1 (padrão do jogo): o desenho no tamanho real, com os pés na posição; as altas balançam com o vento
+   const q = arte.q || 1, w = arte.width / q, h = arte.height / q;
+   if(dec.balanca && !target){ const sk = Math.sin(time * 1.3 + x * .07) * .05; ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.transform(1, 0, sk, 1, 0, 0); ctx.drawImage(arte, Math.round(-w / 2), Math.round(-h + 3), w, h); ctx.restore(); }
+   else ctx.drawImage(arte, Math.round(x - w / 2), Math.round(y - h + 3), w, h);
+   return;
   }
   if(type === 'barrel'){
    // Barril de goblin com aros de ferro
@@ -1400,7 +1299,7 @@
    vctx.fill();
   });
 
-  // Luz e aura do Lorde Goblin se vivo
+  // Luz e aura do chefe se vivo
   if(dungeonBoss && dungeonBoss.hp > 0){
    const bx = toScreenX(dungeonBoss.x);
    const by = toScreenY(dungeonBoss.y);
@@ -1530,9 +1429,7 @@
   DUNGEON_DOORS.forEach(door=>drawDungeonDoor(door));
 
   // 5. Elementos Decorativos da Caverna (Chão / Cenário)
-  DUNGEON_DECORATIONS.forEach(dec => {
-   drawDungeonDecoration(dec);
-  });
+  DUNGEON_DECORATIONS.forEach(dec => { if(!dec.alto) drawDungeonDecoration(dec); });
   // 6. Tochas da Caverna com Iluminação Dinâmica
   dungeonTorches.forEach(t => {
    if(drawCustomDungeonObject(t))return;
@@ -1626,11 +1523,12 @@
     const spriteH = wh(e.img) * scale;
     const labelY = e.y - spriteH - 1;
 
-    if(hov == e || p.tgt == e) circ(e.x, e.y, 14, hov == e ? '#ff5' : '#f55');
+    if(p.tgt == e) circ(e.x, e.y, 14, '#f55'); // mouse em cima: contorno vermelho no desenho (dr.borda)
     ctx.globalAlpha = e.hit > 0 ? .5 : 1;
-    const an = anim(e, e.wu, false);
-    const sprite = monsterSpriteFrame(e, f.d, an);
-    dr(sprite, e.x, e.y, f.fl, scale, an);
+    const an = window.animMonstro ? animMonstro(e, false) : anim(e, e.wu, false); // sem tranco para a frente; quadros próprios sem animação procedural
+    const sprite = monsterSpriteFrame(e, f.d, an || {}, f.fl);
+    if(hov == e) dr.borda = '#ff2b2b';
+    dr(sprite, e.x, e.y, window.esqMonstro && esqMonstro(e, f.d, f.fl) ? 1 : f.fl, scale, an);
     ctx.globalAlpha = 1;
 
     // Se for o Boss, não desenha a barra de vida minúscula em cima da cabeça porque temos a barra de elite no topo da tela!
@@ -1641,7 +1539,7 @@
      ctx.fillStyle = '#4b121c'; ctx.fillRect(barX, barY, barW, 1);
      ctx.fillStyle = '#ed354e'; ctx.fillRect(barX, barY, barW * hpRatio, 1);
      ctx.font = '5px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#d8d8d8';
-     ctx.fillText(e.name || 'Goblin', e.x, labelY);
+     ctx.fillText(e.name || (MONSTER_TYPES[e.ty] && MONSTER_TYPES[e.ty].name) || 'Monstro', e.x, labelY);
     }
    }]);
   });
@@ -1668,11 +1566,15 @@
    }]);
   }
 
+  // decorações altas (árvores, lápides, estacas): na ordem de profundidade, só as perto da câmera
+  for(const dec of DUNGEON_DECORATIONS) if(dec.alto && Math.abs(dec.x - p.x) < 300 && Math.abs(dec.y - p.y) < 220) renderList.push([dec.y, () => drawDungeonDecoration(dec)]);
+
   // Outros jogadores do grupo (js/online.js)
   if(window.onlineDrawables) onlineDrawables(renderList);
 
   // Ordena por profundidade Y e desenha todos
   renderList.sort((a, b) => a[0] - b[0]).forEach(item => item[1]());
+  if(window.ILHA_VIVA && DUNGEON_THEME === 'forest') ILHA_VIVA.dgAr(); // folhas, névoa e esporos (js/ilha-viva.js)
 
   // 7. Partículas e Loots Voadores
   flyingLoots.forEach(fl => {
@@ -1718,6 +1620,7 @@
 
   // 7. Campo de Visão / Névoa de Guerra Dinâmica (Atmosfera Escura da Caverna)
   drawDungeonVision(W, H, shakeX, shakeY);
+  if(window.ILHA_VIVA && DUNGEON_THEME === 'forest') ILHA_VIVA.dgLuzes(); // vaga-lumes acesos por cima da escuridão
 
   // Textos flutuantes (dano, avisos, ouro)
   ctx.font = '6px monospace'; ctx.textAlign = 'center';
@@ -1734,19 +1637,8 @@
   // 9. Minimapa da Masmorra
   drawDungeonMinimap();
 
-  // 10. Tela de Morte na Masmorra (se caiu)
-  if(p.dead > 0){
-   ctx.setTransform(1, 0, 0, 1, 0, 0);
-   ctx.fillStyle = 'rgba(0,0,0,0.75)';
-   ctx.fillRect(0, 0, cv.width, cv.height);
-   ctx.fillStyle = '#ef4444';
-   ctx.font = 'bold 24px monospace';
-   ctx.textAlign = 'center';
-   ctx.fillText('Você caiu na Masmorra...', cv.width / 2, cv.height / 2 - 10);
-   ctx.fillStyle = '#ffffff';
-   ctx.font = '14px monospace';
-   ctx.fillText(`Expulso de volta ao acampamento em ${Math.ceil(p.dead)}s`, cv.width / 2, cv.height / 2 + 20);
-  }
+  // 10. morte na masmorra: tela própria em #telaMorte (render.js) com Sair da dungeon e Assistir (js/morte-dg.js)
+
  }
  window.drawDungeonWorld = drawDungeonWorld;
 
@@ -1847,7 +1739,7 @@
   ctx.fillText(hpText, barX + barW / 2, barY + 14);
 
   // Ícone do Boss à esquerda em moldura dourada
-  const iconSrc = boss === dungeonBoss && (window.DG_BOSS_ICONS && window.DG_BOSS_ICONS.goblin) || '';
+  const iconSrc = boss === dungeonBoss && (window.DG_BOSS_ICONS && window.DG_BOSS_ICONS.skeleton) || '';
   if(iconSrc || boss.img){
    if(!window._cachedBossIconImg){
     window._cachedBossIconImg = new Image();

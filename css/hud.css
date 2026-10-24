@@ -309,5 +309,30 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 @keyframes vnPisca{50%{opacity:0}}
 #vn .vnPular{position:absolute;top:14px;right:14px;padding:6px 14px;background:#262626;color:#D9D0C7;border:1px solid #595959;font:13px monospace;cursor:pointer}
 #vn .vnPular:hover{background:#595959}
+#vn .vnEscolhas{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#vn .vnEscolhas:empty{display:none}
+#vn .vnEscolhas button{padding:7px 14px;background:#262626;color:#D9D0C7;border:2px solid #595959;font:14px monospace;cursor:pointer}
+#vn .vnEscolhas button:hover,#vn .vnEscolhas button:focus-visible{background:#595959;outline:none}
+#dialogue.vnOculto{display:none!important}
 @media (max-width:700px){#vn .vnRet{width:46vw;height:50vh;bottom:160px}#vn .vnCaixa{font-size:14px}}
 body.emTutorial .tavBtn{display:none}
+
+/* menu › Créditos (js/menu.js) */
+#menu .creditos{max-height:56vh;overflow:auto;text-align:left;padding:0 4px;margin-bottom:10px}
+#menu .credLinha{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;margin:0;padding:5px 0;border-bottom:1px solid #262626;font-size:13px}
+#menu .credNome{color:#D9D0C7}
+#menu .credAutor{color:#A69C94}
+
+/* ranqueada (js/arena.js): busca e tabela dos melhores */
+.arn-busca{color:#D9D0C7;font-weight:bold}
+.arn-rank{margin-top:10px;border:1px solid #595959;background:#0D0D0D;padding:8px 10px;min-width:260px}
+.arn-rank b{display:block;margin-bottom:4px;color:#A69C94}
+.arn-rankLinha{display:flex;justify-content:space-between;gap:16px;padding:2px 0;color:#D9D0C7;font-size:13px}
+.arn-rankLinha.voce{color:#ffd84a}
+
+/* morte na DG: assistindo um aliado (js/morte-dg.js) */
+#assistindo{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:40;display:none;gap:8px;align-items:center;padding:6px 10px;background:#0D0D0D;border:1px solid #595959;color:#D9D0C7;font:13px monospace}
+#assistindo.on{display:flex}
+#assistindo button{background:#262626;color:#D9D0C7;border:1px solid #595959;padding:4px 10px;font:12px monospace;cursor:pointer}
+#assistindo button:hover{background:#595959}
+#telaMorte button[hidden]{display:none}

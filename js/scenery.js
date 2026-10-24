@@ -12,6 +12,9 @@ const RAW={
  leaf:['#0d2a1a','#16452b','#22662f','#38893a','#5fb04e','#9ed86a'],
  leaf2:['#18301a','#2c4f1f','#477a25','#6da130','#9ccb4a','#d2ee7a'],
  pine:['#082022','#0f3a37','#17564a','#247a5a','#3fa06c','#7ccb8a'],
+ flor:['#3a1630','#6e2a52','#a8467a','#d9709e','#f3a6c4','#ffe0ec'],
+ outono:['#3a1608','#6e2c0e','#a8481a','#d9702a','#f5a43e','#ffd987'],
+ carvalho:['#0a2014','#123824','#1d542e','#2f7236','#4c9442','#86c062'],
  moss:['#1a2c14','#2d4a1c','#456f25','#62933a','#8bba4f','#bfe07a'],
  wood:['#24130a','#432612','#65401f','#8c5b2d','#b8803f','#e0aa62'],
  drift:['#25211e','#413c37','#645d55','#898177','#afa597','#d4cbbb'],
@@ -198,17 +201,24 @@ function buildTree(v){const w=48,h=52,b=new B(w,h),sd=v*61+9,tx=24;shadow(b,tx,4
  if(v==0)canopy=(x,y)=>{let z=-1;[[24,17,13],[13,25,10],[35,25,10],[24,28,11]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.8,sd)-.5)*.3;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z};
  else if(v==1){ramp=R.leaf2;trW=4;canopy=(x,y)=>{let z=-1;[[24,20,17],[11,28,9],[37,28,9],[24,12,9]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.88))-(noise(x,y,2.6,sd)-.5)*.32;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
  else if(v==2){ramp=R.pine;trW=2.8;trTop=40;canopy=(x,y)=>{const t=[[4,17,10],[13,25,14],[22,34,18]];for(const[ay,by,hw]of t){if(y<ay||y>by+Math.sin(x*1.3)*.9)continue;const k=(y-ay)/(by-ay),w2=hw*(.15+.85*k),dx=(x+.5-tx);if(Math.abs(dx)<w2)return(1-Math.abs(dx)/w2)*w2*.8+3+(1-k)*3+noise(x,y,2.4,sd)*1.4}return-1}}
- else{ramp=R.leaf2;tr=R.birch;trW=2.5;trTop=30;canopy=(x,y)=>{let z=-1;[[24,15,9],[16,22,8],[32,22,8],[24,24,7]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.4,sd)-.5)*.34;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
+ else if(v==3){ramp=R.leaf2;tr=R.birch;trW=2.5;trTop=30;canopy=(x,y)=>{let z=-1;[[24,15,9],[16,22,8],[32,22,8],[24,24,7]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.4,sd)-.5)*.34;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
+ // 4 cerejeira florida (copa rosa em tufos), 5 árvore de outono (laranja), 6 carvalho grande (copa larga e escura)
+ else{const bolas=v==4?[[24,16,10],[14,22,8],[34,21,8],[20,27,7],[30,28,7]]:v==5?[[24,18,12],[14,25,9],[34,25,9],[24,10,8]]:[[24,19,15],[10,26,10],[38,26,10],[17,12,9],[31,12,9]];
+  ramp=v==4?R.flor:v==5?R.outono:R.carvalho;trW=v==6?4.6:3;trTop=v==6?33:32;
+  canopy=(x,y)=>{let z=-1;bolas.forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.6,sd)-.5)*.34;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
  shape(b,(x,y)=>{let z=cap(x,y,tx,46,tx,trTop,trW);const f=Math.max(0,(y-43)/4);if(y>=42&&y<=47){const q=Math.abs(x+.5-tx)/(trW+3.2*f);if(q<1)z=Math.max(z,trW*Math.sqrt(1-q*q))}return z},tr,{k:1,tex:(x,y,t)=>{t+=(noise(x*1.4,y*.3,1,sd)-.5)*.5;if(canopy(x,y-3)>=0||canopy(x,y-5)>=0)t-=.32;if(v==3&&ih(x,y,sd)>.9&&(y%5<2))return{t:.0,ramp:R.birch};return t}});
  shape(b,(x,y)=>{const z=canopy(x,y);return z<0?-1:z+noise(x,y,3.4,sd+4)*2.2},ramp,{k:1,tex:(x,y,t)=>{const s=ih(x,y,sd);return t+(noise(x,y,4,sd+9)-.5)*.36+(s>.95?.2:s<.04?-.18:0)}});
  outline(b,ramp[0]);const c=cvs(b);c.pad=0;return c}
-for(let i=0;i<4;i++)TREEV.push(buildTree(i));
+for(let i=0;i<7;i++)TREEV.push(buildTree(i));
 /* arte do mapa editada pelo GM: PROJ.mapArt[tipo][variante] = pixel art (null = desenho padrão) */
 const artOv=(t,vi)=>{const o=PROJ.mapArt&&PROJ.mapArt[t],d=o&&o[vi];return d&&d.pixels?d:null};
 window.mapArtOverride=artOv;
 window.TREE_DEFAULT=TREEV.slice();
-for(let i=0;i<4;i++){const d=artOv('tree',i),c=d&&pixelArt(d);if(c){c.pad=0;TREEV[i]=c}}
-window.TREEV=TREEV;window.treeVar=t=>Math.floor(ih(Math.round(t.x),Math.round(t.y),97)*4)%4;
+for(let i=0;i<TREEV.length;i++){const d=artOv('tree',i),c=d&&pixelArt(d);if(c){c.pad=0;TREEV[i]=c}}
+/* tipo de cada árvore pela posição: os 4 de sempre são a maioria; carvalhos no meio dos bosques, cerejeiras e árvores de
+   outono em manchas (bosque florido a oeste, outono a leste) */
+window.TREEV=TREEV;window.treeVar=t=>{const x=Math.round(t.x),y=Math.round(t.y),r=ih(x,y,97),m=noise(x,y,160,31);
+ if(m>.66&&r<.55)return x<CX?4:5;if(r>.88)return 6;return Math.floor(ih(x,y,98)*4)%4};
 
 /* ---- cercas e muros que se conectam sozinhos ---- */
 let fv=0;window.sceneryDirty=()=>{fv++;for(const key of Object.keys(cache))delete cache[key]};

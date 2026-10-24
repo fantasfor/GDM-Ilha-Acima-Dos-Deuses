@@ -26,7 +26,7 @@ function mudou(){
  if(typeof heroC==='object')for(const k in heroC)delete heroC[k];
  if(!avisado){avisado=true;
   // NPCs de classe passam para o mesmo estilo
-  if(typeof HS==='object'&&typeof set3==='function'&&typeof human==='function')for(const k of Object.keys(HS))if(HS[k]&&k!=='sk'&&CLASSE_MANA[k]){const n=set3(human,k);for(const d in n)HS[k][d]=n[d]}
+  if(typeof HS==='object'&&typeof set3==='function'&&typeof human==='function')for(const k of Object.keys(HS))if(HS[k]&&CLASSE_MANA[k]){const n=set3(human,k);for(const d in n)HS[k][d]=n[d]}
   dispatchEvent(new Event('heroi-pronto'))}}
 const pronto=()=>BASE.every(n=>img[n]);
 BASE.forEach(folha);

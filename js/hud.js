@@ -124,7 +124,7 @@
  // equipar com o espaço de destino escolhido volta para "Todos"
  const use0=useSlot;useSlot=function(i,slot){const r=use0.apply(this,arguments);if(slot&&invEquipSlot){invEquipSlot=null;invCategory='all'}return r};
  /* ---------- atualização por quadro ---------- */
- let qsig='',lastLoc='',ready=new Map(),ouroVisto=null;
+ let qsig='',lastLoc='',ready=new Map(),ouroVisto=null,tRotulo=0;
  const hud0=hud;hud=function(){hud0();
   badge.textContent=p.lvl;$('lv').textContent=p.lvl>=CALC.maxLevel?'XP MÁX':'XP '+p.xp+'/'+p.lvl*CALC.xpPerLevel;
   {const g=p.gold|0;if(g!==ouroVisto){ouroVisto=g;$('invGold').innerHTML=moeda(g);$('qgold').innerHTML=moeda(g)}} // número + símbolo da moeda
@@ -141,7 +141,8 @@
   const loc=window.inTutorial?'Santuário Celeste':window.inArena?'Arena':window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
   // relógio do jogo (js/tempo.js): igual para todos, dia e noite de 30 min reais
   const rel=window.TEMPO?(TEMPO.ehNoite()?'Noite ':'Dia ')+TEMPO.hora():'',txt=loc+'|'+rel;
-  if(txt!==lastLoc){lastLoc=txt;mmLabel.innerHTML='';mmLabel.append(loc);if(rel){const s=E('span');s.className='mmHora'+(TEMPO.ehNoite()?' noite':'');s.textContent=rel;s.title=(TEMPO.ehNoite()?'Amanhece':'Anoitece')+' em '+TEMPO.minutosAte()+' min';mmLabel.append(s)}}
+  if(txt!==lastLoc){lastLoc=txt;tRotulo=0;mmLabel.innerHTML='';mmLabel.append(loc);if(rel){const s=E('span');s.className='mmHora'+(TEMPO.ehNoite()?' noite':'');s.textContent=rel;s.title=(TEMPO.ehNoite()?'Amanhece':'Anoitece')+' em '+TEMPO.minutosAte()+' min';mmLabel.append(s)}}
+  if(performance.now()-tRotulo<250)return;tRotulo=performance.now(); // medir o layout é caro: 4× por segundo basta
   const r=$('mm').getBoundingClientRect();mmLabel.style.left=r.left+'px';mmLabel.style.width=r.width+'px';mmLabel.style.top=(r.top-mmLabel.offsetHeight-6)+'px';
   const z=$('mmz');z.style.top=(r.top+4)+'px';z.style.left=(r.right-z.offsetWidth-4)+'px';
  };

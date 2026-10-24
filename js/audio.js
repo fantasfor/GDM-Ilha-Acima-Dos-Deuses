@@ -91,7 +91,9 @@ function refreshLoops(){
  // sem arquivo configurado, a música e o ambiente são gerados (abaixo)
  if(unlocked&&audio){
   const quer=document.hidden?null:scene;
-  trocar('musica',quer&&!(config[scene+'.music']&&config[scene+'.music'].src)?quer:null);
+  // em combate (fora da taverna) toca a música de combate; ela fica até o combate acabar (state.js emCombate, ~10 s sem golpes)
+  const luta=quer&&scene!=='tavern'&&p.dead<=0&&window.emCombate&&emCombate();
+  trocar('musica',luta?'combate':quer&&!(config[scene+'.music']&&config[scene+'.music'].src)?quer:null);
   // ilha: ambiente de dia (mar, vento, pássaros) ou de noite (grilos, coruja), pelo relógio do jogo (js/tempo.js)
   const amb=quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':quer;
   trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?amb:null);
@@ -272,6 +274,40 @@ const TRILHAS={
   if(s===0){nota(d,mtof(ac[0]-12),t,4,{tipo:'sawtooth',vol:.016,ataque:1.2,solta:1.5,filtro:380});nota(d,mtof(ac[1]-12),t,4,{tipo:'sawtooth',vol:.01,ataque:1.5,solta:1.5,filtro:300,detune:-6});
    nota(d,52,t,.25,{tipo:'sine',vol:.05,solta:.3});nota(d,49,t+.28,.2,{tipo:'sine',vol:.035,solta:.3})}
   if(Math.random()<.38){const SINOS=[69,72,74,76,79,81],m=SINOS[Math.floor(Math.random()*SINOS.length)];nota(d,mtof(m),t,.05,{tipo:'sine',vol:.022,solta:2.4});nota(d,mtof(m),t+.42,.05,{tipo:'sine',vol:.008,solta:2})}
+ }},
+ /* combate: lá menor, 128 bpm em semicolcheias. Começa meio lenta (8 compassos em meio-tempo: pad, baixo longo, bumbo só
+    no 1 e no 3, dedilhado esparso; nos 2 últimos um ruído subindo e a caixa acelerando) e cai no DROP (16 compassos: bumbo
+    em todo tempo, palma no 2 e 4, chimbal, baixo serrilhado "respirando" no contratempo e um riff agudo); depois uma pausa
+    curta de 4 compassos e outro drop, enquanto durar o combate. Sempre que o combate começa, a música recomeça do início. */
+ combate:{passo:60/128/4,toca(d,t,n,est){
+  const P=60/128/4,s=n%16,b=Math.floor(n/16),ACORDES=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],BAIXO=[33,29,36,31];
+  const ciclo=b<8?-1:(b-8)%20,secao=b<8?'sobe':ciclo<16?'drop':'pausa',i=(b<8?b:ciclo)%4,ac=ACORDES[i];
+  const bumbo=(v,q=1)=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(150*q,t);o.frequency.exponentialRampToValueAtTime(42,t+.11);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(d);o.start(t);o.stop(t+.24)};
+  const chiado=(v,fq,dur,tipo='highpass')=>{const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type=tipo;f.frequency.value=fq;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f);f.connect(g);g.connect(d);src.start(t,(n*.173)%1.5,dur+.02)};
+  if(secao==='sobe'){
+   if(s===0){ac.forEach(m=>nota(d,mtof(m),t,P*16,{tipo:'sawtooth',vol:.007,ataque:.6,solta:.8,filtro:900+b*160}));nota(d,mtof(BAIXO[i]),t,P*14,{tipo:'triangle',vol:.05,ataque:.05,solta:.4})}
+   if(s===0||s===8)bumbo(.06);
+   if(s%4===2&&b>=2)nota(d,mtof(ac[(s/4|0)%3]+12),t,P*1.5,{tipo:'triangle',vol:.012+b*.002,solta:.25,filtro:2600});
+   if(b>=4&&s%2===0)chiado(.003+b*.0008,8000,.03);
+   if(b>=6){const k=b===6?4:s<8?2:1;if(s%k===0)chiado(.006+(b-6)*.006+s*.0006,1800,.06,'bandpass')} // caixa acelerando
+   if(b===6&&s===0){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter(),dur=P*32;src.buffer=ruido();src.loop=true;f.type='bandpass';f.Q.value=2.5;f.frequency.setValueAtTime(400,t);f.frequency.exponentialRampToValueAtTime(9000,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.03,t+dur);g.gain.setValueAtTime(.0001,t+dur+.01);src.connect(f);f.connect(g);g.connect(d);src.start(t);src.stop(t+dur+.02)} // riser
+   if(b===7&&s===15)nota(d,mtof(81),t,P,{tipo:'sine',vol:.02,solta:.05});
+   return}
+  if(secao==='pausa'){
+   if(s===0){ac.forEach(m=>nota(d,mtof(m+12),t,P*16,{tipo:'sine',vol:.012,ataque:.3,solta:.6}))}
+   if(s%4===0)chiado(.004,9000,.03);
+   if(ciclo===19&&s>=8)chiado(.008+(s-8)*.002,1800,.05,'bandpass');
+   return}
+  // DROP
+  if(ciclo===0&&s===0){chiado(.05,600,1.2,'lowpass');bumbo(.12,.8)} // impacto na entrada do drop
+  if(s%4===0)bumbo(.11);
+  if(s===4||s===12)chiado(.03,1500,.12,'bandpass'); // palma/caixa
+  if(s%2===1)chiado(.006,9000,.03);
+  if(s%4===2){const fq=mtof(BAIXO[i]+12),o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o.frequency.value=fq;f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(2200,t+P*.8);f.frequency.exponentialRampToValueAtTime(260,t+P*1.8);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.045,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+P*1.9);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+P*2)} // baixo no contratempo
+  if(s===0)nota(d,mtof(BAIXO[i]),t,P*3,{tipo:'sine',vol:.06,solta:.1}); // sub no tempo forte
+  const RIFF=[0,2,1,2,0,2,1,0,0,2,1,2,2,1,0,1];
+  if(s%2===0||ciclo>=8){const m=ac[RIFF[s]]+24+(ciclo>=8&&s%8===7?2:0);nota(d,mtof(m),t,P*.9,{tipo:'square',vol:.009,ataque:.004,solta:.08,filtro:3200})}
+  if(ciclo>=8&&s===0)ac.forEach(m=>nota(d,mtof(m+12),t,P*15,{tipo:'sawtooth',vol:.005,ataque:.02,solta:.3,filtro:2400,detune:7}));
  }},
  // taverna: as 5 músicas de js/musica-taverna.js, no compasso do relógio do jogo (todos os jogadores ouvem igual):
  // baixo, dedilhado de alaúde, melodia (rabeca/flauta), pandeiro e bumbo; aplauso entre as músicas

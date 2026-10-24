@@ -9,10 +9,10 @@
   ICONE:16,CHAO:8,
   HEROI:{altura:25,largura:16}, // corpo do herói (sem arma), para comparar
   MONSTRO:{
-   pequeno:{nome:'Pequeno',quadro:[16,16],corpo:'até 12 px de altura',exemplo:'rato, morcego, gosma, toco vivo'},
-   medio:{nome:'Médio',quadro:[32,32],corpo:'13 a 26 px (até o tamanho do herói)',exemplo:'goblin, orc, soldado, colmeia'},
-   grande:{nome:'Grande',quadro:[48,48],corpo:'27 a 40 px',exemplo:'ogro, urso, cogumelo gigante'},
-   chefe:{nome:'Chefe',quadro:[64,64],corpo:'41 a 62 px (64×64 é o máximo)',exemplo:'Lorde Goblin, dragão jovem'}
+   pequeno:{nome:'Pequeno',quadro:[16,16],corpo:'até 12 px de altura',exemplo:'rato, gosma, toco vivo'},
+   medio:{nome:'Médio',quadro:[32,32],corpo:'13 a 26 px (até o tamanho do herói)',exemplo:'goblin, esqueleto, lobo, colmeia'},
+   grande:{nome:'Grande',quadro:[48,48],corpo:'27 a 40 px',exemplo:'Rei Esqueleto, lobisomem'},
+   chefe:{nome:'Chefe',quadro:[64,64],corpo:'41 a 62 px (64×64 é o máximo)',exemplo:'Rei Esqueleto do Covil, Dragão de Magma Ancião'}
   },
   MAX:64
  };

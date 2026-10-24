@@ -111,7 +111,8 @@ $('skillBtn').onclick=()=>{skillPanel.classList.toggle('open');if(skillPanel.cla
 addEventListener('keydown',e=>{if(TECLAS.acao(e)=='painel_hab'){$('skillBtn').click()}});
 /* ---------- Missões (cadeia principal dos NPCs) ---------- */
 const QUEST_STEPS=[
- {k:'questDone',n:'Derrotar o Guardião Esqueleto',who:'Principal'},
+ {k:'cacaFeita',n:'Derrotar 10 monstros quaisquer',who:'Principal'},
+ {k:'questDone',n:'Derrotar o Glooc Saqueador',who:'Principal'},
  {k:'carpenterHelped',n:'Levar o carpinteiro ao acampamento',who:'Carpinteiro'},
  {k:'sawQuestActive',n:'Aceitar a missão do serrote',who:'Carpinteiro'},
  {k:'sawObtained',n:'Recuperar o serrote do Goblin',who:'Carpinteiro'},
@@ -121,12 +122,12 @@ const QUEST_STEPS=[
  {k:'campPortalBuilt',n:'Construir o portal do acampamento',who:'Carpinteiro'},
  {k:'blacksmithSaved',n:'Resgatar o ferreiro no Covil dos Goblins',who:'Ferreiro'}
 ];
-const questFlags=()=>[questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,blacksmithSaved];
+const questFlags=()=>[cacaFeita,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,blacksmithSaved];
 const questStage=()=>{const f=questFlags();let n=0;while(n<f.length&&f[n])n++;return n};
 function setQuestStage(n){
  if(window.inDungeon&&window.exitDungeon)exitDungeon(true);
  const on=i=>n>i;
- questDone=on(0);carpenterHelped=on(1);sawQuestActive=on(2);sawObtained=on(3);woodQuestActive=on(4);wallBuilt=on(5);magicWoodQuestActive=on(6);campPortalBuilt=on(7);blacksmithSaved=on(8);window.blacksmithSaved=blacksmithSaved;
+ cacaFeita=on(0);cacaMortes=cacaFeita?CACA_ALVO:0;questDone=on(1);carpenterHelped=on(2);sawQuestActive=on(3);sawObtained=on(4);woodQuestActive=on(5);wallBuilt=on(6);magicWoodQuestActive=on(7);campPortalBuilt=on(8);blacksmithSaved=on(9);window.blacksmithSaved=blacksmithSaved;
  campPortalTheme=campPortalBuilt?'goblin':'normal';window.campPortalTheme=campPortalTheme;
  for(let i=drops.length-1;i>=0;i--)if(drops[i].questReward)drops.splice(i,1);
  const hasSaw=I.some(s=>s&&s.id=='saw')||Object.values(EQ).some(s=>s&&s.id=='saw');
@@ -137,7 +138,12 @@ function setQuestStage(n){
  saveGame();window._noSave=true;sessionStorage.setItem('ilha-skip','1');location.reload()
 }
 /* Ganchos usados pelas ferramentas de teste da Engine (somente no Play da Engine; o jogo normal não tem trapaças). */
+/* trapaças do teste (Engine › Jogar › Ferramentas de teste): vida infinita, dano infinito, mana infinita, sem recarga */
+if(MODO.teste){window.TRAPACA={vida:false,dano:false,mana:false,recarga:false};
+ // upd é de js/update.js (carrega depois deste arquivo)
+ addEventListener('load',()=>{const updT=upd;upd=function(dt){updT(dt);const t=window.TRAPACA;if(p.dead>0)return;if(t.vida)p.hp=mhp();if(t.mana)p.mp=mmp();if(t.recarga)SK.forEach(s=>s.t=0)}})}
 if(MODO.teste)window.TESTE={
+ trapacas:o=>{Object.assign(window.TRAPACA,o||{});return window.TRAPACA},
  estado:()=>({classe:p.cls,nivel:p.lvl,rank:(p.classProgress&&p.classProgress[p.cls]||{rank:1}).rank,ouro:p.gold,vida:Math.round(p.hp),missao:questStage(),dg:!!window.inDungeon,x:Math.round(p.x),y:Math.round(p.y)}),
  missoes:()=>QUEST_STEPS.map(s=>s.n),
  itens:()=>Object.keys(ITEMS).map(id=>[id,ITEMS[id].n.split(' (')[0]]),
@@ -208,7 +214,7 @@ function saveGame(){
  if(window._noSave||MODO.motor)return;
  // na taverna o progresso guarda o lugar da ilha de onde o jogador saiu (js/taverna.js)
  const pos=window.posicaoParaSalvar?posicaoParaSalvar():p;
- const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0},missao:p.missao||null,quadro:p.quadro||null,tutorial:p.tutorial||null},items:I,equipment:EQ,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
+ const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0},missao:p.missao||null,quadro:p.quadro||null,tutorial:p.tutorial||null},items:I,equipment:EQ,cacaFeita,cacaMortes,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
@@ -242,7 +248,8 @@ function loadGame(){
   if(!walk(p.x,p.y)){p.x=CX;p.y=CY+34}
   I.length=Math.max(40,d.items.length);I.fill(null);d.items.forEach((s,i)=>{if(s&&ITEMS[s.id]&&Number.isInteger(s.n)&&s.n>0)I[i]={id:s.id,n:s.n,q:s.q}});
   for(const id of Object.keys(EQ)){const e=d.equipment&&d.equipment[id];EQ[id]=e&&fits(id,e.id)?{id:e.id,n:1,q:e.q}:null}
-  questDone=d.questDone===true;if(questDone)boss.hp=0;carpenterHelped=questDone&&d.carpenterHelped===true;
+  cacaFeita=d.cacaFeita!=null?d.cacaFeita===true:d.questDone===true;cacaMortes=Math.max(0,+d.cacaMortes||0); /* save antigo que já venceu o Guardião não refaz a caça */
+ questDone=d.questDone===true;if(questDone)boss.hp=0;carpenterHelped=questDone&&d.carpenterHelped===true;
   sawQuestActive=carpenterHelped&&d.sawQuestActive===true;sawObtained=sawQuestActive&&d.sawObtained===true;
   woodQuestActive=sawObtained&&d.woodQuestActive===true;wallBuilt=woodQuestActive&&d.wallVersion===2&&d.wallBuilt===true;
   magicWoodQuestActive=wallBuilt&&d.magicWoodQuestActive===true;campPortalBuilt=magicWoodQuestActive&&d.campPortalBuilt===true;
@@ -299,7 +306,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  $('pname').textContent=CL[p.cls].n;$('hpr').textContent='+'+regenHp().toFixed(2);$('mpr').textContent='+'+regenMp().toFixed(2);
  $('gold').textContent='● '+p.gold;
  SK.forEach(s=>{s.u.style.height=s.t/s.cd*100+'%';s.cn.textContent=s.lock?'R'+s.lock:s.t>0?Math.ceil(s.t):'';s.el.style.opacity=p.mp<s.mana||s.lock||s.bad?.5:1});
- $('top').textContent='Botão direito: mover/atacar • Botão esquerdo: inspecionar/NPC • QWERTY ZX habilidades • I bolsa';
+ $('top').textContent='WASD ou botão direito: mover/atacar • Botão esquerdo: inspecionar/NPC • Q E R F T G e Z X habilidades • I bolsa';
  if(insp&&insp.hp<=0)insp=null;
  window.insp=insp;
  const isDungeonBossTarget = window.inDungeon && window.dungeonBoss && (p.tgt === window.dungeonBoss || insp === window.dungeonBoss);
@@ -319,22 +326,23 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  const direction=target?(target.y<CY?'norte':'sul')+(target.x<CX?'oeste':'leste'):'';
  const sawDropPending=drops.some(d=>d.questReward);
  let objective;
- if(!questDone)objective='Derrote o Guardião Esqueleto que está perseguindo o carpinteiro escondido nos escombros.';
+ if(!cacaFeita)objective='Derrote 10 monstros, de qualquer tipo: '+Math.min(CACA_ALVO,cacaMortes)+'/'+CACA_ALVO+'. Eles saem dos portais pela ilha. Depois disso, alguém vai precisar da sua ajuda.';
+ else if(!questDone)objective='Derrote o Glooc Saqueador que está perseguindo o carpinteiro escondido nos escombros.';
  else if(!carpenterHelped)objective='Fale com o carpinteiro escondido nos escombros; ele irá para o acampamento.';
  else if(!sawQuestActive)objective='Fale com o carpinteiro no acampamento para saber do muro.';
  else if(!sawObtained)objective=target
-  ?'Goblin do Serrote encontrado no '+direction+'. O marcador mostra onde ele está.'
+  ?'Esqueleto do Serrote encontrado no '+direction+'. O marcador mostra onde ele está.'
   :sawDropPending?'Serrote encontrado! Aceite o item para levá-lo ao carpinteiro.'
-  :'Procure o Goblin do Serrote; ele aparece naturalmente pelo mapa. O indicador surge quando ele spawnar.';
+  :'Procure o Esqueleto do Serrote; ele aparece naturalmente pelo mapa. O indicador surge quando ele spawnar.';
  else if(!woodQuestActive&&!wallBuilt)objective='Serrote recuperado! Fale com o carpinteiro para saber quais materiais faltam.';
  else if(!wallBuilt)objective=itemCount('wood')>=WALL_WOOD_REQUIRED
   ?'Madeira: '+itemCount('wood')+'/20. Entregue 20 madeiras ao carpinteiro para construir a paliçada.'
-  :'Madeira: '+itemCount('wood')+'/20. Derrote Brotos Vivos e aceite a madeira. Peso de spawn da missão: +20%.';
+  :'Madeira: '+itemCount('wood')+'/20. Derrote Tocos Vivos e aceite a madeira. Peso de spawn da missão: +20%.';
  else if(!magicWoodQuestActive)objective='Paliçada construída! Fale com o carpinteiro: seu irmão ferreiro precisa ser salvo.';
  else if(!campPortalBuilt)objective=itemCount('magicWood')>=PORTAL_WOOD_REQUIRED
   ?'Madeira mágica: '+itemCount('magicWood')+'/10. Entregue 10 ao carpinteiro para construir o portal.'
-  :'Madeira mágica: '+itemCount('magicWood')+'/10. Derrote árvores vivas (Brotos Vivos) e aceite o material. Peso de spawn da missão: +20%.';
- else if(!blacksmithSaved)objective='O portal está sintonizado com o Covil dos Goblins! Clique no portal ou abra o menu, entre na DG, derrote o Lorde Goblin Demoníaco e resgate o Ferreiro!';
+  :'Madeira mágica: '+itemCount('magicWood')+'/10. Derrote árvores vivas (Tocos Vivos) e aceite o material. Peso de spawn da missão: +20%.';
+ else if(!blacksmithSaved)objective='O portal está sintonizado com o Covil dos Goblins! Clique no portal ou abra o menu, entre na DG, derrote o Rei Esqueleto do Covil e resgate o Ferreiro!';
  else objective='O Ferreiro foi salvo e está na forja do acampamento! Você pode explorar a DG novamente para caçar baús raros e lendários!';
  // visitando outra ilha: a missão mostrada é a sua, que continua quando voltar para casa
  if(window.inTutorial){} // tutorial: o quadro é do js/tutorial.js

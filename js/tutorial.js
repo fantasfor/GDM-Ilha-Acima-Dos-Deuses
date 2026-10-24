@@ -23,16 +23,25 @@
  /* ---- arte do Anjo: túnica branca, cabelo e auréola dourados, 3 pares de asas douradas batendo devagar ---- */
  const ANJO_FR=8,anjoCache=[];
  function fazerAnjo(fase){
-  const W=84,H=62,c=mkCanvas(W,H),g=c.getContext('2d'),cx=42,om=30,bat=Math.sin(fase);
+  const W=96,H=72,c=mkCanvas(W,H),g=c.getContext('2d'),cx=48,om=38,bat=Math.sin(fase);
   const P=(x,y,col)=>{x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=W||y>=H)return;g.fillStyle=col;g.fillRect(x,y,1,1)},Q=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h)};
-  const COR=['#fff6c8','#ffe28a','#ffd84a','#e8b440','#c9932a','#a8701c'];
-  // de cima (mais atrás) para baixo; cada asa é um leque de penas que vão do ombro para fora
-  const ASAS=[{a:-1.02,len:31,n:9,abre:.78,bat:.16},{a:-.36,len:35,n:10,abre:.7,bat:.12},{a:.34,len:24,n:7,abre:.62,bat:.08}];
-  for(const A of ASAS)for(const lado of [-1,1]){const base=A.a-bat*A.bat;
-   for(let k=A.n-1;k>=0;k--){const f=k/(A.n-1),ang=base+(f-.5)*A.abre,len=A.len*(.66+.34*Math.sin(Math.PI*(.2+f*.65)));
-    for(let r=2;r<len;r+=.5){const x=cx+lado*(3+Math.cos(ang)*r),y=om-4+Math.sin(ang)*r*.9,q=r/len;
-     P(x,y,q>.86?COR[0]:q>.6?COR[1+(k%2)]:q>.3?COR[2+(k%2)]:COR[3+(k%2)]);P(x,y+1,q>.6?COR[3]:COR[4]);if(q<.45)P(x,y+2,COR[5])}}}
-  // túnica (alarga para baixo; o Anjo flutua, sem pés)
+  const COR=['#fff6c8','#ffe28a','#ffd84a','#e8b440','#c9932a','#a8701c','#fff3a0'];
+  /* 3 pares de asas (alto, meio e baixo), todas atrás do corpo. Cada asa: borda da frente lisa e clara, coberteiras douradas
+     perto do ombro e penas de voo separadas, com as pontas recortadas na borda de trás; batem devagar (o par de cima mais) */
+  const ASAS=[{a:-.95,len:31,larg:12,n:7,bat:.2},{a:-.22,len:35,larg:13,n:8,bat:.12},{a:.55,len:25,larg:9,n:6,bat:.07}];
+  for(const A of ASAS)for(const lado of [-1,1]){
+   const ang=A.a-bat*A.bat,ca=Math.cos(ang),sa=Math.sin(ang),Sx=cx+lado*4,Sy=om-3,L=A.len*(1-Math.abs(bat)*.04),fl=L/A.n;
+   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const dx=(x+.5-Sx)*lado,dy=y+.5-Sy,u=dx*ca+dy*sa,v=-dx*sa+dy*ca;      // u: ao longo da asa; v > 0: lado de trás (penas)
+    if(u<0||u>L+2)continue;
+    const t=u/L,frente=1.6*(1-t*.6),tras=A.larg*(.55+.45*Math.sin(Math.PI*Math.min(1,t*1.15)))*(t>.85?(1-(t-.85)/.17):1)+1;
+    const recorte=1.8*Math.abs(Math.sin(Math.PI*u/fl));                     // pontas das penas
+    if(v<-frente||v>tras-(t>.3?recorte:0))continue;
+    let cor;
+    if(v<-frente+1.1)cor=COR[6];                                             // borda da frente, com luz
+    else if(t<.38&&v<tras*.55)cor=(Math.floor(u/2.2)+Math.floor(v/2))%2?COR[1]:COR[2];  // coberteiras em escama
+    else{const q=(u%fl)/fl;cor=q<.12&&v>tras*.25?COR[4]:v>tras-(t>.3?recorte:0)-1.6?COR[0]:q<.5?COR[2]:COR[3]} // penas: divisão escura, ponta clara
+    P(x,y,cor)}}  // túnica (alarga para baixo; o Anjo flutua, sem pés)
   for(let y=om-2;y<om+24;y++){const k=(y-om+2)/26,hw=Math.round(4+k*5);for(let x=-hw;x<=hw;x++)P(cx+x,y,Math.abs(x)>=hw-1?'#cfc6b8':x<0?'#f6f1e8':'#e6dfd3')}
   for(let y=om+8;y<om+22;y++)if(y%3===0){P(cx-3,y,'#d6cdbf');P(cx+3,y,'#d6cdbf')}
   Q(cx-9,om+22,19,2,'#d9a441');Q(cx-8,om+21,17,1,'#ffe28a');Q(cx-5,om+6,11,2,'#d9a441');Q(cx,om-2,1,8,'#ffd84a');
@@ -166,7 +175,7 @@
  const nomeMestre=()=>'Mestre '+((CL[p.cls]||{}).n||'');
  const retratoAnjo=t=>anjoQuadro(t);
  const retratoMestre=()=>{const c=CL[p.cls]||{};return c.sprite||(HS[c.base||p.cls]||HS.war).s};
- const tipoFraco=()=>['sl','rato','bat','lobo'].find(id=>MONSTER_TYPES[id])||Object.keys(MONSTER_TYPES).find(id=>(MONSTER_TYPES[id].bossType||'normal')==='normal');
+ const tipoFraco=()=>['sl','rato','lobo_pardo','lobo'].find(id=>MONSTER_TYPES[id])||Object.keys(MONSTER_TYPES).find(id=>(MONSTER_TYPES[id].bossType||'normal')==='normal');
  function criarMonstro(x,y,elite){
   const e=spawnAt(x,y,tipoFraco(),1);
   // fraco de propósito: pouca vida e pouco dano; dá XP de tutorial
@@ -208,6 +217,13 @@
  window.pularTutorial=()=>{if(!p.tutorial||p.tutorial.feito)return;if(window.DIALOGO)DIALOGO.fechar();while(p.lvl<3&&p.lvl<(+CALC.maxLevel||10))gainPlayerXp(Math.max(1,CALC.xpPerLevel*p.lvl-p.xp));p.tutorial.premio=true;concluir();ft(p.x,p.y-44,'Tutorial pulado','#ccc')};
 
  /* ---- entrar e sair da cena ---- */
+ /* o tutorial começa só com o kit básico da classe (mochila e equipamento vazios + Engine › Classes › Kit inicial);
+    refeito se a classe mudar antes de o jogador sair do começo (ex.: Play da Engine escolhe outra classe) */
+ function kitDoTutorial(){
+  if(!window.darKit||(p.tutorial.etapa||0)>1||p.tutorial.kit===p.cls)return;
+  const c=CL[p.cls];if(!c||!c.kit||!c.kit.length)return;
+  I.fill(null);for(const k in EQ)EQ[k]=null;p.kits={};darKit(p.cls,{salvar:false});p.tutorial.kit=p.cls;
+  if(window.applySkills)applySkills();if(window.setPortrait)setPortrait();p.hp=mhp();p.mp=mmp();dirtyInv=true}
  function entrar(){
   if(window.inTutorial)return;
   if(window.inTaverna&&window.sairTaverna)sairTaverna(true);
@@ -216,7 +232,7 @@
   if(window.clearMovementInput)clearMovementInput();window.inTutorial=true;document.body.classList.add('emTutorial');
   p.x=ENTRADA.x;p.y=ENTRADA.y;p.fx=0;p.fy=-1;p.dest=null;p.path=[];p.tgt=null;proj.length=0;
   mestre={x:MESTRE_POS.x,y:MESTRE_POS.y,fx:1,fy:0,nm:nomeMestre()};
-  ring(p.x,p.y,30,'#ffd84a',.6);
+  ring(p.x,p.y,30,'#ffd84a',.6);kitDoTutorial();
   ir(p.tutorial.etapa||0,(p.tutorial.etapa||0)>0)}
  function sair(){
   if(!window.inTutorial)return;
@@ -248,6 +264,7 @@
   if(!TUTORIAL.ativo()){if(window.inTutorial)sair();return}
   if(!window.inTutorial){if(window.cameraMenu&&cameraMenu.ativo||window.inDungeon||window.inArena||window.inTaverna||window.MP&&MP.visitando)return;entrar();return}
   if(mestre){mestre.fx=p.x-mestre.x;mestre.fy=p.y-mestre.y;mestre.nm=nomeMestre()}
+  kitDoTutorial();
   if(DIALOGO_ABERTO())return;
   const et=etapa();if(!et)return;
   const mortos=()=>alvos.length&&alvos.every(e=>e.hp<=0||!en.includes(e));
@@ -286,6 +303,13 @@
   fxs.forEach(f=>{const k=Math.max(0,Math.min(1,f.t/f.d));ctx.globalAlpha=1-k;circ(f.x,f.y,f.r*(.35+k),f.c);ctx.globalAlpha=1});
   ctx.font='6px monospace';ctx.textAlign='center';
   fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=corFt(f);ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));if(f.crit)iconeCrit(f);ctx.globalAlpha=1});
+  // seta no objetivo da etapa: Anjo, círculo dourado, o monstro mais perto ou o portal
+  if(!DIALOGO_ABERTO()&&window.SETA_MISSAO){const et=etapa();let a=null;
+   if(et&&et.id==='intro')a={x:ANJO.x,y:ANJO.y,alto:52};
+   else if(et&&et.id==='andar')a={x:PONTO.x,y:PONTO.y,alto:4};
+   else if(et&&['atacar','habilidade','elite'].includes(et.id)){const v=alvos.filter(e=>e.hp>0&&en.includes(e)).sort((x,y)=>dist(x,p)-dist(y,p))[0];if(v)a={x:v.x,y:v.y,alto:22,cor:'#ff6a5a'}}
+   else if(et&&et.id==='portal'&&portalAberto)a={x:PORTAL.x,y:PORTAL.y,alto:30};
+   if(a)SETA_MISSAO.desenhar(a)}
   ctx.setTransform(1,0,0,1,0,0);
   if(p.dead>0&&p.dead<1e8){ctx.fillStyle='rgba(0,0,0,'+Math.min(.45,(time-(p.morreuEm??time))*.4)+')';ctx.fillRect(0,0,cv.width,cv.height)}
   minimapa()};
@@ -305,6 +329,15 @@
   const vivos=alvos.filter(e=>e.hp>0&&en.includes(e)).length,extra=et.id==='atacar'||et.id==='elite'||et.id==='habilidade'?' ('+(alvos.length-vivos)+'/'+alvos.length+')':'';
   const html='<b>TUTORIAL · '+n+'/'+passos+'</b>'+et.texto+extra+'<button type="button" class="tutPular">Pular tutorial</button>';
   if(qd.dataset.tut!==html){qd.dataset.tut=html;qd.classList.remove('done');qd.innerHTML=html;const b=qd.querySelector('.tutPular');if(b)b.onclick=e=>{e.stopPropagation();pularTutorial()}}};
+ /* missão inicial depois do tutorial (state.js cacaFeita): o Glooc Saqueador, que persegue o carpinteiro, só aparece na ilha
+    depois dos 10 monstros; até lá ele fica fora da lista de monstros */
+ const upd1=upd;upd=function(dt){upd1(dt);
+  if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial||window.MP&&MP.visitando||typeof boss==='undefined')return;
+  if(cacaFeita&&!carpenterHelped&&carpenter.x<-1000)placeCarpenter(); // a missão de ajudar o carpinteiro chegou
+  if(questDone)return;
+  const tem=en.includes(boss);
+  if(!cacaFeita&&tem)en.splice(en.indexOf(boss),1);
+  else if(cacaFeita&&!tem&&boss.hp>0){boss.hp=boss.max;en.push(boss);ft(p.x,p.y-40,'O Glooc Saqueador apareceu perto dos escombros!','#ffd84a')}};
  // Play da Engine: ?inicio=normal pula o tutorial do personagem novo; ?cena=tutorial começa nele
  if(MODO.teste){
   if(q.get('inicio')==='normal'&&q.has('novo'))p.tutorial={etapa:0,feito:true,v:2};

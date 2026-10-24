@@ -34,13 +34,12 @@
  const isBossMob=m=>!!m.isBoss||['boss','grandboss'].includes(MONSTER_TYPES[m.type]?.bossType);
  function monsterImg(m){
   if(m.sprite&&typeof pixelArt=='function'){const c=pixelArt(m.sprite);if(c)return src(c)}
-  if(m.type==='goblinBoss')return src(window.DG_BOSS_ICONS&&DG_BOSS_ICONS.goblin);
   const t=MONSTER_TYPES[m.type];if(t&&t.sprite)return src(t.sprite);
   const base=(MB[m.type]||{}).base;return src(SP[base]&&SP[base].d);
  }
  function info(entry){
   const c=entry.config,mobs=c.mobs||[],spawns=(c.spawns||[]).filter(s=>s&&!s.disabled);
-  const boss=mobs.find(isBossMob)||{type:'goblinBoss',name:'Lorde Goblin Demoníaco'};
+  const boss=mobs.find(isBossMob)||{type:MONSTER_TYPES.rei_esqueleto_covil?'rei_esqueleto_covil':'esqueleto_rei',name:'Rei Esqueleto do Covil'};
   const bossName=boss.name||MONSTER_TYPES[boss.type]?.name||'Chefe';
   const lvls=[...mobs.map(m=>+m.lvl||4),...spawns.filter(s=>s.levelMode==='fixed').map(s=>+s.level||1)];
   const rec=+c.recLevel||(lvls.length?Math.round(lvls.reduce((a,b)=>a+b,0)/lvls.length):Math.max(5,p.lvl+1));
@@ -56,7 +55,7 @@
  const mapas=new Map();
  // desenho do monstro como canvas/imagem (o sprite pode vir como conjunto de direções {d,s,u})
  const comoImg=v=>!v?null:(v.getContext||v instanceof HTMLImageElement)?v:v.d&&(v.d.getContext||v.d instanceof HTMLImageElement)?v.d:null;
- function imgMonstro(tipo){if(tipo==='goblinBoss'&&window.DG_BOSS_ICONS&&comoImg(DG_BOSS_ICONS.goblin))return comoImg(DG_BOSS_ICONS.goblin);const t=MONSTER_TYPES[tipo];const s=t&&(comoImg(t.sprite)||comoImg(t.sp));if(s)return s;const b=(MB[tipo]||{}).base;return comoImg(SP[b])}
+ function imgMonstro(tipo){const t=MONSTER_TYPES[tipo];const s=t&&(comoImg(t.sprite)||comoImg(t.sp));if(s)return s;const b=(MB[tipo]||{}).base;return comoImg(SP[b])}
  function mapaDG(entry){
   if(mapas.has(entry.id))return mapas.get(entry.id);let m=null;
   try{

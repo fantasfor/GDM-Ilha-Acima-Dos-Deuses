@@ -138,7 +138,8 @@
    // rápido: posição, vida, ping e sons de ataque vão para pos/{sala}/{uid}, só para quem está no mesmo lugar
    if(sala!==this.posSala)trocarPos(sala);
    if(me.sons&&me.sons.length){this.somSeq=(this.somSeq+1)%1000;this.sons=me.sons.slice(-6).map(t=>String(t).replace(/[|,]/g,'').slice(0,200)).join(',').slice(0,700)}
-   const rapido=[me.x,me.y,me.fx,me.fy,Math.round(me.hp*100)/100,Math.round((me.mp||0)*100)/100,me.dead?1:0,Math.round(me.ping||0),this.somSeq,this.sons].join('|');
+   // posição em inteiros, direção com 2 casas e ping em passos de 10 ms: parado, a linha quase não muda e não é reenviada
+   const rapido=[Math.round(me.x),Math.round(me.y),Math.round(me.fx*100)/100,Math.round(me.fy*100)/100,Math.round(me.hp*100)/100,Math.round((me.mp||0)*100)/100,me.dead?1:0,Math.round((me.ping||0)/10)*10,this.somSeq,this.sons].join('|');
    if(rapido!==this.rapidoEnviado&&agora-this.ultimoRapido>=90){this.ultimoRapido=agora;this.rapidoEnviado=rapido;db.ref('pos/'+sala+'/'+user.uid).set(rapido).catch(()=>{});this.sons=''} // os eventos vão uma vez só (quem recebe compara o número da sequência)
    // lento: nome, classe, equipamento e sala (lista de jogadores e amigos); posição só de vez em quando
    const dados={name:this.name,cls:me.cls,sex:me.sex,lvl:me.lvl,hp:Math.round(me.hp*10)/10,dead:me.dead,dg:me.dg,eq:me.eq,sala};

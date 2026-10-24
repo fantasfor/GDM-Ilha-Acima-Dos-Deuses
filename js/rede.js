@@ -16,7 +16,17 @@
  };
  // FPS: conta os quadros desenhados a cada segundo
  let quadros=0,inicio=performance.now();
- (function contar(t){quadros++;if(t-inicio>=1000){REDE.fps=Math.round(quadros*1000/(t-inicio));quadros=0;inicio=t;desenhar()}requestAnimationFrame(contar)})(inicio);
+ (function contar(t){quadros++;if(t-inicio>=1000){REDE.fps=Math.round(quadros*1000/(t-inicio));quadros=0;inicio=t;ajustarQualidade();desenhar()}requestAnimationFrame(contar)})(inicio);
+ /* qualidade automática (Opções): FPS abaixo de 42 por 3 s seguidos baixa um nível dos efeitos (render.js qualidade());
+    FPS de 57 ou mais por 15 s sobe de novo. Aba escondida não conta. */
+ REDE.qualidade=2;let lento=0,folga=0;
+ function ajustarQualidade(){
+  if(document.hidden||window.qualidadeAuto===false){if(window.qualidadeAuto===false)REDE.qualidade=2;return}
+  const f=REDE.fps;if(!f)return;
+  if(f<42){folga=0;if(++lento>=3&&REDE.qualidade>0){REDE.qualidade--;lento=0}}
+  else if(f>=57){lento=0;if(++folga>=15&&REDE.qualidade<2){REDE.qualidade++;folga=0}}
+  else{lento=0;folga=0}
+ }
  // ping: mediana das últimas medidas (uma medida ruim isolada não assusta)
  const medidas=[];let medindo=false;
  async function medir(){

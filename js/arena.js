@@ -115,7 +115,7 @@
   const id='mestre_'+cls,c=(window.GAMEDATA&&GAMEDATA.classes||[]).find(x=>x.id===cls)||{},a=c.attrs||{F:5,A:5,I:5},kit=(CL[cls]&&CL[cls].kit)||[],magica=kit.some(r=>BASIC[r.id]&&BASIC[r.id].damageType==='magic'||ITEMS[r.id]&&ITEMS[r.id].damageType==='magic')||(+a.I||0)>(+a.F||0); // mágico pela arma do kit da classe (ou mais Inteligência que Força)
   MONSTER_TYPES[id]={name:'Mestre '+(CL[cls]?CL[cls].n:cls),stats:{F:+a.F||5,A:+a.A||5,I:+a.I||5},attributeStats:{},custom:true,ataqueDoNivel:true,bossType:'normal',sprite:HS[cls]&&HS[cls].d,sp:HS[cls],size:100,tags:[],drops:[],
    equipment:{stats:{},weaponRanges:[],weapon:magica?{damageType:'magic',basic:{rng:110,proj:'#b07bff'},effects:[]}:{damageType:'physical',basic:{rng:24},effects:[]}},skills:[],attackSpeed:CL[cls]&&CL[cls].attackSpeed||1};
-  MB[id]={max:100,dmg:10,spd:58,xp:0,xpFixo:0,g:0,aggro:500,wu:.35,ac:1,base:'sk'};
+  MB[id]={max:100,dmg:10,spd:58,xp:0,xpFixo:0,g:0,aggro:500,wu:.35,ac:1,base:'goblin'};
   const e={boss:false,img:HS[cls]&&HS[cls].d,sp:HS[cls],max:100,dmg:10,spd:58,xp:0,g:0,aggro:900,wu:.35,ac:1};
   configureMonster(e,id,10);
   Object.assign(e,{x:CXa+RX*.72,y:CYa,hx:CXa+RX*.72,hy:CYa,fx:-1,fy:0,hp:e.max,mp:e.maxMp,rt:0,duelo:cls,name:MONSTER_TYPES[id].name+' (Nv 10)',chasing:true,aw:0,cd:1});
@@ -265,6 +265,8 @@
   if(lobbyOff){lobbyOff();lobbyOff=null}
   lobbyLider=lider;if(!lider){lobby=null;return}
   const r=refL(lider),fn=s=>{const v=s.val();lobby=v;
+   if(v&&!lobbyLider)lobbyLider=lider; // ranqueada: o lobby do anfitrião pode aparecer depois de começarmos a seguir
+   lobbyRanqueado(v,lider);
    if(!v){if(partida&&!partida.acabou)terminar('empate');lobbyLider=null;if(painelAberto)painel();return}
    if(v.estado==='luta'&&!partida&&v.membros&&v.membros[eu()])iniciarPartida(v);
    if(partida){partida.mortos=new Set(Object.keys(v.mortos||{}));if(v.fim&&!partida.acabou)terminar(v.fim.vencedor)}
@@ -306,9 +308,62 @@
   await refL(eu()).update({estado:'luta',sala,inicio:TS(),mortos:null,fim:null}).catch(e=>erro(e,'o começo da partida'));
  }
 
+ /* ---- ranqueada 1x1: busca de oponente; vitória +10 pontos, derrota −10 (mínimo 0), empate 0 ----
+   ranqueada/fila/{uid} = {nome,nivel,pontos,t}. Todos que estão buscando veem a mesma fila e calculam o mesmo pareamento
+   (quem entrou antes escolhe primeiro o oponente com pontos mais perto; a tolerância começa em 50 pontos e cresce 5 por
+   segundo de espera). Do par, o uid menor é o anfitrião: cria arenas/{anfitrião} com convidado = o outro; o convidado se
+   coloca em membros/{uid} e o anfitrião começa. Sem resposta em 8 s, o par se desfaz e os dois continuam na fila.
+   ranqueada/ranking/{uid} = {nome,pontos} (tabela dos melhores no painel do Lanceiro). */
+ const refR=c=>NUVEM.db.ref('ranqueada/'+c);
+ const PONTOS_RANK=10;
+ let busca=null,rankingTop=null,rankingT=0;
+ const pontosRank=()=>Math.max(0,+(p.pvp&&p.pvp.pontos)||0);
+ async function buscarRanqueada(){
+  if(!nuvemOk()||busca||lobby||partida)return;
+  busca={desde:agora(),fila:{},par:null};
+  try{await refR('fila/'+eu()).set({nome:NUVEM.nome(),nivel:p.lvl,pontos:pontosRank(),t:TS()});const od=refR('fila/'+eu()).onDisconnect&&refR('fila/'+eu()).onDisconnect();if(od)od.remove()}
+  catch(e){erro(e,'entrar na fila ranqueada');busca=null;return}
+  const r=refR('fila'),fn=s=>{if(!busca)return;busca.fila=s.val()||{};parear()};r.on('value',fn);busca.off=()=>r.off('value',fn);
+  busca.timer=setInterval(()=>{parear();if(painelAberto&&!lobby)painel()},1000);
+  painel();
+ }
+ async function pararBusca(quieto){
+  if(!busca)return;const b=busca;busca=null;clearInterval(b.timer);if(b.off)b.off();if(b.espera)clearTimeout(b.espera);
+  await refR('fila/'+eu()).remove().catch(()=>{});
+  if(!quieto)painel();
+ }
+ // pareamento igual em todos os clientes (mesma fila → mesmos pares)
+ function pares(fila){
+  const t0=agora(),lista=Object.entries(fila).filter(([,x])=>x&&typeof x==='object').map(([id,x])=>({id,pts:+x.pontos||0,t:+x.t||0})).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1)),usados=new Set(),out=new Map();
+  for(const a of lista){if(usados.has(a.id))continue;let melhor=null,dif=1e9;
+   for(const b of lista){if(b.id===a.id||usados.has(b.id))continue;const d=Math.abs(a.pts-b.pts);if(d<dif){dif=d;melhor=b}}
+   if(!melhor)continue;
+   const tol=50+Math.max(0,(t0-Math.max(a.t,melhor.t))/1000)*5;if(dif>tol)continue;
+   usados.add(a.id);usados.add(melhor.id);out.set(a.id,melhor.id);out.set(melhor.id,a.id)}
+  return out}
+ function parear(){
+  if(!busca||busca.par||lobby||partida)return;const outro=pares(busca.fila).get(eu());if(!outro)return;
+  busca.par=outro;if(eu()<outro)criarRanqueada(outro);else{seguirLobby(outro);esperar(outro)}}
+ function esperar(outro){if(busca.espera)clearTimeout(busca.espera);busca.espera=setTimeout(async()=>{if(!busca||busca.par!==outro||partida)return;
+  if(lobbyLider===eu())await refL(eu()).remove().catch(()=>{});seguirLobby(null);if(busca)busca.par=null},8000)}
+ async function criarRanqueada(outro){
+  try{await refL(eu()).set({modo:1,ranqueada:true,convidado:outro,estado:'espera',membros:{[eu()]:{nome:NUVEM.nome(),equipe:'a',nivel:p.lvl,pontos:pontosRank()}},t:TS()})}
+  catch(e){erro(e,'criar a partida ranqueada');if(busca)busca.par=null;return}
+  seguirLobby(eu());esperar(outro)}
+ // chamado a cada mudança do lobby: o convidado entra sozinho e o anfitrião começa quando os dois estão lá
+ function lobbyRanqueado(v,lider){
+  if(!v||!v.ranqueada||v.estado!=='espera')return;
+  if(v.convidado===eu()&&!(v.membros&&v.membros[eu()]))refL(lider).child('membros/'+eu()).set({nome:NUVEM.nome(),equipe:'b',nivel:p.lvl,pontos:pontosRank()}).catch(()=>{});
+  if(lider===eu()&&v.membros&&v.membros[v.convidado])comecar()}
+ function publicarRanking(){if(nuvemOk())refR('ranking/'+eu()).set({nome:NUVEM.nome(),pontos:pontosRank()}).catch(()=>{})}
+ function carregarRanking(){
+  if(!nuvemOk()||Date.now()-rankingT<30000)return;rankingT=Date.now();
+  refR('ranking').once('value').then(s=>{const v=s.val()||{};rankingTop=Object.entries(v).filter(([,x])=>x&&typeof x==='object').map(([id,x])=>({id,nome:String(x.nome||'?'),pontos:+x.pontos||0})).sort((a,b)=>b.pontos-a.pontos).slice(0,10);if(painelAberto&&!lobby)painel()}).catch(()=>{})}
+
  /* ---- partida ---- */
  function iniciarPartida(v){
-  ultimoDano=agora();partida={lider:lobbyLider,sala:v.sala,modo:v.modo,membros:v.membros,equipe:v.membros[eu()].equipe,inicio:v.inicio||agora(),mortos:new Set(),acabou:false};
+  if(busca)pararBusca(true);
+  ultimoDano=agora();partida={lider:lobbyLider,sala:v.sala,modo:v.modo,membros:v.membros,equipe:v.membros[eu()].equipe,inicio:v.inicio||agora(),mortos:new Set(),acabou:false,ranqueada:!!v.ranqueada};
   fecharPainel();resultado=null;
   entrar({partida:true});
   // cada equipe começa numa ponta da arena
@@ -333,13 +388,16 @@
   const eq=partida.equipe,ganhou=venc===eq,emp=venc==='empate';
   p.pvp.vitorias=(p.pvp.vitorias||0)+(ganhou?1:0);p.pvp.derrotas=(p.pvp.derrotas||0)+(!ganhou&&!emp?1:0);p.pvp.empates=(p.pvp.empates||0)+(emp?1:0);
   resultado={titulo:emp?'EMPATE':ganhou?'VITÓRIA!':'DERROTA',cor:emp?'#f2e8d2':ganhou?'#8fe388':'#f87171',sub:emp?'Ninguém venceu desta vez.':ganhou?'A sua equipe venceu a partida.':'A outra equipe venceu a partida.'};
+  if(partida.ranqueada&&!emp){const d=ganhou?PONTOS_RANK:-PONTOS_RANK;p.pvp.pontos=Math.max(0,pontosRank()+d);resultado.sub+=' Ranqueada: '+(d>0?'+':'')+d+' pontos (agora '+p.pvp.pontos+').';publicarRanking()}
   if(window.playGameSound)playGameSound(ganhou?'quest':'defeat');if(window.saveGame)saveGame();
   setTimeout(()=>{const lider=partida&&partida.lider;resultado=null;partida=null;sair(true);if(lider===eu())setTimeout(()=>refL(lider).remove().catch(()=>{}),3000);seguirLobby(null)},4500);
  }
  function desistir(){
   if(!partida||partida.acabou)return;
-  marcarMorto();const lider=partida.lider;partida.acabou=true;partida=null;resultado=null;sair();seguirLobby(null);
-  if(lider===eu())refL(lider).update({estado:'fim',fim:{vencedor:'b'}}).catch(()=>{});
+  marcarMorto();const lider=partida.lider,outra=partida.equipe==='a'?'b':'a',rank=partida.ranqueada;
+  if(rank){p.pvp.pontos=Math.max(0,pontosRank()-PONTOS_RANK);p.pvp.derrotas=(p.pvp.derrotas||0)+1;publicarRanking();aviso('Desistiu da ranqueada: −'+PONTOS_RANK+' pontos.','#f87171');if(window.saveGame)saveGame()} // desistir conta como derrota
+  partida.acabou=true;partida=null;resultado=null;sair();seguirLobby(null);
+  if(lider===eu())refL(lider).update({estado:'fim',fim:{vencedor:outra}}).catch(()=>{});
  }
  function marcarMorto(){if(partida&&nuvemOk())refL(partida.lider).child('mortos/'+eu()).set(true).catch(()=>{})}
 
@@ -387,11 +445,20 @@
   box.classList.add('dgModal','arenaModal');box.replaceChildren();const fcv=E('canvas','arn-fundo'),wrap=E('div','arn-wrap');box.append(fcv,wrap);animarFundoPainel(fcv); /* tela cheia: o coliseu passando ao fundo e tudo numa coluna no centro */
   const pv=p.pvp;marca=E('b','','Lanceiro Aldric · Arena');
   wrap.append(marca,E('p','','Partidas de equipe: 1 contra 1 ou 2 contra 2. Cada um usa as próprias defesas; quem cai fica assistindo. A partida acaba quando uma equipe perde todos ou em 5 minutos (ganha quem tiver mais gente viva, depois mais vida). Cair não custa ouro.'));
-  const placar=E('div','lobPlacar');const jogos=(pv.vitorias||0)+(pv.derrotas||0)+(pv.empates||0);placar.innerHTML='<span>Vitórias <b>'+(pv.vitorias||0)+'</b></span><span>Derrotas <b>'+(pv.derrotas||0)+'</b></span><span>Empates <b>'+(pv.empates||0)+'</b></span><span>Abates <b>'+(pv.abates||0)+'</b></span><span>Aproveitamento <b>'+(jogos?Math.round((pv.vitorias||0)/jogos*100)+'%':'—')+'</b></span>';wrap.append(placar);
+  const placar=E('div','lobPlacar');const jogos=(pv.vitorias||0)+(pv.derrotas||0)+(pv.empates||0);placar.innerHTML='<span>Pontos ranqueada <b>'+pontosRank()+'</b></span><span>Vitórias <b>'+(pv.vitorias||0)+'</b></span><span>Derrotas <b>'+(pv.derrotas||0)+'</b></span><span>Empates <b>'+(pv.empates||0)+'</b></span><span>Abates <b>'+(pv.abates||0)+'</b></span><span>Aproveitamento <b>'+(jogos?Math.round((pv.vitorias||0)/jogos*100)+'%':'—')+'</b></span>';wrap.append(placar);
   if(!nuvemOk()){wrap.append(E('p','dgm-muted','Sem conexão online não há partidas: treine sozinho com o Boneco de treino.'),B('Treinar com o boneco',()=>{fecharPainel();entrar()}),B('Até mais',fecharPainel));box.classList.add('open');return}
-  if(!lobby){
-   const modos=E('div','arn-modos');const modo=(n,d,fn)=>{const b=E('button','arn-modo');b.type='button';b.append(E('b','',n),E('small','',d));b.onclick=fn;return b};modos.append(modo('1 x 1','Duelo: você contra um jogador.',()=>criarLobby(1)),modo('2 x 2','Equipes de dois: chame um amigo para o seu lado.',()=>criarLobby(2)));
-   wrap.append(E('p','','Escolha o modo para montar a partida:'),modos,B('Treinar com o boneco',()=>{fecharPainel();entrar()}),B('Até mais',fecharPainel));box.classList.add('open');return;
+  if(!lobby||(busca&&lobby&&lobby.ranqueada&&lobby.estado==='espera')){
+   carregarRanking();
+   if(busca){ // procurando oponente na ranqueada
+    const s=Math.floor((agora()-busca.desde)/1000),fila=Object.keys(busca.fila||{}).length;
+    wrap.append(E('p','arn-busca','Procurando oponente na ranqueada… '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')),E('p','dgm-muted',busca.par?'Oponente encontrado! Preparando a partida…':'Na fila: '+fila+' jogador(es). Oponentes com pontos parecidos primeiro; a busca alarga com o tempo.'),B('Cancelar busca',()=>pararBusca()),B('Fechar (continua buscando)',fecharPainel));
+   }else{
+    const modos=E('div','arn-modos');const modo=(n,d,fn)=>{const b=E('button','arn-modo');b.type='button';b.append(E('b','',n),E('small','',d));b.onclick=fn;return b};
+    modos.append(modo('Ranqueada 1 x 1','Busca um oponente com pontos parecidos. Vitória +'+PONTOS_RANK+', derrota −'+PONTOS_RANK+'.',buscarRanqueada),modo('1 x 1','Duelo: você contra um jogador.',()=>criarLobby(1)),modo('2 x 2','Equipes de dois: chame um amigo para o seu lado.',()=>criarLobby(2)));
+    wrap.append(E('p','','Escolha o modo para montar a partida:'),modos,B('Treinar com o boneco',()=>{fecharPainel();entrar()}),B('Até mais',fecharPainel));
+   }
+   if(rankingTop&&rankingTop.length){const t=E('div','arn-rank');t.append(E('b','','Melhores da ranqueada'));rankingTop.forEach((x,i)=>{const l=E('div','arn-rankLinha'+(x.id===eu()?' voce':''));l.append(E('span','',(i+1)+'. '+x.nome),E('span','',x.pontos+' pts'));t.append(l)});wrap.append(t)}
+   box.classList.add('open');return;
   }
   const souLider=lobbyLider===eu(),modo=lobby.modo||1,membros=Object.entries(lobby.membros||{});
   for(const [id] of membros)enviados.delete(id);

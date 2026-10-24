@@ -5,6 +5,7 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 let opt={zoom:1,mm:170};try{Object.assign(opt,JSON.parse(ls.get(OPT)||'{}'))}catch(e){}
 window.autoTargetAfterKill=opt.autoTargetAfterKill!==false;
 window.modoDesempenho=!!opt.desempenho;
+window.qualidadeAuto=opt.qualidadeAuto!==false;
 window.segurarMira=!!opt.segurarMira;
 window.MMR=opt.mm;setZoom(opt.zoom);
 const saveOpt=()=>ls.set(OPT,JSON.stringify(opt));
@@ -37,11 +38,17 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   box.append(started?B('▶ Voltar ao jogo',toggle,'primario'):B(hasSave()?'▶ Continuar':'▶ Novo jogo',()=>{started=true;toggle();if(window.saveGame)saveGame()},'primario'));
   // com conta: volta para a tela de personagens (conta.js abrirPersonagens)
   if(started&&window.abrirPersonagens)box.append(B('◉ Personagens',()=>{paused=false;menu.classList.remove('open');if(abrirPersonagens()===false){ft(p.x,p.y-24,'Termine a partida antes.','#f87171')}}));
-  box.append(B('⚙ Opções',()=>{view='opt';show()}),B('⌨ Controles',()=>{view='help';show()}));
+  box.append(B('⚙ Opções',()=>{view='opt';show()}),B('⌨ Controles',()=>{view='help';show()}),B('✦ Créditos',()=>{view='creditos';show()}));
   box.append($$('p','msave','O jogo salva automaticamente.'));
   // sem conta: apagar progresso fica escondido no fim. Com conta, o personagem é apagado na tela de seleção (conta.js)
   if(!window.CONTA_ATIVA&&(hasSave()||started)){const d=$$('button','mDel','Apagar progresso');d.type='button';d.onclick=()=>{view='new';show()};box.append(d)}
   }
+ else if(view=='creditos'){h('Créditos');  /* texto do projeto (Engine › Configurações › Créditos) ou o padrão de js/creditos.js */
+  const txt=String((window.PROJETO&&PROJETO.mundo&&PROJETO.mundo.creditos)||window.CREDITOS_PADRAO||''),lista=$$('div','creditos');
+  for(const linha of txt.split('\n').map(s=>s.trim()).filter(Boolean)){
+   if(linha[0]==='#'){lista.append($$('h3','teclasGrupo',linha.replace(/^#+\s*/,'')));continue}
+   const [nome,...autor]=linha.split(' — '),l=$$('p','credLinha');l.append($$('span','credNome',nome));if(autor.length)l.append($$('span','credAutor',autor.join(' — ')));lista.append(l)}
+  box.append(lista);back()}
  else if(view=='new'){h('Apagar progresso');box.append($$('p','mhelp','Isso apaga todo o progresso deste navegador e não tem como desfazer. Tem certeza?'),B('Sim, começar do zero',()=>restart(),'danger'));back()}
  else if(view=='opt'){h('Opções');
   const r1=$$('div','mrow','<span>Zoom da câmera</span><input type=range min=.6 max=2.4 step=.05><b></b>'),r2=$$('div','mrow','<span>Alcance do minimapa</span><input type=range min=90 max=380 step=10><b></b>');
@@ -53,7 +60,8 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   // desempenho e rede
   const r4=caixa('Modo desempenho (menos luzes e névoa mais leve, para computadores fracos)',()=>!!window.modoDesempenho,v=>{window.modoDesempenho=opt.desempenho=v;saveOpt()});
   const r5=caixa('Segurar a tecla da habilidade para mirar (mostra a área e lança ao soltar)',()=>!!window.segurarMira,v=>{window.segurarMira=opt.segurarMira=v;saveOpt()});
-  box.append(r1,r2,r3,r4,r5);
+  const r6=caixa('Qualidade automática (quando o FPS cai, desliga os efeitos mais pesados; quando sobra, liga de novo)',()=>window.qualidadeAuto!==false,v=>{window.qualidadeAuto=opt.qualidadeAuto=v;saveOpt()});
+  box.append(r1,r2,r3,r4,r6,r5);
   if(window.REDE)box.append(caixa('Mostrar ping e FPS no canto da tela',()=>REDE.mostrar,v=>{REDE.mostrar=v}));
   // som: volume, saída (alto-falante/fone) e, com conta, a voz
   if(window.SOM){
@@ -72,7 +80,7 @@ function show(){const box=$$('div','mbox');menu.replaceChildren(box);
   }
   back()}
  else{h('Controles');if(window.TECLAS)TECLAS.painel(box,()=>show());
-  box.append($$('h3','teclasGrupo','Dicas'),$$('div','mhelp','Aceite a madeira e a madeira mágica dos Brotos Vivos nos itens encontrados; elas ficam em Materiais na mochila.<br>Após construir a paliçada, fale com o carpinteiro e entregue 10 madeiras mágicas para construir o portal do acampamento.<br>Monstros pedidos em missões recebem +20% no peso de spawn enquanto são necessários.<br>Chat: <kbd>/nome NovoNome</kbd> muda seu nome · <kbd>/s Nome mensagem</kbd> sussurra para alguém.'));back()}}
+  box.append($$('h3','teclasGrupo','Dicas'),$$('div','mhelp','Aceite a madeira e a madeira mágica dos Tocos Vivos nos itens encontrados; elas ficam em Materiais na mochila.<br>Após construir a paliçada, fale com o carpinteiro e entregue 10 madeiras mágicas para construir o portal do acampamento.<br>Monstros pedidos em missões recebem +20% no peso de spawn enquanto são necessários.<br>Chat: <kbd>/nome NovoNome</kbd> muda seu nome · <kbd>/s Nome mensagem</kbd> sussurra para alguém.'));back()}}
 show();
 window.atualizarMenu=()=>{if(menu.classList.contains('open'))show()};
 /* ---------- efeitos de habilidade ---------- */
@@ -99,7 +107,7 @@ if(typeof hurtP=='function'){const h1=hurtP;hurtP=function(d,m){const r=h1.apply
 const draw0=draw;draw=function(){draw0();const dt=Math.min(.05,Math.max(0,time-pt));pt=time;
  ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));
  // sombras de nuvens
- if(!window.modoDesempenho)for(let i=0;i<6;i++){const x=(i*431+time*7)%(W+500)-250,y=(i*263+40)%W,g=ctx.createRadialGradient(x,y,4,x,y,110);g.addColorStop(0,'rgba(6,16,30,.13)');g.addColorStop(1,'rgba(6,16,30,0)');ctx.fillStyle=g;ctx.fillRect(x-110,y-110,220,220)}
+ if(qualidade()>=2)for(let i=0;i<6;i++){const x=(i*431+time*7)%(W+500)-250,y=(i*263+40)%W,g=ctx.createRadialGradient(x,y,4,x,y,110);g.addColorStop(0,'rgba(6,16,30,.13)');g.addColorStop(1,'rgba(6,16,30,0)');ctx.fillStyle=g;ctx.fillRect(x-110,y-110,220,220)}
  // rastro de projéteis e meteoros
  proj.forEach(q=>q.seta||q.vfx||part(q.x,q.y,R(-8,8),R(-8,8),.3,q.c||'#ff9a3a',R(1.5,3)));
  const cur=mets.slice();pm.forEach(m=>{if(!cur.includes(m)){burst(m.x,m.y,'#ff8a2a',40,95,.7);burst(m.x,m.y,'#ffe08a',18,60,.5);ringFx(m.x,m.y,4,40,.5,'#f93');ringFx(m.x,m.y,2,26,.4,'#fff')}});pm=cur;

@@ -5,13 +5,13 @@ const SPAWN={};(GAMEDATA.monsters||[]).forEach(m=>{if(m.id&&MONSTER_TYPES[m.id])
 if(!Object.keys(SPAWN).length)SPAWN.sl={min:1,w:1};
 window.SPAWNINFO=SPAWN;
 const DEFAULT_PORTAL_DEFS=[
- {id:'portal_ruins',name:'Ruínas do Norte',minLevel:1,targetLevel:1,countMin:2,countMax:3,eliteChance:.03,frequency:1,monsters:[{id:'sl',chance:65},{id:'bat',chance:35}]},
- {id:'portal_cliff',name:'Penhasco Leste',minLevel:4,targetLevel:6,countMin:2,countMax:4,eliteChance:.05,frequency:1,monsters:[{id:'sk',chance:45},{id:'wolf',chance:35},{id:'spider',chance:20}]},
- {id:'portal_wolf_trail',name:'Trilha dos Lobos',minLevel:4,targetLevel:6,countMin:2,countMax:3,eliteChance:.08,frequency:.9,monsters:[{id:'wolf',chance:60},{id:'spider',chance:40}]},
- {id:'portal_forest',name:'Floresta Antiga',minLevel:7,targetLevel:10,countMin:3,countMax:4,eliteChance:.08,frequency:1,monsters:[{id:'shroom',chance:50},{id:'ghost',chance:30},{id:'goblin',chance:20}]},
- {id:'portal_mushroom_grove',name:'Bosque dos Cogumelos',minLevel:7,targetLevel:9,countMin:3,countMax:4,eliteChance:.1,frequency:1.1,monsters:[{id:'shroom',chance:45},{id:'ghost',chance:35},{id:'sprout',chance:20}]},
- {id:'portal_coast',name:'Costa Sul',minLevel:11,targetLevel:14,countMin:3,countMax:5,eliteChance:.1,frequency:1,monsters:[{id:'crab',chance:50},{id:'ghost',chance:30},{id:'sk',chance:20}]},
- {id:'portal_guardian_sanctum',name:'Santuário do Guardião',minLevel:15,targetLevel:18,countMin:2,countMax:3,eliteChance:.12,frequency:.7,monsters:[{id:'ghost',chance:50},{id:'sk',chance:40},{id:'boss',chance:10}]}
+ {id:'portal_ruins',name:'Ruínas do Norte',minLevel:1,targetLevel:1,countMin:2,countMax:3,eliteChance:.03,frequency:1,monsters:[{id:'sl',chance:65},{id:'javaporco',chance:35}]},
+ {id:'portal_cliff',name:'Penhasco Leste',minLevel:4,targetLevel:6,countMin:2,countMax:4,eliteChance:.05,frequency:1,monsters:[{id:'goblin',chance:45},{id:'wolf',chance:35},{id:'lobo_negro',chance:20}]},
+ {id:'portal_wolf_trail',name:'Trilha dos Lobos',minLevel:4,targetLevel:6,countMin:2,countMax:3,eliteChance:.08,frequency:.9,monsters:[{id:'wolf',chance:60},{id:'lobo_neve',chance:40}]},
+ {id:'portal_forest',name:'Floresta Antiga',minLevel:7,targetLevel:10,countMin:3,countMax:4,eliteChance:.08,frequency:1,monsters:[{id:'shroom',chance:50},{id:'esqueleto_mago',chance:30},{id:'goblin',chance:20}]},
+ {id:'portal_mushroom_grove',name:'Bosque dos Cogumelos',minLevel:7,targetLevel:9,countMin:3,countMax:4,eliteChance:.1,frequency:1.1,monsters:[{id:'shroom',chance:45},{id:'esqueleto_curador',chance:35},{id:'toco_vivo',chance:20}]},
+ {id:'portal_coast',name:'Costa Sul',minLevel:11,targetLevel:14,countMin:3,countMax:5,eliteChance:.1,frequency:1,monsters:[{id:'glooc_espada',chance:50},{id:'glooc_cetro',chance:30},{id:'goblin',chance:20}]},
+ {id:'portal_guardian_sanctum',name:'Santuário do Guardião',minLevel:15,targetLevel:18,countMin:2,countMax:3,eliteChance:.12,frequency:.7,monsters:[{id:'esqueleto_guerreiro',chance:50},{id:'goblin',chance:40},{id:'boss',chance:10}]}
 ];
 /* Cada monstro do portal tem chance de vir (%), quantidade mín/máx e chance de elite (%).
    Portais antigos (quantidade e elite no portal) dividem a quantidade pela chance de cada monstro. */
@@ -26,9 +26,9 @@ const clonePortalDefs=list=>list.map((q,i)=>{
  return{id:String(q.id||'portal_'+i),name:String(q.name||('Portal '+(i+1))),minLevel:Math.max(1,Math.floor(+q.minLevel||1)),targetLevel:Math.max(1,Math.floor(+q.targetLevel||1)),frequency:Math.max(.01,+q.frequency||1),grupo:!!q.grupo,cor:/^#[0-9a-f]{6}$/i.test(q.cor||'')?q.cor:'#b06bff',monsters}});
 const portalDefs=clonePortalDefs(Array.isArray(PROJ.portalDefs)?PROJ.portalDefs:DEFAULT_PORTAL_DEFS);
 window.PORTAL_DEFS=portalDefs;
-/* nível de quem nasce num portal: perto do nível do jogador, dentro da faixa da criatura (Nível mínimo/máximo na Engine);
-   assim uma criatura de nível 5 ou 8 nunca aparece abaixo disso */
-function nivelDoMonstro(type){const s=SPAWN[type],min=s?s.min:1,max=s?Math.max(min,s.max):999;return Math.max(min,Math.min(max,monsterLevel()))}
+/* nível de quem nasce na ilha: até 3 níveis abaixo ou acima do jogador, dentro da faixa da criatura (Nível mínimo/máximo na Engine)
+   quando dá; a regra dos 3 níveis vence a faixa (criatura fraca para um herói alto sobe até nível do jogador − 3) */
+function nivelDoMonstro(type){const s=SPAWN[type],min=s?s.min:1,max=s?Math.max(min,s.max):999,v=Math.max(min,Math.min(max,monsterLevel()));return Math.max(1,p.lvl-DIF_NIVEL,Math.min(p.lvl+DIF_NIVEL,v))}
 window.nivelDoMonstro=nivelDoMonstro;
 function spawnAt(x,y,type,level=nivelDoMonstro(type)){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
  configureMonster(e,type,level);Object.assign(e,{x,y,hx:x,hy:y,hp:e.max,st:null,fx:0,fy:1,aw:0,cd:0,hit:0,rt:0,dest:null,path:[],pathI:0,pathKey:'',roamT:3,roamRadius:rnd(38,70)});return e}
@@ -93,31 +93,25 @@ function openPortal(){
 function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,1.1),r=rnd(16,34),px=q.x+Math.cos(a)*r,py=q.y+Math.sin(a)*r;if(walk(px,py)&&!insideCamp(px,py)&&longeDeArvores(px,py)){ox=px;oy=py;break}}
  const entry=q.plan.shift();if(!entry)return;const e=spawnAt(q.x,q.y,entry.type);Object.assign(e,{hx:ox,hy:oy,dest:{x:ox,y:oy},area:q.a,pack:q.id});
  if(entry.elite)makeElite(e);
- // saem da borda e vão se espalhando para o centro; em grupo, seguem o primeiro que saiu (o líder)
- e.migra=true;e.migraT=rnd(3,6);
- if(q.grupo){const g=grupos.get(q.id);if(!g)grupos.set(q.id,{lider:e,migra:true});else{const a=rnd(0,6.283),r=rnd(9,17);e.seguidor=g;e.offx=Math.cos(a)*r;e.offy=Math.sin(a)*r;e.migra=false}}
+ // ficam perto de onde o portal abriu (não andam mais para o centro); em grupo, seguem o primeiro que saiu (o líder)
+ if(q.grupo){const g=grupos.get(q.id);if(!g)grupos.set(q.id,{lider:e});else{const a=rnd(0,6.283),r=rnd(9,17);e.seguidor=g;e.offx=Math.cos(a)*r;e.offy=Math.sin(a)*r}}
  if(entry.type=='gob'&&questMonsterRequested('gob')&&!sawGoblin){
   e.sawGoblin=true;sawGoblin=e
  }
  ring(q.x,q.y-8,14,q.cor||'#b98cff',.3);en.push(e);q.left--}
-/* Espalhar para o centro: a cada poucos segundos a "casa" do monstro anda 40–80 px em direção ao acampamento,
-   até parar a uma distância segura dele. Grupo: os seguidores têm a casa colada no líder. */
-const grupos=new Map(),PARADA=CAMP_SAFE_HALF_SIZE+110;
+const grupos=new Map();
 /* grupo (portais da ilha e da DG): o seguidor tem a casa colada no líder; se o líder morrer, o primeiro seguidor vivo assume */
 function seguirLider(){
  for(const e of en){if(e.hp<=0||e.mpProxy||!e.seguidor)continue;const g=e.seguidor,L=g.lider;
-  if(!L||L.hp<=0||!en.includes(L)){g.lider=e;e.seguidor=null;e.roamRadius=rnd(38,70);if(g.migra){e.migra=true;e.migraT=rnd(2,4)}continue}
+  if(!L||L.hp<=0||!en.includes(L)){g.lider=e;e.seguidor=null;e.roamRadius=rnd(38,70);continue}
   if(!e.chasing){e.hx=L.x+e.offx;e.hy=L.y+e.offy;e.roamRadius=10}}
 }
-function espalhar(dt){
- for(const e of en){if(e.hp<=0||e.mpProxy||e.chasing||e.seguidor)continue;
-  if(!e.migra||(e.migraT-=dt)>0)continue;e.migraT=rnd(5,9);
-  if(campDistance(e.hx,e.hy)<PARADA){e.migra=false;continue}
-  const a=Math.atan2(CY-e.hy,CX-e.hx)+rnd(-.6,.6),r=rnd(40,80);
-  for(let t=0;t<6;t++){const x=e.hx+Math.cos(a)*r*(1-t*.12),y=e.hy+Math.sin(a)*r*(1-t*.12);if(walk(x,y)&&!insideCamp(x,y,40)&&longeDeArvores(x,y)){e.hx=x;e.hy=y;break}}}
-}
-/* um alerta: os da mesma matilha vêm ajudar */
-const h0=hurtE;hurtE=function(e){const r=h0.apply(this,arguments);if(e&&e.pack&&!e.boss)en.forEach(o=>{if(o!==e&&o.pack===e.pack&&o.hp>0){if(!(o.alert>0))ft(o.x,o.y-30,'!','#f66');o.alert=8}});return r};
+/* um alerta: só ajudam os da mesma família, ou seja, o mesmo monstro ou alguma tag em comum (Engine › Monstro › Tags / família),
+   e que estejam perto (RAIO_AJUDA px) */
+const RAIO_AJUDA=140,tagsDe=e=>(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].tags)||[];
+const mesmaFamilia=(a,b)=>a.ty===b.ty||tagsDe(a).some(t=>tagsDe(b).includes(t));
+window.mesmaFamilia=mesmaFamilia;
+const h0=hurtE;hurtE=function(e){const r=h0.apply(this,arguments);if(e&&!e.boss&&!e.pvp&&!e.duelo&&!e.tutorial)en.forEach(o=>{if(o!==e&&o.hp>0&&!o.pvp&&!o.mpProxy&&Math.hypot(o.x-e.x,o.y-e.y)<RAIO_AJUDA&&mesmaFamilia(o,e)){if(!(o.alert>0))ft(o.x,o.y-30,'!','#f66');o.alert=8}});return r};
 const upd0=upd;upd=function(dt){upd0(dt);
  sawGoblin=questMonsterRequested('gob')?questMonsterTarget('gob'):null;
  // portais só na própria ilha: na taverna não há monstros e, visitando outra ilha, quem solta os monstros é o dono
@@ -130,7 +124,6 @@ const upd0=upd;upd=function(dt){upd0(dt);
    while(q.left>0&&q.t>=q.next){emit(q);q.next+=q.interval}
    q.fin=Math.max(0,q.t-(PORTAL_DURATION-PORTAL_CLOSE));
    if(q.t>=PORTAL_DURATION){portals.splice(i,1);grupos.delete(q.id)}}
-  espalhar(dt);
  }
  if(!window.mpEspelho)seguirLider();
  for(let i=en.length;i--;)if(en[i].gone)en.splice(i,1)}; // sem empurrão entre corpos: a colisão sólida está em update.js (corpoNoCaminho)

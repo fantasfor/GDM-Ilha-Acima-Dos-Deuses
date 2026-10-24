@@ -76,12 +76,13 @@
    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const ix=Math.min(img.width-1,Math.floor(x*q+q/2)),iy=Math.min(img.height-1,Math.floor(y*q+q/2));m[y*W+x]=d[(iy*img.width+ix)*4+3]>40?1:0}}catch(e){}
   s={W,H,m,q,aura:{},contorno:{}};cacheSil.set(img,s);return s}
  const P_LADO=4,P_TOPO=8,P_BAIXO=2;
- function contornoDe(img,cor){
-  const s=silhueta(img);if(s.contorno[cor])return s.contorno[cor];
+ // anel 1 = encostado no corpo; anel 2 = um pixel mais para fora (segunda aura ativa ao mesmo tempo)
+ function contornoDe(img,cor,anel=1){
+  const s=silhueta(img),key=cor+anel;if(s.contorno[key])return s.contorno[key];
   const {W,H,m}=s,c=document.createElement('canvas');c.width=W+2*P_LADO;c.height=H+P_TOPO+P_BAIXO;const g=c.getContext('2d');g.fillStyle=cor;
-  const em=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&m[y*W+x];
-  for(let y=-1;y<=H;y++)for(let x=-1;x<=W;x++)if(!em(x,y)&&(em(x-1,y)||em(x+1,y)||em(x,y-1)||em(x,y+1)))g.fillRect(x+P_LADO,y+P_TOPO,1,1);
-  return s.contorno[cor]=c}
+  const em=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&m[y*W+x],viz=(f,x,y)=>f(x-1,y)||f(x+1,y)||f(x,y-1)||f(x,y+1),em1=(x,y)=>em(x,y)||viz(em,x,y);
+  for(let y=-2;y<=H+1;y++)for(let x=-2;x<=W+1;x++){const ok=anel===1?!em(x,y)&&viz(em,x,y):!em1(x,y)&&viz(em1,x,y);if(ok)g.fillRect(x+P_LADO,y+P_TOPO,1,1)}
+  return s.contorno[key]=c}
  // aura de fúria (estilo "super saiyajin"): chamas subindo em volta do corpo, 6 quadros que tremulam
  function auraDe(img,cor,f){
   const s=silhueta(img),key=cor+f;if(s.aura[key])return s.aura[key];
@@ -93,12 +94,12 @@
   const topo=new Array(ow).fill(Infinity);for(let x=0;x<ow;x++)for(let y=0;y<oh;y++)if(d[y*ow+x]===0){topo[x]=y;break}
   // colunas de chama: altura serrilhada que muda a cada quadro
   // línguas de fogo: colunas de 2 px com alturas serrilhadas (mais altas no meio), mudando a cada quadro
-  const chama=new Array(ow);for(let x=0;x<ow;x++){const n=hash(x>>1,f*7+3),n2=hash(x,f*13+1),meio=1-Math.abs(x-ow/2)/(ow/2);chama[x]=Math.round(1+meio*2+n*2+n2)}
+  const chama=new Array(ow);for(let x=0;x<ow;x++){const n=hash(x>>1,f*7+3),n2=hash(x,f*13+1),meio=1-Math.abs(x-ow/2)/(ow/2);chama[x]=Math.round(meio*1.5+n*1.5+n2*.5)} // chamas baixas: aura fina
   let corpoTopo=Infinity;for(const t of topo)corpoTopo=Math.min(corpoTopo,t);
   const c=document.createElement('canvas');c.width=ow;c.height=oh;const g=c.getContext('2d');
   const claro=mix(cor,'#ffffff',.55),escuro=mix(cor,'#200000',.55);
   for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const i=y*ow+x,dd=d[i];if(dd===0)continue;
-   const yk=Math.max(0,Math.min(1,(y-corpoTopo)/Math.max(1,H))),r=1+.6*(1-yk)+hash(x+y*3,f)*.6;
+   const yk=Math.max(0,Math.min(1,(y-corpoTopo)/Math.max(1,H))),r=.8+.3*(1-yk)+hash(x+y*3,f)*.3; // fina: ~1 px em volta do corpo
    // chama acima do corpo, saindo das colunas vizinhas
    let viz=Infinity;for(let k=-2;k<=2;k++){const t=topo[x+k];if(t!==undefined)viz=Math.min(viz,t)}
    const sobe=viz!==Infinity&&y<viz&&viz-y<=chama[x];
@@ -160,11 +161,13 @@
    g.restore()},
   /* antes do personagem (dr em render.js): aura e contorno dos status com FX_INFO[k].aura; pintar(canvas, margemLado, margemTopo) */
   atras(ent,img,pintar){
-   const fx=typeof FX_INFO!=='undefined'?FX_INFO:{},agora=performance.now()/1000;let cor=null;
-   if(ent.st)for(const k in ent.st){const f=fx[k];if(f&&f.aura&&ent.st[k].t>0){cor=f.c||'#ff3a2a';break}}
-   if(!cor&&ent.vfxAura&&ent.vfxAura.ate>agora)cor=ent.vfxAura.cor; // aliado online (online.js marca)
-   if(!cor||!img||!img.getContext)return;
-   const quadro=Math.floor(agora*10)%6,ga=ctx.globalAlpha;pintar(auraDe(img,cor,quadro),P_LADO,P_TOPO);ctx.globalAlpha=ga*.6;pintar(contornoDe(img,cor),P_LADO,P_TOPO);ctx.globalAlpha=ga; // discreto
-   if(Math.random()<.05){const s=silhueta(img);VFX.faisca(ent.x+(Math.random()-.5)*s.W,ent.y-Math.random()*s.H,cor)}}
+   const fx=typeof FX_INFO!=='undefined'?FX_INFO:{},agora=performance.now()/1000,cores=[];
+   if(ent.st)for(const k in ent.st){const f=fx[k];if(f&&f.aura&&ent.st[k].t>0){const c=f.c||'#ff3a2a';if(!cores.includes(c))cores.push(c)}}
+   if(ent.vfxAura&&ent.vfxAura.ate>agora&&!cores.includes(ent.vfxAura.cor))cores.push(ent.vfxAura.cor); // aliado online (online.js marca)
+   if(!cores.length||!img||!img.getContext)return;
+   // cada aura ativa aparece: a 1ª encostada no corpo, a 2ª num anel por fora (chamas defasadas); no máximo duas
+   const quadro=Math.floor(agora*10)%6,ga=ctx.globalAlpha;
+   cores.slice(0,2).forEach((cor,i)=>{ctx.globalAlpha=ga*(i?.8:1);pintar(auraDe(img,cor,(quadro+i*3)%6),P_LADO,P_TOPO);ctx.globalAlpha=ga*.65;pintar(contornoDe(img,cor,i+1),P_LADO,P_TOPO)});ctx.globalAlpha=ga;
+   if(Math.random()<.05){const s=silhueta(img);VFX.faisca(ent.x+(Math.random()-.5)*s.W,ent.y-Math.random()*s.H,cores[Math.floor(Math.random()*cores.length)])}}
  };
 })();

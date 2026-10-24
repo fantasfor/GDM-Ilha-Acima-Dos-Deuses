@@ -142,8 +142,24 @@ const CLASSE_VISUAL={
  mag:{robe:['#5b3fd0','#f5d84a'],chapeu:1,cabelo:'curto',arma:'cajado'},
  hea:{robe:['#f2f2e8','#3fb86a'],tiara:1,cabelo:'curto',arma:'cajado'},
  sty:{robe:['#d94f9a','#ffd84a'],cabelo:'longo',corCabelo:'#3a1f10'},
- sk:{osso:1,arma:'espada'}
+ carpinteiro:{ch:['#a8743a','#5a3a1e',2],le:['#56606e','#3a2a1a'],cabelo:'curto',corCabelo:'#5a3218',arma:'machadinha'},
+ ferreiro:{ch:['#4a3428','#8a6a4a',2],le:['#3a3436','#2a2020'],bo:['#2a1e16','#4a3626'],cabelo:'careca',arma:'martelo'}
 };
+// botas de couro de quem não calça nada (herói sem botas e NPCs)
+const BOTA_PADRAO=['#4a2e1a','#6b4528'];
+/* Chapéu de mago: grade própria por cima da cabeça (linhas -5..4 da grade do herói), com contorno próprio, para a
+   ponta não ser cortada no topo do quadro. [x0,x1] por linha, de cima para baixo; de lado a ponta cai para trás. */
+const CHAPEU_MAGO={
+ d:[[10,11],[9,10],[8,10],[7,10],[6,10],[5,11],[4,11],[3,12],[1,14]],
+ s:[[1,2],[2,3],[3,5],[4,7],[4,8],[4,9],[3,10],[3,11],[1,13]]};
+function chapeuMago(dir){
+ const t=mkCanvas(16,10),x=t.getContext('2d'),bk=dir=='u',L=CHAPEU_MAGO[dir=='s'?'s':'d'];
+ L.forEach(([a,b],i)=>{const y=i+1;if(bk){[a,b]=[15-b,15-a]}
+  x.fillStyle=y==9?'#2a1f66':y==8?'#2a1f66':'#3a2a9a';x.fillRect(a,y,b-a+1,1);
+  if(y<8){x.fillStyle='#5644c0';x.fillRect(bk?b:a,y,1,1)}});
+ if(dir=='d'){x.fillStyle='#f5d84a';x.fillRect(7,8,2,1)}
+ else if(dir=='s'){x.fillStyle='#f5d84a';x.fillRect(9,8,1,1)}
+ return contornar(t)}
 const armasClasse={};
 function armaDeClasse(k){
  if(k in armasClasse)return armasClasse[k];const a=window.PACOTE_ARMAS&&PACOTE_ARMAS.ARMAS[k];
@@ -158,7 +174,7 @@ function drawEquipmentLayers(E,slots,dir,cx){
 const moldeDe=(dir,ph)=>window.APARENCIA&&APARENCIA.grade?APARENCIA.grade(dir,ph):[];
 function human(cl,dir,ph=0,E={}){
  // personagem principal e NPCs de classe no estilo Mana Seed (js/heroi-mana.js), quando ele está ligado
- if(window.HEROI_MANA&&cl!=='sk'){const m=HEROI_MANA.deHuman(cl,dir,ph,E);if(m)return m}
+ if(window.HEROI_MANA){const m=HEROI_MANA.deHuman(cl,dir,ph,E);if(m)return m}
  const equipment=E,visualDir=dir;
  E={...E};
  for(const slot of ['he','ch','le','bo','ca','ne','r1','r2'])if(gradeNova(equippedArt(E[slot],visualDir)))E[slot]=null;
@@ -176,14 +192,13 @@ function human(cl,dir,ph=0,E={}){
  let look=null;
  if(window.APARENCIA){
   const base=APARENCIA.padrao('m');
-  look=N?(E.look||APARENCIA.padrao(fem?'f':'m')):V&&V.osso?{pele:'#e8e8e0',cabelo:base.cabelo,olhos:'#111111',estilo:'careca'}:{...base,estilo:V&&V.cabelo||'careca',cabelo:V&&V.corCabelo||base.cabelo};
+  look=N?(E.look||APARENCIA.padrao(fem?'f':'m')):{...base,estilo:V&&V.cabelo||'careca',cabelo:V&&V.corCabelo||base.cabelo};
   tx.drawImage(APARENCIA.corpo(N&&fem?'f':'m',visualDir,passo,look),0,0)}
- if(V&&V.osso)ossos(R,dir,G);
+
  if(V&&V.robe)manto(R,dir,V.robe,G);
  gearBody(E,dir,dg,R,P,G);
  camada(['le','bo','ch','ne','r1','r2']);
  if(look)tx.drawImage(APARENCIA.cabelo(look,visualDir),0,0);
- if(V&&V.chapeu&&!E.he){R(2,4,12,1,'#2a1f66');R(4,3,8,1,'#3a2a9a');R(5,2,6,1,'#3a2a9a');R(6,1,4,1,'#3a2a9a');R(7,0,2,1,'#3a2a9a');P(7,3,'#f5d84a')}
  if(V&&V.tiara&&!E.he){R(3,4,10,1,'#e8c84a');if(!bk)P(dg?8:7,4,'#3fb86a')}
  gearHead(E,dir,dg,R,P,G);
  camada(bk?['he','ca']:['he']);
@@ -195,6 +210,8 @@ function human(cl,dir,ph=0,E={}){
  // de costas (u, us) a arma e o escudo ficam atrás do corpo; nas outras direções, na frente
  if(bk)armas();
  cx.drawImage(t,-2,-2,HT.W*2,HT.H*2);
+ // grade do chapéu: linha 0 = linha -5 da grade do herói (sobra uma linha para o contorno)
+ if(V&&V.chapeu&&!E.he)cx.drawImage(chapeuMago(dir),-2,-2-12,32,20);
  if(!bk)armas();
  return recortarHeroi(c)}
 /* Roupa por região do molde: pinta cada pixel do molde cuja letra está em "letras" (filtro opcional por posição) */
@@ -203,12 +220,9 @@ const acimaDoPe=(G,x,y)=>G[y+1]&&G[y+1][x]=='f';
 // manto (NPCs de magia): cobre tronco, braços, quadril e pernas (vira saia); as botas aparecem embaixo
 function manto(R,dir,[m,a],G){
  const sd=dir=='s',m2=shade(m,.8);
- regiao(G,'taTp',R,m);regiao(G,'AP',R,m2);regiao(G,'lL',R,m,(x,y)=>!acimaDoPe(G,x,y));regiao(G,'lL',R,a,(x,y)=>acimaDoPe(G,x,y));regiao(G,'f',R,'#3a2a1a');
+ // a linha logo acima do pé e o pé ficam para as botas (gearBody)
+ regiao(G,'taTp',R,m);regiao(G,'AP',R,m2);regiao(G,'lL',R,m,(x,y)=>!acimaDoPe(G,x,y));
  if(sd)R(5,22,6,1,m);else{R(4,22,8,1,m);if(dir!='u')R(7,19,2,3,m2)}}
-// esqueleto: costelas, órbitas e dentes (a pele já vem cor de osso)
-function ossos(R,dir,G){
- regiao(G,'tT',R,'#d8d8cc');regiao(G,'tT',R,'#8a8a80',(x,y)=>y%2==0);regiao(G,'we',R,'#111111');
- if(dir!='u'&&dir!='s')R(6,9,4,1,'#8a8a80')}
 /* Equipamento por cima do corpo (grade no comentário do human) */
 function gearPre(E,dir,R){const g=E.ca;if(!g||dir=='u')return;const [m,a]=g.v.c,m2=shade(m,.75);
  if(dir=='s'){R(1,12,5,12,m);R(1,23,5,1,a);R(1,12,1,11,m2)}
@@ -217,7 +231,7 @@ function gearBody(E,dir,dg,R,P,G){
  const sd=dir=='s',bk=dir=='u';
  if(E.le){const [m,c]=E.le.v.c,m2=shade(m,.8);
   regiao(G,'pl',R,m);regiao(G,'PL',R,m2);regiao(G,'pP',R,c,(x,y)=>y==19)}
- if(E.bo){const [m,c]=E.bo.v.c;
+ {const [m,c]=E.bo?E.bo.v.c:BOTA_PADRAO;
   regiao(G,'f',R,m);regiao(G,'lL',R,c,(x,y)=>acimaDoPe(G,x,y))}
  if(E.ch){const [m,c]=E.ch.v.c,st=E.ch.v.st,m2=shade(m,.8),hi=shade(m,1.25);
   regiao(G,'t',R,m);regiao(G,'T',R,m2);regiao(G,'a',R,shade(m,.92));regiao(G,'A',R,m2);
@@ -309,7 +323,7 @@ function slime(dir){const c=mkCanvas(28,20,2),x=c.getContext('2d');
  return half(c)}
 const DIRS=['d','u','s','ds','us'];const set3=(fn,cl)=>{const o={w:fn===human?{}:null};for(const d of DIRS){o[d]=fn(cl,d);if(o.w)o.w[d]=[fn(cl,d,1),fn(cl,d,2)]}return o};
 const fr=(set,d,an)=>an&&an.ph&&set.w?set.w[d][an.ph-1]:set[d];
-const HS={war:set3(human,'war'),mag:set3(human,'mag'),hea:set3(human,'hea'),sty:set3(human,'sty')};
-const SP={sk:set3(human,'sk'),sl:{d:slime('d'),u:slime('u'),s:slime('s'),ds:slime('ds'),us:slime('us')}};
+const HS={war:set3(human,'war'),mag:set3(human,'mag'),hea:set3(human,'hea'),sty:set3(human,'sty'),carpinteiro:set3(human,'carpinteiro'),ferreiro:set3(human,'ferreiro')};
+const SP={sl:{d:slime('d'),u:slime('u'),s:slime('s'),ds:slime('ds'),us:slime('us')}};
 const FD=[['s',1],['ds',1],['d',1],['ds',-1],['s',-1],['us',-1],['u',1],['us',1]];
 function face(u){if(u.canal&&u.canal.visual){const i=(Math.round(u.canal.ang/(Math.PI/4))%8+8)%8;return{d:FD[i][0],fl:FD[i][1]}} /* girando (Girar): o desenho segue a lâmina, mesmo andando */const x=u.fx||0,y=u.fy||0;if(!x&&!y)return{d:'d',fl:1};const a=Math.atan2(y,x),i=(Math.round(a/(Math.PI/4))+8)%8,k=u.fk;if(k!==undefined&&k!==i){const c=k*Math.PI/4,df=Math.abs(Math.atan2(Math.sin(a-c),Math.cos(a-c)));if(df<Math.PI/4+.25)return{d:FD[k][0],fl:FD[k][1]}}u.fk=i;return{d:FD[i][0],fl:FD[i][1]}}

@@ -9,9 +9,9 @@ const D=typeof GAMEDATA!=='undefined'?GAMEDATA:{},L=k=>Array.isArray(D[k])?D[k]:
  tags=v=>Array.isArray(v)?v.map(String):[],lc=a=>tags(a).map(s=>s.trim().toLowerCase()).filter(Boolean),
  weaponId=weaponTag,
  pw=()=>basic().damageType=='magic'?magicPower():physicalPower();
-/* equipamentos gerados pelo plano (pacote equip-v1, id ..._NN = nível) acima do nível máximo não entram no jogo, mesmo antes
-   de a Engine salvar a limpeza; itens criados à mão (sem pacote) e os outros pacotes ficam */
-if(!MODO.motor&&Array.isArray(D.items)){const max=+CALC.maxLevel||10,acima=i=>i&&i.pacote==='equip-v1'&&+((/_(\d+)$/.exec(i.id)||[])[1])>max;D.items=D.items.filter(i=>!acima(i))}
+/* equipamentos gerados pelo plano (pacote equip-v1, nomes com números romanos I a V) saíram do jogo (pedido do usuário, 2026-10-23),
+   mesmo antes de a Engine salvar a limpeza (mundo.ajustesV 12); itens criados à mão (sem pacote) e os outros pacotes ficam */
+if(!MODO.motor&&Array.isArray(D.items))D.items=D.items.filter(i=>!(i&&i.pacote==='equip-v1'));
 
 /* Monstros importados (js/pacote-monstros.js): entram no jogo mesmo antes de a Engine gravá-los no projeto, com um
    portal por grupo (os mesmos dados que engine/js/project.js criarMonstrosPacote grava).
@@ -20,8 +20,8 @@ if(!MODO.motor&&Array.isArray(D.items)){const max=+CALC.maxLevel||10,acima=i=>i&
 (()=>{const P=window.PACOTE_MONSTROS;if(!P)return;
  const proj=L('monsters'),recebeu=proj.some(m=>m&&m.pacote===P.versao),ids=new Set(proj.map(m=>m&&m.id));
  const lista=proj.map(m=>m&&m.pacote&&m.pacote!==P.versao&&P.MONSTROS[m.id]?{...m,sprite:P.MONSTROS[m.id].sprite,animation:P.MONSTROS[m.id].animation}:m);
- const novos=recebeu?[]:Object.values(P.MONSTROS).filter(m=>!ids.has(m.id)).map(m=>({id:m.id,name:m.nome,pacote:P.versao,ataqueDoNivel:true,base:'goblin',bossType:'normal',tags:[...(m.tags||[])],minLevel:m.nivel,maxLevel:999,weight:2,zone:'',
-  stats:{...m.stats},per:{...m.per},xp:m.xp,gold:m.ouro,aggro:m.aggro,equipment:[],drops:[{id:'hp',chance:8}],skills:[],attackSpeed:m.atk,moveSpeed:m.vel,hpMult:1,dmgMult:1,sprite:m.sprite,animation:m.animation}));
+ const novos=recebeu?[]:Object.values(P.MONSTROS).filter(m=>!ids.has(m.id)).map(m=>({id:m.id,name:m.nome,pacote:P.versao,ataqueDoNivel:true,base:'goblin',bossType:'normal',tags:[...(m.tags||[])],minLevel:m.nivel,maxLevel:m.nivelMax||999,weight:2,zone:'',
+  stats:{...m.stats},per:{...m.per},xp:m.xp,gold:m.ouro,aggro:m.aggro,equipment:[],drops:[{id:'hp',chance:8},{id:'mp',chance:5}],skills:[],attackSpeed:m.atk,moveSpeed:m.vel,hpMult:1,dmgMult:1,sprite:m.sprite,animation:m.animation}));
  GAMEDATA.monsters=[...lista,...novos];
  if(recebeu)return;
  const tem=new Set(GAMEDATA.monsters.map(m=>m&&m.id));
@@ -30,6 +30,30 @@ if(!MODO.motor&&Array.isArray(D.items)){const max=+CALC.maxLevel||10,acima=i=>i&
   const ms=Object.values(P.MONSTROS).filter(m=>m.portal===grupo&&tem.has(m.id));if(!ms.length)continue;
   PROJ.portalDefs=[...(PROJ.portalDefs||[]),{id:q.id,name:q.nome,minLevel:q.nivel||1,targetLevel:10,frequency:1,monsters:ms.map(m=>({id:m.id,chance:Math.floor(100/ms.length),min:1,max:2,elite:10}))}]}})();
 
+/* Gosma redesenhada (js/arte-gosma.js, parado/andando/atacando): vale até a Engine gravar no projeto (mundo.ajustesV 10) */
+(()=>{const A=window.ARTE_GOSMA;if(!A||+(PROJETO.mundo&&PROJETO.mundo.ajustesV)>=10)return;GAMEDATA.monsters=GAMEDATA.monsters.map(m=>m&&m.id==='sl'?{...m,sprite:A.sprite,animation:A.animation}:m)})();
+/* arte nova (js/arte-criaturas.js) antes de a Engine gravar (mundo.ajustesV 11): Esqueleto e Esqueleto do Serrote redesenhados,
+   Guardião = Glooc Saqueador; os esqueletos do pacote Dark saem */
+(()=>{const A=window.ARTE_CRIATURAS;if(!A||+(PROJETO.mundo&&PROJETO.mundo.ajustesV)>=11)return;
+ const arte={sk:['esqueleto_comum','Esqueleto'],gob:['esqueleto_serrote','Esqueleto do Serrote'],boss:['glooc_machadinha','Glooc Saqueador']};
+ GAMEDATA.monsters=GAMEDATA.monsters.filter(m=>!(m&&['esqueleto_sombrio','esqueleto_palido'].includes(m.id))).map(m=>{const a=m&&arte[m.id],d=a&&A[a[0]];return d?{...m,name:a[1],sprite:d.sprite,animation:d.animation}:m})})();
+/* Morcego, Aranha, Caranguejo, Fantasma, Broto Vivo e Lorde Goblin saíram do jogo (pedido do usuário, 2026-10-23), mesmo antes
+   de a Engine gravar (mundo.ajustesV 13). A madeira da missão passa a cair do Toco Vivo. */
+(()=>{const FORA=['bat','spider','crab','ghost','sprout','goblinBoss'],broto=GAMEDATA.monsters.find(m=>m&&m.id==='sprout');
+ GAMEDATA.monsters=GAMEDATA.monsters.filter(m=>!(m&&FORA.includes(m.id)));
+ const toco=GAMEDATA.monsters.find(m=>m&&m.id==='toco_vivo');
+ if(toco&&broto&&!(toco.drops||[]).some(d=>d&&d.id==='wood'))GAMEDATA.monsters=GAMEDATA.monsters.map(m=>m===toco?{...m,drops:[...(broto.drops||[]).filter(d=>d&&(d.id==='wood'||d.id==='magicWood')),...(m.drops||[])]}:m)})();
+/* vistas de frente e de costas (2026-10-23) das criaturas desenhadas no jogo, antes de a Engine gravar (mundo.ajustesV 12):
+   só quando o desenho de lado do projeto ainda é o da arte (quem trocou o desenho não ganha vistas que não combinam) */
+(()=>{const A=window.ARTE_CRIATURAS||{},M={sl:window.ARTE_GOSMA,sk:A.esqueleto_comum,gob:A.esqueleto_serrote,boss:A.glooc_machadinha};
+ const arteDe=id=>M[id]||A[id];
+ GAMEDATA.monsters=GAMEDATA.monsters.map(m=>{if(!m||m.direcoes)return m;const d=arteDe(m.id),q=m.animation&&m.animation.idle&&m.animation.idle[0];
+  return d&&d.direcoes&&q&&d.animation.idle[0].pixels===q.pixels?{...m,direcoes:d.direcoes}:m})
+ /* desenho novo em camadas (2026-10-23, 4 posições) de Lobos, Glooc e Esqueletos: vale até a Engine gravar (mundo.ajustesV 13) */
+ if(+(PROJETO.mundo&&PROJETO.mundo.ajustesV)>=13)return;
+ const NOVOS={...M,rei_esqueleto_covil:A.esqueleto_rei};delete NOVOS.sl;
+ for(const k of Object.keys(A))if(/^(lobo_|glooc_|esqueleto_|javaporco)/.test(k))NOVOS[k]=A[k];
+ GAMEDATA.monsters=GAMEDATA.monsters.map(m=>{const d=m&&NOVOS[m.id];return d&&d.direcoes?{...m,sprite:d.sprite,animation:d.animation,direcoes:d.direcoes}:m})})();
 ITEMS.sw.wt='espada';ITEMS.sw2.wt='machado_2mao';ITEMS.sw3.wt='cajado';
 /* arma do pacote (js/pacote-armas.js) de um tipo; as armas embutidas usam o desenho dela no ícone e na mão (mesma escala) */
 const armaDoPacote=t=>{const A=window.PACOTE_ARMAS&&PACOTE_ARMAS.ARMAS;return A&&t?Object.values(A).find(a=>weaponTag(a.tag)===t)||null:null};
@@ -231,8 +255,9 @@ if(port)port._tip=()=>{const c=CL[p.cls],ps=c.passive;return'<b>'+c.n+'</b>'+(ps
 /* ---------- monstros ---------- */
 /* Drops: [{id, chance}] com chance em % (cada item é sorteado sozinho). O formato antigo (lista de ids
    dividindo a chance base + drops garantidos) vira o mesmo resultado em %. Não existe mais tabela padrão. */
+const NUNCA_CAI=['nova_arma','teste']; // arma ADM e a de teste nunca caem de monstro (mesma lista da Engine, project.js)
 function normDrops(m){
- const out={},put=(id,c)=>{if(ITEMS[id])out[id]=Math.max(out[id]||0,Math.max(0,Math.min(100,+c||0)))};
+ const out={},put=(id,c)=>{if(ITEMS[id]&&!NUNCA_CAI.includes(id))out[id]=Math.max(out[id]||0,Math.max(0,Math.min(100,+c||0)))};
  const lista=Array.isArray(m.drops)?m.drops:[],g=Array.isArray(m.guaranteedDrops)?m.guaranteedDrops:[];
  const velhos=lista.filter(x=>typeof x=='string'&&!g.includes(x)),bn=m.bossType=='grandboss'?.4:m.bossType=='boss'?.2:0;
  velhos.forEach(id=>put(id,.22*(1+bn)/velhos.length*100)); // lista antiga (sem %): 22% divididos entre os itens
@@ -249,7 +274,8 @@ L('monsters').forEach(m=>{
  if(!m.id)return;
  const s=m.stats||{},base=SP[m.base]?m.base:'sl',atk=n(m.attackSpeed)||(CL[m.classId]&&CL[m.classId].attackSpeed)||1; /* sem classe base: intervalo de ataque do próprio monstro (projetos antigos: o da classe que ele tinha) */
  const equipment=(Array.isArray(m.equipment)?m.equipment:[]).map(id=>D.items.find(it=>it.id==id)).filter(Boolean);
- const total={},weaponRanges=[];equipment.forEach(it=>{const stats={...it.stats},range=it.kind==='weapon'&&weaponDamageRange(it);if(range){stats.dmg=(range.min+range.max)/2;weaponRanges.push(range)}Object.keys(stats).forEach(k=>{total[k]=(total[k]||0)+n(stats[k])})});
+ // com 'ataque do nível' o dano vem da tabela do nível: a arma equipada só dá o alcance/visual e os outros atributos (não soma dano)
+ const total={},weaponRanges=[];equipment.forEach(it=>{const stats={...it.stats},range=it.kind==='weapon'&&!m.ataqueDoNivel&&weaponDamageRange(it);if(it.kind==='weapon'&&m.ataqueDoNivel)delete stats.dmg;if(range){stats.dmg=(range.min+range.max)/2;weaponRanges.push(range)}Object.keys(stats).forEach(k=>{total[k]=(total[k]||0)+n(stats[k])})});
  // dano do ataque básico do próprio monstro (Engine › Ataque básico): mínimo–máximo sorteado a cada golpe, como o de uma arma
  let basico=null;try{basico=weaponDamageRange(m)}catch(e){console.warn('Monstro "'+(m.name||m.id)+'": dano do ataque básico inválido ('+e.message+')')}
  if(basico&&!m.ataqueDoNivel){total.dmg=(total.dmg||0)+(basico.min+basico.max)/2;weaponRanges.push(basico)} // com ataqueDoNivel o dano vem da tabela do nível (state.js)
@@ -258,8 +284,9 @@ L('monsters').forEach(m=>{
   actionStats:k.actionStats,bonuses:k.bonuses,bonusDuration:n(k.bonusDuration,5),effect:k.effect,windup:conj(k)>0?conj(k):.5,damage:n(k.base),per:n(k.per),charPercent:n(k.charPercent),effects:Array.isArray(k.effects)?k.effects:[],magic:k.damageType=='magic'||k.damageType!='physical'&&!!(weapon&&weapon.damageType=='magic'),radius:n(k.radius),flatDamage:true,scaleStat:k.scaleStat||'none',scalePercent:n(k.scalePercent,k.scaleStat&&k.scaleStat!='none'?100:0),vfx:k.vfx||'arcane',vfxColor:k.color||k.c2||'#9bd4ff'
  }));
  const k=fatorMonstro(m),sprite=reduzido(m.sprite,k),sp=sprite?{d:sprite,u:sprite,s:sprite,ds:sprite,us:sprite,w:null}:null;
- const animation=k<1&&m.animation?{...m.animation,...Object.fromEntries(['idle','walk','attack'].map(a=>[a,(m.animation[a]||[]).map(f=>reduzido(f,k)).filter(Boolean)]))}:m.animation;
- MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,ataqueDoNivel:!!m.ataqueDoNivel,sprite,sp,animation,size:n(m.size,100),attackSpeed:atk,moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
+ const reduzirAnim=A=>k<1&&A?{...A,...Object.fromEntries(['idle','walk','attack'].map(a=>[a,(A[a]||[]).map(f=>reduzido(f,k)).filter(Boolean)]))}:A;
+ const animation=reduzirAnim(m.animation),direcoes=m.direcoes&&typeof m.direcoes=='object'?{frente:reduzirAnim(m.direcoes.frente),costas:reduzirAnim(m.direcoes.costas),esquerda:reduzirAnim(m.direcoes.esquerda)}:null;
+ MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,ataqueDoNivel:!!m.ataqueDoNivel,sprite,sp,animation,direcoes,size:n(m.size,100),attackSpeed:atk,moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
   bossType:['boss','grandboss'].includes(m.bossType)?m.bossType:'normal',equipment:{stats:total,weaponRanges,weapon:weapon?{damageType:weapon.damageType=='magic'?'magic':'physical',basic:weapon.basic||{},effects:Array.isArray(weapon.effects)?weapon.effects:[]}:null},
   drops:normDrops(m),skills:createdSkills,
   // chefe com mecânicas (js/chefes.js) e fúria abaixo de X% da vida
@@ -272,7 +299,7 @@ if(ids.length){
  pickType=function(far){
   const c=ids.filter(k=>k!='gob'&&CM[k].min<=p.lvl&&CM[k].max>=p.lvl);
   if(c.length&&Math.random()<Math.min(.6,.2*c.length)){let r=Math.random()*c.reduce((a,k)=>a+questSpawnWeight(k,CM[k].w),0);for(const k of c){r-=questSpawnWeight(k,CM[k].w);if(r<=0)return k}return c[0]}
-  return far?'sk':'sl'};
+  return far?'goblin':'sl'};
  window.repop=()=>en.forEach(e=>{if(!e.boss&&e.hp>0)spawn(e)});
  repop()}
 const questBoss=en.find(e=>e.boss);

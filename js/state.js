@@ -15,7 +15,9 @@ const fits=(slot,id)=>!!gearType[id]&&(gearType[id]==slot||(gearType[id]=='ri'&&
    dela. Padrão: Ruim 0-19 35%, Comum 20-44 35%, Boa 45-69 20%, Rara 70-89 8%, Épica 90-99 1,9%, Perfeita 100 0,1% */
 const FAIXAS_Q=[['qualRuim',0,19],['qualComum',20,44],['qualBoa',45,69],['qualRara',70,89],['qualEpica',90,99],['qualPerfeita',100,100]];
 const rollQ=()=>{const w=FAIXAS_Q.map(([k])=>Math.max(0,+CALC[k]||0)),tot=w.reduce((a,b)=>a+b,0);if(!(tot>0))return Math.round(100*Math.pow(Math.random(),CALC.qualExp||2.2));let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<0||i===w.length-1){const [,a,b]=FAIXAS_Q[i];return a+Math.floor(Math.random()*(b-a+1))}}},qMul=q=>CALC.qualBase+(q==null?50:q)/100,
-qStats=(id,q)=>{const it=ITEMS[id],o={};for(const k of Object.keys(ITEM_STATS))if(it[k])o[k]=ITEM_STATS[k].percent||ITEM_STATS[k].fractional?it[k]*qMul(q):Math.max(1,Math.round(it[k]*qMul(q)));const range=gearType[id]==='sw'&&qualityWeaponRange(it,q);if(range)o.dmg=(range.min+range.max)/2;return o},
+/* atributos de um item numa qualidade: guardados (o bônus do equipamento era recalculado várias vezes por quadro) */
+qCache=new Map(),qStats=(id,q)=>{const ch=id+'|'+q,it=ITEMS[id];let c=qCache.get(ch);if(c&&c.it===it)return c.v;if(qCache.size>800)qCache.clear();c={it,v:qStats0(id,q)};qCache.set(ch,c);return c.v}, /* se o item for trocado, recalcula */
+qStats0=(id,q)=>{const it=ITEMS[id],o={};for(const k of Object.keys(ITEM_STATS))if(it[k])o[k]=ITEM_STATS[k].percent||ITEM_STATS[k].fractional?it[k]*qMul(q):Math.max(1,Math.round(it[k]*qMul(q)));const range=gearType[id]==='sw'&&qualityWeaponRange(it,q);if(range)o.dmg=(range.min+range.max)/2;return o},
 qName=q=>q<20?'Ruim':q<45?'Comum':q<70?'Boa':q<90?'Rara':q<100?'Épica':'Perfeita',
 bonus=k=>Object.values(EQ).reduce((a,s)=>a+(s&&gearType[s.id]&&(k==='dmg'&&weaponDamageRolls?.has(s)?weaponDamageRolls.get(s):qStats(s.id,s.q)[k])||0),0)+playerAttributeBonus(k);
 let weaponDamageRolls=null,weaponDamage2Rolls=null;
@@ -105,12 +107,12 @@ function setDest(x,y){
 const en=[],drops=[],proj=[],mets=[],fxs=[],fts=[];
 const MONSTER_TYPES={
  sl:{name:'Gosma',stats:{F:10,A:3,I:3},skill:{name:'Cuspe ácido',cost:10,cd:7,range:88,windup:.55,damage:12,magic:true}},
- sk:{name:'Esqueleto',stats:{F:16,A:5,I:5},skill:{name:'Golpe esmagador',cost:12,cd:6,range:28,windup:.65,damage:25,multiplier:1.5}},
- gob:{name:'Goblin do Serrote',stats:{F:17,A:10,I:5},skill:{name:'Corte de serrote',cost:999999,cd:999,range:24,windup:.4,damage:0}},
- boss:{name:'Guardião Esqueleto',stats:{F:25,A:8,I:10},skill:{name:'Rugido arcano',cost:25,cd:10,range:55,windup:.9,damage:25,magic:true,radius:48},bossType:'boss'}
+ gob:{name:'Esqueleto do Serrote',stats:{F:17,A:10,I:5},skill:{name:'Corte de serrote',cost:999999,cd:999,range:24,windup:.4,damage:0}},
+ boss:{name:'Glooc Saqueador',stats:{F:25,A:8,I:10},skill:{name:'Rugido arcano',cost:25,cd:10,range:55,windup:.9,damage:25,magic:true,radius:48},bossType:'boss'}
 };
-/* nível de um monstro sem faixa própria: o do jogador, às vezes 1 abaixo ou 1 acima (antes era de −10 a +10: um herói nível 1 achava monstros nível 10) */
-function monsterLevel(){const r=Math.random();return Math.max(1,p.lvl+(r<.25?-1:r>.8?1:0))}
+/* nível de um monstro sem faixa própria: o do jogador, no máximo 3 abaixo ou 3 acima (mais perto do nível do jogador é mais comum) */
+const DIF_NIVEL=3;
+function monsterLevel(){const d=Math.round((Math.random()+Math.random()+Math.random()-1.5)*2*DIF_NIVEL/3);return Math.max(1,p.lvl+Math.max(-DIF_NIVEL,Math.min(DIF_NIVEL,d)))}
 function configureMonster(e,type,level){
  level=Math.max(1,Math.min(+CALC.maxLevel||10,level)); // ninguém passa do nível máximo do jogo
  const template=MONSTER_TYPES[type],growth=level-1;
@@ -156,19 +158,21 @@ function configureMonster(e,type,level){
 }
 // classes de referência do plano de balanceamento (js/balanceamento.js): Guerreiro (físico) e Mago (mágico) do projeto
 const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};
-const MB={sl:{max:40,dmg:5,spd:28,xp:10,g:3,aggro:60,wu:.35,ac:1.1,base:'sl'},sk:{max:90,dmg:12,spd:36,xp:25,g:8,aggro:75,wu:.45,ac:1.5,base:'sk'},gob:{max:130,dmg:15,spd:34,xp:55,g:24,aggro:90,wu:.45,ac:1.25,base:'goblin'}};
-function pickType(far){return far?'sk':'sl'}
+const MB={sl:{max:40,dmg:5,spd:28,xp:10,g:3,aggro:60,wu:.35,ac:1.1,base:'sl'},gob:{max:130,dmg:15,spd:34,xp:55,g:24,aggro:90,wu:.45,ac:1.25,base:'goblin'}};
+function pickType(far){return far?'goblin':'sl'}
 function spawn(e){let x,y,t=0;do{x=rnd(0,W);y=rnd(0,W);t++}while(t<500&&(!walk(x,y)||V(x/T|0,y/T|0)>25||insideCamp(x,y,8)));
  const far=Math.hypot(x-CX,y-CY)>240&&Math.random()<.55,type=pickType(far),B=MB[type];
  Object.assign(e,{img:SP[B.base].d,sp:SP[B.base],max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac});
  configureMonster(e,type,monsterLevel());
  e.x=e.hx=x;e.y=e.hy=y;e.hp=e.max;e.st=null;e.fx=0;e.fy=1;e.aw=0;e.cd=0;e.hit=0;e.rt=0;e.dest=null;e.path=[];e.pathI=0;e.pathKey='';e.roamT=5;e.roamRadius=rnd(38,82)}
 /* sem inimigos iniciais: eles saem de portais (js/portals.js) */
+/* cacaFeita/cacaMortes: 1ª missão depois do tutorial = derrotar 10 monstros quaisquer; só então o Guardião aparece */
+let cacaFeita=false,cacaMortes=0;const CACA_ALVO=10;
 let questDone=false,carpenterHelped=false,sawQuestActive=false,sawObtained=false,woodQuestActive=false,wallBuilt=false,magicWoodQuestActive=false,campPortalBuilt=false,sawGoblin=null,inDungeon=false,campPortalTheme='normal',blacksmithSaved=false;
 const WALL_WOOD_REQUIRED=20;
 const PORTAL_WOOD_REQUIRED=10,campPortal={x:CX-66,y:CY-48};
 function questMonsterRequested(type){
- return type=='gob'?sawQuestActive&&!sawObtained&&!wallBuilt:type=='sprout'?(woodQuestActive&&!wallBuilt&&itemCount('wood')<WALL_WOOD_REQUIRED)||(magicWoodQuestActive&&!campPortalBuilt&&itemCount('magicWood')<PORTAL_WOOD_REQUIRED):false
+ return type=='gob'?sawQuestActive&&!sawObtained&&!wallBuilt:type=='toco_vivo'?(woodQuestActive&&!wallBuilt&&itemCount('wood')<WALL_WOOD_REQUIRED)||(magicWoodQuestActive&&!campPortalBuilt&&itemCount('magicWood')<PORTAL_WOOD_REQUIRED):false
 }
 const questSpawnWeight=(type,weight)=>weight*(questMonsterRequested(type)?1.2:1);
 function questMonsterTarget(type){let target=null,best=Infinity;for(const e of en){if(e.hp<=0||e.ty!=type)continue;const d=dist(e,p);if(d<best){best=d;target=e}}return target}
@@ -195,8 +199,8 @@ function toggleCampGate(){
  CAMP_WALL.gateOpen=!CAMP_WALL.gateOpen;syncCampWall();
  ft(campGate.x,campGate.y-34,CAMP_WALL.gateOpen?'PORTÃO ABERTO':'PORTÃO FECHADO','#ffd84a');saveGame()
 }
-const boss={boss:true,img:SP.sk.d,sp:SP.sk,max:420,dmg:20,spd:25,xp:180,g:80,aggro:110,wu:.6,ac:1.8};
+const boss={boss:true,img:SP.glooc.d,sp:SP.glooc,max:420,dmg:20,spd:25,xp:180,g:80,aggro:110,wu:.6,ac:1.8};
 configureMonster(boss,'boss',monsterLevel());
-boss.x=boss.hx=CX+250;boss.y=boss.hy=CY-250;boss.hp=boss.max;boss.fx=0;boss.fy=1;boss.aw=0;boss.cd=0;boss.hit=0;boss.rt=0;en.push(boss);
+boss.x=boss.hx=CX+232;boss.y=boss.hy=CY-345;boss.roamRadius=14; /* colado no esconderijo do carpinteiro (combat.js ESCONDERIJO): ronda a tora */boss.hp=boss.max;boss.fx=0;boss.fy=1;boss.aw=0;boss.cd=0;boss.hit=0;boss.rt=0;en.push(boss);
 const ft=(x,y,t,c)=>fts.push({x,y,t,c,a:1});
 const ring=(x,y,r,c,d=.4)=>fxs.push({x,y,r,c,t:0,d});

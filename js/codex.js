@@ -9,7 +9,7 @@ const cb=E('button','','Enciclopédia');cb.id='codexBtn';cb.title='Enciclopédia
 const box=E('section');box.id='codex';document.body.appendChild(box);
 let tab='mon',q='';
 /* ---- dados ---- */
-function mons(){const be=en.find(e=>e.boss);return Object.keys(MONSTER_TYPES).map(id=>{const t=MONSTER_TYPES[id],B=id=='boss'&&be?{max:be.max,dmg:be.dmg,spd:be.spd,xp:be.xp,g:be.g,aggro:be.aggro,base:'sk'}:(MB[id]||{max:0,dmg:0,spd:0,xp:0,g:0,aggro:0,base:'sl'});
+function mons(){const be=en.find(e=>e.boss);return Object.keys(MONSTER_TYPES).map(id=>{const t=MONSTER_TYPES[id],B=id=='boss'&&be?{max:be.max,dmg:be.dmg,spd:be.spd,xp:be.xp,g:be.g,aggro:be.aggro,base:'glooc'}:(MB[id]||{max:0,dmg:0,spd:0,xp:0,g:0,aggro:0,base:'sl'});
  return{id,t,B,img:t.sprite||(SP[B.base]||SP.sl).d,sk:(t.skills&&t.skills[0])||t.skill,bt:t.bossType||'normal',sp:window.SPAWNINFO&&SPAWNINFO[id]}})}
 /* ---- bestiário: só aparece o que o jogador já descobriu (js/state.js BESTIARIO) ---- */
 const MAIS_INFO=100,abertos=new Set(),sombras=new Map();
@@ -78,7 +78,8 @@ function placeDrop(){if(getComputedStyle(dp0).display=='none')return;const r=$('
  put=right=>{const left=innerWidth-right-w,bottom=left<r.right+8&&left+w>r.left?innerHeight-r.top+8:8;S('right',right+'px');S('bottom',bottom+'px');return{l:left,r:left+w,t:innerHeight-bottom-h,b:innerHeight-bottom}};
  let d=put(8);if(vis){const ir=iv.getBoundingClientRect();if(d.l<ir.right&&d.r>ir.left&&d.t<ir.bottom&&d.b>ir.top)put(innerWidth-ir.left+8)}}
 addEventListener('resize',placeDrop);
-const hud3=hud;hud=function(){hud3();placeDrop()};
+/* posição da caixa de itens: mede o layout (caro) só 4× por segundo, não a cada quadro */
+let tDrop=0;const hud3=hud;hud=function(){hud3();const t=performance.now();if(t-tDrop>250){tDrop=t;placeDrop()}};
 /* arrastar painéis pelo título */
 function drag(el,sel){el.addEventListener('pointerdown',e=>{const h=e.target.closest(sel);if(!h||e.target.closest('button,input')||e.button!==0)return;const r=el.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top,S=(k,v)=>el.style.setProperty(k,v,'important');
  S('transform','none');S('right','auto');S('bottom','auto');S('left',r.left+'px');S('top',r.top+'px');

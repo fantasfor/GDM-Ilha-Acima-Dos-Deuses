@@ -31,11 +31,12 @@ window.TEMPO=(()=>{
 const camadaNoite=document.createElement('canvas');
 window.desenharNoite=function(forca=1,luzes=[]){
  const k=TEMPO.escuro()*forca;if(k<=0)return;
- const c=camadaNoite;if(c.width!==cv.width||c.height!==cv.height){c.width=cv.width;c.height=cv.height}const g=c.getContext('2d');
+ const Q=.25,CW=Math.ceil(cv.width*Q),CH=Math.ceil(cv.height*Q); // camada em 1/4 da resolução (só gradientes suaves), ampliada
+ const c=camadaNoite;if(c.width!==CW||c.height!==CH){c.width=CW;c.height=CH}const g=c.getContext('2d');
  g.globalCompositeOperation='source-over';g.clearRect(0,0,c.width,c.height);g.fillStyle='rgb('+Math.round(255-170*k)+','+Math.round(255-160*k)+','+Math.round(255-110*k)+')';g.fillRect(0,0,c.width,c.height);
  g.globalCompositeOperation='destination-out';
- for(const l of luzes){const sx=cv.width/2+(l.x-p.x)*S,sy=cv.height/2+(l.y-p.y)*S,r=l.r*S;if(sx<-r||sy<-r||sx>c.width+r||sy>c.height+r)continue;const lg=g.createRadialGradient(sx,sy,0,sx,sy,r);lg.addColorStop(0,'rgba(0,0,0,'+(l.a??.9)+')');lg.addColorStop(.55,'rgba(0,0,0,'+((l.a??.9)*.6)+')');lg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=lg;g.fillRect(sx-r,sy-r,r*2,r*2)}
- ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalCompositeOperation='multiply';ctx.drawImage(c,0,0);ctx.restore()};
+ for(const l of luzes){const sx=(cv.width/2+(l.x-p.x)*S)*Q,sy=(cv.height/2+(l.y-p.y)*S)*Q,r=l.r*S*Q;if(sx<-r||sy<-r||sx>c.width+r||sy>c.height+r)continue;const lg=g.createRadialGradient(sx,sy,0,sx,sy,r);lg.addColorStop(0,'rgba(0,0,0,'+(l.a??.9)+')');lg.addColorStop(.55,'rgba(0,0,0,'+((l.a??.9)*.6)+')');lg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=lg;g.fillRect(sx-r,sy-r,r*2,r*2)}
+ ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=true;ctx.globalCompositeOperation='multiply';ctx.drawImage(c,0,0,cv.width,cv.height);ctx.restore()};
 /* luz quente de tocha/fogueira que aparece à noite (coordenadas do mundo, com a transformação da câmera já aplicada) */
 window.luzNoite=function(x,y,r,cor='255,170,80',forca=1){
  const k=TEMPO.escuro()*forca;if(k<=0)return;

@@ -291,19 +291,30 @@ for(const theme of ['magic','goblin'])gameArtRegister(theme==='goblin'?'portal-c
 });
 /* dr.ent = quem está sendo desenhado (herói ou outro jogador): o VFX desenha aura e contorno atrás (js/vfx-habilidades.js).
    pintar(c, ml, mt) desenha um canvas em pixels do mundo com margem ml dos lados e mt em cima, alinhado ao desenho */
+/* silhueta de um desenho numa cor só (contorno de destaque: dr.borda = cor antes de chamar dr) */
+const silhuetas=new WeakMap();
+function silhueta(img,cor){let m=silhuetas.get(img);if(!m){m={};silhuetas.set(img,m)}if(m[cor])return m[cor];const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle=cor;g.fillRect(0,0,c.width,c.height);return m[cor]=c}
+const LADOS=[[1,0],[-1,0],[0,1],[0,-1]];
 function dr(img,x,y,fl,sc=1,an){const k=sc/(img.q||1),w=img.width*k,hh=img.height*k;const pd=(img.pad||0)*k;ctx.fillStyle='#0005';ctx.fillRect(Math.round(x-w/2+pd+2),Math.round(y),Math.round(w-2*pd-4),3);
- const ent=dr.ent;dr.ent=null;
+ const ent=dr.ent;dr.ent=null;const borda=dr.borda;dr.borda=null;const sil=borda&&silhueta(img,borda),bordaEm=(bx,by)=>{for(const [ox,oy] of LADOS)ctx.drawImage(sil,bx+ox*k,by+oy*k,w,hh)};
  if(an){ctx.save();ctx.translate(Math.round((x+an.dx)*S)/S,Math.round((y+an.dy)*S)/S);ctx.rotate(an.rot);if(an.sk)ctx.transform(1,0,an.sk,1,0,0);ctx.scale(an.sx*(fl<0?-1:1),an.sy);
   if(ent&&window.VFX)VFX.atras(ent,img,(c,ml,mt)=>ctx.drawImage(c,-w/2-ml*sc,-hh+3+(img.anchorY||0)-mt*sc,c.width*sc,c.height*sc));
+  if(sil)bordaEm(-w/2,-hh+3+(img.anchorY||0));
   ctx.drawImage(img,-w/2,-hh+3+(img.anchorY||0),w,hh);
   ctx.restore();return}
  const dx=Math.round((x-w/2)*S)/S,dy=Math.round((y-hh+3+(img.anchorY||0))*S)/S;
  if(ent&&window.VFX)VFX.atras(ent,img,(c,ml,mt)=>{if(fl<0){ctx.save();ctx.translate(dx+w+ml*sc,dy-mt*sc);ctx.scale(-1,1);ctx.drawImage(c,0,0,c.width*sc,c.height*sc);ctx.restore()}else ctx.drawImage(c,dx-ml*sc,dy-mt*sc,c.width*sc,c.height*sc)});
- if(fl<0){ctx.save();ctx.translate(dx+w,dy);ctx.scale(-1,1);ctx.drawImage(img,0,0,w,hh);ctx.restore()}else ctx.drawImage(img,dx,dy,w,hh)}
+ if(fl<0){ctx.save();ctx.translate(dx+w,dy);ctx.scale(-1,1);if(sil)bordaEm(0,0);ctx.drawImage(img,0,0,w,hh);ctx.restore()}else{if(sil)bordaEm(dx,dy);ctx.drawImage(img,dx,dy,w,hh)}}
 // animação procedural: parado (respirar), andar (pulinho+balanço), atacar (recuo e golpe), dano (tremida)
 const monsterAnimationArtCache=new WeakMap();
-function monsterSpriteFrame(e,dir,an){
- const definition=MONSTER_TYPES[e.ty],animation=e.dungeonAnimation||definition&&definition.animation;
+/* 4 posições: de frente (d), de costas (u), de lado para a direita (animation) e para a esquerda (direcoes.esquerda, desenhada
+   à parte com a luz do mesmo lado; sem ela o lado é espelhado). esqMonstro diz se o desenho da esquerda vale (aí não espelha). */
+const esqMonstro=(e,dir,fl)=>{const d=!e.dungeonAnimation&&MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].direcoes,a=d&&d.esquerda;return fl<0&&dir!='d'&&dir!='u'&&!!(a&&a.idle&&a.idle.length)};
+window.esqMonstro=esqMonstro;
+function monsterSpriteFrame(e,dir,an,fl=1){
+ const definition=MONSTER_TYPES[e.ty],base=e.dungeonAnimation||definition&&definition.animation;
+ const vista=!e.dungeonAnimation&&definition&&definition.direcoes&&definition.direcoes[dir=='d'?'frente':dir=='u'?'costas':esqMonstro(e,dir,fl)?'esquerda':''];
+ const animation=vista&&vista.idle&&vista.idle.length?{...vista,durations:vista.durations||base&&base.durations}:base;
  if(!animation)return fr(e.sp,dir,an);
  const action=e.aw>0||e.skillWindup?'attack':time-(e.mvAt==null?-9:e.mvAt)<.15?'walk':'idle';
  const frames=animation[action]&&animation[action].length?animation[action]:animation.idle;
@@ -402,46 +413,87 @@ function drawMapElement(e){
  const s=sceneryFor(e);if(!s)return;const k=1/(s.c.q||1);
  ctx.drawImage(s.c,Math.round((e.x-s.ax*k)*S)/S,Math.round((e.y-s.ay*k)*S)/S,s.c.width*k,s.c.height*k)
 }
+/* carpinteiro escondido (missão): uma tora grossa na frente dele, só a cabeça para fora, gritando por socorro num balão */
 function drawCarpenterDebris(n){
- const x=n.x,y=n.y;
- ctx.fillStyle='#0005';ctx.fillRect(x-17,y+1,34,4);
- ctx.fillStyle='#5a351b';ctx.fillRect(x-15,y-14,27,5);ctx.fillRect(x-11,y-20,22,5);
- ctx.fillStyle='#9b6935';ctx.fillRect(x-14,y-13,24,3);ctx.fillRect(x-10,y-19,19,3);
- ctx.fillStyle='#d0a15a';ctx.fillRect(x-12,y-13,3,1);ctx.fillRect(x+6,y-19,3,1);
- ctx.fillStyle='#75441f';ctx.fillRect(x+12,y-12,5,12);ctx.fillStyle='#c28a42';ctx.fillRect(x+13,y-11,3,7);
- ctx.fillStyle='#55504a';ctx.fillRect(x+13,y-17,2,6);ctx.fillStyle='#b7a17c';ctx.fillRect(x+11,y-18,6,2)
+ const x=n.x,y=n.y+2,R=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(a),Math.round(b),w,h)};
+ // tora deitada: casca escura com veios e a ponta cortada (anéis) à direita
+ R(x-20,y-16,38,16,'#4a2c16');R(x-20,y-16,38,2,'#6b4422');R(x-20,y-3,38,3,'#3a2210');
+ for(let k=-16;k<16;k+=5)R(x+k,y-13+(k%2?1:0),3,1,'#5e3a1c');R(x-12,y-8,6,1,'#5e3a1c');R(x+2,y-6,8,1,'#5e3a1c');
+ R(x+16,y-16,6,16,'#c9965a');R(x+17,y-14,4,12,'#e0b47a');R(x+18,y-11,2,6,'#a8763f');R(x+19,y-9,1,2,'#7a5028');
+ R(x-22,y-12,3,10,'#3a2210');R(x-6,y-21,3,6,'#4a2c16');R(x-7,y-22,5,2,'#5e8a3a'); // galho quebrado com folhas
+ // balão: Socorro! (aparece e some)
+ if((time%4)<2.6){const tx='Socorro!',bx=x-6,by=y-46;ctx.font='bold 6px monospace';const w=Math.ceil(ctx.measureText(tx).width)+8;
+  R(bx-w/2,by-7,w,10,'#161022');R(bx-w/2+1,by-6,w-2,8,'#ffffff');R(bx-1,by+3,3,2,'#161022');R(bx,by+3,1,1,'#ffffff');
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#c0392b';ctx.fillText(tx,bx,by+.5+Math.round(Math.sin(time*12)*.5))}
 }
-function drawCampLog(x,y,w=12,h=32){
- x=Math.round(x);y=Math.round(y);
- ctx.fillStyle='#0005';ctx.fillRect(x-w/2-2,y,w+4,5);
- ctx.fillStyle='#382315';ctx.fillRect(x-w/2-1,y-h,w+2,h+3);
- ctx.fillStyle='#79502d';ctx.fillRect(x-w/2,y-h+3,w,h-1);
- ctx.fillStyle='#bf8b4b';ctx.fillRect(x-w/2+1,y-h+4,3,h-3);
- ctx.fillStyle='#52321c';ctx.fillRect(x+w/2-3,y-h+4,2,h-3);
- ctx.fillStyle='#e0b476';ctx.fillRect(x-w/2+1,y-h+1,w-2,3);
- ctx.fillStyle='#9b6a35';ctx.fillRect(x-2,y-h+1,3,2);
- ctx.fillStyle='#462c1b';ctx.fillRect(x-1,y-h+10,2,5);ctx.fillRect(x+2,y-10,1,6)
-}
+/* Paliçada do acampamento em pixel art 1:1 (refeita em 2026-10-23): cada tora tem casca em tons de cilindro (luz à
+   esquerda), rachaduras e nós, ponta apontada com a madeira cortada clara, duas voltas de corda e musgo na base.
+   Desenhos prontos (3 alturas × 4 variações), escolhidos pela posição; o portão tem postes grossos, viga com os anéis da
+   madeira à mostra e portas de tábuas com travessas em Z e ferragens. */
+const TORA_CASCA=['#22130a','#3b2414','#55361f','#714a2b','#8d6038','#a97a48'],TORA_CORTE=['#8a5a30','#c08850','#e0b478'];
+const toraSprites={};
+function toraSprite(w,h,v){const k=w+'x'+h+'v'+v;if(toraSprites[k])return toraSprites[k];
+ const c=mkCanvas(w+2,h+3),g=c.getContext('2d'),P=(x,y,cor)=>{g.fillStyle=cor;g.fillRect(x,y,1,1)},rn=(a,b)=>hash(a*31+v*7+w,b*17+h);
+ const ponta=Math.round(w*.55);
+ for(let y=0;y<h;y++){
+  // largura da linha: ponta apontada no alto (triângulo), depois o corpo inteiro
+  const larg=y<ponta?Math.max(1,Math.round((y+1)/ponta*w)):w,x0=1+Math.round((w-larg)/2);
+  for(let i=0;i<larg;i++){const x=x0+i,f=larg>1?i/(larg-1):.5;
+   let t;if(y<ponta){t=f<.45?2:f<.75?1:0;P(x,y+1,TORA_CORTE[t]);continue}                 // madeira cortada da ponta
+   t=f<.12?5:f<.3?4:f<.55?3:f<.78?2:1;                                                     // cilindro: luz à esquerda
+   if(rn(x,y>>2)>.82&&t>1)t--;                                                             // veios da casca
+   if((x+v)%3===0&&rn(x,y)>.7&&t>1)t-=1;
+   P(x,y+1,TORA_CASCA[t])}}
+ // rachaduras compridas
+ for(let r=0;r<2;r++){const x=2+Math.floor(rn(r,9)*(w-3)),y0=ponta+3+Math.floor(rn(r,5)*(h-ponta-10)),L=4+Math.floor(rn(r,3)*6);for(let y=y0;y<y0+L&&y<h-2;y++)P(x,y+1,TORA_CASCA[0])}
+ // nó: anel escuro com miolo claro
+ {const nx=3+Math.floor(rn(5,5)*(w-6)),ny=ponta+6+Math.floor(rn(6,6)*(h-ponta-14));P(nx,ny,TORA_CASCA[0]);P(nx+1,ny,TORA_CASCA[1]);P(nx,ny+1,TORA_CASCA[1]);P(nx+1,ny+1,TORA_CORTE[0]);P(nx-1,ny+1,TORA_CASCA[1])}
+ // duas voltas de corda (amarram uma tora na outra)
+ for(const cy of [ponta+4,h-9]){for(let x=1;x<=w;x++){P(x,cy+1+((x>>1)&1?0:0),x%2?'#d8c088':'#b89a60');P(x,cy+2,'#6a5432')}}
+ // musgo na base
+ for(let x=1;x<=w;x++){if(rn(x,77)>.45)P(x,h,'#4f7d36');if(rn(x,78)>.7)P(x,h-1,'#6a9a44')}
+ // contorno escuro
+ const im=g.getImageData(0,0,c.width,c.height),d=im.data,W2=c.width,H2=c.height,cheio=(x,y)=>x>=0&&y>=0&&x<W2&&y<H2&&d[(y*W2+x)*4+3]>0,marca=[];
+ for(let y=0;y<H2;y++)for(let x=0;x<W2;x++)if(!cheio(x,y)&&(cheio(x-1,y)||cheio(x+1,y)||cheio(x,y-1)||cheio(x,y+1)))marca.push([x,y]);
+ g.fillStyle='#160c06';for(const [x,y] of marca)g.fillRect(x,y,1,1);
+ return toraSprites[k]=c}
+function drawCampLog(x,y,w=10,h=32){
+ x=Math.round(x);y=Math.round(y);const v=Math.floor(hash(x,y)*4),hh=h+(Math.floor(hash(y,x)*3)-1)*2,s=toraSprite(w,hh,v);
+ ctx.fillStyle='#0004';ctx.fillRect(x-w/2-2,y,w+4,3);
+ ctx.drawImage(s,x-Math.round(s.width/2),y-s.height+2)}
+/* portão: postes grossos, viga de cima com os anéis da madeira nas pontas, portas de tábuas (fechado) ou abertas para dentro */
+let portaoVigaC=null,portaoPortaC=null;
+function portaoViga(L){if(portaoVigaC&&portaoVigaC.width===L)return portaoVigaC;const c=mkCanvas(L,8),g=c.getContext('2d'),P=(x,y,cor)=>{g.fillStyle=cor;g.fillRect(x,y,1,1)};
+ for(let x=0;x<L;x++)for(let y=0;y<8;y++){const t=y===0||y===7?0:y===1?5:y<3?4:y<5?3:y<6?2:1;P(x,y,TORA_CASCA[(t>1&&hash(x>>2,y)>.85)?t-1:t])}
+ for(const x0 of [0,L-6]){for(let y=1;y<7;y++)for(let x=x0;x<x0+6;x++){const r=Math.hypot(x-x0-2.5,y-3.5);P(x,y,r<1?'#8a5a30':r<2?'#e0b478':r<2.6?'#c08850':'#8a5a30')}}
+ return portaoVigaC=c}
+function portaoPorta(w,h){if(portaoPortaC&&portaoPortaC.width===w)return portaoPortaC;const c=mkCanvas(w,h),g=c.getContext('2d'),R2=(x,y,a,b,cor)=>{g.fillStyle=cor;g.fillRect(x,y,a,b)};
+ for(let x=0;x<w;x++){const tab=Math.floor(x/5),borda=x%5===0;R2(x,0,1,h,borda?'#3b2414':tab%2?'#8d6038':'#7a5230');if(!borda&&x%5===1)R2(x,0,1,h,'#a97a48')}
+ for(let x=0;x<w;x+=5)R2(x+2,0,1,2,'#3b2414');                                              // pontas das tábuas
+ R2(0,5,w,3,'#55361f');R2(0,5,w,1,'#8d6038');R2(0,h-8,w,3,'#55361f');R2(0,h-8,w,1,'#8d6038'); // travessas
+ for(let i=0;i<h-14;i++){const x=Math.round(i*(w-3)/(h-14));R2(x,7+i,3,1,'#55361f');R2(x,7+i,1,1,'#8d6038')} // diagonal (Z)
+ for(const y of [6,h-7]){R2(1,y,4,1,'#5e6670');R2(1,y,1,1,'#9aa4ae');R2(w-5,y,4,1,'#5e6670')}            // dobradiças de ferro
+ return portaoPortaC=c}
 function drawCampGate(){
  const {x,y}=campGate,h=CAMP_WALL.halfGate;
- drawCampLog(x-h,y,12,38);drawCampLog(x+h,y,12,38);
- ctx.fillStyle='#382315';ctx.fillRect(x-h-6,y-39,h*2+12,6);
- ctx.fillStyle='#bd8b4d';ctx.fillRect(x-h-5,y-38,h*2+10,3);
- if(!CAMP_WALL.gateOpen){
-  for(let dx=-h+9;dx<h-5;dx+=9)drawCampLog(x+dx,y,9,30);
-  ctx.fillStyle='#4a2e1b';ctx.fillRect(x-h+6,y-23,h*2-12,3);ctx.fillRect(x-h+6,y-9,h*2-12,3);
-  ctx.fillStyle='#929698';ctx.fillRect(x-3,y-16,6,4)
- }else{
-  ctx.fillStyle='#6d4425';ctx.fillRect(x-h+2,y-24,5,23);ctx.fillRect(x+h-7,y-24,5,23);
-  ctx.fillStyle='#ba8748';ctx.fillRect(x-h+3,y-22,1,19);ctx.fillRect(x+h-6,y-22,1,19)
- }
+ if(!CAMP_WALL.gateOpen){const pw=h*2-14,ph=28,porta=portaoPorta(pw,ph);ctx.drawImage(porta,Math.round(x-pw/2),Math.round(y-ph+2));
+  ctx.fillStyle='#5e6670';ctx.fillRect(Math.round(x)-1,Math.round(y)-14,3,3);ctx.fillStyle='#9aa4ae';ctx.fillRect(Math.round(x)-1,Math.round(y)-14,1,1)} // argola
+ else{ // portas abertas para dentro, de lado (só a espessura das tábuas aparece)
+  for(const s of [-1,1]){const px=Math.round(x+s*(h-9));ctx.fillStyle='#3b2414';ctx.fillRect(px-2,Math.round(y)-27,5,28);ctx.fillStyle='#8d6038';ctx.fillRect(px-1,Math.round(y)-26,3,26);ctx.fillStyle='#a97a48';ctx.fillRect(px-1,Math.round(y)-26,1,26)}}
+ drawCampLog(x-h,y,14,40);drawCampLog(x+h,y,14,40);
+ const viga=portaoViga(h*2+18);ctx.drawImage(viga,Math.round(x-viga.width/2),Math.round(y-41));
  ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#ffe28a';
- ctx.fillText(CAMP_WALL.gateOpen?'Portão aberto':'Portão fechado',x,y-44);
- if(pickCampGate(wpos())){ctx.fillStyle='#fff';ctx.fillText('Clique para '+(CAMP_WALL.gateOpen?'fechar':'abrir'),x,y-51)}
-}
+ ctx.fillText(CAMP_WALL.gateOpen?'Portão aberto':'Portão fechado',x,y-46);
+ if(pickCampGate(wpos())){ctx.fillStyle='#fff';ctx.fillText('Clique para '+(CAMP_WALL.gateOpen?'fechar':'abrir'),x,y-53)}
+}/* qualidade dos efeitos: 2 = tudo, 1 = sem a névoa dessaturada (blend caro), 0 = modo desempenho. Opções › Modo desempenho força 0;
+   a qualidade automática (js/rede.js REDE.qualidade) baixa sozinha quando o FPS cai e volta quando sobra */
+window.qualidade=()=>window.modoDesempenho?0:(window.REDE&&REDE.qualidade!=null?REDE.qualidade:2);
 const fogMaskCv=document.createElement('canvas'),fogMask=fogMaskCv.getContext('2d'),VISAO_ILHA=200;
 let VISION_RANGE=VISAO_ILHA; /* à noite a visão cai 10% (js/tempo.js); na DG não muda */
-const visionTrees=()=>window.inArena||window.inTaverna||window.inTutorial?[]:trees.filter(t=>Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);
+/* árvores que bloqueiam a visão: guardadas por quadro (canSee é chamado para cada monstro; antes filtrava todas as árvores toda vez) */
+let arvVis={t:-1,x:0,y:0,r:0,l:[]};
+const visionTrees=()=>{if(window.inArena||window.inTaverna||window.inTutorial)return[];const v=arvVis;if(v.t===time&&v.x===p.x&&v.y===p.y&&v.r===VISION_RANGE)return v.l;
+ v.t=time;v.x=p.x;v.y=p.y;v.r=VISION_RANGE;v.l=trees.filter(t=>Math.abs(t.x-p.x)<VISION_RANGE+40&&Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);return v.l};
 function treeHit(ox,oy,dx,dy,t){
  const x=(ox-t.x)/15,y=(oy-(t.y-17))/11,a=(dx/15)**2+(dy/11)**2,b=2*(x*dx/15+y*dy/11),c=x*x+y*y-1;
  if(c<=0)return Infinity;
@@ -460,21 +512,23 @@ function canSee(x,y){
  return !visionTrees().some(t=>treeHit(p.x,p.y,dx,dy,t)<1)
 }
 function drawVision(){
+ // qualidade 0 (modo desempenho ou FPS muito baixo): só um escurecimento radial em volta do alcance, uma pintura só
+ if(qualidade()<1){const W=cv.width,H=cv.height,r=VISION_RANGE*S,g=ctx.createRadialGradient(W/2,H/2,Math.max(0,r-45*S),W/2,H/2,r);g.addColorStop(0,'rgba(8,16,34,0)');g.addColorStop(1,'rgba(8,16,34,.55)');ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.restore();return}
  // a névoa é toda borrada: desenhada em resolução reduzida (Q) e ampliada, custa uma fração do tempo
- const Q=window.modoDesempenho?.2:.35,S0=S,FW=Math.max(1,Math.ceil(cv.width*Q)),FH=Math.max(1,Math.ceil(cv.height*Q));
+ const q=qualidade(),Q=q>=2?.18:q>=1?.14:.1,S0=S,FW=Math.max(1,Math.ceil(cv.width*Q)),FH=Math.max(1,Math.ceil(cv.height*Q));
  if(fogMaskCv.width!=FW||fogMaskCv.height!=FH){fogMaskCv.width=FW;fogMaskCv.height=FH}
  {const S=S0*Q;
  const W=FW,H=FH,cx=W/2,cy=H/2,r=VISION_RANGE*S;
  // máscara de visão: polígono de raios (bloqueado pelas árvores), borrado e com borda radial suave
  const m=fogMask;m.setTransform(1,0,0,1,0,0);m.globalCompositeOperation='source-over';m.filter='none';m.clearRect(0,0,W,H);
- const trs=visionTrees(),N=240,R=VISION_RANGE+30;
+ const trs=visionTrees(),N=q>=2?180:120,R=VISION_RANGE+30;
  m.beginPath();
  for(let i=0;i<N;i++){
   const a=i/N*Math.PI*2,dx=Math.cos(a),dy=Math.sin(a);let dist=R;
   for(const t of trs){const e=treeExit(p.x,p.y,dx,dy,t);if(e<dist)dist=e}
   const X=cx+dx*dist*S,Y=cy+dy*dist*S;i?m.lineTo(X,Y):m.moveTo(X,Y)
  }
- m.closePath();m.fillStyle='#fff';m.filter='blur('+(5*S)+'px)';m.fill();m.filter='none';
+ m.closePath();m.fillStyle='#fff';m.fill(); /* sem filter blur (custava muito): a máscara pequena ampliada com suavização já fica borrada */
  const edge=45*S,vis=m.createRadialGradient(cx,cy,Math.max(0,r-edge),cx,cy,r);
  vis.addColorStop(0,'rgba(0,0,0,1)');vis.addColorStop(1,'rgba(0,0,0,0)');
  m.globalCompositeOperation='destination-in';m.fillStyle=vis;m.fillRect(0,0,W,H);m.globalCompositeOperation='source-over';
@@ -491,11 +545,11 @@ function aplicarNevoa(mask,forca=1){
  const camada=(c,cor)=>{const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);g.fillStyle=cor;g.fillRect(0,0,W,H);g.globalCompositeOperation='destination-out';g.drawImage(mask,0,0);g.globalCompositeOperation='source-over'};
  camada(nevoaCor,'rgba(8,16,34,'+(.5*forca)+')');
  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='low';
- if(!window.modoDesempenho){camada(nevoaCinza,'#808080');ctx.globalAlpha=.85*forca;ctx.globalCompositeOperation='saturation';ctx.drawImage(nevoaCinza,0,0,cv.width,cv.height);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
+ if(qualidade()>=2){camada(nevoaCinza,'#808080');ctx.globalAlpha=.85*forca;ctx.globalCompositeOperation='saturation';ctx.drawImage(nevoaCinza,0,0,cv.width,cv.height);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
  ctx.drawImage(nevoaCor,0,0,cv.width,cv.height);ctx.restore()}
 window.aplicarNevoa=aplicarNevoa;
 function drawDynamicLighting(){
- if(window.modoDesempenho)return;
+ if(qualidade()<1)return;
  const W=cv.width,H=cv.height;
  const sources=[],screen=(x,y)=>({x:W/2+(x-p.x)*S,y:H/2+(y-p.y)*S});
  const add=(x,y,r,color,power=1)=>{const pt=screen(x,y);if(pt.x+r<0||pt.x-r>W||pt.y+r<0||pt.y-r>H)return;sources.push({...pt,r:r*S,color,power})};
@@ -545,10 +599,13 @@ window.desenharHeroiMorto=function(){
  if(k<1&&k>.85){for(let i=0;i<6;i++){const a=i/6*Math.PI*2;ctx.fillStyle='#8a7a6a';ctx.fillRect(Math.round(p.x+Math.cos(a)*(6+(k-.85)*60)),Math.round(p.y+Math.sin(a)*2),1,1)}} // poeira ao bater no chão
  const q=Math.min(1,Math.max(0,(time-t0-.6)/1.8));if(q>0&&q<1){ctx.globalAlpha=(1-q)*.8;const x=Math.round(p.x+Math.sin(q*9)*2),y=Math.round(p.y-10-q*30);
   ctx.fillStyle='#e8f4ff';ctx.fillRect(x-2,y-3,5,5);ctx.fillRect(x-1,y+2,3,2);ctx.fillRect(x,y+4,1,1);ctx.fillStyle='#1a2a3a';ctx.fillRect(x-1,y-1,1,1);ctx.fillRect(x+1,y-1,1,1);ctx.globalAlpha=1}};
-const telaMorte=document.createElement('div');telaMorte.id='telaMorte';telaMorte.innerHTML='<b>Você caiu</b><small></small><button type="button">Reaparecer</button>';document.body.append(telaMorte);
-telaMorte.querySelector('button').onclick=e=>{e.stopPropagation();reaparecer()};
+const telaMorte=document.createElement('div');telaMorte.id='telaMorte';telaMorte.innerHTML='<b>Você caiu</b><small></small><button type="button" data-a="volta">Reaparecer</button><button type="button" data-a="assistir">Assistir</button>';document.body.append(telaMorte);
+// na DG: Sair da dungeon e Assistir aliados (js/morte-dg.js); fora dela, Reaparecer
+telaMorte.onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;e.stopPropagation();if(a==='assistir'&&window.MORTE_DG)MORTE_DG.assistir();else if(window.inDungeon&&window.MORTE_DG)MORTE_DG.sair();else reaparecer()};
 function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&time-(p.morreuEm??time)>1.1;telaMorte.classList.toggle('on',on);
- if(on)telaMorte.querySelector('small').textContent=window.inArena?'Você volta para a arena.':window.inTutorial?'Você volta para o começo do santuário.':'Você volta para o acampamento. Metade do ouro ficou para trás.'}function draw(){
+ const dg=!!window.inDungeon,al=dg&&window.MORTE_DG?MORTE_DG.aliados().length:0;
+ telaMorte.querySelector('[data-a=volta]').textContent=dg?'Sair da dungeon':'Reaparecer';telaMorte.querySelector('[data-a=assistir]').hidden=!dg||!al;
+ if(on)telaMorte.querySelector('small').textContent=dg?(al?'Na masmorra não dá para renascer: saia ou assista os aliados terminarem.':'Sozinho na masmorra: você sai e ela recomeça do zero. Nada foi perdido.'):window.inArena?'Você volta para a arena.':window.inTutorial?'Você volta para o começo do santuário.':'Você volta para o acampamento. Nada foi perdido.'}function draw(){
  atualizarTelaMorte();
  if(MODO.motor)return;
  VISION_RANGE=window.inDungeon||!window.TEMPO?VISAO_ILHA:Math.round(VISAO_ILHA*TEMPO.visao());
@@ -564,8 +621,9 @@ function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&
  }
  drawEspaco();
  ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));ctx.imageSmoothingEnabled=false;
- ctx.drawImage(map,0,0);
+ {/* só o pedaço visível do mapa (desenhar o mapa inteiro escalado a cada quadro custava caro) */const vw=cv.width/S,vh=cv.height/S,sx=Math.max(0,Math.floor(p.x-vw/2)-2),sy=Math.max(0,Math.floor(p.y-vh/2)-2),sw=Math.min(map.width-sx,Math.ceil(vw)+4),sh=Math.min(map.height-sy,Math.ceil(vh)+4);if(sw>0&&sh>0)ctx.drawImage(map,sx,sy,sw,sh,sx,sy,sw,sh)}
  drawCachoeira();
+ if(window.ILHA_VIVA)ILHA_VIVA.chao(); // grama e juncos ao vento, brilhos, ondinhas e peixes (js/ilha-viva.js)
  {const r=CAMP_SAFE_HALF_SIZE;ctx.fillStyle='#72bf7410';ctx.fillRect(CX-r,CY-r,r*2,r*2);ctx.strokeStyle='#9ad78460';ctx.lineWidth=1;ctx.strokeRect(CX-r,CY-r,r*2,r*2)}
 
  // correnteza do rio
@@ -577,8 +635,11 @@ function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&
  mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();if(window.desenharTelegrafos)desenharTelegrafos();if(window.CURANDEIRO)CURANDEIRO.desenhar();
  const L=[];
  const occ=[];if(p.dead<=0)occ.push(p);en.forEach(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<300&&Math.abs(e.y-p.y)<220)occ.push(e)});NPCS.forEach(n=>occ.push(n));
- trees.forEach(t=>{if(Math.abs(t.x-p.x)<260&&Math.abs(t.y-p.y)<170){const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});
- mapElements.forEach(e=>{if(Math.abs(e.x-p.x)<260&&Math.abs(e.y-p.y)<170)L.push([e.y,()=>drawMapElement(e)])});
+ /* fora do campo de visão árvores e elementos somem (aparecem de novo, suaves, quando entram): a árvore conta como vista
+    se a base ou a copa estão à vista; a luz da fogueira mostra o acampamento */
+ const visto=(o,alvo)=>{const v=o.vis==null?alvo:o.vis;o.vis=v+(alvo-v)*.16;return o.vis};
+ trees.forEach(t=>{if(Math.abs(t.x-p.x)<260&&Math.abs(t.y-p.y)<170){const vv=visto(t,canSee(t.x,t.y)||canSee(t.x,t.y-26)?1:0);if(vv<.02)return;const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a*vv;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});
+ mapElements.forEach(e=>{if(Math.abs(e.x-p.x)<260&&Math.abs(e.y-p.y)<170){const vv=visto(e,canSee(e.x,e.y)||canSee(e.x,e.y-10)?1:0);if(vv<.02)return;L.push([e.y,()=>{ctx.globalAlpha=vv;drawMapElement(e);ctx.globalAlpha=1}])}});
  if(wallBuilt){
   for(const post of campWallPosts)if(Math.abs(post.x-p.x)<300&&Math.abs(post.y-p.y)<220)L.push([post.y,()=>drawCampLog(post.x,post.y)]);
   if(Math.abs(campGate.x-p.x)<300&&Math.abs(campGate.y-p.y)<220)L.push([campGate.y+1,drawCampGate])
@@ -602,20 +663,25 @@ function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&
  NPCS.forEach(n=>{
   if(n.x<-1000)return;
   L.push([n.y,()=>{const f=face(n);if(hovN==n)circ(n.x,n.y,12,'#ff5');
-   const spr=(n.blacksmith&&window.SPRITE_BLACKSMITH)?window.SPRITE_BLACKSMITH.idle:((CL[n.cls]&&CL[n.cls].sprite)||HS[n.cls][f.d]);
-   dr(spr,n.x,n.y,f.fl,1,anim(n,0));
-   ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(n.nm,n.x+.5,n.y-19.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(n.nm,n.x,n.y-20-ACIMA_HEROI());
-   ctx.fillStyle='#ffd84a';ctx.fillText(n.carpenter&&!questDone?'…':n.carpenter&&campPortalBuilt?'':n.carpenter&&sawQuestActive&&!sawObtained?'':n.carpenter?'!':n.blacksmith?'!':'!',n.x,n.y-26+Math.round(Math.sin(time*4)*1.5))}]);
+   // carpinteiro e ferreiro no mesmo desenho do herói (js/sprites.js CLASSE_VISUAL); o ferreiro pode ter desenho da Engine
+   const spr=n.blacksmith&&window.SPRITE_BLACKSMITH&&SPRITE_BLACKSMITH.idle||(CL[n.cls]&&CL[n.cls].sprite)||(HS[n.cls]||HS.war)[f.d],topo=20;
+   const escondido=n.carpenter&&!carpenterHelped;if(escondido)ctx.save(); // escondido atrás da tora: só a cabeça e os ombros aparecem (a tora é desenhada na frente)
+   if(hovN==n)dr.borda='#ffd84a';dr(spr,n.x,n.y,f.fl,1,anim(n,0));if(escondido)ctx.restore();
+   ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(n.nm,n.x+.5,n.y-topo+.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(n.nm,n.x,n.y-topo-ACIMA_HEROI());
+   ctx.fillStyle='#ffd84a';ctx.fillText(n.carpenter&&!questDone?'…':n.carpenter&&campPortalBuilt?'':n.carpenter&&sawQuestActive&&!sawObtained?'':n.carpenter?'!':n.blacksmith?'!':'!',n.x,n.y-topo-6+Math.round(Math.sin(time*4)*1.5))}]);
  });
  if(!carpenterHelped&&Math.abs(carpenter.x-p.x)<260&&Math.abs(carpenter.y-p.y)<170)L.push([carpenter.y+3,()=>drawCarpenterDebris(carpenter)]);
  // fogueira do acampamento: anel de pedras, lenha cruzada com brasas e chama em pixel art (js/fogo.js)
  L.push([CY+2,()=>{for(let k=0;k<10;k++){const a=k/10*Math.PI*2,x=Math.round(CX+Math.cos(a)*9),y=Math.round(CY+1+Math.sin(a)*4);ctx.fillStyle=k%3?'#6e6660':'#8a827a';ctx.fillRect(x-2,y-2,4,3);ctx.fillStyle='#4a4440';ctx.fillRect(x-2,y,4,1)}
   desenharLenha(ctx,CX,CY+1,14);desenharChama(ctx,CX,CY-1,9,15,.7)}]);
  // desenho de um monstro (também usado pela arena: o Mestre de classe no duelo)
- window.desenharMonstro=e=>{const o=lunge(e,p,e.aw,e.wu),scale=ESCALA_MUNDO,spriteH=wh(e.img)*scale,labelY=e.y-spriteH-1;
- if(hov==e||p.tgt==e)circ(e.x,e.y,12,hov==e?'#ff5':'#f55');
+ /* animação procedural só para quem não tem quadros próprios, e sem o tranco para a frente no ataque (pedido do usuário) */
+const temQuadros=e=>{const a=e.dungeonAnimation||(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].animation);return !!(a&&['idle','walk','attack'].some(k=>a[k]&&a[k].length>1))};
+window.animMonstro=(e,slime)=>{if(temQuadros(e)){anim(e,0,false);return null}const an=anim(e,e.wu,slime);if(e.aw>0){an.rot=0;an.dx=0}return an};
+window.desenharMonstro=e=>{const o=[0,0],scale=ESCALA_MUNDO,spriteH=wh(e.img)*scale,labelY=e.y-spriteH-1;
+ if(p.tgt==e)circ(e.x,e.y,12,'#f55'); // alvo marcado; o mouse em cima ganha contorno vermelho no próprio desenho (abaixo)
  if(e.elite&&!e.boss){const k=.5+.5*Math.sin(time*4+e.x*.1);ctx.save();ctx.globalAlpha=.22+.18*k;ctx.fillStyle='#f0a52e';ctx.beginPath();ctx.ellipse(e.x,e.y,9+k*1.5,4+k*.6,0,0,7);ctx.fill();ctx.globalAlpha=.55+.3*k;ctx.strokeStyle='#ffd36b';ctx.lineWidth=.6;ctx.stroke();ctx.restore()}
- ctx.globalAlpha=e.hit>0?.5:1;(f=>{const isSlime=e.ty==='sl'||e.base==='sl'||(MONSTER_TYPES[e.ty]&&/gosma|slime/i.test(MONSTER_TYPES[e.ty].name));const an=anim(e,e.wu,isSlime);dr(monsterSpriteFrame(e,f.d,an),e.x+o[0],e.y+o[1],f.fl,scale,an)})(face(e));ctx.globalAlpha=1;
+ ctx.globalAlpha=e.hit>0?.5:1;(f=>{const isSlime=e.ty==='sl'||e.base==='sl'||(MONSTER_TYPES[e.ty]&&/gosma|slime/i.test(MONSTER_TYPES[e.ty].name));const an=animMonstro(e,isSlime);if(hov==e)dr.borda='#ff2b2b';const esq=esqMonstro(e,f.d,f.fl);dr(monsterSpriteFrame(e,f.d,an||{},f.fl),e.x+o[0],e.y+o[1],esq?1:f.fl,scale,an)})(face(e));ctx.globalAlpha=1;
  const maxHp=monsterMaxHp(e),hpRatio=Math.max(0,Math.min(1,e.hp/maxHp)),maxMp=monsterMaxMp(e),mpRatio=maxMp?Math.max(0,Math.min(1,e.mp/maxMp)):0,name=e.name||(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].name)||'Monstro';
  ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#d8d8d8';
  const mark=e.bossType=='grandboss'?'♛ ':e.bossType=='boss'?'★ ':e.elite?'✦ ':'';
@@ -653,10 +719,13 @@ function atualizarTelaMorte(){const on=p.dead>0&&p.dead<1e8&&!cameraMenu.ativo&&
   if(style!='ring')for(let k=0;k<8;k++){const a=k*Math.PI/4+time*1.3,dist=r*(style=='holy'?.82:.72),size=style=='frost'?2:1.5;ctx.fillStyle=style=='fire'&&k%2?'#ffd36b':style=='shadow'&&k%2?'#b387e8':style=='nature'&&k%2?'#a8d86e':style=='holy'?'#fff4bb':f.c;ctx.fillRect(Math.round(f.x+Math.cos(a)*dist-size/2),Math.round(f.y+Math.sin(a)*dist-size/2),size,size)}
   if(style=='holy'){ctx.fillStyle='#fff7c4';ctx.fillRect(Math.round(f.x-1),Math.round(f.y-r*.55),2,Math.max(2,Math.round(r*1.1)));ctx.fillRect(Math.round(f.x-r*.45),Math.round(f.y-1),Math.max(2,Math.round(r*.9)),2)}
   ctx.globalAlpha=1});
+ if(window.ILHA_VIVA)ILHA_VIVA.ar(); // borboletas, libélulas, pássaros, folhas caindo e pólen
  if(window.desenharNoite){desenharNoite(1,[{x:CX,y:CY-6,r:170},...(p.dead<=0?[{x:p.x,y:p.y-8,r:60,a:.55}]:[]),...(window.PORTALS||[]).map(q=>({x:q.x,y:q.y-20,r:50,a:.6}))]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))} // noite: escurece o mundo (os números de dano e as luzes ficam por cima)
+ if(window.ILHA_VIVA)ILHA_VIVA.luzes(); // vaga-lumes por cima da noite
  ctx.font='6px monospace';ctx.textAlign='center';
  fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=corFt(f);ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));if(f.crit)iconeCrit(f);ctx.globalAlpha=1});
  drawDynamicLighting();drawVision();
+ {ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));if(window.alvoMissao&&window.SETA_MISSAO){const a=alvoMissao();if(a)SETA_MISSAO.desenhar(a)}} // seta da missão (js/seta-missao.js), por cima da névoa
  {ctx.setTransform(1,0,0,1,0,0);const g=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.42,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);g.addColorStop(0,'rgba(10,20,30,0)');g.addColorStop(1,'rgba(10,20,30,.22)');ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height)}
  if(p.dead>0&&p.dead<1e8){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(0,0,0,'+Math.min(.45,(time-(p.morreuEm??time))*.4)+')';ctx.fillRect(0,0,cv.width,cv.height)} // a tela escurece aos poucos; o texto e o botão estão em #telaMorte
  // minimapa (js/minimapa.js)

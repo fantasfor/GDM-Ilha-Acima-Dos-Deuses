@@ -63,8 +63,10 @@
   bFalar.textContent='Falar ('+tecla+')';bFalar.classList.toggle('on',apertando);
   if(!painel.hidden)atualizarLista();
  }
- bVoz.onclick=()=>ligado?desligar():ligar();
- bMic.onclick=()=>{mudo=!mudo;aplicarMic()};
+ // o botão Voz lembra a escolha: desligar tira a entrada automática; ligar volta a entrar (muda, só ouvindo)
+ bVoz.onclick=()=>{cfg.auto=!ligado;salvarCfg();if(ligado)desligar();else ligar({escutar:true})};
+ // mudo só ouvindo (sem microfone ainda): tirar o mudo reconecta já com o microfone
+ bMic.onclick=async()=>{if(mudo&&!mic){desligar(true);await ligar();return}mudo=!mudo;aplicarMic()};
  // botão de segurar para falar (mouse e toque)
  const soltar=()=>{if(apertando){apertando=false;aplicarMic()}};
  bFalar.addEventListener('pointerdown',e=>{e.preventDefault();bFalar.setPointerCapture(e.pointerId);apertando=true;aplicarMic()});
@@ -201,8 +203,11 @@
  };
 
  /* ---- ligar e desligar ---- */
- async function ligar(){
+ /* ligar({escutar:true}): entra na voz só para ouvir (sem pedir o microfone; é como o jogo começa). Ao tirar o mudo, a voz
+    reconecta com o microfone (permissão pedida só nessa hora). */
+ async function ligar(o={}){
   if(ligado||!N)return;
+  if(o.escutar){await servidores();ligado=true;mudo=true;mic=null;apertando=false;if(ctxAudio&&ctxAudio.state==='suspended')ctxAudio.resume().catch(()=>{});aplicarMic();sincronizarSalas();if(!painel.hidden)montarPainel();return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){sistema('Este navegador não permite chat de voz.');return}
   const pedir=id=>navigator.mediaDevices.getUserMedia({audio:{deviceId:id?{exact:id}:undefined,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
   try{mic=await pedir(cfg.mic).catch(()=>pedir(''))}
@@ -213,11 +218,11 @@
   sistema(cfg.modo==='apertar'?'Voz ligada: segure '+(window.TECLAS?TECLAS.rotulo('falar'):'V')+' ou o botão Falar para falar.':(window.MP&&MP.grupoLider?'Voz ligada: quem está no mesmo lugar e o seu grupo (em qualquer lugar) ouvem você.':'Voz ligada: quem estiver no mesmo lugar com a voz ligada vai ouvir você.'));
   sincronizarSalas();if(!painel.hidden)montarPainel();
  }
- function desligar(){
+ function desligar(quieto){
   if(!ligado)return;
   sairDaSala();ligado=false;
   if(mic){mic.getTracks().forEach(t=>t.stop());mic=null}const n=niveis.get(uid);if(n){try{n.src.disconnect()}catch(e){}niveis.delete(uid)}
-  apertando=false;sistema('Voz desligada.');atualizar();if(!painel.hidden)montarPainel();
+  apertando=false;if(quieto!==true)sistema('Voz desligada.');atualizar();if(!painel.hidden)montarPainel();
  }
  /* ---- salas de voz: a do lugar sempre; em grupo, também a do grupo (os membros se ouvem em qualquer lugar).
     Quem está em qualquer uma das salas conecta, uma conexão só por pessoa. ---- */
@@ -250,7 +255,7 @@
  function abrir(id,ofertar){
   const pc=new RTCPeerConnection({iceServers:ice||STUN});
   const par={pc,pendentes:[],audio:null,pronto:false,estado:'conectando',ofertante:ofertar};pares.set(id,par);
-  if(mic)mic.getTracks().forEach(t=>pc.addTrack(t,mic));
+  if(mic)mic.getTracks().forEach(t=>pc.addTrack(t,mic));else if(ofertar)pc.addTransceiver('audio',{direction:'recvonly'}); // só ouvindo: recebe sem mandar
   pc.onicecandidate=e=>{if(e.candidate)enviar(id,{tipo:'ice',cand:JSON.stringify(e.candidate)})};
   pc.ontrack=e=>{
    const stream=e.streams&&e.streams[0]||new MediaStream([e.track]);
@@ -338,6 +343,8 @@
    abrirConfig(){painel.hidden=false;montarPainel()},
    estados:()=>Object.fromEntries([...pares].map(([id,par])=>[id,par.estado]))};
   atualizar();
+  // por padrão a voz já entra conectada, mas muda: quem falar é ouvido sem precisar ligar nada
+  if(cfg.auto!==false)setTimeout(()=>{if(!ligado)ligar({escutar:true})},1500);
  }
  if(window.NUVEM)iniciar();else window.addEventListener('nuvem-pronta',iniciar,{once:true});
  addEventListener('pagehide',()=>{if(ligado)sairDaSala()});

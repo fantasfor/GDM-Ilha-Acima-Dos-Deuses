@@ -43,8 +43,10 @@ function upd(){const st=p.st||{},ks=Object.keys(st).filter(k=>FX_INFO[k]&&st[k].
   if(ks.length&&ps.length){const sp=document.createElement('div');sp.className='fxsep';bar.appendChild(sp)}
   ps.forEach(r=>mk(passIcon(r.raw),'pas'+(!r.on()?' lock':''),pasTip(r)))}
  bar.querySelectorAll('.fxi[data-k]').forEach(e=>{const s=st[e.dataset.k];if(!s)return;e.querySelector('b').textContent=Math.ceil(s.t)+(s.n>1?' x'+s.n:'');e.querySelector('i').style.height=(100-Math.max(0,Math.min(1,s.t/(s.d||s.t)))*100)+'%'});
+ if(performance.now()-tPosEfeitos<250)return;tPosEfeitos=performance.now(); // medir o layout é caro: 4× por segundo basta
  const fc=$('sks').children[0],dk=$('dock').getBoundingClientRect();if(fc){const r=fc.getBoundingClientRect();bar.style.left=Math.round(r.right-dk.left-3)+'px';bar.style.maxWidth=Math.max(120,Math.round(dk.right-r.right-8))+'px'}}
 /* efeitos do alvo (monstro selecionado): mesmos ícones do jogador, abaixo da caixa de informações do topo */
+let tPosEfeitos=0,tPosAlvo=0;
 const mbar=document.createElement('div');mbar.id='monfx';document.body.appendChild(mbar);let msig='',malvo=null;
 const alvoTip=(t,k)=>()=>{const s=(t.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return'<b style="color:'+f.c+'">'+f.n+'</b> <span class=tm>'+(f.good?'efeito positivo':'efeito negativo')+'</span><div>'+(KD[f.kind]?KD[f.kind](f,s):'')+'</div><div class=tm>Restam '+s.t.toFixed(1)+'s'+(s.n>1?' · '+s.n+' acúmulos':'')+'</div>'};
 function updAlvo(){
@@ -55,6 +57,7 @@ function updAlvo(){
  mbar.hidden=!ks.length;if(!ks.length)return;
  mbar.querySelectorAll('.fxi').forEach(e=>{const s=st[e.dataset.k];if(!s)return;e.querySelector('b').textContent=Math.ceil(s.t)+(s.n>1?' x'+s.n:'');e.querySelector('i').style.height=(100-Math.max(0,Math.min(1,s.t/(s.d||s.t)))*100)+'%'});
  // logo abaixo da caixa do alvo; com a caixa escondida (chefe da DG, barra própria no topo), um pouco mais abaixo
+ if(performance.now()-tPosAlvo<250)return;tPosAlvo=performance.now();
  const mon=$('mon'),r=mon.getBoundingClientRect(),vis=mon.style.display!=='none'&&r.height>0;
  mbar.style.top=Math.round(vis?r.bottom+4:64)+'px';
 }
