@@ -102,39 +102,76 @@
  function baralhoUno(){const b=[];for(const c of CORES){b.push(c+'0');for(const s of ['1','2','3','4','5','6','7','8','9','S','R','+'])b.push(c+s,c+s);}for(let k=0;k<4;k++)b.push('W','W4');return embaralhar(b)}
  const podeJogarUno=(st,c)=>c[0]==='W'||corDe(c)===st.cor||simb(c)===simb(st.descarte[st.descarte.length-1]);
  function comprarUno(st,i,n){for(let k=0;k<n;k++){if(!st.monte.length){const topo=st.descarte.pop();st.monte=embaralhar(st.descarte);st.descarte=[topo]}if(!st.monte.length)break;st.maos[i].push(st.monte.pop())}}
+ /* UNO (pedido de 2026-10-28):
+    - várias cartas do mesmo NÚMERO na mesma jogada, mesmo de cores diferentes ({t:'jogar',k,extras:[k2,…]}): a primeira
+      precisa servir; as outras só precisam ter o mesmo número. A cor da vez fica a da última.
+    - botão UNO: quem vai ficar (ou ficou) com 1 carta declara ({t:'uno'}); na sua vez dá para declarar antes de jogar.
+      Quem ficou com 1 carta sem declarar fica exposto (st.exposto); qualquer adversário pode denunciar
+      ({t:'denunciar'}) e o exposto compra 2. Vale só se a denúncia chegar antes da declaração (as duas passam pela mesma
+      transação, sobre o estado real) e uma vez por infração: denunciar, declarar ou a mão mudar de tamanho encerra. */
+ const PENA_UNO=2;
+ const numeroUno=c=>/^[rgby][0-9]$/.test(c);
+ const expor=(st,i)=>{if(st.maos[i].length===1&&!(st.unoDito&&st.unoDito[i]))st.exposto=i;if(st.unoDito)delete st.unoDito[i]};
  const UNO={nome:'Uno',min:2,max:4,valido:n=>n>=2&&n<=4,
-  novo(jog){const st={tipo:'uno',jog:jog.slice(),fora:{},maos:{},monte:baralhoUno(),descarte:[],cor:null,vez:0,dir:1,comprou:false,log:[],fim:null};
+  novo(jog){const st={tipo:'uno',jog:jog.slice(),fora:{},maos:{},monte:baralhoUno(),descarte:[],cor:null,vez:0,dir:1,comprou:false,log:[],fim:null,unoDito:{},exposto:null};
    jog.forEach((_,i)=>{st.maos[i]=st.monte.splice(0,7)});
    let c;do{c=st.monte.pop();if(/^[rgby][0-9]$/.test(c))break;st.monte.unshift(c)}while(true); // começa com um número
    st.descarte.push(c);st.cor=corDe(c);anota(st,'Primeira carta: '+c+'.');return st},
-  acoes(st,i){if(st.fim||st.fora[i]||st.vez!==i)return [];const out=[];
+  acoes(st,i){if(st.fim||st.fora[i])return [];const out=[];
+   // fora da vez: só declarar o próprio UNO (exposto) ou denunciar quem está exposto
+   if(st.exposto!=null&&st.exposto===i)out.push({t:'uno'});
+   else if(st.exposto!=null&&!st.fora[st.exposto])out.push({t:'denunciar'});
+   if(st.vez!==i)return out;
    st.maos[i].forEach((c,k)=>{if(podeJogarUno(st,c))out.push(c[0]==='W'?{t:'jogar',k,cor:'?'}:{t:'jogar',k})});
+   // declarar antes de jogar: só quando a jogada pode deixar 1 carta na mão (contando as iguais que vão juntas)
+   const fica1=out.some(a=>a.t==='jogar'&&st.maos[i].length-1-UNO.mesmoNumero(st,i,a.k).length<=1);
+   if(st.maos[i].length>=2&&fica1&&!(st.unoDito&&st.unoDito[i])&&st.exposto!==i)out.push({t:'uno'});
    out.push(st.comprou?{t:'passar'}:{t:'comprar'});return out},
+  // cartas da mão com o mesmo número da carta k (para jogar juntas)
+  mesmoNumero(st,i,k){const c=st.maos[i][k];if(!c||!numeroUno(c))return [];return st.maos[i].map((x,n)=>n).filter(n=>n!==k&&simb(st.maos[i][n])===simb(c)&&numeroUno(st.maos[i][n]))},
   aplicar(st0,i,a){
-   const st=clone(st0);if(st.fim)erro('A partida acabou.');if(st.vez!==i||st.fora[i])erro('Não é a sua vez.');
+   const st=clone(st0);if(st.fim)erro('A partida acabou.');if(st.fora[i])erro('Você saiu da partida.');
+   st.unoDito=st.unoDito||{};if(st.exposto===undefined)st.exposto=null;
+   if(a.t==='uno'){
+    if(st.exposto===i){st.exposto=null;anota(st,'UNO! (declarado)');return st}
+    if(st.vez!==i||st.maos[i].length<2)erro('Agora não dá para declarar UNO.');
+    st.unoDito[i]=true;anota(st,'UNO! (declarado antes de jogar)');return st}
+   if(a.t==='denunciar'){
+    const x=st.exposto;if(x==null||st.fora[x]||st.maos[x].length!==1)erro('Ninguém para denunciar agora.');if(x===i)erro('Declare o seu UNO.');
+    st.exposto=null;comprarUno(st,x,PENA_UNO);anota(st,'Esqueceu de dizer UNO! Comprou '+PENA_UNO+'.');return st}
+   if(st.vez!==i)erro('Não é a sua vez.');
    if(a.t==='jogar'){const c=st.maos[i][a.k];if(!c)erro('Carta inválida.');if(!podeJogarUno(st,c))erro('Essa carta não serve agora.');
     if(c[0]==='W'&&!CORES.includes(a.cor))erro('Escolha uma cor.');
-    st.maos[i].splice(a.k,1);st.descarte.push(c);st.cor=c[0]==='W'?a.cor:corDe(c);st.comprou=false;
-    anota(st,'Jogou '+c+(c[0]==='W'?' ('+NOME_COR[a.cor]+')':'')+'.');
+    const extras=Array.isArray(a.extras)?[...new Set(a.extras.map(Number))].filter(n=>n!==a.k):[];
+    if(extras.length){if(!numeroUno(c))erro('Só cartas de número podem ser jogadas juntas.');
+     for(const n of extras){const x=st.maos[i][n];if(!x||!numeroUno(x)||simb(x)!==simb(c))erro('Junto só vão cartas do mesmo número.')}}
+    const jogadas=[a.k,...extras].map(n=>st.maos[i][n]);
+    st.maos[i]=st.maos[i].filter((_,n)=>n!==a.k&&!extras.includes(n));
+    for(const x of jogadas)st.descarte.push(x);
+    const ult=jogadas[jogadas.length-1];st.cor=c[0]==='W'?a.cor:corDe(ult);st.comprou=false;
+    if(st.exposto!=null&&st.maos[st.exposto]&&st.maos[st.exposto].length!==1)st.exposto=null;
+    anota(st,'Jogou '+jogadas.join(', ')+(c[0]==='W'?' ('+NOME_COR[a.cor]+')':'')+'.');
     if(!st.maos[i].length){st.fim={vencedores:[i],motivo:'ficou sem cartas'};anota(st,'UNO! Acabaram as cartas.');return st}
-    if(st.maos[i].length===1)anota(st,'UNO!');
+    expor(st,i);
     const s=simb(c),n=ativos(st).length;
     if(s==='R'){st.dir*=-1;st.vez=n===2?i:proximo(st,i,st.dir)} // com 2 jogadores, inverter = pular (joga de novo)
     else if(s==='S'){st.vez=proximo(st,proximo(st,i,st.dir),st.dir)}
     else if(s==='+'||s==='W4'){const alvo=proximo(st,i,st.dir);comprarUno(st,alvo,s==='+'?2:4);anota(st,'O próximo comprou '+(s==='+'?2:4)+'.');st.vez=proximo(st,alvo,st.dir)}
     else st.vez=proximo(st,i,st.dir);
     if(st.vez===i&&n>2)st.vez=proximo(st,i,st.dir)}
-   else if(a.t==='comprar'){if(st.comprou)erro('Você já comprou.');comprarUno(st,i,1);st.comprou=true}
+   else if(a.t==='comprar'){if(st.comprou)erro('Você já comprou.');comprarUno(st,i,1);st.comprou=true;if(st.exposto===i)st.exposto=null}
    else if(a.t==='passar'){if(!st.comprou)erro('Compre antes de passar.');st.comprou=false;st.vez=proximo(st,i,st.dir)}
    else erro('Ação desconhecida.');
+   // quem comprou (+2/+4) deixa de ter 1 carta: não pode mais ser denunciado
+   if(st.exposto!=null&&st.maos[st.exposto]&&st.maos[st.exposto].length!==1)st.exposto=null;
    return st},
-  sair(st0,i){const st=clone(st0);if(st.fim||st.fora[i])return st;st.fora[i]=true;st.monte=embaralhar(st.monte.concat(st.maos[i]));st.maos[i]=[];anota(st,'Um jogador desistiu.');
+  sair(st0,i){const st=clone(st0);if(st.fim||st.fora[i])return st;st.fora[i]=true;st.monte=embaralhar(st.monte.concat(st.maos[i]));st.maos[i]=[];anota(st,'Um jogador desistiu.');if(st.exposto===i)st.exposto=null;
    const v=ativos(st);if(v.length===1){st.fim={vencedores:v,motivo:'os outros desistiram'};return st}
    if(st.vez===i){st.comprou=false;st.vez=proximo(st,i,st.dir)}return st},
   quemAge(st){return st.fim||st.fora[st.vez]?[]:[st.vez]},
   // tempo esgotado: compra uma carta (se ainda não comprou) e passa a vez
-  perderVez(st0){const st=clone(st0);if(st.fim)return st;const i=st.vez;if(!st.comprou)comprarUno(st,i,1);st.comprou=false;st.vez=proximo(st,i,st.dir);anota(st,'Tempo esgotado: comprou e passou a vez.');return st},
-  NOME_COR,corDe,simb,podeJogar:podeJogarUno
+  perderVez(st0){const st=clone(st0);if(st.fim)return st;const i=st.vez;if(!st.comprou)comprarUno(st,i,1);st.comprou=false;if(st.exposto===i)st.exposto=null;st.vez=proximo(st,i,st.dir);anota(st,'Tempo esgotado: comprou e passou a vez.');return st},
+  NOME_COR,corDe,simb,podeJogar:podeJogarUno,PENA_UNO
  };
 
  /* =============================== DOMINÓ =============================== */

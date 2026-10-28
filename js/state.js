@@ -80,11 +80,12 @@ const SAIR_COMBATE_S=10;let ultimoCombate=-1e9;
 function marcarCombate(){ultimoCombate=performance.now()}
 function combateRestante(){return Math.max(0,SAIR_COMBATE_S-(performance.now()-ultimoCombate)/1000)}
 window.emCombate=()=>combateRestante()>0;window.marcarCombate=marcarCombate;
-function armaTravada(){const r=combateRestante();if(r<=0)return false;ft(p.x,p.y-24,'Em combate: troque de arma '+Math.ceil(r)+'s depois de sair do combate','#f0a090');return true}
+/* em combate nenhum equipamento troca (arma, armadura, anéis, colar, capa, Mão 2), em qualquer tela; o aviso diz quanto falta */
+function armaTravada(){const r=combateRestante();if(r<=0)return false;ft(p.x,p.y-24,'Em combate: troque equipamentos '+Math.ceil(r)+'s depois de sair do combate','#f0a090');return true}
 const ehArma=s=>!!(s&&gearType[s.id]=='sw');
 window.armaTravada=armaTravada;window.ehArma=ehArma;
 function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;const t=gearType[s.id];
- if((t=='sw'||(t=='sh'&&ehArma(EQ.sh)))&&armaTravada())return;let sl=t=='ri'?(preferredSlot=='r1'||preferredSlot=='r2'?preferredSlot:!EQ.r1?'r1':!EQ.r2?'r2':'r1'):t;
+ if(armaTravada())return;let sl=t=='ri'?(preferredSlot=='r1'||preferredSlot=='r2'?preferredSlot:!EQ.r1?'r1':!EQ.r2?'r2':'r1'):t;
  if(t=='sw'&&(preferredSlot=='sw'||preferredSlot=='sh'))sl=preferredSlot;
  if(t=='sw'&&preferredSlot=='sh'&&ITEMS[s.id].th){ft(p.x,p.y-24,'Arma de duas mãos não cabe na Mão 2','#ccc');return}
  if(t=='sw'&&ITEMS[s.id].th)sl='sw';
@@ -93,7 +94,7 @@ function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;c
  if(sl=='sh'&&EQ.sw&&ITEMS[EQ.sw.id].th){ft(p.x,p.y-24,'Arma de duas mãos','#ccc');return}
  EQ[sl]=s;I[i]=null;if(old)I[i<QUICK_N?livre(old.id):i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){I[livre(EQ.sh.id)]=EQ.sh;EQ.sh=null}
  dirtyInv=true;setPortrait();saveGame();if(window.playEntitySound)playEntitySound('items',s.id,'use')}
-function unequip(sl){if(!EQ[sl])return;if(ehArma(EQ[sl])&&armaTravada())return;I[livre(EQ[sl].id)]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
+function unequip(sl){if(!EQ[sl])return;if(armaTravada())return;I[livre(EQ[sl].id)]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
 /* consumível: o herói bebe por castTime s (padrão 0,5; barra e som de gole) e só então faz efeito; atordoado cancela sem gastar */
 function useSlot(i,preferredSlot){const s=I[i];if(!s||p.dead>0)return;if(gearType[s.id]){equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
  if(p.beber)return;const ct=+d.castTime||0;if(ct>0){p.beber={i,id:s.id,r:ct,total:ct};if(window.playGameSound)playGameSound('beber');return}

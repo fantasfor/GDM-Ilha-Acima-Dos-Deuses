@@ -61,31 +61,41 @@ function vulnMult(t){let m=0;if(t.st)for(const k in t.st)if(fxKind(k)=='vuln')m=
 const charDamage=t=>typedPower(t)+danoArma();
 const monsterWeaponDamageDelta=e=>(e.weaponRanges||[]).reduce((sum,range)=>sum+rollWeaponDamage(range)-(range.min+range.max)/2,0);
 function monsterCtx(e,weaponDelta=0){const s=monsterAttributes(e),equipmentDamage=monsterAttribute(e,'dmg')+weaponDelta,ph=(monsterAttribute(e,'physicalDmg')+equipmentDamage)*(1+s.F*monPhysPerF()/100),mg=(monsterAttribute(e,'magicDmg')+equipmentDamage)*(1+s.I*monMagPerI()/100);return{phys:ph,mag:mg,entity:e,attr:k=>k=='none'||!k?0:k=='physicalPower'?monsterAttribute(e,'physicalDmg'):k=='magicPower'?monsterAttribute(e,'magicDmg'):k=='dmg'?equipmentDamage:k=='weaponPower'||k=='charDamage'?(e.attackMagic?mg:ph):s[k]||0}}
-function resolveFx(list,cd,ctx){ctx=ctx||{phys:charDamage('physical'),mag:charDamage('magic'),entity:p,attr:k=>k=='none'||!k?0:scaleBase(k,'physical')};return(Array.isArray(list)?list:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const dot=fxKind(f.type)=='dot',src=f.src=='physical'?ctx.phys:f.src=='magic'?ctx.mag:cd;return{caster:ctx.entity||p,self:f.target=='self',type:f.type,chance:f.chance==null||f.chance===''?100:+f.chance,dur:Math.max(.5,+f.dur||FX_INFO[f.type].dur||3),acumulos:Math.max(1,Math.round(+f.acumulos||1)),pw:(+f.power||FX_INFO[f.type].power||0)+(dot?(+f.pct||0)/100*src+(+f.attrPct||0)/100*ctx.attr(f.attr):0)}})}
-/* efeitos negativos que acumulam (dano contínuo, lentidão, gelo…): cada acerto soma 1 acúmulo (até o máximo) e o
-   efeito perde 1 acúmulo a cada 2 s; a força vale por acúmulo (fogo: 3 por acúmulo). Os outros duram o tempo do efeito. */
-const ACUMULO_S=2;
+/* dano do monstro pelo nível: Dano final = Dano base × [1 + 0,08 × (nível atual − nível mínimo de aparição)]
+   (Engine › Monstro › Nível mínimo; abaixo dele não reduz). Entra uma vez só: no golpe recebido (hurtP, pelo atacante)
+   e no dano contínuo que o monstro aplica (resolveFx). Chefes sem nível mínimo e jogadores não mudam. */
+const multNivelMonstro=e=>{if(!e||e===p||e.pvp||e.duelo||typeof MONSTER_TYPES=='undefined')return 1;const t=MONSTER_TYPES[e.ty],min=t&&+t.nivelMin;return min>0&&e.lvl>min?1+(+(CALC.danoNivelMonstro??.08))*(e.lvl-min):1};
+function resolveFx(list,cd,ctx){ctx=ctx||{phys:charDamage('physical'),mag:charDamage('magic'),entity:p,attr:k=>k=='none'||!k?0:scaleBase(k,'physical')};return(Array.isArray(list)?list:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const dot=fxKind(f.type)=='dot',src=f.src=='physical'?ctx.phys:f.src=='magic'?ctx.mag:cd;return{caster:ctx.entity||p,self:f.target=='self',type:f.type,chance:f.chance==null||f.chance===''?100:+f.chance,dur:Math.max(.5,+f.dur||FX_INFO[f.type].dur||3),acumulos:Math.max(1,Math.round(+f.acumulos||1)),pw:((+f.power||FX_INFO[f.type].power||0)+(dot?(+f.pct||0)/100*src+(+f.attrPct||0)/100*ctx.attr(f.attr):0))*(dot?multNivelMonstro(ctx.entity):1)}})}
+/* efeitos negativos que acumulam (dano contínuo, lentidão, gelo…): cada acerto soma acúmulos (até o máximo) e cada
+   acúmulo tem a própria duração (a do efeito no item ou habilidade): quando um acaba, só ele sai. s.pilhas guarda o tempo
+   que falta de cada acúmulo; s.n é quantos estão ativos e s.t o que dura mais. No máximo, o acúmulo novo troca o mais
+   curto. A força vale por acúmulo (fogo: 3 por acúmulo). Os outros efeitos duram o tempo do efeito. */
 const decai=k=>{const f=FX_INFO[k];return!!f&&!f.good&&(f.kind==='dot'||f.kind==='slow')};
+const pilhasDe=s=>!s?[]:Array.isArray(s.pilhas)?s.pilhas.slice():Array.from({length:Math.max(1,s.n||1)},()=>Math.max(0,s.t||0)); // estado antigo sem pilhas
+function acertarPilhas(s,pilhas){pilhas=pilhas.filter(x=>x>0).sort((a,b)=>b-a);s.pilhas=pilhas;s.n=pilhas.length;s.t=pilhas.length?pilhas[0]:0;return s}
 function applyFx(t,fx){if(!fx||!fx.length)return;let k=0;for(const f of fx){if(Math.random()*100>=f.chance)continue;const tg=f.self?f.caster||p:t;tg.st=tg.st||{};const o=tg.st[f.type],info=FX_INFO[f.type],max=info.stacks||1;
  /* curas instantâneas (Curandeiro): % da vida máxima do alvo (curapct) ou valor fixo (curaabs); limpa acúmulos de veneno e sangramento */
- if(info.kind==='curapct'||info.kind==='curaabs'){const mx=tg===p?mhp():monsterMaxHp(tg),v=Math.max(1,Math.round(info.kind==='curapct'?mx*(+f.pw||0)/100:+f.pw||0));tg.hp=Math.min(mx,tg.hp+v);ft(tg.x,tg.y-30-k++*7,'+'+v,'#6fe36f');
-  const lp=+f.limpa||0;if(lp>0)for(const d of ['poison','bleed']){const s=tg.st[d];if(!s)continue;s.n=(s.n||1)-lp;if(s.n<=0)delete tg.st[d];else s.t=s.n*ACUMULO_S-(s.q||0)}continue}
- if(decai(f.type)){const n=Math.min(max,(o?o.n||1:0)+Math.max(1,f.acumulos||1)); /* acumulos: quantos acúmulos este golpe põe de uma vez (ex.: Mordida do lobo = 3) */tg.st[f.type]={n,q:o?o.q:0,t:n*ACUMULO_S-(o?o.q:0),d:max*ACUMULO_S,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0};
+ if(info.kind==='curapct'||info.kind==='curaabs'){const mx=tg===p?mhp():monsterMaxHp(tg),v=Math.max(1,Math.round(info.kind==='curapct'?mx*(+f.pw||0)/100:+f.pw||0));if(tg===p&&window.STATS_DG)STATS_DG.cura(Math.min(v,mx-tg.hp),f.de);tg.hp=Math.min(mx,tg.hp+v);ft(tg.x,tg.y-30-k++*7,'+'+v,'#6fe36f');
+  const lp=+f.limpa||0;if(lp>0)for(const d of ['poison','bleed']){const s=tg.st[d];if(!s)continue;const r=pilhasDe(s).sort((a,b)=>a-b).slice(lp);if(!r.length)delete tg.st[d];else acertarPilhas(s,r)}continue} // tira os acúmulos mais curtos
+ if(decai(f.type)){const dur=Math.max(.5,+f.dur||+info.dur||3),pilhas=pilhasDe(o).sort((a,b)=>b-a); /* acumulos: quantos acúmulos este golpe põe de uma vez (ex.: Mordida do lobo = 3) */
+  for(let a=Math.max(1,f.acumulos||1);a>0;a--){if(pilhas.length<max)pilhas.push(dur);else if(pilhas[pilhas.length-1]<dur)pilhas[pilhas.length-1]=dur;pilhas.sort((x,y)=>y-x)}
+  const n=pilhas.length;tg.st[f.type]=acertarPilhas({d:dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0},pilhas);
   // gelo no máximo de acúmulos: congela (atordoado) e zera o gelo
   if(info.congela&&n>=max){delete tg.st[f.type];tg.st.stun={t:info.congela,d:info.congela,pw:0,n:1,tk:0};ft(tg.x,tg.y-36-k++*7,'Congelado!',info.c);continue}}
- else tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,n:info.good?1:Math.min(max,(o?o.n||1:0)+Math.max(1,f.acumulos||1))}; // buff não acumula: só renova
+ else tg.st[f.type]={t:f.dur,d:f.dur,pw:Math.max(f.pw||0,o?o.pw:0),tk:o?o.tk:0,de:f.de, /* de: quem lançou (aliado online), para a cura efetiva da DG */n:info.good?1:Math.min(max,(o?o.n||1:0)+Math.max(1,f.acumulos||1))}; // buff não acumula: só renova
  if(!f.silencioso)ft(tg.x,tg.y-36-k++*7,info.n+(tg.st[f.type]&&tg.st[f.type].n>1?' x'+tg.st[f.type].n:''),info.c)}} // silencioso: aura renovada a cada segundo não repete o nome
 function tickStatus(t,dt){
  if(!t.st)return;
  for(const k of Object.keys(t.st)){
   const s=t.st[k],effect=FX_INFO[k];if(!effect){delete t.st[k];continue}
-  const acum=decai(k),elapsed=acum?dt:Math.min(dt,Math.max(0,s.t));
-  if(acum){s.q=(s.q||0)+dt;while(s.q>=ACUMULO_S&&s.n>0){s.q-=ACUMULO_S;s.n--}s.t=s.n>0?s.n*ACUMULO_S-s.q:0}else s.t-=dt;
+  // acumulável: o tique deste quadro conta os acúmulos que estavam ativos no começo dele (o que acaba agora ainda dá o último tique)
+  const acum=decai(k),antes=acum?pilhasDe(s).filter(x=>x>0):null,elapsed=Math.min(dt,Math.max(0,acum?Math.max(0,...antes):s.t));
+  if(acum)acertarPilhas(s,antes.map(x=>x-dt));else s.t-=dt;
   const action=effect.actionStats||{},interval=Math.max(.2,effect.tick||1);
-  s.tk=(s.tk||0)+elapsed;
+  s.tk=(s.tk||0)+elapsed+(acum&&s.n===0&&elapsed>0?1e-6:0);
   while(s.tk>=interval&&t.hp>0){
-   s.tk-=interval;const stacks=s.n||1;
-   if(fxKind(k)==='hot'){t.hp=Math.min(t===p?mhp():monsterMaxHp(t),t.hp+s.pw*stacks);ft(t.x,t.y-24,'+'+Math.round(s.pw*stacks),'#6f6')}
+   s.tk-=interval;const stacks=acum?antes.length:s.n||1;
+   if(fxKind(k)==='hot'){if(t===p&&window.STATS_DG)STATS_DG.cura(Math.min(s.pw*stacks,mhp()-t.hp),s.de);t.hp=Math.min(t===p?mhp():monsterMaxHp(t),t.hp+s.pw*stacks);ft(t.x,t.y-24,'+'+Math.round(s.pw*stacks),'#6f6')}
    if(fxKind(k)==='dot'){if(t===p)hurtP(s.pw*stacks,true,null,k);else hurtE(t,s.pw*stacks,true,null,k)}
    if(t.hp<=0)break;
    if(action.physicalDmg||action.magicDmg){
@@ -128,6 +138,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(
   const fi=Math.max(0,pt.f-physicalDefense*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicalDefense*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
  if(window.TRAPACA&&TRAPACA.dano&&!e.mpProxy)d=Math.max(d,Math.ceil(e.hp)); // teste da Engine: dano infinito (mata no golpe)
  d=Math.round(d);if(!dot)drainLife(p,Math.min(e.hp,d),stealRatio(roll,share));
+ if(window.STATS_DG&&window.inDungeon){const ef=Math.min(d,Math.max(0,e.hp)),v=dot&&tr;STATS_DG.dano(v?0:ef*(1-share),v?0:ef*share,ef)} // estatística da DG: sem o excesso do golpe que mata (js/estatisticas-dg.js)
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
  if(!dot&&window.somDoJogador)somDoJogador('h.'+e.ty+'.'+(magic?1:0)); // os outros jogadores da sala ouvem o golpe
@@ -163,7 +174,8 @@ function killMonster(e){
   // cada item da lista do monstro tem a sua chance (%) e é sorteado sozinho; sem lista, não cai nada
   // elite (tipo Elite ou monstro que nasceu elite): chance de drop × Fórmulas › Drops › Elite (1,5); chefe: só a lista dele, sem bônus
   const eliteDrop=(e.bossType==='boss'||e.elite)&&e.bossType!=='grandboss'?Math.max(0,+(CALC.eliteDrop??1.5)):1;
-  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&podeCairDeMissao(d.id)&&Math.random()*100<d.chance*noite*eliteDrop)largar(d.id);
+  // quantidade: sorteada entre min e max do drop (Engine › Monstro › Drops), só depois de a chance passar
+  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&podeCairDeMissao(d.id)&&Math.random()*100<d.chance*noite*eliteDrop){const mn=d.min||1,n=mn+Math.floor(Math.random()*((d.max||mn)-mn+1));for(let i=0;i<n;i++)largar(d.id)}
   // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível
 
  }}
@@ -173,13 +185,14 @@ function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window
  let share=mg?1:0,roll=null;const pt=partesDano(d,mg);
  if(dot&&tr)d=pt.f+pt.m;
  else{
-  if(!dot){roll=attacker?combatRoll(attacker,1):null;const k=(roll?roll.damage:1)*vulnMult(p)*Math.max(.2,1-stSum(p,'guard')/100)*(attacker&&window.TEMPO?TEMPO.forcaMonstro(attacker):1); /* noite na ilha: monstros 5% mais fortes */pt.f*=k;pt.m*=k}
+  if(!dot){roll=attacker?combatRoll(attacker,1):null;const k=(roll?roll.damage:1)*vulnMult(p)*Math.max(.2,1-stSum(p,'guard')/100)*(attacker&&window.TEMPO?TEMPO.forcaMonstro(attacker):1)*multNivelMonstro(attacker); /* noite na ilha: monstros 5% mais fortes; nível acima do mínimo: +8% por nível */pt.f*=k;pt.m*=k}
   // perfuração do atacante (monstro: atributo dele; jogador na arena: vem junto do golpe em perf {f,m})
   const pen=k=>Math.max(0,Math.min(1,perf?+perf[k==='physicalPen'?'f':'m']||0:attacker&&attacker!==p&&typeof monsterAttribute=='function'?monsterAttribute(attacker,k)||0:0));
   const fi=Math.max(0,pt.f-armor()*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicArmor()*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
  if(window.TRAPACA&&TRAPACA.vida)d=0; // teste da Engine: vida infinita (não perde vida)
  d=Math.round(d);if(roll&&attacker)drainLife(attacker,Math.min(p.hp,d),stealRatio(roll,share));
- p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;/* morrer não custa nada (nem ouro, nem itens, nem XP) */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
+ if(window.STATS_DG&&window.inDungeon){const ef=Math.min(d,Math.max(0,p.hp)),v=dot&&tr;STATS_DG.recebido(v?0:ef*(1-share),v?0:ef*share,ef)} // estatística da DG: só a vida perdida de fato (js/estatisticas-dg.js)
+ p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;p.conj=null;p.beber=null;/* morreu: canal, investida, conjuração e poção param na hora (os outros veem pelo 'dead' da posição) *//* morrer não custa nada (nem ouro, nem itens, nem XP) */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
 const CL={war:{n:'Guerreiro',F:17,A:7,I:2,perLevel:{F:6,A:3,I:1},attackSpeed:1.25},mag:{n:'Mago',F:2,A:2,I:12,perLevel:{F:1,A:2,I:5},attackSpeed:1},hea:{n:'Curandeiro',F:4,A:4,I:10,perLevel:{F:2,A:2,I:4},attackSpeed:1.1}};
 p.classProgress=p.classProgress||{war:{rank:1,xp:0}};
 function gainClassXp(value){
@@ -231,7 +244,7 @@ const basicAttackDamage=b=>withWeaponDamageRoll(()=>{if(b&&b.formula){applyActio
  return b&&b.damageType=='magic'?{physical:off,magic:primary}:{physical:primary,magic:off}});
 p.hp=mhp();p.mp=mmp();
 const ampCura=n=>Math.round(n*(1+Math.max(0,bonus('healAmp')))); // amplificação de cura (atributo)
-const heal=n=>{n=ampCura(n);p.hp=Math.min(mhp(),p.hp+n);ft(p.x,p.y-24,'+'+n,'#6f6');ring(p.x,p.y,24,'#6f6',.4)};
+const heal=n=>{n=ampCura(n);if(window.STATS_DG)STATS_DG.cura(Math.min(n,mhp()-p.hp));p.hp=Math.min(mhp(),p.hp+n);ft(p.x,p.y-24,'+'+n,'#6f6');ring(p.x,p.y,24,'#6f6',.4)};
 const withWeaponDamage=(d,flat)=>d&&typeof d=='object'||flat?d:d+weaponPower();
 const pr=(dm,col,hl,opt={})=>{const f=(w,t)=>{const a=Math.atan2(t.y-8-p.y,t.x-p.x),d=dm();proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:withWeaponDamage(d,opt.flat),magic:opt.magic??(basic().damageType=='magic'),c:col,hl,tg:t,fx:opt.fx&&opt.fx(),area:opt.area,vfx:opt.vfx,seta:!opt.vfx&&!(opt.magic??(basic().damageType=='magic'))&&typeof armaDeTiro=='function'&&armaDeTiro()})};f.tg=1;return f};
 const blink=(dm,opt={})=>w=>{let d=Math.min(80,dist(p,w)),a=Math.atan2(w.y-p.y,w.x-p.x);while(d>0&&(!walk(p.x+Math.cos(a)*d,p.y+Math.sin(a)*d)||!campWallSegmentClear(p,{x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d})))d=Math.max(0,d-4);ring(p.x,p.y,16,'#9cf');p.x+=Math.cos(a)*d;p.y+=Math.sin(a)*d;p.dest=null;ring(p.x,p.y,16,'#9cf');if(dm)en.forEach(e=>{if(e.hp>0&&dist(e,p)<32*areaMultiplier(p)&&linhaLivre(p,e))hurtE(e,withWeaponDamage(dm(),opt.flat),opt.magic??(basic().damageType=='magic'),opt.fx&&opt.fx())})};
@@ -322,7 +335,8 @@ const comBuffs=d=>d&&typeof d=='object'?{physical:(d.physical||0)*buffDano('phys
 /* faixa do ataque básico (mínimo e máximo das armas, com Força/Inteligência e buffs), sem defesa do alvo */
 function faixaBasico(b=basic(),buffs=true){const calc=pick=>{weaponDamageRolls=new Map();weaponDamage2Rolls=new Map();try{for(const sl of ['sw','sh']){const s=EQ[sl];if(!s||gearType[s.id]!=='sw')continue;const r=qualityWeaponRange(ITEMS[s.id],s.q),r2=qualityWeaponRange2(ITEMS[s.id],s.q);if(r)weaponDamageRolls.set(s,r[pick]);if(r2)weaponDamage2Rolls.set(s,r2[pick])}const d=basicAttackDamage(b),o=d&&typeof d=='object'?d:{physical:+d||0,magic:0};return buffs?comBuffs(o):o}finally{weaponDamageRolls=null;weaponDamage2Rolls=null}};return{min:calc('min'),max:calc('max')}}
 /* dano nos painéis: "10-18 + 1-2", cada parte na cor do tipo (físico laranja, mágico azul) */
-const corDoTipo=t=>t==='magic'?COR_DANO.magico:COR_DANO.fisico,pintaDano=(txt,t)=>'<span style="color:'+corDoTipo(t)+'">'+txt+'</span>';
+// valor de dano na cor do tipo e com o nome do tipo (físico/mágico); semNome quando o rótulo ao lado já diz o tipo
+const corDoTipo=t=>t==='magic'?COR_DANO.magico:COR_DANO.fisico,nomeDoTipo=t=>t==='magic'?'mágico':'físico',pintaDano=(txt,t,semNome)=>'<span style="color:'+corDoTipo(t)+'">'+txt+(semNome?'':' '+nomeDoTipo(t))+'</span>';
 const faixaTxt=(a,b)=>{a=Math.round(a);b=Math.round(b);return a===b?String(a):a+'-'+b};
 const textoFaixa=f=>[['physical',f.min.physical,f.max.physical],['magic',f.min.magic,f.max.magic]].filter(([,,b])=>Math.round(b)>=1).map(([k,a,b])=>pintaDano(faixaTxt(a,b),k)).join(' + ')||'0';
 const danoHTML=d=>d&&typeof d=='object'?[['physical',d.physical],['magic',d.magic]].filter(([,v])=>v>=.5).map(([k,v])=>pintaDano(Math.round(v),k)).join(' + ')||'0':String(Math.round(+d||0));

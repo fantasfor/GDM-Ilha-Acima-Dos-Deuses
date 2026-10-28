@@ -36,7 +36,7 @@
  // atalhos 1–6 (espaços 0–5 da bolsa) só aceitam consumíveis
  const podeEm=(k,s)=>k>=QUICK_N||!s||ehConsumivel(s.id);
  function swapSlots(a,b){
-  if(typeof a=='string'){if(b<QUICK_N){unequip(a);return}if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(window.ehArma&&ehArma(EQ[a])&&armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
+  if(typeof a=='string'){if(b<QUICK_N){unequip(a);return}if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
   if(a===b)return;
   if(!podeEm(b,I[a])||!podeEm(a,I[b])){ft(p.x,p.y-24,'Atalhos 1–6: só itens consumíveis','#ccc');return}
   [I[a],I[b]]=[I[b],I[a]];dirtyInv=true;saveGame();

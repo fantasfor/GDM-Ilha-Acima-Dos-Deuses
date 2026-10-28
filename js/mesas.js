@@ -11,7 +11,10 @@
    Ouro: cada jogador paga a própria aposta quando a partida começa e recebe o prêmio quando vence (pote dividido). */
 (function(){
  // 4 mesas no pátio do bar e as 5 mesas redondas de dentro da taverna
- const IDS=['bar1','bar2','bar3','bar4','tav1','tav2','tav3','tav4','tav5'],NOME_MESA={bar1:'Mesa 1 do pátio',bar2:'Mesa 2 do pátio',bar3:'Mesa 3 do pátio',bar4:'Mesa 4 do pátio',tav1:'Mesa 1 da taverna',tav2:'Mesa 2 da taverna',tav3:'Mesa 3 da taverna',tav4:'Mesa 4 da taverna',tav5:'Mesa 5 da taverna'};
+ // as mesas vêm do layout editável da taverna (js/taverna-layout.js; padrão: bar1..bar4 no pátio e tav1..tav5 dentro);
+ // o nome segue a ordem de cada área
+ const LAY=window.TAVERNA_LAYOUT,IDS=LAY?LAY.L.mesas.map(m=>m.id):['bar1','bar2','bar3','bar4','tav1','tav2','tav3','tav4','tav5'],NOME_MESA={};
+ {const n={p:0,t:0};for(const m of LAY?LAY.L.mesas:IDS.map(id=>({id,x:id.startsWith('bar')?600:100,y:100}))){const pat=LAY?LAY.noPatio(m.x,m.y):m.id.startsWith('bar');NOME_MESA[m.id]='Mesa '+(pat?++n.p:++n.t)+(pat?' do pátio':' da taverna')}}
  const J=()=>window.JOGOS_MESA;
  const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
  const dados={};IDS.forEach(id=>dados[id]={assentos:{},jogo:null});
@@ -23,7 +26,7 @@
  const aviso=(t,c)=>{if(window.ft&&window.p)ft(p.x,p.y-30,t,c||'#ffd84a')};
  /* vez de cada um: 30 s para jogar; passou, perde a vez (regras: perderVez). O relógio é o do servidor (online), para
     todos contarem o mesmo prazo. */
- const PRAZO_MS=30000;let deslocamento=0;
+ const PRAZO_MS=30000,FALTAS_MAX=3;let deslocamento=0;
  const agora=()=>Date.now()+deslocamento;
  const chaveVez=j=>{if(!j||j.fase!=='jogando')return '';const st=JSON.parse(j.estado);return JSON.stringify(J()[j.tipo].quemAge(st))+(st.mao&&st.mao.pedido?'p'+st.mao.pedido.valor:'')+(st.vez!=null?'v'+st.vez:'')};
 
@@ -50,19 +53,28 @@
  let sentado=null; // {mesa, i}
  const assentoDe=(id,uid)=>{const a=dados[id].assentos;for(const k in a)if(a[k]===uid)return +k;return -1};
  const sentados=id=>Object.values(dados[id].assentos).filter(Boolean);
+ /* em partida: joga uma partida em andamento nesta mesa e não desistiu. Aí não dá para levantar nem sentar em outra
+    mesa: só pelo Desistir. Sair da taverna (porta, menu, queda) conta como desistência — ver o ciclo no fim do arquivo. */
+ const emPartida=id=>{const j=id&&dados[id]&&dados[id].jogo;if(!j||j.fase!=='jogando'||!ativo(j))return false;const i=meuIndice(j),st=i>=0&&estado(j);return!!st&&!st.fora[i]&&!st.fim};
+ // aviso da mesa: em cima do herói e, com o painel aberto, dentro dele (o painel cobre o meio da tela)
+ const avisoMesa=t=>{aviso(t,'#f87171');if(painel.mesa){erroJogo=t;desenharPainel()}};
  async function sentar(id,i){
-  if(sentado)await levantar();
+  if(sentado&&!await levantar())return false;
   const ok=await transacao(id,'assentos/'+i,cur=>cur&&cur!==eu()?undefined:eu());
   if(!ok){aviso('Esse lugar está ocupado.','#f87171');return false}
   sentado={mesa:id,i};
   if(online())NUVEM.db.ref('mesas/'+id+'/assentos/'+i).onDisconnect().remove();
   return true;
  }
- async function levantar(){
-  if(!sentado)return;const {mesa,i}=sentado;sentado=null;
+ async function levantar(forcar){
+  if(!sentado)return true;const {mesa,i}=sentado;
+  if(!forcar&&emPartida(mesa)){avisoMesa('Partida em andamento: use Desistir para sair da mesa.');return false}
+  sentado=null;
   await transacao(mesa,'assentos/'+i,cur=>cur===eu()?null:undefined);
-  // saindo da mesa: sai do convite (o jogo em andamento continua: dá para voltar pelo painel)
-  const j=dados[mesa].jogo;if(j&&j.fase==='convite'){sairDoConvite(mesa);if(painel.mesa===mesa)fecharPainel()}
+  // saindo da mesa: sai do convite; o painel da mesa fecha (quem só assistia ou já terminou)
+  const j=dados[mesa].jogo;if(j&&j.fase==='convite')sairDoConvite(mesa);
+  if(painel.mesa===mesa)fecharPainel();
+  return true;
  }
 
  /* ---- jogo da mesa ---- */
@@ -82,7 +94,7 @@
  async function aceitar(id){
   const j=dados[id].jogo;if(!j)return;
   if(j.fase!=='convite'){assistir(id);return}
-  if(j.aposta>0&&(p.gold|0)<j.aposta){aviso('Ouro insuficiente para a aposta.','#f87171');return}
+  if(j.aposta>0&&(p.gold|0)<j.aposta){avisoMesa('Ouro insuficiente: a aposta é '+j.aposta+' e você tem '+(p.gold|0)+'.');return}
   await transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='convite')return undefined;cur.conv=cur.conv||{};cur.conv[eu()]='a';cur.nomes=cur.nomes||{};cur.nomes[eu()]=meuNome();if(cur.fila)delete cur.fila[eu()];return cur});
   abrirPainel(id);
  }
@@ -95,7 +107,7 @@
  }
  async function iniciar(id){
   const j=dados[id].jogo,G=j&&regras(j);if(!j||j.dono!==eu()||j.fase!=='convite')return;
-  if(j.aposta>0&&(p.gold|0)<j.aposta){aviso('Você não tem ouro para a aposta.','#f87171');return}
+  if(j.aposta>0&&(p.gold|0)<j.aposta){avisoMesa('Ouro insuficiente: a aposta é '+j.aposta+' e você tem '+(p.gold|0)+'.');return}
   const ordem=[0,1,2,3].map(k=>dados[id].assentos[k]).filter(Boolean),aceitos=[eu(),...Object.keys(j.conv||{}).filter(u=>j.conv[u]==='a')];
   const jog=[...ordem.filter(u=>aceitos.includes(u)),...aceitos.filter(u=>!ordem.includes(u))].slice(0,G.max); // na ordem das cadeiras
   if(!G.valido(jog.length)){aviso(G.nome+': '+(j.tipo==='truco'?'2 ou 4 jogadores':G.min+' a '+G.max+' jogadores')+'.','#f87171');return}
@@ -106,7 +118,7 @@
  async function agir(id,acao){
   erroJogo='';
   await transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='jogando')return undefined;const i=cur.jog.indexOf(eu());if(i<0)return undefined;
-   try{const antes=chaveVez(cur),st=regras(cur).aplicar(JSON.parse(cur.estado),i,acao);cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';else if(chaveVez(cur)!==antes)cur.prazo=agora()+PRAZO_MS;return cur}catch(e){erroJogo=e.message;return undefined}});
+   try{const antes=chaveVez(cur),st=regras(cur).aplicar(JSON.parse(cur.estado),i,acao);cur.estado=JSON.stringify(st);cur.t=Date.now();if(cur.faltas)delete cur.faltas[eu()];if(st.fim)cur.fase='fim';else if(chaveVez(cur)!==antes)cur.prazo=agora()+PRAZO_MS;return cur}catch(e){erroJogo=e.message;return undefined}});
   if(erroJogo)desenharPainel();
  }
  async function desistir(id){
@@ -154,7 +166,7 @@
  const painel={mesa:null,el:null,escolha:null};
  const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
  const B=(x,fn,c)=>{const b=E('button',c||'mesaBtn',x);b.type='button';b.onclick=fn;return b};
- function abrirPainel(id){painel.mesa=id;painel.escolha=null;if(!painel.el){painel.el=E('div','mesaPainel');painel.el.setAttribute('role','dialog');document.body.append(painel.el)}painel.el.hidden=false;desenharPainel()}
+ function abrirPainel(id){painel.mesa=id;painel.escolha=null;painel.junto=null;erroJogo='';if(!painel.el){painel.el=E('div','mesaPainel');painel.el.setAttribute('role','dialog');document.body.append(painel.el)}painel.el.hidden=false;desenharPainel()}
  function fecharPainel(){const id=painel.mesa;painel.mesa=null;if(painel.el)painel.el.hidden=true;
   const j=id&&dados[id].jogo;if(j&&j.espect&&j.espect[eu()])transacao(id,'jogo/espect/'+eu(),cur=>cur?null:undefined);
   if(j&&j.fase==='convite'&&j.conv&&j.conv[eu()]&&j.dono!==eu())sairDoConvite(id)}
@@ -162,7 +174,7 @@
  const CORUNO={r:'#d8432f',g:'#3f9a44',b:'#2f6fd0',y:'#e0b62a'};
  function cartaTruco(c,{costas,onClick,dest}={}){const d=E(onClick?'button':'div','carta truco'+(costas?' costas':'')+(dest?' destaque':''));if(onClick){d.type='button';d.onclick=onClick}
   if(!costas){const n=c.slice(-1),r=c.slice(0,-1);d.append(E('b','',r),E('span','',J().truco.NOME_NAIPE[n]));if(n==='o'||n==='c')d.classList.add('verm')}return d}
- function cartaUno(c,{costas,onClick,apagada}={}){const d=E(onClick?'button':'div','carta uno'+(costas?' costas':'')+(apagada?' apagada':''));if(onClick){d.type='button';d.onclick=onClick}
+ function cartaUno(c,{costas,onClick,apagada,sel}={}){const d=E(onClick?'button':'div','carta uno'+(costas?' costas':'')+(apagada?' apagada':'')+(sel?' sel':''));if(onClick){d.type='button';d.onclick=onClick}
   if(!costas){const cor=c[0]==='W'?null:c[0],s=c[0]==='W'?(c==='W4'?'+4':'★'):c.slice(1);d.style.background=cor?CORUNO[cor]:'#262626';d.append(E('b','',s==='S'?'⊘':s==='R'?'⇄':s==='+'?'+2':s))}return d}
  function pedraDom(s,{costas,onClick,deitada}={}){const d=E(onClick?'button':'div','pedra'+(costas?' costas':'')+(deitada?' deitada':''));if(onClick){d.type='button';d.onclick=onClick}
   if(!costas){const [a,b]=typeof s==='string'?s.split('-').map(Number):s;for(const v of [a,b]){const h=E('span','meia');h.dataset.v=v;for(let k=0;k<v;k++)h.append(E('i'));d.append(h)}}return d}
@@ -228,14 +240,25 @@
  }
  function mesaUno(box,j,st,eu_i){
   const U=J().uno,acs=eu_i>=0?U.acoes(st,eu_i):[];
-  outrosJog(box,j,st,eu_i,i=>st.maos[i].length+' carta(s)'+(st.maos[i].length===1?' · UNO!':''));
+  outrosJog(box,j,st,eu_i,i=>st.maos[i].length+' carta(s)'+(st.maos[i].length===1?(st.exposto===i?' · sem UNO!':' · UNO!'):''));
   const centro=E('div','unoCentro');centro.append(cartaUno(st.descarte[st.descarte.length-1]));const cor=E('div','unoCor');cor.style.background=CORUNO[st.cor];cor.title='Cor da vez: '+U.NOME_COR[st.cor];centro.append(cor,E('small','','Monte: '+st.monte.length+' · sentido '+(st.dir>0?'↻':'↺')));box.append(centro);
   if(eu_i>=0&&!st.fora[eu_i]){
    if(painel.escolha!=null){const pk=E('div','unoEscolha');pk.append(E('span','','Escolha a cor:'));for(const c of ['r','g','b','y']){const b=B('',()=>{const k=painel.escolha;painel.escolha=null;agir(painel.mesa,{t:'jogar',k,cor:c})},'unoCorBtn');b.style.background=CORUNO[c];b.title=U.NOME_COR[c];pk.append(b)}pk.append(B('Voltar',()=>{painel.escolha=null;desenharPainel()}));box.append(pk)}
+   // cartas do mesmo número: a primeira clicada abre a seleção das iguais (clique marca/desmarca) e "Jogar N cartas"
+   const junto=painel.junto&&painel.junto.mesa===painel.mesa&&vez(st,eu_i)&&st.maos[eu_i][painel.junto.k]?painel.junto:null,iguais=junto?new Set(U.mesmoNumero(st,eu_i,junto.k)):null;
    const mao=E('div','mesaMao');const jog=new Set(acs.filter(a=>a.t==='jogar').map(a=>a.k));
-   st.maos[eu_i].forEach((c,k)=>mao.append(cartaUno(c,{apagada:!jog.has(k)&&vez(st,eu_i),onClick:jog.has(k)?()=>{if(c[0]==='W'){painel.escolha=k;desenharPainel()}else agir(painel.mesa,{t:'jogar',k})}:null})));box.append(mao);
-   const bt=E('div','mesaAcoes');for(const a of acs){if(a.t==='comprar')bt.append(B('Comprar',()=>agir(painel.mesa,a)));if(a.t==='passar')bt.append(B('Passar',()=>agir(painel.mesa,a)))}
-   if(!st.fim&&vez(st,eu_i))bt.append(E('small','mesaDica','Sua vez.'));box.append(bt)}
+   st.maos[eu_i].forEach((c,k)=>{
+    if(junto){const pode=k===junto.k||iguais.has(k);mao.append(cartaUno(c,{sel:k===junto.k||junto.extras.includes(k),apagada:!pode,onClick:pode&&k!==junto.k?()=>{const x=junto.extras;const n=x.indexOf(k);if(n>=0)x.splice(n,1);else x.push(k);desenharPainel()}:null}));return}
+    mao.append(cartaUno(c,{apagada:!jog.has(k)&&vez(st,eu_i),onClick:jog.has(k)?()=>{if(c[0]==='W'){painel.escolha=k;desenharPainel()}else if(U.mesmoNumero(st,eu_i,k).length){painel.junto={mesa:painel.mesa,k,extras:[]};desenharPainel()}else agir(painel.mesa,{t:'jogar',k})}:null}))});
+   box.append(mao);
+   const bt=E('div','mesaAcoes');
+   if(junto){const n=1+junto.extras.length;bt.append(B('Jogar '+n+' carta'+(n>1?'s':''),()=>{painel.junto=null;agir(painel.mesa,{t:'jogar',k:junto.k,extras:junto.extras.slice()})},'mesaBtn primario'),B('Voltar',()=>{painel.junto=null;desenharPainel()}));
+    bt.append(E('small','mesaDica','Marque as outras cartas de mesmo número que quer jogar junto.'))}
+   else for(const a of acs){if(a.t==='comprar')bt.append(B('Comprar',()=>agir(painel.mesa,a)));if(a.t==='passar')bt.append(B('Passar',()=>agir(painel.mesa,a)))}
+   // botão UNO: declara o seu (antes ou logo depois de ficar com 1 carta) ou denuncia quem ficou com 1 sem declarar
+   const unoA=acs.find(a=>a.t==='uno')||acs.find(a=>a.t==='denunciar');
+   if(unoA){const b=B('UNO!',()=>agir(painel.mesa,unoA),'mesaBtn uno');b.title=unoA.t==='uno'?'Declarar UNO (ficar com 1 carta)':'Denunciar: '+nomeDe(j,j.jog[st.exposto])+' não disse UNO (compra '+U.PENA_UNO+')';bt.append(b)}
+   if(!st.fim&&vez(st,eu_i)&&!junto)bt.append(E('small','mesaDica','Sua vez.'));box.append(bt)}
  }
  function mesaDomino(box,j,st,eu_i){
   const D=J().domino,acs=eu_i>=0?D.acoes(st,eu_i):[];
@@ -268,8 +291,11 @@
    const v=infoVez(id);
    if(v&&v.minha&&v.resta<=5&&v.resta>0&&v.resta!==ultimoTique){ultimoTique=v.resta;if(window.playGameSound)playGameSound('tiqueVez')}
    // passou do prazo (com 1 s de folga): qualquer um na mesa aplica a perda de vez; a transação garante uma vez só
+   // quem perde a vez FALTAS_MAX vezes seguidas (saiu, caiu, fechou o jogo) é tirado da partida, que não fica presa
    if(agora()>j.prazo+1000){const prazo=j.prazo;transacao(id,'jogo',cur=>{if(!cur||cur.fase!=='jogando'||cur.prazo!==prazo||agora()<=cur.prazo+1000)return undefined;
-    const st=regras(cur).perderVez(JSON.parse(cur.estado));cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';cur.prazo=agora()+PRAZO_MS;return cur})}
+    const G=regras(cur),st0=JSON.parse(cur.estado),q=G.quemAge(st0);let st=G.perderVez(st0);cur.faltas=cur.faltas||{};
+    for(const i of q){const u=cur.jog[i];cur.faltas[u]=(cur.faltas[u]||0)+1;if(cur.faltas[u]>=FALTAS_MAX&&!st.fim&&!st.fora[i])st=G.sair(st,i)}
+    cur.estado=JSON.stringify(st);cur.t=Date.now();if(st.fim)cur.fase='fim';cur.prazo=agora()+PRAZO_MS;return cur})}
   }
   // relógio do painel aberto (sem redesenhar o painel inteiro)
   if(painel.mesa&&painel.relogio){const v=infoVez(painel.mesa);if(v){painel.relogio.textContent=v.resta+'s';painel.relogio.parentElement.style.setProperty('--resta',(v.resta/30*100)+'%');painel.relogio.parentElement.classList.toggle('urgente',v.resta<=5)}}
@@ -279,11 +305,12 @@
  setInterval(()=>{
   const dentro=!!window.inTaverna;
   if(dentro&&!naTaverna){IDS.forEach(escutar)}
-  if(!dentro&&naTaverna){if(sentado)levantar();if(painel.mesa)fecharPainel();pararDeEscutar()}
+  // saiu da taverna no meio de uma partida: desiste dela (a aposta fica no pote) em vez de deixar a mesa presa
+  if(!dentro&&naTaverna){for(const id of IDS)if(emPartida(id)){desistir(id);aviso('Você saiu da taverna e desistiu da partida.','#f87171')}if(sentado)levantar(true);if(painel.mesa)fecharPainel();pararDeEscutar()}
   naTaverna=dentro;
  },400);
 
- window.MESAS={IDS,NOME_MESA,dados,eu,sentar,levantar,get sentado(){return sentado},assentoDe,sentados,convidar,aceitar,iniciar,agir,desistir,assistir,pedirVaga,novaPartida,encerrar,definirAposta,
+ window.MESAS={IDS,NOME_MESA,dados,eu,sentar,levantar,get sentado(){return sentado},emPartida:id=>emPartida(id||(sentado&&sentado.mesa)),assentoDe,sentados,convidar,aceitar,iniciar,agir,desistir,assistir,pedirVaga,novaPartida,encerrar,definirAposta,
   abrirPainel,fecharPainel,infoVez,get painelAberto(){return painel.mesa},estado,meuIndice,ativo,nomeDe,
   // testes: agir como outro jogador (só na mesa local)
   simular(uid,nome,fn){if(online())return;const ant=simulado;simulado={uid,nome};try{return fn()}finally{simulado=ant}},

@@ -32,7 +32,7 @@ window.passIcon=o=>{const art=o&&o.sprite||PROJ.art['passivas/'+(o&&o.id)],sprit
 const KD={dot:(f,s)=>Math.round(s.pw*(s.n||1))+' de dano por '+(f.tick==1||!f.tick?'segundo':f.tick+'s'),slow:(f,s)=>'-'+Math.round(s.pw*(s.n||1))+'% de velocidade',stun:()=>'impede de agir',vuln:(f,s)=>'+'+Math.round(s.pw*(s.n||1))+'% de dano recebido',hot:(f,s)=>'+'+Math.round(s.pw*(s.n||1))+' de vida por segundo',dmgup:(f,s)=>'+'+Math.round(s.pw*(s.n||1))+'% de dano causado',dmgdown:(f,s)=>'-'+Math.round(s.pw*(s.n||1))+'% de dano causado',guard:(f,s)=>'-'+Math.round(s.pw*(s.n||1))+'% de dano recebido',haste:(f,s)=>'+'+Math.round(s.pw*(s.n||1))+'% de velocidade'};
 const bar=document.createElement('div');bar.id='fxbar';$('dock').appendChild(bar);let sig='';
 const mk=(src,cls,tip)=>{const e=document.createElement('div');e.className='fxi '+cls;e.innerHTML='<img src="'+src+'"><i></i><b></b>';e._tip=tip;bar.appendChild(e);return e};
-const fxTip=k=>()=>{const s=(p.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return'<b style="color:'+f.c+'">'+f.n+'</b> <span class=tm>'+(f.good?'efeito positivo':'efeito negativo')+'</span><div>'+(KD[f.kind]?KD[f.kind](f,s):'')+'</div><div class=tm>Restam '+s.t.toFixed(1)+'s'+(s.n>1?' · '+s.n+' acúmulos':'')+(f.stacks>1?' (máx. '+f.stacks+')':'')+'</div>'};
+const fxTip=k=>()=>{const s=(p.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return'<b style="color:'+f.c+'">'+f.n+'</b> <span class=tm>'+(f.good?'efeito positivo':'efeito negativo')+'</span><div>'+(KD[f.kind]?KD[f.kind](f,s):'')+'</div><div class=tm>Restam '+s.t.toFixed(1)+'s'+(s.n>1?' · '+s.n+' acúmulos'+(Array.isArray(s.pilhas)?' ('+s.pilhas.map(x=>x.toFixed(1)+'s').join(', ')+')':''):'')+(f.stacks>1?' (máx. '+f.stacks+')':'')+'</div>'};
 function passives(){const c=CL[p.cls];if(!c)return[];const out=[],cd=(GAMEDATA.classes||[]).find(x=>x.id==p.cls)||{},pool=[...(GAMEDATA.passives||[]),...(GAMEDATA.skills||[]).filter(s=>s.category=='passive')];
  if(c.passive&&c.passive.n)out.push({n:c.passive.n,desc:c.passive.d||'',raw:cd.passive||{},lv:1,on:()=>true});
  (c.plist||[]).forEach(r=>{const g=pool.find(x=>x.name==r.d.n);out.push({n:r.d.n,desc:(g&&g.desc)||'',raw:r.d,lv:r.lv,rank:r.rank,on:r.on})});return out}
@@ -48,7 +48,7 @@ function upd(){const st=p.st||{},ks=Object.keys(st).filter(k=>FX_INFO[k]&&st[k].
 /* efeitos do alvo (monstro selecionado): mesmos ícones do jogador, abaixo da caixa de informações do topo */
 let tPosEfeitos=0,tPosAlvo=0;
 const mbar=document.createElement('div');mbar.id='monfx';document.body.appendChild(mbar);let msig='',malvo=null;
-const alvoTip=(t,k)=>()=>{const s=(t.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return'<b style="color:'+f.c+'">'+f.n+'</b> <span class=tm>'+(f.good?'efeito positivo':'efeito negativo')+'</span><div>'+(KD[f.kind]?KD[f.kind](f,s):'')+'</div><div class=tm>Restam '+s.t.toFixed(1)+'s'+(s.n>1?' · '+s.n+' acúmulos':'')+'</div>'};
+const alvoTip=(t,k)=>()=>{const s=(t.st||{})[k],f=FX_INFO[k];if(!s||!f)return'';return'<b style="color:'+f.c+'">'+f.n+'</b> <span class=tm>'+(f.good?'efeito positivo':'efeito negativo')+'</span><div>'+(KD[f.kind]?KD[f.kind](f,s):'')+'</div><div class=tm>Restam '+s.t.toFixed(1)+'s'+(s.n>1?' · '+s.n+' acúmulos'+(Array.isArray(s.pilhas)?' ('+s.pilhas.map(x=>x.toFixed(1)+'s').join(', ')+')':''):'')+'</div>'};
 function updAlvo(){
  const t=window.alvoInfo,st=t&&t.hp>0&&t.st||{},ks=Object.keys(st).filter(k=>FX_INFO[k]&&st[k].t>0);
  const bad=ks.filter(k=>!FX_INFO[k].good).sort(),good=ks.filter(k=>FX_INFO[k].good).sort(),s2=bad.join()+'|'+good.join();
@@ -64,5 +64,5 @@ function updAlvo(){
 const hud2=hud;hud=function(){hud2();upd();updAlvo()};
 /* equipamentos: ao ser atingido, chance de ganhar efeitos */
 const hp0=hurtP;hurtP=function(d,m,fx,dot){const r=hp0.apply(this,arguments);if(!dot&&p.hp>0)Object.values(EQ).forEach(s=>{const it=s&&ITEMS[s.id];if(it&&it.fx&&it.fx.length)applyFx(p,resolveFx(it.fx.map(f=>({...f,target:'self'})),0))});return r};
-const tip0=itemTip;itemTip=function(id,q,sl){let h=tip0(id,q,sl);const it=ITEMS[id];if(it&&it.fx&&it.fx.length)h+='<div class=tm style="color:#9fdc9f">Ao ser atingido: '+it.fx.filter(f=>FX_INFO[f.type]).map(f=>(f.chance==null?100:f.chance)+'% de ganhar '+FX_INFO[f.type].n+' por '+(f.dur||3)+'s'+fxExtra(f)).join('; ')+'.</div>';return h};
+// a descrição dos efeitos do item ("Ao ser atingido" / "Ao acertar") está em itemTip (js/ui.js), gerada por efeitoFrase
 })();

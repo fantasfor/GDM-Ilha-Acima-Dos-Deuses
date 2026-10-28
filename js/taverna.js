@@ -14,27 +14,30 @@
  // o chão atrás do balcão vai da parede (y 52) até a beirada de trás do balcão (y ~84): ela pisa ali, nunca no tampo
  const BALCAO_Y=OY+78,ATRAS={x0:OX+24,x1:OX+184,y0:OY+60,y1:BALCAO_Y};
  const BARKEEP={x:OX+104,y:BALCAO_Y,fx:0,fy:1,nm:'Taverneira Bete',alvo:null,espera:3,chamada:null,deCostas:false};
- const MESAS=[{x:OX+112,y:OY+150},{x:OX+232,y:OY+180},{x:OX+352,y:OY+142},{x:OX+100,y:OY+244},{x:OX+212,y:OY+262}];
- const BARRIS=[{x:OX+462,y:OY+92},{x:OX+462,y:OY+112},{x:OX+450,y:OY+102},{x:OX+26,y:OY+300}];
- const LAREIRA={x:OX+414,y:OY+44};
+ /* posições editáveis na Engine (cena Taverna): js/taverna-layout.js. Mesas "redonda" são desenhadas aqui; as "jogo",
+    em js/bar.js. A colisão de mesas, barris e decorações é BAR.bloqueia. */
+ const LAY=window.TAVERNA_LAYOUT,LL=LAY.L;
+ const MESAS=LL.mesas.filter(m=>m.estilo!=='jogo');
+ const BARRIS=LL.barris;
+ const LAREIRA=LL.lareira;
  const JANELAS=[210,246]; // x (no fundo) das duas janelas da parede do fundo
- /* quadro de missões na parede do fundo */
- const QUADRO={x:OX+314,y:OY+40,x0:288,y0:8,w:52,h:32};
- /* palco no canto de baixo à direita, encostado na parede; cortina atrás; bardo (alaúde) e tamborileiro */
- const PALCO={x0:OX+330,x1:OX+TW-12,y0:OY+216,y1:OY+290};
- const BARDO={x:OX+380,y:OY+262,fx:0,fy:1},TAMBOR={x:OX+428,y:OY+252,fx:0,fy:1};
+ /* quadro de missões na parede do fundo (x = centro, y = base do quadro) */
+ const QUADRO={x:LL.quadro.x,y:LL.quadro.y,x0:LL.quadro.x-OX-26,y0:LL.quadro.y-OY-32,w:52,h:32};
+ /* palco encostado na parede; cortina atrás; bardo (alaúde) e tamborileiro */
+ const PALCO={...LL.palco};
+ const BARDO={...LL.npcs.bardo,fx:0,fy:1},TAMBOR={...LL.npcs.tambor,fx:0,fy:1};
  /* Lanceiro: mestre da arena (PvP, js/arena.js), de armadura de placas pesada, elmo fechado com pluma, escudo e lança */
- const LANCEIRO={x:OX+232,y:OY+102,fx:0,fy:1,nm:'Lanceiro Aldric'};
+ const LANCEIRO={...LL.npcs.lanceiro,fx:0,fy:1,nm:'Lanceiro Aldric'};
  // montado como os outros personagens (mesma escala de pixel): placas de ferro, grevas e botas de aço, capa, escudo e a lança do pacote de armas
  const LANCA_NPC=(()=>{const a=window.PACOTE_ARMAS&&PACOTE_ARMAS.ARMAS.lanca;return{v:{c:['#9aa7b8','#7a4a25'],st:0},equippedSprite:a?pixelArt(a.mao):null,ataque:'estocada',pega:a?a.pega:.72,escalaMao:2,wt:'lanca'}})();
  const looksLanceiro={},spriteLanceiro=d=>{const dir=d,k=d+(window.HEROI_MANA?HEROI_MANA.versao():'');return looksLanceiro[k]||(looksLanceiro[k]=human('war',dir,0,{nude:1,sex:'m',he:ITEMS.he1,ch:ITEMS.ch1,le:ITEMS.le2,bo:ITEMS.bo2,ca:ITEMS.ca1,sh:ITEMS.sh,sw:LANCA_NPC}))};
  /* mestres de classe: um por classe do projeto; aprender uma classe nova = vencer o Mestre num duelo na arena
    (js/arena.js ARENA.duelo); voltar para uma classe já aprendida é grátis */
- const LUGARES_MESTRE=[[36,118],[36,170],[36,220],[292,100],[160,206],[300,240],[36,270],[150,300],[300,296]];
+ const LUGARES_MESTRE=LL.mestres;
  let MESTRES=[];
  function montarMestres(){
   const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n);
-  MESTRES=ids.slice(0,LUGARES_MESTRE.length).map((cls,i)=>({cls,x:OX+LUGARES_MESTRE[i][0],y:OY+LUGARES_MESTRE[i][1],fx:0,fy:1,nm:'Mestre '+CL[cls].n}));
+  MESTRES=ids.slice(0,LUGARES_MESTRE.length).map((cls,i)=>({cls,x:LUGARES_MESTRE[i].x,y:LUGARES_MESTRE[i].y,fx:0,fy:1,nm:'Mestre '+CL[cls].n}));
  }
  let ilhaPos=null,enGuardado=null,fundo=null;
  window.inTaverna=false;
@@ -44,10 +47,9 @@
   if(window.BAR){if(BAR.portaEm(x,y))return true;if(BAR.dentro(x,y))return BAR.walk(x,y)} // porta e pátio do bar
   if(x<OX+12||x>OX+TW-12||y<OY+54||y>OY+TH-12)return Math.abs(x-DOOR.x)<10&&y>=OY+TH-12&&y<=OY+TH-2;
   if(x<OX+196&&y<OY+92)return false;                       // balcão e área da taverneira
-  if(x>OX+372&&x<OX+458&&y<OY+66)return false;             // lareira
-  if(x>PALCO.x0-4&&y>PALCO.y0-46&&y<PALCO.y1+8)return false; // palco, cortina e a placa (ninguém fica escondido atrás)
-  for(const m of MESAS)if(Math.hypot(x-m.x,(y-m.y)*1.3)<15)return false;
-  for(const b of BARRIS)if(Math.hypot(x-b.x,y-b.y)<8)return false;
+  if(Math.abs(x-LAREIRA.x)<43&&y<LAREIRA.y+22)return false;  // lareira
+  if(x>PALCO.x0-4&&x<PALCO.x1+4&&y>PALCO.y0-46&&y<PALCO.y1+8)return false; // palco, cortina e a placa (ninguém fica escondido atrás)
+  if(window.BAR&&BAR.bloqueia(x,y))return false;            // mesas, barris e decorações
   for(const m of MESTRES)if(Math.hypot(x-m.x,(y-m.y)*1.4)<6)return false;
   if(Math.hypot(x-LANCEIRO.x,(y-LANCEIRO.y)*1.4)<8)return false;
   return true;
@@ -57,7 +59,7 @@
  /* ---- arte: fundo (piso, paredes, tapete, balcão, palco) desenhado uma vez ---- */
  const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
  const hsh=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296};
- function desenharFundo(){
+ function desenharFundo(soParedes){
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const g=c.getContext('2d');
   // piso de tábuas corridas: fileiras de 6 px com tábuas compridas de tamanhos variados
   for(let y=0,row=0;y<TH;y+=6,row++){let x=-((hsh(row,7)*40)|0);while(x<TW){
@@ -84,12 +86,8 @@
   // prateleiras com garrafas atrás do balcão
   for(const sy of [14,30]){R(g,22,sy+8,150,3,'#5a3418');R(g,22,sy+11,150,1,'#2e1a0c');
    for(let i=0;i<14;i++){const bx=28+i*10+(hsh(i,sy)*3|0),cor=['#3f7a3a','#7a2a2a','#2f4f8a','#a8862f','#5a3a7a'][(hsh(sy,i)*5)|0],h=5+(hsh(i,sy+1)*4|0);R(g,bx,sy+8-h,4,h,cor);R(g,bx+1,sy+8-h-2,2,2,'#2a1a0c');R(g,bx+1,sy+8-h+1,1,h-2,'#ffffff40')}}
-  // quadro de missões (os papéis são desenhados a cada quadro, conforme as ofertas)
-  {const q=QUADRO;R(g,q.x0-2,q.y0-2,q.w+4,q.h+4,'#3f2816');R(g,q.x0,q.y0,q.w,q.h,'#9a7046');for(let y=q.y0+3;y<q.y0+q.h;y+=6)R(g,q.x0,y,q.w,1,'#8a6038');R(g,q.x0-2,q.y0-2,q.w+4,1,'#6a4426')}
-  // lareira (pedra) — o fogo é animado no desenho
-  const lx=LAREIRA.x-OX-36;R(g,lx,2,72,64,'#4f463f');for(let y=4;y<64;y+=7)for(let x=lx+((y/7)%2)*6;x<lx+70;x+=12){R(g,x,y,11,6,hsh(x,y)<.5?'#7a6e63':'#6a5f55');R(g,x,y,11,1,'#8f8478')}
-  R(g,lx+14,26,44,38,'#1a1210');R(g,lx+16,28,40,36,'#2a1a12');R(g,lx-4,22,80,5,'#5a3418');R(g,lx-4,22,80,1,'#8a5a30');
-  R(g,lx+20,58,32,4,'#3a2a20');R(g,lx+24,55,24,3,'#5a3418');
+  // quadro de missões e lareira (posições editáveis; na Engine são desenhados à parte)
+  if(!soParedes){pintarQuadro(g,QUADRO,OX,OY);pintarLareira(g,LAREIRA,OX,OY)}
   // paredes laterais e de baixo, com a porta
   R(g,0,0,10,TH,'#3f2816');R(g,10,0,2,TH,'#6a4426');R(g,TW-10,0,10,TH,'#3f2816');R(g,TW-12,0,2,TH,'#6a4426');
   R(g,0,TH-10,TW,10,'#3f2816');R(g,0,TH-11,TW,1,'#6a4426');
@@ -100,14 +98,23 @@
   for(let x=14;x<186;x+=26){R(g,x,77,20,10,'#5a3418');R(g,x+1,78,18,1,'#7a4a24')}
   R(g,8,88,186,3,'#24140a');
   for(const [cx,cor] of [[40,'#d9a441'],[70,'#c8c8c8'],[132,'#d9a441'],[160,'#7a2a2a']]){R(g,cx,62,5,7,cor);R(g,cx+5,64,2,3,cor);R(g,cx+1,63,3,1,'#fff8')}
-  // palco: tablado de tábuas claras com a beirada da frente
-  {const x0=PALCO.x0-OX,x1=PALCO.x1-OX,y0=PALCO.y0-OY,y1=PALCO.y1-OY;
-   R(g,x0-2,y0-2,x1-x0+2,y1-y0+12,'#24140a');
-   for(let y=y0,k=0;y<y1;y+=5,k++){R(g,x0,y,x1-x0,5,k%2?'#a8743f':'#9a6a38');R(g,x0,y,x1-x0,1,'#c08a52');for(let x=x0+((k*17)%30);x<x1;x+=30)R(g,x,y,1,5,'#6a4424')}
-   R(g,x0,y1,x1-x0,8,'#5a3418');R(g,x0,y1,x1-x0,1,'#d9a441');for(let x=x0+6;x<x1;x+=16)R(g,x,y1+2,8,4,'#4a2a14');R(g,x0,y1+8,x1-x0,2,'#1a0e06');
-   R(g,x0-2,y0,2,y1-y0+8,'#3e2210')}
+  if(!soParedes)pintarPalco(g,PALCO,OX,OY);
   return c;
  }
+ /* peças do fundo com posição editável, desenhadas em g com o canto (ox, oy) do mundo na origem */
+ function pintarQuadro(g,q,ox,oy){const x0=q.x-26-ox,y0=q.y-32-oy,w=52,h=32;
+  R(g,x0-2,y0-2,w+4,h+4,'#3f2816');R(g,x0,y0,w,h,'#9a7046');for(let y=y0+3;y<y0+h;y+=6)R(g,x0,y,w,1,'#8a6038');R(g,x0-2,y0-2,w+4,1,'#6a4426')}
+ // lareira de pedra (o fogo é animado no desenho da cena): 72×64, com o centro em x e a base 22 px abaixo de y
+ function pintarLareira(g,l,ox,oy){const lx=l.x-36-ox,t=l.y-44-oy;
+  R(g,lx,t+2,72,64,'#4f463f');for(let y=4;y<64;y+=7)for(let x=lx+((y/7)%2)*6;x<lx+70;x+=12){R(g,x,t+y,11,6,hsh(x+ox-OX,y)<.5?'#7a6e63':'#6a5f55');R(g,x,t+y,11,1,'#8f8478')}
+  R(g,lx+14,t+26,44,38,'#1a1210');R(g,lx+16,t+28,40,36,'#2a1a12');R(g,lx-4,t+22,80,5,'#5a3418');R(g,lx-4,t+22,80,1,'#8a5a30');
+  R(g,lx+20,t+58,32,4,'#3a2a20');R(g,lx+24,t+55,24,3,'#5a3418')}
+ // palco: tablado de tábuas claras com a beirada da frente
+ function pintarPalco(g,P,ox,oy){const x0=P.x0-ox,x1=P.x1-ox,y0=P.y0-oy,y1=P.y1-oy;
+  R(g,x0-2,y0-2,x1-x0+2,y1-y0+12,'#24140a');
+  for(let y=y0,k=0;y<y1;y+=5,k++){R(g,x0,y,x1-x0,5,k%2?'#a8743f':'#9a6a38');R(g,x0,y,x1-x0,1,'#c08a52');for(let x=x0+((k*17)%30);x<x1;x+=30)R(g,x,y,1,5,'#6a4424')}
+  R(g,x0,y1,x1-x0,8,'#5a3418');R(g,x0,y1,x1-x0,1,'#d9a441');for(let x=x0+6;x<x1;x+=16)R(g,x,y1+2,8,4,'#4a2a14');R(g,x0,y1+8,x1-x0,2,'#1a0e06');
+  R(g,x0-2,y0,2,y1-y0+8,'#3e2210')}
  /* céu da janela: azul com nuvens de dia, escuro com lua e estrelas à noite (relógio do jogo) */
  function janela(wx){
   const x=OX+wx,y=OY+6,k=window.TEMPO?TEMPO.escuro():0,mix=(a,b)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);return'rgb('+[16,8,0].map(s=>Math.round(((A>>s)&255)*(1-k)+((B>>s)&255)*k)).join(',')+')'};
@@ -159,7 +166,7 @@
  function barril(b){const x=Math.round(b.x),y=Math.round(b.y);R(ctx,x-7,y+1,14,3,'#0005');R(ctx,x-6,y-14,12,15,'#7a4a24');R(ctx,x-7,y-11,14,9,'#865230');R(ctx,x-6,y-14,12,2,'#9a6636');R(ctx,x-7,y-10,14,1,'#3b2c22');R(ctx,x-7,y-4,14,1,'#3b2c22');R(ctx,x-4,y-13,1,13,'#a8703c80')}
  /* fogo da lareira: brasas, lenha cruzada e três chamas de alturas diferentes; luz quente pulsando */
  function fogo(){
-  const x=LAREIRA.x,y=OY+59;
+  const x=LAREIRA.x,y=LAREIRA.y+15;
   desenharLenha(ctx,x,y,26);
   desenharChama(ctx,x-7,y-3,9,13,1.3);desenharChama(ctx,x+7,y-3,9,12,2.7);desenharChama(ctx,x,y-3,13,19,.4);
   const g=ctx.createRadialGradient(x,y-6,4,x,y+20,115);g.addColorStop(0,'rgba(255,150,60,'+(.24+.06*Math.sin(time*7)+.03*Math.sin(time*17))+')');g.addColorStop(1,'rgba(255,120,30,0)');ctx.fillStyle=g;ctx.fillRect(x-115,y-60,230,195);
@@ -177,8 +184,8 @@
  const notasNoAr=[];let ultimoPasso=-1;
  let bardoSpr=null;const spriteBardo=()=>{if(bardoSpr)return bardoSpr;try{const look=window.APARENCIA?{...APARENCIA.padrao('m'),cabelo:'#c8a050',estilo:'rabo'}:undefined;bardoSpr=human('war','d',0,{nude:1,sex:'m',look,ca:ITEMS.ca1})}catch(e){bardoSpr=(HS.sty||HS.war).d}return bardoSpr};
  function musicaAgora(){return window.MUSICA_TAVERNA?MUSICA_TAVERNA.agora():null}
- function cortina(){
-  const x0=PALCO.x0,x1=PALCO.x1,y=PALCO.y0,w=x1-x0;
+ function cortina(P){
+  P=P||PALCO;const x0=P.x0,x1=P.x1,y=P.y0,w=x1-x0;
   R(ctx,x0-2,y-34,w+2,3,'#3e2210');
   for(let x=x0;x<x1;x+=6){const o=Math.sin(time*1.2+x*.3)*.6;R(ctx,x+o,y-31,6,31,(x/6|0)%2?'#8e2f2a':'#7a2622');R(ctx,x+o,y-31,1,31,'#a8392f')}
   R(ctx,x0,y-31,w,3,'#d9a441');for(let x=x0+2;x<x1;x+=8)R(ctx,x,y-28,4,3,'#d9a441');
@@ -205,8 +212,8 @@
 
  /* ---- desenho da cena ---- */
  // 4 cadeiras por mesa (atrás, direita, frente, esquerda): as mesas da taverna também são mesas de jogo (js/mesas.js, js/bar.js)
- const bancos=[];MESAS.forEach(m=>{bancos.push({x:m.x,y:m.y-15,lado:0},{x:m.x+21,y:m.y+1,lado:1},{x:m.x,y:m.y+14,lado:0},{x:m.x-21,y:m.y+1,lado:-1})});
- window.TAVERNA_MESAS=MESAS.map((m,k)=>({id:'tav'+(k+1),cx:m.x,cy:m.y,lugares:[{x:m.x,y:m.y-15},{x:m.x+21,y:m.y+1},{x:m.x,y:m.y+14},{x:m.x-21,y:m.y+1}]}));
+ // (posição de cada cadeira e o ponto onde o herói senta: layout da Engine; lado do encosto pelo lado da mesa)
+ const bancos=[];MESAS.forEach(m=>m.cadeiras.forEach((c,i)=>{const q=LAY.cadeiraEm(m,i);bancos.push({x:q.x,y:q.y,lado:c.o===1?1:c.o===3?-1:0})}));
  window.drawTaverna=function(){
   if(!fundo)fundo=desenharFundo();
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0806';ctx.fillRect(0,0,cv.width,cv.height);
@@ -219,7 +226,7 @@
   MESAS.forEach(m=>L.push([m.y,()=>mesa(m)]));
   bancos.forEach(b=>L.push([b.y-1,()=>cadeira(b.x,b.y,b.lado)]));
   BARRIS.forEach(b=>L.push([b.y,()=>barril(b)]));
-  L.push([PALCO.y0-1,cortina]);
+  L.push([PALCO.y0-1,()=>cortina()]);
   L.push([BARDO.y,()=>musico(BARDO,'bardo')]);L.push([TAMBOR.y,()=>musico(TAMBOR,'tambor')]);
   L.push([BARKEEP.y,()=>{
    const f=face(BARKEEP),spr=(HS.sty||HS.war)[f.d];if(taverneiraSob)circ(BARKEEP.x,BARKEEP.y,12,'#ff5');dr(spr,BARKEEP.x,BARKEEP.y,f.fl,1,anim(BARKEEP,0));
@@ -252,7 +259,7 @@
   notasMusicais();
   // noite: a taverna fica um pouco mais escura e as velas, a lareira e as lanternas do palco brilham mais
   const nk=window.TEMPO?TEMPO.escuro():0;
-  if(window.desenharNoite){desenharNoite(.4,[{x:LAREIRA.x,y:OY+50,r:120},...MESAS.map(m=>({x:m.x,y:m.y-14,r:55,a:.7})),{x:PALCO.x0+8,y:PALCO.y0-24,r:60,a:.6},{x:PALCO.x1-8,y:PALCO.y0-24,r:60,a:.6},...(window.BAR?BAR.luzes():[])]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))}
+  if(window.desenharNoite){desenharNoite(.4,[{x:LAREIRA.x,y:LAREIRA.y+6,r:120},...MESAS.map(m=>({x:m.x,y:m.y-14,r:55,a:.7})),{x:PALCO.x0+8,y:PALCO.y0-24,r:60,a:.6},{x:PALCO.x1-8,y:PALCO.y0-24,r:60,a:.6},...(window.BAR?BAR.luzes():[])]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))}
   ctx.save();ctx.globalCompositeOperation='screen';
   for(const m of MESAS){const g=ctx.createRadialGradient(m.x,m.y-16,1,m.x,m.y-16,46+16*nk);g.addColorStop(0,'rgba(255,190,90,'+(.20+.14*nk)+')');g.addColorStop(1,'rgba(255,160,60,0)');ctx.fillStyle=g;ctx.fillRect(m.x-62,m.y-78,124,124)}
   for(const lx of [PALCO.x0+8,PALCO.x1-8]){const g=ctx.createRadialGradient(lx,PALCO.y0-20,1,lx,PALCO.y0-20,70);g.addColorStop(0,'rgba(255,200,120,'+(.16+.12*nk)+')');g.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=g;ctx.fillRect(lx-70,PALCO.y0-90,140,140)}
@@ -283,7 +290,47 @@
   for(const m of MESAS){g.fillStyle='#4a2a14';g.beginPath();g.ellipse(m.x,m.y-6,15,8,0,0,7);g.fill();g.fillStyle='#8f5d31';g.beginPath();g.ellipse(m.x,m.y-7,14,7,0,0,7);g.fill()}
   for(const b of BARRIS){R(g,b.x-6,b.y-14,12,15,'#7a4a24');R(g,b.x-7,b.y-11,14,9,'#865230')}
   {const x0=PALCO.x0,x1=PALCO.x1,y=PALCO.y0;for(let x=x0;x<x1;x+=6)R(g,x,y-31,6,31,(x/6|0)%2?'#8e2f2a':'#7a2622');R(g,x0,y-31,x1-x0,3,'#d9a441')}
-  return{c,x:OX,y:OY,w:TW,h:TH,nome:'Taverna'}};return}
+  return{c,x:OX,y:OY,w:TW,h:TH,nome:'Taverna'}};
+  /* editor da cena Taverna (engine/js/scene-taverna.js): o fundo fixo e cada peça móvel desenhados pelas mesmas funções
+     do jogo. Elas pintam no ctx do canvas principal, que fica parado no modo motor: desenha-se nele e copia-se o
+     recorte com conteúdo. Cada peça vem com a âncora {ax, ay} (o ponto da posição dela dentro do desenho). */
+  const pintar=(w,h,ox,oy,fn)=>{
+   const W0=cv.width,H0=cv.height;cv.width=w;cv.height=h;ctx.setTransform(1,0,0,1,-ox,-oy);ctx.imageSmoothingEnabled=false;
+   try{fn()}catch(e){console.warn('Prévia da taverna:',e)}
+   ctx.setTransform(1,0,0,1,0,0);const d=ctx.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+   let r=null;if(x1>=0){const c=document.createElement('canvas');c.width=x1-x0+1;c.height=y1-y0+1;c.getContext('2d').drawImage(cv,x0,y0,c.width,c.height,0,0,c.width,c.height);r={c,ax:ox+x0,ay:oy+y0}}
+   cv.width=W0;cv.height=H0;
+   // âncora: a peça é desenhada em (x - ax, y - ay); com o desenho feito em volta de (0,0): ax = -(canto do recorte)
+   if(r){r.ax=-r.ax;r.ay=-r.ay}return r};
+  const boneco=(spr,extra)=>pintar(48,60,-24,-50,()=>{dr(spr,0,0,1,1,anim({x:0,y:0,fx:0,fy:1},0));if(extra)extra()});
+  window.TAVERNA_MOTOR={
+   padrao:()=>LAY.padrao(),OX,OY,TW,TH,PX:LAY.PX,PY:LAY.PY,BW:LAY.BW,BH:LAY.BH,
+   // fundo fixo: piso, paredes, balcão, janelas, taverneira, porta do pátio e o quiosque do bar
+   fundo(){const x0=OX,y0=LAY.PY,w=LAY.PX+LAY.BW-x0,h=Math.max(OY+TH,LAY.PY+LAY.BH)-y0,c=document.createElement('canvas');c.width=w;c.height=h;
+    const f=desenharFundo(true),r=pintar(w,h,x0,y0,()=>{ctx.drawImage(f,OX,OY);for(const wx of JANELAS)janela(wx);if(window.BAR){BAR.chao();BAR.quiosque()}
+     const spr=(HS.sty||HS.war).d;dr(spr,BARKEEP.x,BARKEEP.y,1,1,anim(BARKEEP,0));ctx.drawImage(f,8,66,186,26,OX+8,OY+66,186,26)});
+    if(r)c.getContext('2d').drawImage(r.c,-r.ax-x0,-r.ay-y0);return{c,x:x0,y:y0}},
+   /* peça móvel: tipo e, quando precisa, o dado (o lado da cadeira, o tamanho do palco, a classe do mestre) */
+   peca(tipo,o){
+    if(tipo==='mesa-redonda')return pintar(48,40,-24,-28,()=>mesa({x:0,y:0}));
+    if(tipo==='mesa-jogo')return pintar(48,40,-24,-24,()=>window.BAR&&BAR.desenharMesa({x:0,y:0}));
+    if(tipo==='cadeira-redonda')return pintar(24,28,-12,-20,()=>cadeira(0,0,o===1?1:o===3?-1:0));
+    if(tipo==='cadeira-jogo')return pintar(24,28,-12,-22,()=>window.BAR&&BAR.desenharCadeira(0,0,o));
+    if(tipo==='barril')return pintar(20,24,-10,-18,()=>barril({x:0,y:0}));
+    if(tipo==='quadro')return pintar(64,52,-32,-46,()=>{pintarQuadro(ctx,{x:0,y:0},0,0);ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#ffe28a';ctx.fillText('MISSÕES',0,-39)});
+    if(tipo==='lareira')return pintar(88,76,-44,-48,()=>{pintarLareira(ctx,{x:0,y:0},0,0);desenharLenha(ctx,0,15,26);desenharChama(ctx,-7,12,9,13,1.3);desenharChama(ctx,7,12,9,12,2.7);desenharChama(ctx,0,12,13,19,.4)});
+    if(tipo==='palco'){const P={x0:0,y0:0,x1:Math.max(40,+o.w||100),y1:Math.max(30,+o.h||74)};return pintar(P.x1+8,P.y1+70,-4,-56,()=>{pintarPalco(ctx,P,0,0);cortina(P)})}
+    if(tipo==='bardo')return pintar(48,60,-24,-50,()=>musico({x:0,y:0,fx:0,fy:1},'bardo'));
+    if(tipo==='tambor')return pintar(48,60,-24,-50,()=>musico({x:0,y:0,fx:0,fy:1},'tambor'));
+    if(tipo==='lanceiro')return boneco(spriteLanceiro('d'));
+    if(tipo==='barman')return boneco((HS.sty||HS.war).d);
+    if(tipo==='mestre'){const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n),c=CL[ids[o|0]];return boneco(c?c.sprite||(HS[c.base||ids[o|0]]||HS.war).d:(HS.war).d)}
+    return null},
+   // nome da classe de cada lugar de mestre (na ordem do jogo)
+   mestres:()=>Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n).map(id=>CL[id].n)
+  };
+  return}
  /* ---- entrar e sair ---- */
  function entrar(){
   if(window.inTaverna)return;
@@ -314,13 +361,13 @@
  /* ---- cliques: porta, taverneira, quadro, Lanceiro e mestres ---- */
  const taverneiraEm=w=>Math.hypot(w.x-BARKEEP.x,w.y-(BARKEEP.y-8))<16;
  const quadroEm=w=>w.x>OX+QUADRO.x0-4&&w.x<OX+QUADRO.x0+QUADRO.w+4&&w.y>OY+QUADRO.y0-4&&w.y<OY+QUADRO.y0+QUADRO.h+6;
- const pertoDoQuadro=()=>Math.hypot(p.x-QUADRO.x,p.y-(OY+62))<36;
+ const pertoDoQuadro=()=>Math.hypot(p.x-QUADRO.x,p.y-(QUADRO.y+22))<36;
  window.tavernaClick=(w,mode)=>{
   if(window.BAR&&BAR.click(w,mode))return true;
   mestreAlvo=null;lanceiroAlvo=false;quadroAlvo=false;
   if(Math.hypot(w.x-DOOR.x,w.y-(DOOR.y-4))<16){if(dist(p,DOOR)<34)sair();else setDest(DOOR.x,DOOR.y-12);return true}
   if(taverneiraEm(w)&&mode!=2){chamarTaverneira();return true}
-  if(quadroEm(w)&&mode!=2){if(pertoDoQuadro())abrirQuadro();else{quadroAlvo=true;setDest(QUADRO.x,OY+64)}return true}
+  if(quadroEm(w)&&mode!=2){if(pertoDoQuadro())abrirQuadro();else{quadroAlvo=true;setDest(QUADRO.x,QUADRO.y+24)}return true}
   if(Math.hypot(w.x-LANCEIRO.x,w.y-(LANCEIRO.y-10))<13&&mode!=2){if(dist(p,LANCEIRO)<36)falarLanceiro();else{lanceiroAlvo=true;setDest(LANCEIRO.x,LANCEIRO.y+14)}return true}
   const m=mestreEm(w);
   if(m&&mode!=2){if(dist(p,m)<34)falarMestre(m);else{mestreAlvo=m;setDest(m.x,m.y+12)}return true}
@@ -388,7 +435,9 @@
  function candidatos(){
   const vistos=new Map();
   for(const d of window.PORTAL_DEFS||[])for(const m of d.monsters||[]){const t=MONSTER_TYPES[m.id];if(!t||m.id==='gob'||(t.bossType&&t.bossType!=='normal'))continue;
-   const lv=Math.max(1,Math.min(+CALC.maxLevel||10,d.targetLevel||d.minLevel||1));if(!vistos.has(m.id)||vistos.get(m.id)>lv)vistos.set(m.id,lv)}
+   // nível da oferta: o do portal, mas nunca abaixo do nível mínimo do próprio monstro (Engine › Monstro › Nível mínimo);
+   // sem isso um portal de nível 1 com Demônio oferecia "Demônio nível 1" com recompensa de nível 1
+   const lv=Math.max(1,Math.min(+CALC.maxLevel||10,Math.max(d.targetLevel||d.minLevel||1,+t.nivelMin||1)));if(!vistos.has(m.id)||vistos.get(m.id)>lv)vistos.set(m.id,lv)}
   const lista=[...vistos].map(([id,lv])=>({id,lv}));
   const perto=lista.filter(c=>c.lv<=p.lvl+2);return perto.length?perto:lista}
  function oferta(){
@@ -401,22 +450,47 @@
   return p.quadro.ofertas}
  window.textoMissaoQuadro=()=>{const m=p.missao;if(!m)return'';const ok=m.feitos>=m.qtd;
   return'<div class="qmq'+(ok?' ok':'')+'"><b>QUADRO DA TAVERNA</b>'+(ok?'Missão cumprida! Volte ao quadro da taverna para receber.':'Derrote '+m.nome+': '+m.feitos+'/'+m.qtd)+'<br><span>Recompensa: '+m.xp+' XP · '+moeda(m.ouro)+'</span></div>'};
+ /* janela do quadro (não é conversa): um cartaz por trabalho com o desenho do monstro, quantos derrotar, o nível e a
+    recompensa (XP e ouro); em cima, a missão aceita com o progresso. Fecha no ×, no Esc ou ao se afastar do quadro. */
+ const imgsMonstro=new Map();
+ function imgMonstro(id){
+  if(imgsMonstro.has(id))return imgsMonstro.get(id);
+  const t=MONSTER_TYPES[id],v=t&&(t.sprite||t.sp),ok=c=>c&&(c.getContext||c instanceof HTMLImageElement)?c:null;
+  const c=ok(v)||(v&&ok(v.d))||ok((SP[(MB[id]||{}).base]||SP.sl||{}).d);let url='';try{url=c?c.toDataURL?c.toDataURL():c.src:''}catch(e){}
+  imgsMonstro.set(id,url);return url}
+ let quadroEl=null;
+ const EL=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+ function cartaz(o,botao){
+  const d=EL('div','qmCartaz'),fig=EL('div','qmFoto'),im=EL('img');im.src=imgMonstro(o.tipo);im.alt=o.nome;fig.append(im);
+  const info=EL('div','qmInfo');info.append(EL('b','',o.nome),EL('span','qmNivel','Nível '+o.nivel));
+  const qtd=EL('div','qmQtd');qtd.append(EL('span','','Derrotar'),EL('strong','',o.feitos!=null?o.feitos+' / '+o.qtd:'× '+o.qtd));
+  if(o.feitos!=null){const bar=EL('div','qmBarra'),f=EL('i');f.style.width=Math.min(100,Math.round(o.feitos/o.qtd*100))+'%';bar.append(f);qtd.append(bar)}
+  const pr=EL('div','qmPremio');pr.append(EL('span','','Recompensa'),EL('strong','qmXp',o.xp+' XP'),EL('strong','qmOuro',o.ouro+' ouro'));
+  d.append(fig,info,qtd,pr);if(botao)d.append(botao);return d}
  function abrirQuadro(){
-  quadroAlvo=false;const box=$('dialogue');box.classList.remove('dgModal');const m=p.missao,of=ofertas();
-  const linha=(o,i)=>'<div class="qmOferta"><div><b>Derrote '+o.qtd+' × '+esc(o.nome)+'</b><small>Nível '+o.nivel+'</small></div><span class="qmPremio">'+o.xp+' XP<br>'+moeda(o.ouro)+'</span>'+(m?'':'<button type="button" data-aceitar="'+i+'">Aceitar</button>')+'</div>';
-  box.innerHTML='<b>Quadro de Missões</b>'+
-   (m?'<div class="qmAtual'+(m.feitos>=m.qtd?' ok':'')+'"><p>Sua missão: <b>derrote '+m.qtd+' × '+esc(m.nome)+'</b> — '+m.feitos+'/'+m.qtd+'</p><p>Recompensa: <b>'+m.xp+' XP</b> e <b>'+moeda(m.ouro)+'</b></p>'+
-      (m.feitos>=m.qtd?'<button type="button" data-entregar>Receber a recompensa</button>':'<button type="button" data-abandonar>Abandonar</button>')+'</div>':'<p>Escolha um trabalho. Os papéis do quadro mudam a cada dia do jogo.</p>')+
-   '<div class="qmLista">'+(of.length?of.map(linha).join(''):'<p class="dgm-muted">Nenhum trabalho hoje.</p>')+'</div>'+
-   '<p class=tm>Novos papéis em '+(60-Math.floor(((window.TEMPO?TEMPO.agora():Date.now())%3600000)/60000))+' min.</p><button type="button" data-close-dialog>Fechar</button>';
-  box.classList.add('open');
-  box.querySelectorAll('[data-aceitar]').forEach(b=>b.onclick=()=>{const i=+b.dataset.aceitar,o=of[i];if(!o||p.missao)return;p.missao={...o,feitos:0};of.splice(i,1);
-   ft(p.x,p.y-24,'Missão aceita!','#ffd84a');if(window.playGameSound)playGameSound('item');saveGame();abrirQuadro()});
-  const en_=box.querySelector('[data-entregar]');if(en_)en_.onclick=()=>{const q=p.missao;if(!q||q.feitos<q.qtd)return;p.missao=null;p.gold+=q.ouro;gainPlayerXp(q.xp);
-   ft(p.x,p.y-30,'+'+q.xp+' XP  +'+q.ouro+' ouro','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);if(window.playGameSound)playGameSound('quest');saveGame();abrirQuadro()};
-  const ab=box.querySelector('[data-abandonar]');if(ab)ab.onclick=()=>{p.missao=null;saveGame();abrirQuadro()};
+  quadroAlvo=false;const m=p.missao,of=ofertas();
+  if($('dialogue'))$('dialogue').classList.remove('open');
+  if(!quadroEl){quadroEl=EL('div');quadroEl.id='quadroMissoes';quadroEl.setAttribute('role','dialog');quadroEl.setAttribute('aria-label','Quadro de missões');document.body.append(quadroEl)}
+  quadroEl.hidden=false;quadroEl.replaceChildren();
+  const box=EL('div','qmBox'),topo=EL('div','qmTopo'),x=EL('button','biFechar','×');x.type='button';x.setAttribute('aria-label','Fechar');x.onclick=fecharQuadro;
+  topo.append(EL('b','','Quadro de Missões'),x);box.append(topo);
+  const B=(txt,fn,cls)=>{const b=EL('button','qmBtn'+(cls?' '+cls:''),txt);b.type='button';b.onclick=fn;return b};
+  if(m){const ok=m.feitos>=m.qtd;box.append(EL('h4','',ok?'Missão cumprida!':'Sua missão'));
+   box.append(cartaz(m,ok?B('Receber a recompensa',entregar,'ok'):B('Abandonar',()=>{p.missao=null;saveGame();abrirQuadro()},'sair')))}
+  box.append(EL('h4','',m?'Outros trabalhos (termine a missão atual para aceitar)':'Trabalhos de hoje'));
+  const lista=EL('div','qmLista');
+  if(of.length)of.forEach((o,i)=>{const b=m?null:B('Aceitar',()=>{const q=of[i];if(!q||p.missao)return;p.missao={...q,feitos:0};of.splice(i,1);
+   ft(p.x,p.y-24,'Missão aceita!','#ffd84a');if(window.playGameSound)playGameSound('item');saveGame();abrirQuadro()});lista.append(cartaz(o,b))});
+  else lista.append(EL('p','biVazio','Nenhum trabalho hoje.'));
+  box.append(lista,EL('p','biDica','Uma missão por vez. Vale cada monstro do tipo pedido que você ajudar a derrotar, na ilha ou na DG. Novos papéis em '+(60-Math.floor(((window.TEMPO?TEMPO.agora():Date.now())%3600000)/60000))+' min.'));
+  quadroEl.append(box);
  }
- window.abrirQuadroTaverna=abrirQuadro;
+ function entregar(){const q=p.missao;if(!q||q.feitos<q.qtd)return;p.missao=null;p.gold+=q.ouro;gainPlayerXp(q.xp);
+  ft(p.x,p.y-30,'+'+q.xp+' XP  +'+q.ouro+' ouro','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);if(window.playGameSound)playGameSound('quest');saveGame();abrirQuadro()}
+ function fecharQuadro(){if(quadroEl)quadroEl.hidden=true;if(typeof tipEl!='undefined')tipEl.style.display='none'}
+ const quadroAberto=()=>!!quadroEl&&!quadroEl.hidden;
+ addEventListener('keydown',e=>{if(quadroAberto()&&e.key==='Escape'){fecharQuadro();e.stopImmediatePropagation()}},true);
+ window.abrirQuadroTaverna=abrirQuadro;window.fecharQuadroTaverna=fecharQuadro;
  // cada monstro do tipo pedido que você ajuda a derrotar conta (na ilha ou na DG)
  const km0=killMonster;killMonster=function(e){const r=km0.apply(this,arguments);
   const m=p.missao;if(m&&e&&e.ty===m.tipo&&!e.duelo&&!e.pvp&&m.feitos<m.qtd){m.feitos++;
@@ -445,6 +519,7 @@
  window.abrirVendaTaverna=abrirVenda;
  // a porta também funciona ao chegar nela andando
  const upd0=upd;upd=function(dt){upd0(dt);
+  if(quadroAberto()&&(!window.inTaverna||Math.hypot(p.x-QUADRO.x,p.y-(QUADRO.y+22))>90))fecharQuadro(); // afastou-se ou saiu
   if(!window.inTaverna)return;
   andarTaverneira(dt);if(window.BAR)BAR.atualizar(dt);
   for(const m of MESTRES){if(dist(p,m)<70){m.fx=p.x-m.x;m.fy=p.y-m.y}else{m.fx=0;m.fy=1}}
@@ -482,6 +557,8 @@
  const cast0=cast;
  cast=function(s){
   if(!window.inTaverna)return cast0(s);
+  // sentado numa mesa (jogando ou não): sem habilidades; o resto da taverna segue as regras de sempre
+  if(window.MESAS&&MESAS.sentado){ft(p.x,p.y-24,'Saia da mesa para usar habilidades','#ccc');return}
   const tipo=tipoDe(s);
   if(s.f&&s.f.tg){
    // habilidade com alvo: mira outro jogador perto do cursor

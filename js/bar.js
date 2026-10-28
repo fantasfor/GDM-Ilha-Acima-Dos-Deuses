@@ -12,31 +12,21 @@
  const PORTA={y0:168,y1:196};                                 // porta na parede da direita da taverna (relativo ao pátio)
  const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
  const hsh=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296};
- /* mesas de jogo: centro e os 4 lugares (norte, leste, sul, oeste) */
- const MESAS_JOGO=[['bar1',86,236],['bar2',196,236],['bar3',86,322],['bar4',196,322]].map(([id,x,y])=>({id,x,y}));
- const LUGARES=[[0,-19],[25,0],[0,15],[-25,0]];
- // mesas da taverna (js/taverna.js TAVERNA_MESAS) já vêm com o centro e os lugares no mundo
- const centro=m=>m.lugares?{x:m.cx,y:m.cy}:at(m.x,m.y);
- const lugar=(m,i)=>{if(m.lugares)return m.lugares[i];const c=at(m.x,m.y);return{x:c.x+LUGARES[i][0],y:c.y+LUGARES[i][1]}};
- const TODAS=()=>[...MESAS_JOGO,...(window.TAVERNA_MESAS||[])];
- const naMesa=(m,w)=>{const c=centro(m);return m.lugares?Math.hypot(w.x-c.x,(w.y-c.y+6)*1.2)<19:Math.abs(w.x-c.x)<22&&w.y>c.y-16&&w.y<c.y+18};
- /* elementos do pacote (id, x, y) e os sólidos (raio) */
- const ELEM=[
-  ['pk_bar_arvore',26,64],['pk_bar_arvore',412,346],['pk_bar_arvore',30,356],
-  ['pk_bar_churrasqueira',262,80],['pk_bar_barril',432,96],['pk_bar_barril',432,116],['pk_bar_caixas',282,112],
-  ['pk_bar_chafariz',338,214],['pk_bar_fogueira',350,306],['pk_bar_banco',350,286],['pk_bar_banco',350,334],
-  ['pk_bar_guarda_sol',140,120],['pk_bar_mesa',140,124],['pk_bar_guarda_sol',236,128],['pk_bar_mesa',236,132],
-  ['pk_bar_lampiao',24,182],['pk_bar_lampiao',262,196],['pk_bar_lampiao',262,352],['pk_bar_lampiao',424,182],['pk_bar_lampiao',120,182],
-  ['pk_bar_placa',50,150],['pk_bar_vaso',14,214],['pk_bar_vaso',282,262],['pk_bar_vaso',282,300],['pk_bar_vaso',404,252],['pk_bar_vaso',300,160],
-  ['pk_bar_bandeirinhas',30,30],['pk_bar_bandeirinhas',94,30],['pk_bar_bandeirinhas',158,30],['pk_bar_bandeirinhas',222,30],
-  ['pk_bar_bandeirinhas',44,196],['pk_bar_bandeirinhas',108,196],['pk_bar_bandeirinhas',172,196]
- ];
- const SOLIDOS=[]; // [x, y, raio] no mundo
- const DECK={x0:34,y0:206,x1:250,y1:350},QUIOSQUE={x0:294,x1:426,y0:24,y1:84},BARMAN={x:360,y:54,fx:0,fy:1,alvo:null,espera:2,nm:'Barman Tonho'};
- const pack=id=>window.PACOTE_MAPA&&PACOTE_MAPA.elementos[id];
- const arte=new Map();const canvasDe=d=>{if(!d)return null;let c=arte.get(d);if(!c){c=pixelArt(d);arte.set(d,c)}return c};
- const quadro=d=>window.CHAO&&CHAO.quadroEm?CHAO.quadroEm(d,time).data:d;
- function desenharElem(g,id,x,y){const e=pack(id);if(!e)return;const c=canvasDe(quadro(e.data));if(c)g.drawImage(c,Math.round(x-c.width/2),Math.round(y-c.height+3))}
+ /* mesas, cadeiras, decorações e o barman vêm do layout editável (js/taverna-layout.js, Engine › cena Taverna), em
+    coordenadas do mundo. Mesas "jogo" (quadradas, feltro verde) são desenhadas aqui; as "redonda", em js/taverna.js. */
+ const LAY=window.TAVERNA_LAYOUT,LL=LAY.L;
+ const centro=m=>({x:m.x,y:m.y});
+ const lugar=(m,i)=>LAY.lugarEm(m,i);
+ const TODAS=()=>LL.mesas;
+ const MESAS_JOGO=LL.mesas.filter(m=>m.estilo==='jogo');
+ const naMesa=(m,w)=>m.estilo==='jogo'?Math.abs(w.x-m.x)<22&&w.y>m.y-16&&w.y<m.y+18:Math.hypot(w.x-m.x,(w.y-m.y+6)*1.2)<19;
+ // cadeira livre sob o mouse (clique direto na cadeira senta nela)
+ const sobreCadeira=(m,w)=>{for(let i=0;i<4;i++){const b=LAY.caixaCadeira(m,i);if(w.x>=b.x-1&&w.x<=b.x+b.w+1&&w.y>=b.y-1&&w.y<=b.y+b.h+1)return i}return -1};
+ const DECK={x0:34,y0:206,x1:250,y1:350},QUIOSQUE={x0:294,x1:426,y0:24,y1:84},CASA_BARMAN=LL.npcs.barman,BARMAN={x:CASA_BARMAN.x,y:CASA_BARMAN.y,fx:0,fy:1,alvo:null,espera:2,nm:'Barman Tonho'};
+ const tipoEl=e=>window.MAP_ELEMENT_TYPES&&MAP_ELEMENT_TYPES[e.type];
+ // decorações: mesma arte dos elementos de mapa da ilha (animados quadro a quadro), âncora no pé
+ function desenharElem(g,e){const a=window.sceneryFor&&sceneryFor(e);if(a&&a.c)g.drawImage(a.c,Math.round(e.x-a.ax),Math.round(e.y-a.ay))}
+ const ehDecor=(e,id)=>e.type==='px:'+id;
 
  /* ---- chão: calçamento, grama nas beiradas, deck das mesas, caminho de terra da porta, cerca ---- */
  let fundo=null;
@@ -77,7 +67,7 @@
  }
  /* mesa de jogo quadrada com feltro verde e 4 banquinhos; com jogo, cartas ou pedras no feltro */
  function mesaJogo(m){
-  const c=at(m.x,m.y),x=Math.round(c.x),y=Math.round(c.y),d=window.MESAS&&MESAS.dados[m.id],j=d&&d.jogo;
+  const x=Math.round(m.x),y=Math.round(m.y),d=window.MESAS&&MESAS.dados[m.id],j=d&&d.jogo;
   ctx.fillStyle='#0006';ctx.beginPath();ctx.ellipse(x,y+6,22,5,0,0,7);ctx.fill();
   R(ctx,x-15,y-2,2,9,'#3a2414');R(ctx,x+13,y-2,2,9,'#3a2414');
   R(ctx,x-18,y-12,36,14,'#3a2414');R(ctx,x-17,y-12,34,12,'#7c5230');R(ctx,x-17,y-12,34,1,'#c08a52');R(ctx,x-14,y-10,28,8,'#2c6a3a');R(ctx,x-14,y-10,28,1,'#3f8a4c');R(ctx,x-17,y,34,2,'#5c3a20');
@@ -96,8 +86,11 @@
 
  /* ---- botões em cima das mesas (Truco, Uno, Dominó, Assistir, Voltar ao jogo) e o convite em cima de quem convidou ---- */
  let botoes=[];
- function botao(x,y,txt,cor,fn){ctx.font='bold 5px monospace';const w=Math.ceil(ctx.measureText(txt).width)+8,h=9,bx=Math.round(x-w/2),by=Math.round(y);
-  R(ctx,bx-1,by-1,w+2,h+2,'#0d0d0d');R(ctx,bx,by,w,h,cor);R(ctx,bx,by,w,1,'#ffffff55');ctx.textAlign='center';ctx.fillStyle='#0d0d0d';ctx.fillText(txt,bx+w/2,by+6.5);botoes.push({x:bx,y:by,w,h,fn})}
+ // posição do mouse no mundo (para o destaque ao passar o mouse); null fora do jogo
+ const mouseMundo=()=>typeof wpos=='function'?wpos():null;
+ const sobre=(w,b)=>!!w&&w.x>=b.x&&w.x<=b.x+b.w&&w.y>=b.y&&w.y<=b.y+b.h;
+ function botao(x,y,txt,cor,fn){ctx.font='bold 5px monospace';const w=Math.ceil(ctx.measureText(txt).width)+8,h=9,bx=Math.round(x-w/2),by=Math.round(y),hv=sobre(mouseMundo(),{x:bx,y:by,w,h});
+  R(ctx,bx-1,by-1,w+2,h+2,hv?'#d9d0c7':'#0d0d0d');R(ctx,bx,by,w,h,cor);R(ctx,bx,by,w,1,'#ffffff55');if(hv){ctx.globalAlpha=.25;R(ctx,bx,by,w,h,'#ffffff');ctx.globalAlpha=1} /* mouse em cima: borda clara e brilho */ctx.textAlign='center';ctx.fillStyle='#0d0d0d';ctx.fillText(txt,bx+w/2,by+6.5);botoes.push({x:bx,y:by,w,h,fn})}
  function interfaceMesa(m){
   if(!window.MESAS||!MESAS.dados[m.id])return;const d=MESAS.dados[m.id],j=d.jogo,c=centro(m),u=MESAS.eu(),sent=MESAS.sentado&&MESAS.sentado.mesa===m.id,perto=Math.hypot(p.x-c.x,p.y-c.y)<110;
   if(j&&(j.fase==='jogando'||j.fase==='fim')){
@@ -110,7 +103,13 @@
    if(v&&!v.minha&&(perto||joga)){ctx.font='5px monospace';ctx.textAlign='center';const tx='Vez de '+v.nomes.join(' e ')+' · '+v.resta+'s';ctx.fillStyle='#000';ctx.fillText(tx,c.x+.4,c.y-54.6);ctx.fillStyle=v.resta<=5?'#f87171':'#e7dcc4';ctx.fillText(tx,c.x,c.y-55)}
    ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(J_NOME(j.tipo)+(j.fase==='fim'?' · fim':' · jogando'),c.x+.4,c.y-47.6);ctx.fillStyle='#ffe28a';ctx.fillText(J_NOME(j.tipo)+(j.fase==='fim'?' · fim':' · jogando'),c.x,c.y-48);
   }
-  if(sent)botao(c.x,c.y+20,'Levantar','#a69c94',()=>{const s=lugar(m,MESAS.sentado.i),d=Math.hypot(s.x-c.x,s.y-c.y)||1;MESAS.levantar();p.x=s.x+(s.x-c.x)/d*10;p.y=s.y+(s.y-c.y)/d*10}); // um passo para longe da mesa
+  // sentado: "Sair da mesa" (um passo para longe da mesa); jogando uma partida, só dá para sair desistindo
+  if(sent&&MESAS.emPartida(m.id))botao(c.x,c.y+20,'Desistir','#c8655a',()=>{if(confirm('Desistir da partida? A aposta fica no pote.'))MESAS.desistir(m.id)});
+  else if(sent)botao(c.x,c.y+20,'Sair da mesa','#a69c94',()=>{const s=lugar(m,MESAS.sentado.i),d=Math.hypot(s.x-c.x,s.y-c.y)||1;MESAS.levantar().then(ok=>{if(ok){p.x=s.x+(s.x-c.x)/d*10;p.y=s.y+(s.y-c.y)/d*10}})});
+  // mouse em cima da mesa ou de uma cadeira (sem estar sentado nela): contorna a cadeira livre onde o herói vai sentar,
+  // no retângulo do próprio desenho da cadeira (posição editável na Engine)
+  const mw=mouseMundo(),i=!sent&&mw?escolherCadeira(m,mw):-1;
+  if(i>=0){const b=LAY.caixaCadeira(m,i),cx=b.x+b.w/2;ctx.strokeStyle='#d9d0c7';ctx.lineWidth=1;ctx.strokeRect(Math.round(b.x)-1.5,Math.round(b.y)-1.5,b.w+3,b.h+3);ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('Sentar',cx+.4,b.y-3.6);ctx.fillStyle='#d9d0c7';ctx.fillText('Sentar',cx,b.y-4)}
   // sentado e sem jogo rolando: os 3 jogos (somem quando um jogo começa)
   if(sent&&!MESAS.ativo(j)){let x=c.x-32;for(const [tipo,nome] of [['truco','Truco'],['uno','Uno'],['domino','Dominó']]){botao(x,c.y-58,nome,'#d9d0c7',()=>MESAS.convidar(m.id,tipo));x+=32}}
   // convite: balão em cima de quem convidou
@@ -128,11 +127,13 @@
  function particulas(dt,nk){
   if(nk>.2)for(const v of vaga){v.f+=dt;const x=X0()+v.x+Math.sin(v.f*.7)*14,y=Y0()+v.y+Math.cos(v.f*.5)*10,a=(.5+.5*Math.sin(v.f*3))*nk;ctx.globalAlpha=a;R(ctx,x,y,1,1,'#f2ffa0');ctx.globalAlpha=a*.35;R(ctx,x-1,y-1,3,3,'#d8ff70')}
   ctx.globalAlpha=1;
-  if(nk<.6){if(folhas.length<10&&Math.random()<dt*1.2){const arv=[[26,30],[412,312],[30,322]][Math.random()*3|0];folhas.push({x:arv[0]+(Math.random()-.5)*30,y:arv[1],t:0,c:['#4b9a44','#78c260','#c8a040'][Math.random()*3|0]})}
-   for(let i=folhas.length;i--;){const f=folhas[i];f.t+=dt;f.y+=dt*12;f.x+=Math.sin(f.t*2.4)*dt*10;if(f.t>3.2){folhas.splice(i,1);continue}ctx.globalAlpha=Math.min(1,(3.2-f.t));R(ctx,X0()+f.x,Y0()+f.y,2,1,f.c);ctx.globalAlpha=1}}
+  // folhas caindo das árvores do layout (copa ~34 px acima do pé)
+  const arvs=LL.decor.filter(e=>ehDecor(e,'pk_bar_arvore'));
+  if(nk<.6){if(arvs.length&&folhas.length<10&&Math.random()<dt*1.2){const a=arvs[Math.random()*arvs.length|0];folhas.push({x:a.x+(Math.random()-.5)*30,y:a.y-36,t:0,c:['#4b9a44','#78c260','#c8a040'][Math.random()*3|0]})}
+   for(let i=folhas.length;i--;){const f=folhas[i];f.t+=dt;f.y+=dt*12;f.x+=Math.sin(f.t*2.4)*dt*10;if(f.t>3.2){folhas.splice(i,1);continue}ctx.globalAlpha=Math.min(1,(3.2-f.t));R(ctx,f.x,f.y,2,1,f.c);ctx.globalAlpha=1}}
  }
  /* barman: anda atrás do balcão; clicado, oferece bebida (igual à taverneira) */
- function andarBarman(dt){const B=BARMAN;if(!B.alvo){B.espera-=dt;if(B.espera<=0)B.alvo={x:304+Math.random()*112,y:44+Math.random()*12}}
+ function andarBarman(dt){const B=BARMAN;if(!B.alvo){B.espera-=dt;if(B.espera<=0)B.alvo={x:CASA_BARMAN.x-56+Math.random()*112,y:CASA_BARMAN.y-10+Math.random()*12}}
   if(B.alvo){const dx=B.alvo.x-B.x,dy=B.alvo.y-B.y,d=Math.hypot(dx,dy);if(d>1){const k=Math.min(d,26*dt)/d;B.x+=dx*k;B.y+=dy*k;B.fx=dx;B.fy=dy}else{B.alvo=null;B.espera=2+Math.random()*5;B.fx=0;B.fy=1}}}
  function falarBarman(){
   const box=$('dialogue');box.classList.remove('dgModal');
@@ -141,14 +142,21 @@
   box.querySelector('[data-bar-bebida]').onclick=()=>{if(p.gold<5){ft(p.x,p.y-24,'Ouro insuficiente','#f87171');return}p.gold-=5;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,24,'#ffd84a',.5);ft(p.x,p.y-24,'Saúde!','#ffd84a');box.classList.remove('open');if(window.playGameSound)playGameSound('coin')};
  }
 
- let alvoMesa=null; // {mesa, i}: indo sentar
- // clique numa mesa (do pátio ou da taverna): vai até o lugar livre mais perto do clique e senta ao chegar
+ let alvoMesa=null,avisoPreso=-9; // {mesa, i}: indo sentar
+ // cadeira para o mouse em w: a cadeira livre sob o mouse; senão, com o mouse na mesa, a livre mais perto; -1 = nenhuma
+ function escolherCadeira(m,w){
+  const ocup=window.MESAS&&MESAS.dados[m.id]?MESAS.dados[m.id].assentos||{}:{},k=sobreCadeira(m,w);
+  if(k>=0)return ocup[k]?-1:k;
+  if(!naMesa(m,w))return -1;
+  const livres=[0,1,2,3].filter(i=>!ocup[i]),d=i=>{const b=LAY.caixaCadeira(m,i);return Math.hypot(b.x+b.w/2-w.x,b.y+b.h/2-w.y)};
+  return livres.length?livres.sort((a,b)=>d(a)-d(b))[0]:-1}
+ const mesaSob=w=>TODAS().find(m=>sobreCadeira(m,w)>=0)||TODAS().find(m=>naMesa(m,w));
+ // clique numa mesa ou cadeira (do pátio ou da taverna): vai até o lugar livre escolhido e senta ao chegar
  function clicarMesa(m,w){
   if(window.MESAS&&MESAS.sentado&&MESAS.sentado.mesa===m.id)return true;
-  const ocup=window.MESAS&&MESAS.dados[m.id]?MESAS.dados[m.id].assentos:{},livres=[0,1,2,3].filter(i=>!ocup[i]);
-  if(!livres.length){ft(p.x,p.y-24,'Mesa cheia (4 pessoas).','#f87171');return true}
-  const d=i=>Math.hypot(lugar(m,i).x-w.x,lugar(m,i).y-w.y),i=livres.sort((a,b)=>d(a)-d(b))[0],s=lugar(m,i);
-  alvoMesa={mesa:m.id,i};setDest(s.x,s.y);return true}
+  const i=escolherCadeira(m,w);
+  if(i<0){const ocup=window.MESAS&&MESAS.dados[m.id]?MESAS.dados[m.id].assentos||{}:{};ft(p.x,p.y-24,[0,1,2,3].every(k=>ocup[k])?'Mesa cheia (4 pessoas).':'Esse lugar está ocupado.','#f87171');return true}
+  const s=lugar(m,i);alvoMesa={mesa:m.id,i};setDest(s.x,s.y);return true}
  window.BAR={
   MESAS_JOGO,lugar,BW,BH,
   dentro:(x,y)=>x>=X0()&&x<X0()+BW&&y>=Y0()&&y<Y0()+BH,
@@ -158,38 +166,41 @@
    if(rx<10)return ry>PORTA.y0+3&&ry<PORTA.y1-3;
    if(rx>BW-14||ry<22||ry>BH-10)return false;
    if(rx>QUIOSQUE.x0-4&&rx<QUIOSQUE.x1+4&&ry<QUIOSQUE.y1+6)return false;
-   for(const m of MESAS_JOGO)if(Math.abs(rx-m.x)<20&&ry>m.y-14&&ry<m.y+6)return false;
-   for(const s of SOLIDOS)if(Math.hypot(x-s[0],(y-s[1])*1.3)<s[2])return false;
-   return true},
-  chao(){if(!fundo){fundo=desenharFundo();SOLIDOS.length=0;for(const [id,x,y] of ELEM){const e=pack(id);if(e&&e.solido){const w=at(x,y);SOLIDOS.push([w.x,w.y,Math.max(4,e.raio||6)])}}}
+   return !BAR.bloqueia(x,y)},
+  /* mesas (dos dois estilos), barris e decorações sólidas: valem na taverna e no pátio */
+  bloqueia(x,y){
+   for(const m of LL.mesas)if(m.estilo==='jogo'?Math.abs(x-m.x)<20&&y>m.y-14&&y<m.y+6:Math.hypot(x-m.x,(y-m.y)*1.3)<15)return true;
+   for(const b of LL.barris)if(Math.hypot(x-b.x,y-b.y)<8)return true;
+   for(const e of LL.decor){const t=tipoEl(e);if(t&&t.blocks&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(4,t.radius||6))return true}
+   return false},
+  chao(){if(!fundo)fundo=desenharFundo();
    ctx.drawImage(fundo,X0(),Y0());
    // porta aberta na parede da taverna, com batente
    const px=X0()-12,py=Y0()+PORTA.y0;R(ctx,px,py,14,PORTA.y1-PORTA.y0,'#5a3a20');R(ctx,px+2,py+2,10,PORTA.y1-PORTA.y0-2,'#7a5230');R(ctx,px,py-3,14,3,'#3f2816');R(ctx,px,py+PORTA.y1-PORTA.y0,14,2,'#2a1a0e')},
   objetos(L){
    botoes=[];
    L.push([Y0()+QUIOSQUE.y0+4,prateleira]);L.push([Y0()+QUIOSQUE.y0+60,balcao]); // o balcão fica na frente do barman
-   L.push([Y0()+BARMAN.y,()=>{const B=BARMAN,w=at(B.x,B.y),f=face(B),spr=(HS.sty||HS.war)[f.d];dr(spr,w.x,w.y,f.fl,1,anim({...B,x:w.x,y:w.y},0));
-    ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(B.nm,w.x+.5,w.y-21.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(B.nm,w.x,w.y-22-ACIMA_HEROI());ctx.fillStyle='#ffd84a';ctx.fillText('!',w.x,w.y-28+Math.round(Math.sin(time*4)*1.5))}]);
+   L.push([BARMAN.y,()=>{const B=BARMAN,f=face(B),spr=(HS.sty||HS.war)[f.d];dr(spr,B.x,B.y,f.fl,1,anim(B,0));
+    ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(B.nm,B.x+.5,B.y-21.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(B.nm,B.x,B.y-22-ACIMA_HEROI());ctx.fillStyle='#ffd84a';ctx.fillText('!',B.x,B.y-28+Math.round(Math.sin(time*4)*1.5))}]);
    L.push([Y0()+QUIOSQUE.y0-30,toldo]);
-   for(const [id,x,y] of ELEM){const w=at(x,y);L.push([w.y-(id==='pk_bar_bandeirinhas'?400:0),()=>desenharElem(ctx,id,w.x,w.y)])}
-   for(const m of MESAS_JOGO){const c=at(m.x,m.y);for(let i=0;i<4;i++){const s=lugar(m,i);L.push([s.y+(i===2?1:-1),()=>cadeira(s.x,s.y+2,i)])}L.push([c.y,()=>mesaJogo(m)])}
+   for(const e of LL.decor)L.push([e.y-(ehDecor(e,'pk_bar_bandeirinhas')?400:0),()=>desenharElem(ctx,e)]);
+   for(const m of MESAS_JOGO){for(let i=0;i<4;i++){const c=LAY.cadeiraEm(m,i),o=m.cadeiras[i].o;L.push([c.y+(o===2?-1:-3),()=>cadeira(c.x,c.y,o)])}L.push([m.y,()=>mesaJogo(m)])}
   },
   // por cima de tudo: botões e convites das mesas (fora da ordem de profundidade, para não ficarem atrás de ninguém)
   interface(){for(const m of TODAS())interfaceMesa(m)},
-  luzes(){const ls=[];for(const [id,x,y] of ELEM){const w=at(x,y);if(id==='pk_bar_lampiao')ls.push({x:w.x,y:w.y-32,r:70,a:.75});if(id==='pk_bar_fogueira')ls.push({x:w.x,y:w.y-8,r:95});if(id==='pk_bar_churrasqueira')ls.push({x:w.x,y:w.y-14,r:40,a:.5})}
-   for(const m of MESAS_JOGO){const c=at(m.x,m.y);ls.push({x:c.x,y:c.y-12,r:40,a:.4})}const k=at(360,60);ls.push({x:k.x,y:k.y,r:80,a:.6});return ls},
+  luzes(){const ls=[];for(const e of LL.decor){const w=e;if(ehDecor(e,'pk_bar_lampiao'))ls.push({x:w.x,y:w.y-34,r:70,a:.75});if(ehDecor(e,'pk_bar_fogueira'))ls.push({x:w.x,y:w.y-10,r:95});if(ehDecor(e,'pk_bar_churrasqueira'))ls.push({x:w.x,y:w.y-16,r:40,a:.5})}
+   for(const m of MESAS_JOGO)ls.push({x:m.x,y:m.y-12,r:40,a:.4});const k=at(360,60);ls.push({x:k.x,y:k.y,r:80,a:.6});return ls},
   brilho(nk){ctx.save();ctx.globalCompositeOperation='screen';
-   for(const [id,x,y] of ELEM){if(id!=='pk_bar_lampiao'&&id!=='pk_bar_fogueira')continue;const w=at(x,y),yy=id==='pk_bar_lampiao'?w.y-32:w.y-8,r=id==='pk_bar_lampiao'?40:60,a=(id==='pk_bar_fogueira'?.22:.14)+.14*nk+.03*Math.sin(time*9+x);
+   for(const e of LL.decor){const lamp=ehDecor(e,'pk_bar_lampiao');if(!lamp&&!ehDecor(e,'pk_bar_fogueira'))continue;const w=e,x=e.x,yy=lamp?w.y-34:w.y-10,r=lamp?40:60,a=(lamp?.14:.22)+.14*nk+.03*Math.sin(time*9+x);
     const g=ctx.createRadialGradient(w.x,yy,1,w.x,yy,r);g.addColorStop(0,'rgba(255,190,90,'+a+')');g.addColorStop(1,'rgba(255,160,60,0)');ctx.fillStyle=g;ctx.fillRect(w.x-r,yy-r,2*r,2*r)}
    // lâmpadas no varal de bandeirinhas: piscam devagar de noite
    if(nk>.15)for(let x=34;x<290;x+=12){const yy=Y0()+31+Math.round(Math.sin((x-30)/64*Math.PI%Math.PI)*5),a=nk*(.5+.5*Math.sin(time*2+x*.3));ctx.globalAlpha=a;R(ctx,X0()+x,yy,2,2,'#fff0a0');ctx.globalAlpha=a*.3;R(ctx,X0()+x-2,yy-2,6,6,'#ffd84a')}
    ctx.restore();particulas(1/60,nk)},
   click(w,mode){
    for(const b of botoes)if(w.x>=b.x&&w.x<=b.x+b.w&&w.y>=b.y&&w.y<=b.y+b.h){b.fn();return true}
-   if(mode!=2)for(const m of TODAS())if(naMesa(m,w))return clicarMesa(m,w);
-   if(!(BAR.dentro(w.x,w.y)||BAR.portaEm(w.x,w.y)))return false;
+   if(mode!=2){const m=mesaSob(w);if(m)return clicarMesa(m,w)}
    if(mode==2)return false;
-   const bw=at(BARMAN.x,BARMAN.y);if(Math.hypot(w.x-bw.x,w.y-(bw.y-8))<14){if(Math.hypot(p.x-bw.x,p.y-bw.y)<60)falarBarman();else setDest(bw.x,bw.y+38);return true}
+   const bw=BARMAN;if(Math.hypot(w.x-bw.x,w.y-(bw.y-8))<14){if(Math.hypot(p.x-bw.x,p.y-bw.y)<60)falarBarman();else setDest(bw.x,bw.y+38);return true}
    return false},
   atualizar(dt){
    andarBarman(dt);
@@ -199,8 +210,17 @@
     else if(!p.dest)alvoMesa=null}
    // levantou: andou para longe do lugar
    // levanta ao mandar andar (clique no chão) ou se algo tirou o herói do lugar; parado, fica na cadeira
-   if(window.MESAS&&MESAS.sentado){const m=TODAS().find(x=>x.id===MESAS.sentado.mesa);if(!m){MESAS.levantar();return}const s=lugar(m,MESAS.sentado.i);if(p.dest||(p.path&&p.path.length)||Math.hypot(p.x-s.x,p.y-s.y)>6)MESAS.levantar();else{p.x=s.x;p.y=s.y}}
+   // em partida o herói não sai da cadeira (clique no chão não levanta; só Desistir)
+   if(window.MESAS&&MESAS.sentado){const m=TODAS().find(x=>x.id===MESAS.sentado.mesa);if(!m){MESAS.levantar(true);return}const s=lugar(m,MESAS.sentado.i);
+    if(p.dest||(p.path&&p.path.length)||Math.hypot(p.x-s.x,p.y-s.y)>6){
+     if(MESAS.emPartida()){p.dest=null;p.path=[];p.x=s.x;p.y=s.y;if(time-avisoPreso>2){avisoPreso=time;ft(p.x,p.y-30,'Partida em andamento: use Desistir para sair da mesa','#f87171')}}
+     else MESAS.levantar()}
+    else{p.x=s.x;p.y=s.y}}
   },
+  // mouse em cima de algo clicável do pátio ou das mesas (botões, mesas, barman): o cursor vira a mãozinha
+  hover(w){if(botoes.some(b=>sobre(w,b)))return true;if(mesaSob(w))return true;return Math.hypot(w.x-BARMAN.x,w.y-(BARMAN.y-8))<14},
+  // usados pela Engine (prévia da cena Taverna, js/taverna.js TAVERNA_MOTOR)
+  quiosque(){prateleira();balcao();toldo()},desenharMesa:mesaJogo,desenharCadeira:cadeira,
   minimapa(mm,ox,oy,k){if(fundo)mm.drawImage(fundo,ox+(X0()-G().OX)*k,oy+(Y0()-G().OY)*k,BW*k,BH*k)}
  };
 })();

@@ -46,7 +46,7 @@ INV_CATEGORIES.forEach(([id,label])=>{const button=document.createElement('butto
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
 let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
-SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();window.mirarOuLancar?mirarOuLancar(s):cast(s)};const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
+SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();window.mirarOuLancar?mirarOuLancar(s):cast(s)};d.onmouseenter=()=>{if(window.MIRA)MIRA.previa=s};d.onmouseleave=()=>{if(window.MIRA&&MIRA.previa===s)MIRA.previa=null}; /* mouse no botão: prévia do alcance e da área (js/mira.js) */const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
 /* painel de habilidade e de item: "Rótulo: valor", cada tipo de informação com a sua cor (css/ui2.css #tip .t*) */
 const NOME_ARMA={espada:'Espada',espada_grande:'Espada grande',adaga:'Adaga',machadinha:'Machadinha',machado_2mao:'Machado',maca:'Maça',martelo_2mao:'Martelo',lanca:'Lança',arco:'Arco',besta:'Besta',manopla:'Manopla',escudo:'Escudo',cajado:'Cajado',cetro:'Cetro',orbe:'Orbe',serrote:'Serrote'};
 const nomeArma=k=>NOME_ARMA[k]||k;
@@ -154,6 +154,8 @@ if(MODO.teste)window.TESTE={
  rank:()=>{const r=p.classProgress[p.cls]||(p.classProgress[p.cls]={rank:1,xp:0});r.rank=Math.min(10,r.rank+1);if(r.rank>=10)r.xp=0;applySkills();renderSkillMenu()},
  classe:id=>{if(CL[id])setClass(id)},
  curar:()=>{p.hp=mhp();p.mp=mmp()},
+ // renasce no mesmo lugar (também dentro da DG, onde o jogo normal não deixa); vivo: não faz nada
+ renascer:()=>{if(!(p.dead>0))return false;p.dead=0;p.morreuEm=null;p.hp=mhp();p.mp=mmp();p.st=null;p.dest=null;p.path=[];p.tgt=null;ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');return true},
  recargas:()=>SK.forEach(s=>s.t=0),
  ouro:n=>{p.gold+=n},
  item:(id,q)=>{const ok=addItem(id,q);dirtyInv=true;return ok},
@@ -175,7 +177,8 @@ if(MODO.teste)window.TESTE={
 };
 function compareEquipment(id,q,preferredSlot){
  const type=gearType[id];if(!type)return'';
- let slot=preferredSlot||type;if(type=='ri'&&!preferredSlot){slot=!EQ.r1?'r1':!EQ.r2?'r2':'r1';if(EQ.r1&&EQ.r2){const score=s=>Object.values(qStats(s.id,s.q)).reduce((sum,v)=>sum+Number(v||0),0);if(score(EQ.r2)<score(EQ.r1))slot='r2'}}
+ // escudo e orbe são de mão secundária: comparam com o que está na Mão 2
+ let slot=preferredSlot||(type=='sw'&&!ITEMS[id].th&&['escudo','orbe'].includes(weaponTag(ITEMS[id].wt))?'sh':type);if(type=='ri'&&!preferredSlot){slot=!EQ.r1?'r1':!EQ.r2?'r2':'r1';if(EQ.r1&&EQ.r2){const score=s=>Object.values(qStats(s.id,s.q)).reduce((sum,v)=>sum+Number(v||0),0);if(score(EQ.r2)<score(EQ.r1))slot='r2'}}
  const current=EQ[slot],candidate=qStats(id,q),equipped=current?qStats(current.id,current.q):{},names=Object.fromEntries(Object.entries(ITEM_STATS).map(([k,s])=>[k,s.label]));
  const rows=Object.keys(names).filter(k=>(candidate[k]||0)||(equipped[k]||0));
  const panel=(item,stats,label,quality)=>'<div class="compareCard '+label+'"><div class=compareLabel>'+label+'</div><div class=compareIcon><img src="'+item.ic+'" alt=""></div><div class=compareName>'+item.n.split(' (')[0]+'</div><div class=compareStats>'+
@@ -193,7 +196,10 @@ function itemTip(id,q,preferredSlot){const it=ITEMS[id],t=gearType[id],m=it.n.ma
  const stats=t?qStats(id,q):it,st=statTxt(t==='sw'&&weaponDamageRange(it)?{...stats,dmg:0}:stats);if(st)h+=tl('Atributos',st,'tatr');
  else if(it.use&&m)h+=tl('Efeito',m[1],'tefeito');
  if(!t&&attributeText(it.bonuses))h+=tl(it.use?'Bônus ('+it.bonusDuration+' s)':'Atributos',attributeText(it.bonuses),'tatr');
- if(Array.isArray(it.fx)&&it.fx.length&&window.efeitoTexto)h+=tl('Efeito',efeitoTexto(it.fx),'tefeito');
+ // efeitos do item, descritos a partir da configuração: arma ao acertar (ataque básico) e equipamento ao ser atingido
+ if(window.efeitoFrase){if(t=='sw'&&BASIC[id]&&BASIC[id].effects&&BASIC[id].effects.length)h+=tl('Ao acertar',efeitoFrase(BASIC[id].effects),'tefeito');
+  else if(t&&Array.isArray(it.fx)&&it.fx.length)h+=tl('Ao ser atingido',efeitoFrase(it.fx,true),'tefeito');
+  else if(Array.isArray(it.fx)&&it.fx.length&&window.efeitoTexto)h+=tl('Efeito',efeitoTexto(it.fx),'tefeito')}
  if(t=='sw'){const hs=(WSK[id]||[]).filter(Boolean).map(s=>s.n);if(hs.length)h+=tl('Habilidades',hs.join(', '),'thab')}
  if(it.tags&&it.tags.length)h+='<div class=tm>Tags: '+it.tags.join(', ')+'</div>';
  if(t&&!(preferredSlot&&EQ[preferredSlot]&&EQ[preferredSlot].id==id&&EQ[preferredSlot].q===q))h+=compareEquipment(id,q,preferredSlot);
@@ -217,14 +223,34 @@ function saveGame(){
  const data={p:{x:pos.x,y:pos.y,hp:p.hp,mp:p.mp,lvl:p.lvl,xp:p.xp,gold:p.gold,cls:p.cls,sex:p.sex,look:p.look,classProgress:p.classProgress,skillSlots:p.skillSlots,basicMode:p.basicMode,basicNext:p.basicNext,kits:p.kits||{},pvp:p.pvp||{abates:0,mortes:0},missao:p.missao||null,quadro:p.quadro||null,tutorial:p.tutorial||null},items:I,equipment:EQ,cacaFeita,cacaMortes,questDone,carpenterHelped,sawQuestActive,sawObtained,woodQuestActive,wallBuilt,magicWoodQuestActive,campPortalBuilt,campPortalTheme,blacksmithSaved,wallVersion:2,ilhaV:2,gateOpen:CAMP_WALL.gateOpen,lootMode,bestiario:BESTIARIO,questDrops:drops.filter(o=>o.questReward||o.id=='wood'||o.id=='magicWood')};
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
+ if(ITENS_ORFAOS.length)data.orfaos=ITENS_ORFAOS;
+ if(window.BAU_ILHA)data.bau=BAU_ILHA.dados(); // baú do acampamento (js/bau-ilha.js)
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
 }
 window.saveGame=saveGame;
+/* itens do save cujo tipo não existe mais (apagado ou renomeado na Engine): ficam guardados no save em vez de sumir,
+   e voltam para a mochila se o tipo voltar a existir */
+const ITENS_ORFAOS=[];
+/* save que existe mas não carregou: o jogo NÃO cria personagem novo por cima. Para de salvar (aqui e na nuvem),
+   guarda uma cópia do save e avisa o jogador. */
+function falhaAoCarregar(raw,err){
+ window.SAVE_FALHOU=true;window._noSave=true;
+ console.error('Progresso salvo não carregou; nada foi apagado nem sobrescrito.',err&&err.message||err);
+ try{if(raw&&saveStore().getItem('ilha-rpg-save-falha')!==raw)saveStore().setItem('ilha-rpg-save-falha',raw)}catch(e){}
+ return false;
+}
+window.avisoFalhaSave=()=>{
+ if(!window.SAVE_FALHOU||document.getElementById('falhaSave'))return;
+ const box=document.createElement('div');box.id='falhaSave';box.setAttribute('role','alertdialog');
+ box.innerHTML='<div class=mbox><h2>Não foi possível carregar seu personagem</h2><p>Nada foi apagado: o progresso continua guardado e o jogo parou de salvar para não escrever por cima dele. Recarregue a página; se continuar, avise o suporte.</p></div>';
+ const b=document.createElement('button');b.className='mb';b.type='button';b.textContent='Recarregar';b.onclick=()=>location.reload();
+ box.firstChild.append(b);document.body.append(box);
+};
 function loadGame(){
- let raw;if(MODO.motor)return false;try{raw=saveStore().getItem('ilha-rpg-save')}catch(err){console.error('Não foi possível ler o progresso salvo:',err);return false}
+ let raw;if(MODO.motor)return false;try{raw=saveStore().getItem('ilha-rpg-save')}catch(err){console.error('Não foi possível ler o progresso salvo:',err);return falhaAoCarregar(null,err)}
  if(!raw)return false;
  try{
-  const d=JSON.parse(raw);if(!d||!d.p||!Array.isArray(d.items))return false;
+  const d=JSON.parse(raw);if(!d||!d.p||!Array.isArray(d.items))return falhaAoCarregar(raw,'formato inválido');
   for(const k of ['x','y','hp','mp','lvl','xp','gold'])if(Number.isFinite(d.p[k]))p[k]=d.p[k];
   if(d.ilhaV!==2){p.x+=CHAO.ILHA_DESLOC;p.y+=CHAO.ILHA_DESLOC} // save da ilha menor: mesmo lugar em relação ao acampamento
   p.lvl=Math.max(1,Math.min(+CALC.maxLevel||10,Math.floor(p.lvl)));if(p.lvl>=CALC.maxLevel)p.xp=0;
@@ -246,8 +272,13 @@ function loadGame(){
   if(best.k&&typeof best.k=='object')for(const ty in best.k)if(Number.isFinite(best.k[ty])&&best.k[ty]>0)BESTIARIO.k[ty]=Math.floor(best.k[ty]);
   if(best.d&&typeof best.d=='object')for(const ty in best.d)if(best.d[ty]&&typeof best.d[ty]=='object')for(const id in best.d[ty])if(ITEMS[id])(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1;
   if(!walk(p.x,p.y)){p.x=CX;p.y=CY+34}
-  I.length=Math.max(40,d.items.length);I.fill(null);d.items.forEach((s,i)=>{if(s&&ITEMS[s.id]&&Number.isInteger(s.n)&&s.n>0)I[i]={id:s.id,n:s.n,q:s.q}});
-  for(const id of Object.keys(EQ)){const e=d.equipment&&d.equipment[id];EQ[id]=e&&fits(id,e.id)?{id:e.id,n:1,q:e.q}:null}
+  ITENS_ORFAOS.length=0;const orfao=s=>{if(s&&typeof s.id=='string'&&Number.isInteger(+s.n||1))ITENS_ORFAOS.push({id:s.id,n:Math.max(1,+s.n||1),q:s.q})};
+  I.length=Math.max(40,d.items.length);I.fill(null);d.items.forEach((s,i)=>{if(s&&ITEMS[s.id]&&Number.isInteger(s.n)&&s.n>0)I[i]={id:s.id,n:s.n,q:s.q};else if(s&&!ITEMS[s.id])orfao(s)});
+  for(const id of Object.keys(EQ)){const e=d.equipment&&d.equipment[id];EQ[id]=e&&fits(id,e.id)?{id:e.id,n:1,q:e.q}:null;if(e&&!ITEMS[e.id])orfao(e);else if(e&&!EQ[id]&&ITEMS[e.id])orfao(e)}
+  if(Array.isArray(d.orfaos))d.orfaos.forEach(orfao);
+  if(window.BAU_ILHA)BAU_ILHA.carregar(d.bau); // depois de zerar os órfãos: tipo sumido do baú também vira órfão
+  // tipo que voltou a existir: devolve à mochila (se couber; senão continua guardado)
+  for(let k=ITENS_ORFAOS.length-1;k>=0;k--){const s=ITENS_ORFAOS[k];if(!ITEMS[s.id])continue;const v=I.indexOf(null);if(v<0)break;I[v]={id:s.id,n:s.n,q:s.q};ITENS_ORFAOS.splice(k,1)}
   cacaFeita=d.cacaFeita!=null?d.cacaFeita===true:d.questDone===true;cacaMortes=Math.max(0,+d.cacaMortes||0); /* save antigo que já venceu o Guardião não refaz a caça */
  questDone=d.questDone===true;if(questDone)boss.hp=0;carpenterHelped=questDone&&d.carpenterHelped===true;
   sawQuestActive=carpenterHelped&&d.sawQuestActive===true;sawObtained=sawQuestActive&&d.sawObtained===true;
@@ -269,7 +300,7 @@ function loadGame(){
   if(sawQuestActive&&!sawObtained&&window.resumeSawQuest)resumeSawQuest();
   p.hp=Math.min(mhp(),Math.max(0,p.hp));p.mp=Math.min(mmp(),Math.max(0,p.mp));
   applySkills();setPortrait();if(window.renderSkillMenu)renderSkillMenu();if(window.repop)repop();dirtyInv=true;return true
- }catch(err){console.error('Progresso salvo inválido:',err);return false}
+ }catch(err){return falhaAoCarregar(raw,err)}
 }
 addEventListener('beforeunload',saveGame);setInterval(saveGame,5000);
 const ap=document.createElement('div');ap.id='ap';document.querySelector('#invp .doll').prepend(ap);
@@ -285,7 +316,7 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
  const intervalBase=Math.max(CALC.minInterval,(c.attackSpeed||1)*(1-baseA*CALC.atkSpdPerA)*(1-bonus('attackSpeed')));
  const guardEffect=Math.min(80,effectSum('guard')),protection=Math.round(guardEffect);
  const fb=faixaBasico(),f0=faixaBasico(basic(),false),fx=(f,k)=>faixaTxt(f.min[k],f.max[k]);
- const danoTipo=(rot,k)=>{const com=fx(fb,k),sem=fx(f0,k);return row(rot,pintaDano(com,k))}; // valor na cor do tipo de dano (já com os buffs ativos)
+ const danoTipo=(rot,k)=>{const com=fx(fb,k),sem=fx(f0,k);return row(rot,pintaDano(com,k,true))}; // valor na cor do tipo de dano (já com os buffs ativos)
  ap.innerHTML='<h4>Atributos</h4>'+
   row('Força',value(a.F,baseF),'#f55')+row('Agilidade',value(a.A,baseA),'#5ee05a')+row('Inteligência',value(a.I,baseI),'#5aa8ff')+'<hr>'+
   row('Vida máx.',value(mhp(),hpBase))+row('Mana máx.',value(mmp(),mpBase))+

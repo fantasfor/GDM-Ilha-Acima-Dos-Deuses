@@ -179,6 +179,12 @@
             ".validate": "newData.hasChildren(['de', 'tipo', 't']) && newData.child('tipo').val().matches(/^(golpe|morte)$/) && newData.child('t').val() === now"
           }
         },
+        "stats": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && $sala.beginsWith('dg:')",
+            ".validate": "newData.hasChildren(['n', 'd']) && newData.child('n').isString() && newData.child('n').val().length <= 18"
+          }
+        },
         "fx": {
           "$id": {
             ".write": "auth != null && $sala === 'taverna' && ((!data.exists() && newData.child('de').val() === auth.uid) || (!newData.exists() && data.child('de').val() === auth.uid))",
@@ -190,7 +196,7 @@
     "mesas": {
       "$mesa": {
         ".read": "auth != null",
-        ".write": "auth != null && $mesa.matches(/^(bar[1-4]|tav[1-5])$/)"
+        ".write": "auth != null && $mesa.matches(/^(bar|tav)[0-9]{1,2}$/)"
       }
     },
     "arenas": {
@@ -326,6 +332,22 @@
         "$outro": {
           ".validate": false
         }
+      }
+    },
+    "backups": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$dia": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "$dia.matches(/^d[0-2]$/) && newData.hasChildren(['t', 'dados']) && newData.child('t').isNumber() && newData.child('dados').isString() && newData.child('dados').val().length <= 300000"
+        }
+      }
+    },
+    "sessoes": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && (!newData.exists() || !data.exists() || data.child('id').val() === newData.child('id').val() || data.child('t').val() < now - 90000)",
+        ".validate": "newData.hasChildren(['id', 't']) && newData.child('id').isString() && newData.child('id').val().length <= 40 && newData.child('t').val() === now"
       }
     },
     "ranqueada": {

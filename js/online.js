@@ -123,11 +123,29 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
    return r;
   };
  }
+ /* canal (Chuva de meteoros, Girar…): as ondas saem DEPOIS do lançamento (combat.js tickCanal), então o evento do
+    lançamento não as leva. Cada onda manda só o que ela mesma criou (efeitos desenhados, meteoros, círculos), uma vez. */
+ if(nuvem&&typeof window.tickCanal==='function'){
+  const tc0=window.tickCanal;
+  window.tickCanal=function(dt){
+   if(!p.canal||window.inTaverna)return tc0.apply(this,arguments);
+   const nf=fxs.length,nm=mets.length,nv=window.VFX?VFX.total:0;
+   const r=tc0.apply(this,arguments);
+   const R=Math.round,partes=[],kv=window.VFX?Math.min(3,VFX.total-nv):0;
+   if(kv>0)partes.push(...VFX.recentes.slice(-kv).map(v=>'v:'+v.tipo+':'+R(v.x)+':'+R(v.y)+':'+R((v.ang||0)*100)+':'+R(v.raio||0)+':'+R((v.arco||0)*100)+':'+hex(v.cor||'')));
+   for(const m of mets.slice(nm,nm+3))partes.push('m:'+R(m.x)+':'+R(m.y));
+   for(const f of fxs.slice(nf,nf+2))partes.push('f:'+R(f.x)+':'+R(f.y)+':'+R(f.r)+':'+hex(f.c)+':'+R((f.d||.4)*100)+':'+nomeLimpo(f.style));
+   if(partes.length){let tok='k;'+partes.join(';');while(tok.length>200&&tok.includes(';'))tok=tok.slice(0,tok.lastIndexOf(';'));if(filaSons.length>=6)filaSons.shift();filaSons.push(tok)}
+   return r};
+ }
  /* aura de um aliado (Grito de Guerra): quem estiver no raio fica com aura e contorno na minha tela (js/vfx-habilidades.js) */
  /* curas e buffs do Curandeiro para os aliados (js/curandeiro.js): h:tipo:força×100:duração×10:raio:x:y:limpa */
  window.efeitoAliados=lista=>{if(typeof filaSons=='undefined'||!nuvem||window.inTaverna)return;const R=Math.round;const tok='k;'+lista.slice(0,3).map(f=>'h:'+nomeLimpo(f.tipo)+':'+R((+f.pw||0)*100)+':'+R((+f.dur||0)*10)+':'+R(f.r||20)+':'+R(f.x)+':'+R(f.y)+':'+R(+f.limpa||0)).join(';');if(filaSons.length>=6)filaSons.shift();filaSons.push(tok)};
- window.marcarAura=(x,y,r,cor,dur)=>{const ate=performance.now()/1000+dur;for(const o of others.values())if(o.x!=null&&Math.hypot(o.x-x,o.y-y)<=r)o.vfxAura={ate,cor}};
+ // cada cor de aura tem o próprio prazo (o.vfxAuras = {cor: até}): duas auras ao mesmo tempo (ex.: Grito de Guerra e
+ // Inspiração Mágica) aparecem as duas no aliado; renovar uma não apaga a outra
+ window.marcarAura=(x,y,r,cor,dur)=>{const ate=performance.now()/1000+dur;for(const o of others.values())if(o.x!=null&&Math.hypot(o.x-x,o.y-y)<=r){o.vfxAuras=o.vfxAuras||{};o.vfxAuras[cor]=Math.max(o.vfxAuras[cor]||0,ate)}};
  function habilidadeRemota(tok,quem){
+  if(quem&&quem.dead)return; // evento atrasado de quem já morreu: a habilidade dele foi interrompida
   const n=v=>Number(v)||0,cor=c=>c?'#'+c:null;let ox=null,oy=null;
   for(const parte of tok.split(';').slice(1)){
    const a=parte.split(':');
@@ -136,7 +154,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
    if(a[0]==='a'){if(ox!=null&&!window.inArena&&FX_INFO[a[1]]){const dur=Math.max(.5,n(a[3])/10);if(FX_INFO[a[1]].aura)marcarAura(ox,oy,n(a[4]),FX_INFO[a[1]].c,dur);
      if(p.hp>0&&!(p.dead>0)&&Math.hypot(p.x-ox,p.y-oy)<=n(a[4]))applyFx(p,[{caster:p,self:true,type:a[1],chance:100,dur,pw:n(a[2])}])}continue}
    // cura/buff de um aliado Curandeiro: vale para mim se eu estiver no raio (na arena, só se for da minha equipe)
-   if(a[0]==='h'){if(FX_INFO[a[1]]&&!(p.dead>0)&&(!window.inArena||quem&&window.ARENA&&ARENA.aliado(quem.uid))&&Math.hypot(p.x-n(a[5]),p.y-n(a[6]))<=n(a[4]))applyFx(p,[{caster:p,type:a[1],chance:100,pw:n(a[2])/100,dur:n(a[3])/10,limpa:n(a[7]),silencioso:n(a[3])>0}]);continue}
+   if(a[0]==='h'){if(FX_INFO[a[1]]&&!(p.dead>0)&&(!window.inArena||quem&&window.ARENA&&ARENA.aliado(quem.uid))&&Math.hypot(p.x-n(a[5]),p.y-n(a[6]))<=n(a[4]))applyFx(p,[{caster:p,type:a[1],chance:100,pw:n(a[2])/100,dur:n(a[3])/10,limpa:n(a[7]),silencioso:n(a[3])>0,de:quem&&quem.id}]);continue}
    // efeitos desenhados (js/vfx-habilidades.js): v:tipo:x:y:ângulo×100:raio:arco×100:cor
    if(a[0]==='v'&&window.VFX){VFX.tocar(a[1],{x:n(a[2]),y:n(a[3]),ang:n(a[4])/100,raio:n(a[5]),arco:n(a[6])/100,cor:cor(a[7])||undefined});continue}
    // giro de um aliado: r:duração×10:raio:cor (a lâmina roda em volta dele)
@@ -265,6 +283,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
     // golpe: mesma animação do próprio jogador (avanço na direção do alvo e balanço da arma)
     const f=face(o),an=anim(o,.25),lg=lunge(o,o.wt,o.aw,.25);ctx.globalAlpha=o.dead?.35:1;
     // aliado girando: roda o desenho e a lâmina junto (js/vfx-habilidades.js)
+    if(o.dead){o.vfxGiro=null;o.vfxAuras=null} // aliado morreu: o giro e as auras dele param junto
     if(o.vfxGiro&&o.vfxGiro.ate>t){const ang=t*Math.PI*2*2.2;o.fx=Math.cos(ang);o.fy=Math.sin(ang);o.fk=undefined}
     const f2=o.vfxGiro&&o.vfxGiro.ate>t?face(o):f;
     dr.ent=o;dr(lookOf(o,f2.d,an.ph||0,an.sw||0),o.x+lg[0],o.y+lg[1],f2.fl,1,an);ctx.globalAlpha=1;
@@ -289,6 +308,8 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
   r(-5,-3,10,7,'#0009');r(-4,-1,2,3,'#9be7a8');r(-2,-2,1,5,'#9be7a8');
   const k=Math.floor(performance.now()/180)%3;if(k>0)r(1,-1,1,3,'#e9fff0');if(k>1)r(3,-2,1,5,'#e9fff0');
  }
+ // aliados vivos na mesma sala (posição suavizada): a DG usa para a visão compartilhada (névoa e minimapa)
+ window.aliadosVisiveis=()=>[...others.values()].filter(o=>visivel(o)&&o.x!=null&&!o.dead).map(o=>({x:o.x,y:o.y}));
  window.onlineMinimap=(g,ox,oy,k,size)=>{
   for(const o of others.values()){
    if(!visivel(o)||o.tx==null)continue;const x=(o.x-ox)*k,y=(o.y-oy)*k;if(x<0||y<0||x>size||y>size)continue;

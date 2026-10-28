@@ -163,7 +163,7 @@
   atras(ent,img,pintar){
    const fx=typeof FX_INFO!=='undefined'?FX_INFO:{},agora=performance.now()/1000,cores=[];
    if(ent.st)for(const k in ent.st){const f=fx[k];if(f&&f.aura&&ent.st[k].t>0){const c=f.c||'#ff3a2a';if(!cores.includes(c))cores.push(c)}}
-   if(ent.vfxAura&&ent.vfxAura.ate>agora&&!cores.includes(ent.vfxAura.cor))cores.push(ent.vfxAura.cor); // aliado online (online.js marca)
+   if(ent.vfxAuras)for(const c in ent.vfxAuras){if(ent.vfxAuras[c]>agora){if(!cores.includes(c))cores.push(c)}else delete ent.vfxAuras[c]} // aliado online (online.js marcarAura), uma entrada por cor
    if(!cores.length||!img||!img.getContext)return;
    // cada aura ativa aparece: a 1ª encostada no corpo, a 2ª num anel por fora (chamas defasadas); no máximo duas
    const quadro=Math.floor(agora*10)%6,ga=ctx.globalAlpha;

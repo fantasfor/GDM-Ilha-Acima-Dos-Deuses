@@ -33,6 +33,8 @@
  window.MOTOR={
   // prévia das cenas fixas (arena, taverna) para o painel de cenas da Engine
   previaCena:id=>{const f=window.CENA_PREVIA&&CENA_PREVIA[id];return f?f():null},
+  // cena Taverna editável: layout padrão, fundo fixo e as peças móveis (js/taverna.js)
+  taverna:()=>window.TAVERNA_MOTOR||null,
   infoHabilidade:id=>window.infoHabilidade?infoHabilidade(id):null,
   versao:1,
   mundo:()=>({W,T,N,CX,CY,campo:CAMP_SAFE_HALF_SIZE,portalAcampamento:{x:campPortal.x,y:campPortal.y},pontes:RBR.slice()}),

@@ -270,6 +270,49 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #d9d0c7;out
 /* ---------- Conta: tela de login (js/conta.js) ---------- */
 #conta{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;background:var(--c-preto);padding:12px;box-sizing:border-box;font-family:monospace}
 #conta.open{display:flex}
+/* painel do grupo (js/multiplayer.js): fixo à esquerda, um quadro por membro */
+#painelGrupo{position:fixed;left:8px;top:56px;z-index:40;display:flex;flex-direction:column;gap:4px;width:150px;font:11px monospace;pointer-events:none}
+#painelGrupo[hidden]{display:none}
+.pgMembro{background:var(--c-preto);border:2px solid var(--c-escuro);padding:3px 5px 4px;color:var(--c-linho)}
+.pgMembro .pgNome{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.pgBarra{display:block;height:4px;background:var(--c-escuro);margin-top:2px}.pgBarra b{display:block;height:100%;width:0;transition:width .2s}
+.pgVida b{background:#4cd04f}.pgMana b{background:#3985ed}
+.pgMembro.longe{opacity:.6}.pgMembro.morto .pgNome{color:var(--c-cinza);text-decoration:line-through}
+/* baú do acampamento (js/bau-ilha.js) */
+#bauIlha{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;font-family:monospace;max-width:calc(100vw - 32px)}
+#bauIlha[hidden]{display:none}
+.biBox{background:var(--c-preto);border:2px solid var(--c-cinza);padding:10px 12px;color:var(--c-linho);width:820px;max-width:100%;max-height:80vh;overflow:auto;box-sizing:border-box}
+.biTopo{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.biTopo b{font-size:14px}
+.biFechar{background:var(--c-escuro);border:2px solid var(--c-cinza);color:var(--c-linho);font:bold 13px monospace;width:26px;height:26px;cursor:pointer}
+.biDica{color:var(--c-pedra);font-size:11px;margin:0 0 8px}.biMsg{color:#f87171;font-size:11px;min-height:13px;margin:6px 0 0}
+.biCols{display:grid;grid-template-columns:1fr auto;gap:12px}.biCol h4{margin:0 0 4px;font-size:12px;color:var(--c-pedra);font-weight:normal}
+.biGrade{display:grid;grid-template-columns:repeat(auto-fill,36px);gap:3px}
+.biSlot{position:relative;width:36px;height:36px;padding:0;background:var(--c-escuro);border:2px solid var(--c-cinza);cursor:pointer}
+.biSlot:hover:not(:disabled){border-color:var(--c-linho)}.biSlot.vazio{cursor:default;opacity:.5}
+.biSlot img{width:32px;height:32px;image-rendering:pixelated;display:block}
+.biSlot b{position:absolute;right:1px;bottom:0;font:bold 10px monospace;color:var(--c-linho);text-shadow:1px 1px #0d0d0d}
+.biVazio{color:var(--c-cinza);font-size:11px}
+.biGradeBau{grid-template-columns:repeat(10,36px)}
+.biAbas{display:flex;gap:2px;margin:0 0 6px;flex-wrap:wrap}
+.biAba{position:relative;min-width:34px;height:26px;background:var(--c-escuro);border:2px solid var(--c-cinza);color:var(--c-pedra);font:bold 11px monospace;cursor:pointer;padding:0 4px}
+.biAba.on{border-color:var(--c-linho);color:var(--c-linho);background:var(--c-cinza)}.biAba.alvo{border-color:#ffd84a}
+.biAba small{position:absolute;right:1px;top:0;font:9px monospace;color:var(--c-pedra)}
+@media (max-width:860px){.biCols{grid-template-columns:1fr}}
+/* estatísticas do fim da DG (js/estatisticas-dg.js) */
+#statsDG{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:#0d0d0dcc;padding:12px;box-sizing:border-box;font-family:monospace}
+.sdgBox{background:var(--c-preto);border:2px solid var(--c-cinza);padding:14px 16px;max-width:760px;width:100%;max-height:90vh;overflow:auto;color:var(--c-linho)}
+.sdgBox h3{margin:0 0 10px;font-size:15px}
+.sdgDestaques{display:grid;gap:3px;margin-bottom:12px}
+.sdgLinha{display:grid;grid-template-columns:1.2fr 1fr auto;gap:8px;padding:4px 6px;background:var(--c-escuro);font-size:12px}
+.sdgLinha span{color:var(--c-pedra)}.sdgLinha i{font-style:normal;color:var(--c-pedra)}
+.sdgTabela{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px}
+.sdgTabela th,.sdgTabela td{border:1px solid var(--c-escuro);padding:3px 5px;text-align:right}.sdgTabela th:first-child,.sdgTabela td:first-child{text-align:left}
+.sdgTabela th{color:var(--c-pedra);font-weight:normal}
+.sdgNota{color:var(--c-cinza);font-size:11px;margin:4px 0 10px}
+/* save que não carregou (js/ui.js avisoFalhaSave): bloqueia o jogo até recarregar */
+#falhaSave{position:fixed;inset:0;z-index:140;display:flex;align-items:center;justify-content:center;background:var(--c-preto);padding:12px;box-sizing:border-box;font-family:monospace}
+#falhaSave h2{color:var(--c-linho);font-size:15px;margin:0 0 10px}
+#falhaSave p{color:var(--c-pedra);font-size:12px;line-height:1.5;max-width:420px}
 .contaBox .mb{margin:7px 0}
 .contaOu{margin:14px 0 6px;color:var(--c-pedra);font-size:11px;letter-spacing:2px;text-transform:uppercase}
 .contaEmail input{display:block;width:100%;box-sizing:border-box;margin:6px 0;padding:10px;border:2px solid var(--c-escuro);background:var(--c-preto);color:var(--c-linho);font:13px monospace}
@@ -322,7 +365,8 @@ body.selecaoPersonagem>*:not(#g):not(#conta){visibility:hidden!important}
 button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
 .carta.truco{background:#efe8d4;color:#1a1a22}.carta.truco.verm{color:#c0342a}.carta.truco span{font-size:15px}.carta.destaque{outline:2px solid #e0b62a}
 .carta.costas{background:#7a2622;outline:2px solid #d9a441;outline-offset:-5px}
-.carta.uno{color:#fff;text-shadow:1px 1px #0d0d0d;font-size:15px}.carta.uno.apagada{opacity:.45}.carta.uno.costas{background:#262626!important}
+.carta.uno{color:#fff;text-shadow:1px 1px #0d0d0d;font-size:15px}.carta.uno.apagada{opacity:.45}.carta.uno.sel{outline:3px solid var(--c-linho);transform:translateY(-4px)}
+.mesaBtn.uno{background:#d8432f;border-color:#f0a090;color:#fff;letter-spacing:1px}.mesaBtn.uno:hover{background:#e86a58}.carta.uno.costas{background:#262626!important}
 .truPlacar{display:flex;justify-content:space-between;gap:6px;margin-bottom:6px}.truPlacar span{padding:2px 6px;background:#0d0d0d99}.truPlacar .meu{outline:1px solid #e0b62a}
 .truCentro{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.truVira{display:flex;flex-direction:column;align-items:center}.truMesa{display:flex;gap:6px;min-height:62px}
 .truJogada{display:flex;flex-direction:column;align-items:center}.truJogada.antiga{opacity:.5}.truValor{color:#e0b62a;font-weight:bold}
@@ -342,3 +386,20 @@ button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
 .mesaVez.urgente{border-color:#a8392f}.mesaVez.urgente::after{background:#a8392f}
 .mesaRelogio{font-size:14px}
 @keyframes mesaPisca{from{outline:2px solid transparent}to{outline:2px solid var(--c-pedra);outline-offset:2px}}
+/* quadro de missões da taverna (js/taverna.js): janela com um cartaz por trabalho */
+#quadroMissoes{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;font-family:monospace;max-width:calc(100vw - 32px)}
+#quadroMissoes[hidden]{display:none}
+.qmBox{background:var(--c-preto);border:2px solid var(--c-cinza);padding:10px 12px;color:var(--c-linho);width:600px;max-width:100%;max-height:82vh;overflow:auto;box-sizing:border-box}
+.qmTopo{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.qmTopo b{font-size:14px}
+.qmBox h4{margin:10px 0 6px;font-size:12px;color:var(--c-pedra);font-weight:normal}
+.qmLista{display:flex;flex-direction:column;gap:6px}
+.qmCartaz{display:grid;grid-template-columns:56px 1fr auto auto auto;gap:10px;align-items:center;background:var(--c-escuro);border:2px solid var(--c-cinza);padding:6px 8px}
+.qmFoto{width:56px;height:56px;background:var(--c-cinza);border:1px solid var(--c-cinza);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.qmFoto img{max-width:52px;max-height:52px;image-rendering:pixelated;transform:scale(1.6);transform-origin:center}
+.qmInfo{display:flex;flex-direction:column;gap:2px;min-width:0}.qmInfo b{font-size:13px}.qmNivel{color:var(--c-pedra);font-size:11px}
+.qmQtd,.qmPremio{display:flex;flex-direction:column;align-items:flex-start;gap:1px;font-size:11px;color:var(--c-pedra)}
+.qmQtd strong{font-size:14px;color:var(--c-linho)}.qmXp{color:#7ad07a;font-size:12px}.qmOuro{color:#ffd84a;font-size:12px}
+.qmBarra{width:70px;height:4px;background:var(--c-preto);border:1px solid var(--c-cinza)}.qmBarra i{display:block;height:100%;background:#7ad07a}
+.qmBtn{background:var(--c-escuro);border:2px solid var(--c-pedra);color:var(--c-linho);font:bold 11px monospace;padding:6px 10px;cursor:pointer}
+.qmBtn:hover{border-color:var(--c-linho)}.qmBtn.ok{border-color:#7ad07a;color:#7ad07a}.qmBtn.sair{border-color:var(--c-cinza);color:var(--c-pedra)}
+@media (max-width:560px){.qmCartaz{grid-template-columns:48px 1fr 1fr}.qmCartaz .qmBtn{grid-column:1/-1}}

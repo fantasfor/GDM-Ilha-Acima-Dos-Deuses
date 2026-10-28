@@ -74,6 +74,21 @@ const efeitoTexto=l=>(Array.isArray(l)?l:[]).filter(f=>f&&FX_INFO[f.type]).map(f
  const t=k=='dot'?pw+' de dano de '+i.n+(ac?' por acúmulo':'')+'/s':k=='slow'?'-'+pw+'% '+i.n+(i.atk?' (movimento e ataque)':'')+(ac?' por acúmulo':'')+(i.congela?', '+(i.stacks||1)+' acúmulos congelam '+i.congela+' s':''):k=='hot'?pw+' de '+i.n+' de vida/s':k=='stun'?i.n+' '+dur+' s':k=='physup'?'+'+pw+'% de dano físico ('+i.n+')':k=='magup'?'+'+pw+'% de dano mágico ('+i.n+')':k=='dmgup'?'+'+pw+'% de dano ('+i.n+')':k=='dmgdown'?'-'+pw+'% de dano ('+i.n+')':k=='guard'?'-'+pw+'% de dano recebido ('+i.n+')':k=='haste'?'+'+pw+'% de velocidade ('+i.n+')':k=='vuln'?'+'+pw+'% de dano recebido ('+i.n+')':i.n;
  return t+(ac||k=='stun'?'':' por '+dur+' s')+ch}).join(' · ');
 window.efeitoTexto=efeitoTexto;
+/* frase completa de cada efeito para as dicas dos itens, gerada da configuração (Engine › item › efeitos), ex.:
+   "20% de chance de aplicar Veneno durante 5 s, causando 5 de dano por segundo por acúmulo (até 3 acúmulos)".
+   proprio: o efeito é em quem usa o item (armadura: ao ser atingido) */
+const efeitoFrase=(l,proprio)=>(Array.isArray(l)?l:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{
+ const i=FX_INFO[f.type],k=i.kind,ch=f.chance==null||f.chance===''?100:n(f.chance),dur=Math.max(.5,n(f.dur,n(i.dur,3))),pw=n(f.power,n(i.power)),ac=decai(f.type),por=Math.max(1,Math.round(n(f.acumulos)||1)),max=i.stacks||1;
+ const verbo=proprio?(ch>=100?'Ganha ':'ganhar '):(ch>=100?'Aplica ':'aplicar ');
+ let t=(ch>=100?'':ch+'% de chance de ')+verbo+i.n+' durante '+dur+' s';
+ if(k=='dot'){const tipo=i.dtype=='magic'?' mágico':i.dtype=='physical'?' físico':'',partes=[pw?String(pw):'',n(f.pct)?n(f.pct)+'% do dano'+(f.src=='physical'?' físico':f.src=='magic'?' mágico':''):'',n(f.attrPct)&&f.attr&&f.attr!='none'?n(f.attrPct)+'% de '+(FXATTR[f.attr]||f.attr):''].filter(Boolean);
+  t+=', causando '+(partes.join(' + ')||'0')+' de dano'+tipo+' a cada '+(n(i.tick,1)==1?'segundo':n(i.tick,1)+' s')+(ac&&max>1?' por acúmulo':'')}
+ else if(k=='slow')t+=', reduzindo '+(i.atk?'o movimento e o ataque':'o movimento')+' em '+pw+'%'+(ac&&max>1?' por acúmulo':'')+(i.congela?'; com '+max+' acúmulos congela por '+i.congela+' s':'');
+ else if(k=='vuln')t+=' (+'+pw+'% de dano recebido)';
+ else if(k!='stun'){const x=fxExtra(f).replace(/^ \(|\)$/g,'');if(x)t+=' ('+x+')'}
+ if(ac&&max>1)t+=' (até '+max+' acúmulos'+(por>1?', '+por+' por acerto':'')+')';
+ return t}).join('; ');
+window.efeitoFrase=efeitoFrase;
 // tempo de conjuração: o da habilidade; sem valor, projéteis levam 0,5 s e o resto é instantâneo
 /* alcance de golpe corpo a corpo (Corte Horizontal…): o da arma, mas arma de tiro (cajado, arco) golpeia de perto */
 const alcanceCorpo=()=>{const b=basic();return Math.max(22,b.ranged||b.proj?24:Math.min(48,b.rng||22))};
@@ -190,7 +205,8 @@ L('items').forEach(it=>{
   if(it.pega!=null&&it.pega!=='')o.pega=Math.max(0,Math.min(1,+it.pega/100));
   o.escalaMao=2; // padrão de proporção: na mão, 1 pixel do desenho = 1 pixel do herói
   // desenho antigo (feito para outra escala, ainda não convertido pela Engine): reduz para a altura que ele tinha na mão
-  if(+it.escalaMao!==2&&o.equippedSprite&&typeof reduzirArte==='function'){const e=o.equippedSprite,alvo=style==2?20:style==1?14:16,k=Math.min(1,alvo/e.height);if(k<1)o.equippedSprite=reduzirArte(e,e.width*k,e.height*k)}
+  // a mesma redução vale depois para os desenhos por direção e os quadros animados da arma (escalaReduz, mais abaixo)
+  if(+it.escalaMao!==2&&o.equippedSprite&&typeof reduzirArte==='function'){const e=o.equippedSprite,alvo=style==2?20:style==1?14:16,k=Math.min(1,alvo/e.height);if(k<1){o.equippedSprite=reduzirArte(e,e.width*k,e.height*k);o.escalaReduz=k}}
   /* ataque básico: configurado na própria arma (it.basic). Projetos antigos ligavam uma habilidade da
      categoria "basic" (basic.skillId); a Engine move esses dados para a arma, mas o jogo ainda lê os dois. */
   const b0=it.basic||{},basicSkill=b0.skillId?L('skills').find(s=>s.id==b0.skillId&&s.category=='basic'):null;
@@ -220,6 +236,11 @@ L('items').forEach(it=>{
  // animação vestida/empunhada (d, u, s e w = arma na mão): quadros Parado/Andando/Atacando
  const anims=Object.entries(it.equippedAnim||{}).map(([dir,a])=>{if(!a||typeof a!='object')return null;const q=k=>(Array.isArray(a[k])?a[k]:[]).map(pixelArt).filter(Boolean),r={idle:q('idle'),walk:q('walk'),attack:q('attack'),durations:{...a.durations},interval:a.interval};return r.idle.length||r.walk.length||r.attack.length?[dir,r]:null}).filter(Boolean);
  if(anims.length)o.equippedAnim=Object.fromEntries(anims);
+ // arma com desenho antigo reduzido: frente, costas, lados e os quadros animados na mesma escala da arma na mão
+ // (antes só o desenho principal encolhia e cada perspectiva aparecia de um tamanho)
+ if(o.escalaReduz){const k=o.escalaReduz,red=c=>c&&c.width?reduzirArte(c,Math.max(1,c.width*k),Math.max(1,c.height*k)):c;
+  for(const d in o.equippedSprites)o.equippedSprites[d]=red(o.equippedSprites[d]);
+  for(const d in o.equippedAnim||{}){const a=o.equippedAnim[d];for(const e of ['idle','walk','attack'])a[e]=a[e].map(red)}}
  o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL()});
 if(ITEMS.saw){ITEMS.saw.c=sawToolIcon();ITEMS.saw.ic=ITEMS.saw.c.toDataURL();ITEMS.saw.equippedSprite=typeof reduzirArte==='function'?reduzirArte(sawToolSprite(),14,6):sawToolSprite();ITEMS.saw.escalaMao=2} // na mão no padrão: 1 pixel = 1 pixel do herói
 for(const key of Object.keys(heroC))delete heroC[key];
@@ -261,13 +282,15 @@ if(port)port._tip=()=>{const c=CL[p.cls],ps=c.passive;return'<b>'+c.n+'</b>'+(ps
    dividindo a chance base + drops garantidos) vira o mesmo resultado em %. Não existe mais tabela padrão. */
 const NUNCA_CAI=['nova_arma','teste']; // arma ADM e a de teste nunca caem de monstro (mesma lista da Engine, project.js)
 function normDrops(m){
- const out={},put=(id,c)=>{if(ITEMS[id]&&!NUNCA_CAI.includes(id))out[id]=Math.max(out[id]||0,Math.max(0,Math.min(100,+c||0)))};
+ // quantidade (min–max, sorteada quando o item cai) é separada da chance; sem valores, cai 1
+ const out={},qtd={},put=(id,c,x)=>{if(!ITEMS[id]||NUNCA_CAI.includes(id))return;out[id]=Math.max(out[id]||0,Math.max(0,Math.min(100,+c||0)));
+  if(x){const mn=Math.max(1,Math.min(99,Math.floor(+x.min||1))),mx=Math.max(mn,Math.min(99,Math.floor(+x.max||mn)));if(mx>1)qtd[id]={min:mn,max:mx}}};
  const lista=Array.isArray(m.drops)?m.drops:[],g=Array.isArray(m.guaranteedDrops)?m.guaranteedDrops:[];
  const velhos=lista.filter(x=>typeof x=='string'&&!g.includes(x)),bn=m.bossType=='grandboss'?.4:m.bossType=='boss'?.2:0;
  velhos.forEach(id=>put(id,.22*(1+bn)/velhos.length*100)); // lista antiga (sem %): 22% divididos entre os itens
  g.forEach(id=>put(id,100));
- lista.forEach(x=>{if(x&&typeof x=='object')put(x.id,x.chance)});
- return Object.entries(out).filter(([,c])=>c>0).map(([id,chance])=>({id,chance}));
+ lista.forEach(x=>{if(x&&typeof x=='object')put(x.id,x.chance,x)});
+ return Object.entries(out).filter(([,c])=>c>0).map(([id,chance])=>({id,chance,...qtd[id]}));
 }
 const CM={};
 /* projeto ainda não convertido pela Engine (padrão de proporção, js/proporcao.js): desenho com "Tamanho" menor que 100%,
@@ -292,7 +315,8 @@ L('monsters').forEach(m=>{
  const animation=reduzirAnim(m.animation),direcoes=m.direcoes&&typeof m.direcoes=='object'?{frente:reduzirAnim(m.direcoes.frente),costas:reduzirAnim(m.direcoes.costas),esquerda:reduzirAnim(m.direcoes.esquerda)}:null;
  MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,ataqueDoNivel:!!m.ataqueDoNivel,sprite,sp,animation,direcoes,size:n(m.size,100),attackSpeed:atk,moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
   bossType:['boss','grandboss'].includes(m.bossType)?m.bossType:'normal',equipment:{stats:total,weaponRanges,weapon:weapon?{damageType:weapon.damageType=='magic'?'magic':'physical',basic:weapon.basic||{},effects:Array.isArray(weapon.effects)?weapon.effects:[]}:null},
-  drops:normDrops(m),skills:createdSkills,
+  drops:normDrops(m),skills:createdSkills,nivelMin:n(m.minLevel,0), // nível mínimo de aparição: base do +8% de dano por nível (multNivelMonstro)
+  ia:{esquiva:!!(m.ia&&m.ia.esquiva===true),distancia:!!(m.ia&&m.ia.distancia===true),lado:!!(m.ia&&m.ia.lado===true)}, // táticas (update.js iaTatica); padrão: todas desligadas (ligue na Engine)
   // chefe com mecânicas (js/chefes.js) e fúria abaixo de X% da vida
   mecanicas:Array.isArray(m.mecanicas)&&m.mecanicas.length?m.mecanicas.filter(x=>x&&x.tipo):null,furia:n(m.furia)};
  const f=n(s.F,5),pow=weapon&&weapon.damageType=='magic'?n(s.I,3)*5:f*3;

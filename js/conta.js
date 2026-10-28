@@ -82,12 +82,21 @@
 
  /* ---- progresso: localStorage <-> saves/{uid} (só o salvamento automático; não há pontos antigos para voltar) ---- */
  function recarregar(){window._noSave=true;location.reload()}
+ /* proteção do personagem: nunca envia à nuvem um save que pareça um personagem novo ou mais fraco que o da nuvem
+    (nível, ranks ou missões menores). Um save que regride assim só aparece por falha ao carregar — o envio para,
+    o save da nuvem fica intacto e uma cópia local é guardada para análise. */
+ const resumo=dados=>{try{const d=JSON.parse(dados),cp=d.p&&d.p.classProgress||{};return {lvl:+d.p.lvl||1,ranks:Object.values(cp).reduce((s,v)=>s+(+(v&&v.rank)||0),0),missoes:['cacaFeita','questDone','carpenterHelped','sawObtained','wallBuilt','campPortalBuilt','blacksmithSaved'].filter(k=>d[k]===true).length}}catch(e){return null}};
+ const regride=(novo,base)=>{const a=resumo(novo),b=base&&resumo(base);return !a||(b&&(a.lvl<b.lvl||a.ranks<b.ranks||a.missoes<b.missoes))};
+ let baseNuvem=null,avisouRegressao=false,ultimoBackup=0;
+ const BACKUP_MS=10*60000;
  async function sincronizarProgresso(){
   const nuvem=(await db.ref('saves/'+user.uid).get()).val();
-  const dono=ls.get(DONO),quando=Number(ls.get(QUANDO))||0;
-  if(nuvem&&typeof nuvem.dados==='string'&&(dono!==user.uid||nuvem.t!==quando)){
-   // a nuvem foi salva por outro aparelho depois do último envio deste (ou este navegador era de outra pessoa):
-   // usa o da nuvem. Compara por igualdade para não depender do relógio de cada computador.
+  const dono=ls.get(DONO),quando=Number(ls.get(QUANDO))||0,local=ls.get(SAVE);
+  if(nuvem&&typeof nuvem.dados==='string'&&(dono!==user.uid||nuvem.t!==quando||!local||(window.SAVE_FALHOU&&nuvem.dados!==local))){
+   // a nuvem foi salva por outro aparelho depois do último envio deste (ou este navegador era de outra pessoa, ou o
+   // save local sumiu): usa o da nuvem. Compara por igualdade para não depender do relógio de cada computador.
+   // O save local que vai ser trocado fica guardado (só o último) caso algo dê errado.
+   if(local&&local!==nuvem.dados&&dono===user.uid)ls.set(SAVE+'-anterior',local);
    ls.set(SAVE,nuvem.dados);ls.set(QUANDO,String(nuvem.t));ls.set(DONO,user.uid);
    recarregar();return false;
   }
@@ -96,7 +105,7 @@
    ls.del(SAVE);ls.del(QUANDO);ls.del('ilha-rpg-explorado');ls.set(DONO,user.uid);
    recarregar();return false;
   }
-  ls.set(DONO,user.uid);enviado=nuvem?nuvem.dados:null;meuT=nuvem?nuvem.t:0;
+  ls.set(DONO,user.uid);enviado=nuvem?nuvem.dados:null;meuT=nuvem?nuvem.t:0;baseNuvem=enviado;
   enviarProgresso(true);
   // se a mesma conta salvar de outro computador ou aba, esta para de salvar para não apagar aquele progresso
   db.ref('saves/'+user.uid+'/t').on('value',s=>{const t=s.val();if(t!=null&&t!==meuT)outroLugar()});
@@ -106,16 +115,70 @@
   if(window._noSave)return;
   window._noSave=true;nuvem.leave();
   const box=caixa('CONTA ABERTA EM OUTRO LUGAR');
-  aviso(box,'Sua conta salvou progresso em outro computador ou aba. Este jogo parou de salvar para não apagar aquele progresso.');
+  aviso(box,'Sua conta está em uso em outro computador ou aba. Este jogo parou de salvar para não apagar aquele progresso.');
   box.append(botao('Continuar aqui',()=>location.reload()));
  }
+ /* ---- uma sessão por conta: sessoes/{uid} = {id, t} ----
+    A sessão nova é que fica bloqueada (a antiga continua jogando). A trava é tomada numa transação no servidor e as
+    regras do banco recusam trocar a trava de outra sessão ainda viva; cai sozinha quando a conexão cai
+    (onDisconnect) ou quando passa SESSAO_EXPIRA sem sinal de vida. A mesma aba guarda o id e o reaproveita ao recarregar. */
+ const SESSAO_EXPIRA=90000,SESSAO_PULSO=30000;
+ const sessaoId=(()=>{let id=null;try{id=sessionStorage.getItem('ilha-rpg-sessao')}catch(e){}if(!id){id=Date.now().toString(36)+Math.random().toString(36).slice(2,10);try{sessionStorage.setItem('ilha-rpg-sessao',id)}catch(e){}}return id})();
+ let sessaoOk=false,sessaoPulso=null;
+ async function pegarSessao(){
+  const r=db.ref('sessoes/'+user.uid);
+  let offset=0;try{offset=(await db.ref('.info/serverTimeOffset').once('value')).val()||0}catch(e){}
+  let res;
+  try{res=await r.transaction(cur=>{
+   if(cur&&cur.id!==sessaoId&&Date.now()+offset-(+cur.t||0)<SESSAO_EXPIRA)return; // outra sessão viva: não mexe
+   return {id:sessaoId,t:firebase.database.ServerValue.TIMESTAMP};
+  },null,false)}
+  catch(e){
+   // regras do banco ainda sem "sessoes" (publicadas depois do jogo): não bloqueia ninguém; a trava fica desligada
+   if(/permission/i.test(String(e&&(e.code||e.message)))){console.warn('Trava de sessão desligada: publique as regras de ferramentas/regras-firebase.json (sessoes).');sessaoOk=true;return true}
+   throw e;
+  }
+  if(!res.committed)return false;
+  await r.onDisconnect().remove();
+  sessaoOk=true;
+  if(!sessaoPulso)sessaoPulso=setInterval(()=>{if(sessaoOk)r.child('t').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{})},SESSAO_PULSO);
+  return true;
+ }
+ // depois de entrar: se a trava sumir (a conexão caiu por um tempo) tenta pegar de novo; se outra sessão pegou, este jogo para de salvar
+ function vigiarSessao(){
+  let atual,conectado=false,conferindo=false;
+  const conferir=async()=>{
+   if(conferindo||window._noSave||!conectado||(atual&&atual.id===sessaoId))return; // sem conexão: confere de novo quando voltar
+   conferindo=true;sessaoOk=false;
+   let ok=false;try{ok=await pegarSessao()}catch(e){}
+   conferindo=false;if(!ok)outroLugar();
+  };
+  db.ref('sessoes/'+user.uid).on('value',s=>{atual=s.val();conferir()});
+  db.ref('.info/connected').on('value',s=>{conectado=!!s.val();conferir()});
+ }
+ function soltarSessao(){sessaoOk=false;if(user&&db)return db.ref('sessoes/'+user.uid).transaction(cur=>cur&&cur.id===sessaoId?null:undefined,null,false).catch(()=>{});return Promise.resolve()}
+ function telaSessaoAberta(){
+  return new Promise(resolve=>{
+   const box=caixa('CONTA JÁ ESTÁ EM JOGO');
+   aviso(box,'Este personagem já está aberto em outro computador ou aba. Feche a outra sessão e tente de novo. Se a outra sessão caiu, ela é liberada sozinha em até um minuto e meio.',true);
+   box.append(botao('Tentar de novo',async()=>{aviso(box,'Verificando…');let ok=false;try{ok=await pegarSessao()}catch(e){console.warn('Trava de sessão:',e&&e.code||e)}if(ok)resolve();else aviso(box,'A conta continua aberta em outro lugar.',true)}),
+    botao('Sair da conta',async()=>{window._noSave=true;await auth.signOut();location.reload()},'dim'));
+  });
+ }
  function enviarProgresso(forcar){
-  if(!user||window._noSave)return;
+  if(!user||window._noSave||!sessaoOk)return;
   const dados=ls.get(SAVE);if(!dados||dados.length>MAX_SAVE)return;
   const agora=Date.now();
   if(dados===enviado||(!forcar&&agora-ultimoEnvio<UPLOAD_MS))return;
+  if(window.SAVE_FALHOU)return;
+  if(regride(dados,baseNuvem)){
+   if(!avisouRegressao){avisouRegressao=true;ls.set(SAVE+'-recusado',dados);console.warn('Save local menor que o da nuvem (nível, rank ou missões): não enviado, para não apagar o personagem.')}
+   return;
+  }
   enviado=dados;ultimoEnvio=agora;meuT=agora;ls.set(QUANDO,String(agora));
-  db.ref('saves/'+user.uid).set({t:agora,dados}).catch(e=>{enviado=null;console.warn('Progresso não enviado à nuvem:',e&&e.code||e)});
+  db.ref('saves/'+user.uid).set({t:agora,dados}).then(()=>{baseNuvem=dados}).catch(e=>{enviado=null;console.warn('Progresso não enviado à nuvem:',e&&e.code||e)});
+  // cópia de segurança: uma por dia (3 dias), atualizada no máximo a cada 10 min — backups/{uid}/d0..d2
+  if(agora-ultimoBackup>=BACKUP_MS){ultimoBackup=agora;db.ref('backups/'+user.uid+'/d'+(Math.floor(agora/86400000)%3)).set({t:agora,dados}).catch(e=>console.warn('Cópia de segurança não enviada:',e&&e.code||e))}
  }
  setInterval(()=>enviarProgresso(false),5000);
  addEventListener('pagehide',()=>{if(window.saveGame)saveGame();enviarProgresso(true)});
@@ -365,7 +428,7 @@
   }
   r.append(botao('Sair da conta',async()=>{
    if(window.saveGame)saveGame();enviarProgresso(true);nuvem.leave();
-   window._noSave=true;await auth.signOut();location.reload();
+   window._noSave=true;await soltarSessao();await auth.signOut();location.reload();
   }));
   const del=box.querySelector('.mDel');if(del)box.insertBefore(r,del);else box.append(r);
  }
@@ -384,7 +447,7 @@
    const info=el('div','selInfo');info.append(el('strong','',perfil.nome||'Aventureiro'),el('span','',(CL[p.cls]?CL[p.cls].n:'Sem classe')+' · Nível '+p.lvl+' · Rank '+rank),el('em','','Clique para jogar'));
    slot.append(cv,info);slot.onclick=()=>{fechar();if(window.iniciarJogo)iniciarJogo();resolve()};
    const linha=el('div','selBotoes');
-   linha.append(botao('Apagar personagem',()=>confirmarApagarPersonagem(painel),'danger'),botao('Sair',async()=>{window._noSave=true;nuvem.leave();await auth.signOut();location.reload()},'dim'));
+   linha.append(botao('Apagar personagem',()=>confirmarApagarPersonagem(painel),'danger'),botao('Sair',async()=>{window._noSave=true;nuvem.leave();await soltarSessao();await auth.signOut();location.reload()},'dim'));
    painel.append(el('h1','selTitulo','GDM Ilha Acima dos Deuses'),el('div','selSub','PERSONAGEM'),slot,linha,el('div','selConta',descrever()));
    tela.append(painel);setTimeout(()=>slot.focus(),50);
   });
@@ -437,7 +500,10 @@
     const p=(await db.ref('perfis/'+u.uid).get()).val();
     perfil.nome=p&&p.nome||'';perfil.criado=!!(p&&p.criado);
     nuvem.id=u.uid;nuvem.name=perfil.nome||'Aventureiro';
+    // login duplicado: a sessão nova espera a outra sair (nada é lido ou salvo antes disso)
+    if(!await pegarSessao())await telaSessaoAberta();
     if(!await sincronizarProgresso())return;
+    vigiarSessao();
     // conta nova (ou sem personagem): escolhe nome, classe e sexo antes de jogar
     if(!perfil.criado)await criarPersonagem();
     nuvem.name=perfil.nome;

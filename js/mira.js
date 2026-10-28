@@ -34,5 +34,15 @@
   else circulo(p.x,p.y,raio(s),true);
   ctx.restore();
  }
- const draw0=draw;draw=function(){draw0();if(MIRA.s)desenhar()};
+ /* mouse em cima do botão da habilidade (ui.js define MIRA.previa): mostra no herói o alcance (contorno) e o tamanho
+    da área (preenchido), sem mirar nem lançar. Alcance: o da habilidade (alcance()) ou 200 nas de alvo; avanço: 80. */
+ function desenharPrevia(){
+  const s=MIRA.previa;if(!s||!s.f||p.dead>0)return;
+  ctx.save();ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));
+  const alc=typeof s.alcance=='function'?+s.alcance()||0:alvoTg(s)?200:s.effect=='blink'?80:0;
+  if(alc>0)circulo(p.x,p.y,alc,true,false);
+  if(!alvoTg(s)&&s.effect!='projectile'&&(+s.radius>0||noCursor(s)||s.effect=='nova'||s.effect=='blink'))circulo(p.x,p.y,s.effect=='blink'?32*areaMultiplier(p):raio(s),true);
+  ctx.restore();
+ }
+ const draw0=draw;draw=function(){draw0();if(MIRA.s)desenhar();else if(MIRA.previa)desenharPrevia()};
 })();

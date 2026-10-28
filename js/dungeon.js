@@ -598,6 +598,7 @@
   if(window.getDungeonLibrary&&!window.getDungeonLibrary().dungeons.length){alert('Nenhuma DG disponível no momento.');return}
   window.campPortalTheme = 'goblin';
   window.inDungeon = true;
+  if(window.STATS_DG) STATS_DG.zerar(); // estatísticas da DG começam do zero (js/estatisticas-dg.js)
   bossDefeatedEvent = false;
   clearRecorded = false;
   limparTelegrafos();
@@ -737,6 +738,7 @@
 
  function exitDungeon(toCampPortal = true){
   if(!window.inDungeon) return;
+  if(window.STATS_DG) STATS_DG.fim(); // painel de estatísticas do fim (antes de sair da sala do grupo)
   window.inDungeon = false;
   limparTelegrafos();
   flyingLoots = [];
@@ -987,6 +989,8 @@
   portal:(x,y,tipo,ativo,g)=>drawDungeonGate(x,y,tipo,ativo,g)
  };
 
+ // aliados vivos na mesma DG (online.js); sem multijogador, nenhum
+ const aliadosDG = () => window.inDungeon && window.aliadosVisiveis ? aliadosVisiveis() : [];
  // 3. Campo de Visão / Névoa Dinâmica (Fog of War) da Caverna
  function drawDungeonVision(W, H, shakeX, shakeY){
   if(dungeonVisionCv.width !== W || dungeonVisionCv.height !== H){
@@ -1016,6 +1020,20 @@
   vctx.beginPath();
   vctx.arc(px, py, playerRadius, 0, Math.PI * 2);
   vctx.fill();
+
+  // visão compartilhada: cada aliado na mesma DG ilumina a mesma área que o herói
+  for(const a of aliadosDG()){
+   const ax = toScreenX(a.x), ay = toScreenY(a.y);
+   if(ax < -playerRadius || ax > W + playerRadius || ay < -playerRadius || ay > H + playerRadius) continue;
+   const ag = vctx.createRadialGradient(ax, ay, 20 * S, ax, ay, playerRadius);
+   ag.addColorStop(0, 'rgba(0,0,0,1)');
+   ag.addColorStop(0.65, 'rgba(0,0,0,0.85)');
+   ag.addColorStop(1, 'rgba(0,0,0,0)');
+   vctx.fillStyle = ag;
+   vctx.beginPath();
+   vctx.arc(ax, ay, playerRadius, 0, Math.PI * 2);
+   vctx.fill();
+  }
 
   // Luz das Tochas da Caverna
   dungeonTorches.forEach(t => {
@@ -1520,10 +1538,13 @@
   if(time - memDG.t < .15) return memDG;
   memDG.t = time;
   const R = VISION_RANGE;
-  if(memDG.cv){
-   const i0 = Math.floor((p.x - R) / 16), i1 = Math.floor((p.x + R) / 16), j0 = Math.floor((p.y - R) / 16), j1 = Math.floor((p.y + R) / 16);
-   for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j] && Math.hypot((i + .5) * 16 - p.x, (j + .5) * 16 - p.y) <= R) memDG.g.fillRect(i - DUNGEON_CAIXA.i0, j - DUNGEON_CAIXA.j0, 1, 1);
-  } else [...CAVE_ROOMS, ...CAVE_CORRIDORS].forEach((b, k) => { const dx = Math.max(b.x - p.x, 0, p.x - b.x - b.w), dy = Math.max(b.y - p.y, 0, p.y - b.y - b.h); if(Math.hypot(dx, dy) <= R) memDG.salas.add(k); });
+  // o que o herói e os aliados da mesma DG enxergam entra na memória
+  for(const o of [p, ...aliadosDG()]){
+   if(memDG.cv){
+    const i0 = Math.floor((o.x - R) / 16), i1 = Math.floor((o.x + R) / 16), j0 = Math.floor((o.y - R) / 16), j1 = Math.floor((o.y + R) / 16);
+    for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j] && Math.hypot((i + .5) * 16 - o.x, (j + .5) * 16 - o.y) <= R) memDG.g.fillRect(i - DUNGEON_CAIXA.i0, j - DUNGEON_CAIXA.j0, 1, 1);
+   } else [...CAVE_ROOMS, ...CAVE_CORRIDORS].forEach((b, k) => { const dx = Math.max(b.x - o.x, 0, o.x - b.x - b.w), dy = Math.max(b.y - o.y, 0, o.y - b.y - b.h); if(Math.hypot(dx, dy) <= R) memDG.salas.add(k); });
+  }
   return memDG;
  }
  function drawDungeonMinimap(){
@@ -1549,16 +1570,19 @@
   const mem = memoriaDG();
   if(mem.cv){ mm.imageSmoothingEnabled = false; mm.drawImage(mem.cv, toMmX(DUNGEON_CAIXA.i0 * 16), toMmY(DUNGEON_CAIXA.j0 * 16), mem.cv.width * 16 * scale, mem.cv.height * 16 * scale); }
   else { mm.fillStyle = '#5a4a3e'; [...CAVE_ROOMS, ...CAVE_CORRIDORS].forEach((b, k) => { if(mem.salas.has(k)) mm.fillRect(toMmX(b.x), toMmY(b.y), b.w * scale, b.h * scale); }); }
-  // o campo de visão de agora, mais claro
-  const near = (x, y) => Math.hypot(x - p.x, y - p.y) <= VISION_RANGE;
+  // o campo de visão de agora (do herói e dos aliados da mesma DG), mais claro
+  const olhos = [p, ...aliadosDG()];
+  const near = (x, y) => olhos.some(o => Math.hypot(x - o.x, y - o.y) <= VISION_RANGE);
   mm.save();
   mm.beginPath();
-  mm.arc(toMmX(p.x), toMmY(p.y), VISION_RANGE * scale, 0, Math.PI * 2);
+  for(const o of olhos){ mm.moveTo(toMmX(o.x) + VISION_RANGE * scale, toMmY(o.y)); mm.arc(toMmX(o.x), toMmY(o.y), VISION_RANGE * scale, 0, Math.PI * 2); }
   mm.clip();
   mm.fillStyle = '#a08a74';
   if(DUNGEON_CHAO){
-   const i0 = Math.floor((p.x - VISION_RANGE) / 16), i1 = Math.floor((p.x + VISION_RANGE) / 16), j0 = Math.floor((p.y - VISION_RANGE) / 16), j1 = Math.floor((p.y + VISION_RANGE) / 16);
-   for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j]) mm.fillRect(toMmX(i * 16), toMmY(j * 16), 16 * scale + .5, 16 * scale + .5);
+   for(const o of olhos){
+    const i0 = Math.floor((o.x - VISION_RANGE) / 16), i1 = Math.floor((o.x + VISION_RANGE) / 16), j0 = Math.floor((o.y - VISION_RANGE) / 16), j1 = Math.floor((o.y + VISION_RANGE) / 16);
+    for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++) if(DUNGEON_CHAO[i + ',' + j]) mm.fillRect(toMmX(i * 16), toMmY(j * 16), 16 * scale + .5, 16 * scale + .5);
+   }
   } else {
    CAVE_ROOMS.forEach(r => {
     mm.fillRect(toMmX(r.x), toMmY(r.y), r.w * scale, r.h * scale);
@@ -1571,14 +1595,14 @@
 
   // Baús no minimapa
   dungeonChests.forEach(ch => {
-   if(ch.opened || Math.hypot(ch.x - p.x, ch.y - p.y) > VISION_RANGE) return;
+   if(ch.opened || !near(ch.x, ch.y)) return;
    mm.fillStyle = (window.BAUS && BAUS.COR[BAUS.tipo(ch.tier)]) || '#38bdf8';
    mm.fillRect(toMmX(ch.x) - 2, toMmY(ch.y) - 2, 4, 4);
   });
 
   // Inimigos no minimapa: só os que estão no campo de visão
   en.forEach(e => {
-   if(e.hp <= 0 || Math.hypot(e.x - p.x, e.y - p.y) > VISION_RANGE) return;
+   if(e.hp <= 0 || !near(e.x, e.y)) return;
    if(e.boss){
     mm.fillStyle = '#ef4444';
     mm.fillRect(toMmX(e.x) - 3, toMmY(e.y) - 3, 7, 7);
@@ -1595,6 +1619,9 @@
    mm.fillStyle = '#4ade80';
    mm.fillRect(toMmX(DUNGEON_EXIT_PORTAL.x) - 2, toMmY(DUNGEON_EXIT_PORTAL.y) - 2, 5, 5);
   }
+
+  // aliados da mesma DG (online.js: só quem está na mesma sala), na mesma escala do minimapa da DG
+  if(window.onlineMinimap) onlineMinimap(mm, minX - offsetX / scale, minY - offsetY / scale, scale, sz);
 
   // Jogador no minimapa
   mm.fillStyle = '#ffffff';

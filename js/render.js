@@ -674,6 +674,7 @@ function draw(){
    ctx.fillStyle='#6a7282';ctx.fillRect(ax-5,ay-8,9,1);
   }]);
  }
+ if(window.BAU_ILHA)BAU_ILHA.objeto(L); // baú do acampamento (js/bau-ilha.js)
  NPCS.forEach(n=>{
   if(n.x<-1000)return;
   L.push([n.y,()=>{const f=face(n);if(hovN==n)circ(n.x,n.y,12,'#ff5');
@@ -736,6 +737,7 @@ window.desenharMonstro=e=>{const o=[0,0],scale=ESCALA_MUNDO,spriteH=wh(e.img)*sc
  // minimapa (js/minimapa.js)
  drawMinimap()}
 const restored=loadGame();
+if(window.SAVE_FALHOU)avisoFalhaSave(); // save existe mas não carregou: avisa e não salva por cima (js/ui.js)
 {// Personagem novo começa com o kit inicial; as ferramentas de teste da Engine podem dar outros itens.
  const has=id=>I.some(s=>s&&s.id==id)||Object.values(EQ).some(s=>s&&s.id==id);
  // personagem novo: recebe o kit da classe (Engine › Classes › Kit inicial); sem kit configurado, o kit antigo

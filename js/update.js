@@ -68,13 +68,15 @@ function movePlayer(sp,dt){
    lado entre um ataque e outro (fica difícil de alcançar e de acertar); todos saem da área de dano do jogador (Chuva de
    Meteoros); o Mestre usa as habilidades da classe dele (js/arena.js) ou salto para trás
    (mago). Devolve true quando já decidiu o que fazer neste quadro (sem ataque básico). */
+/* cada tática é ligada por monstro (Engine › Monstro › Inteligência (IA)); sem configuração, todas ficam desligadas.
+   Os Mestres de classe do duelo (arena) usam todas: lutam como um jogador. */
 function iaTatica(e,a,d,alcance,ve,dt){
- const ar=p.canal&&p.canal.area;
- if(ar&&!e.boss&&Math.hypot(e.x-ar.x,e.y-ar.y)<ar.r+8){const ang=Math.atan2(e.y-ar.y,e.x-ar.x)||Math.random()*6.28;navigate(e,ar.x+Math.cos(ang)*(ar.r+26),ar.y+Math.sin(ang)*(ar.r+26));return true}
+ const ar=p.canal&&p.canal.area,ia=(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].ia)||{},liga=k=>!!e.duelo||ia[k]===true;
+ if(ar&&!e.boss&&liga('esquiva')&&Math.hypot(e.x-ar.x,e.y-ar.y)<ar.r+8){const ang=Math.atan2(e.y-ar.y,e.x-ar.x)||Math.random()*6.28;navigate(e,ar.x+Math.cos(ang)*(ar.r+26),ar.y+Math.sin(ang)*(ar.r+26));return true}
  if(e.duelo&&iaDuelista(e,a,d,ve,dt))return true;
  if(alcance>=45&&ve){
-  if(d<alcance*.5){const ang=Math.atan2(e.y-a.y,e.x-a.x);for(const o of [0,.5,-.5,1,-1]){const x=a.x+Math.cos(ang+o)*alcance*.8,y=a.y+Math.sin(ang+o)*alcance*.8;if(walk(x,y)&&linhaLivre({x,y},a)){navigate(e,x,y);e.fx=a.x-e.x;e.fy=a.y-e.y;return e.cd>0}}}
-  if(d<=alcance&&e.cd>.35){e.strafeT=(e.strafeT||0)-dt;if(!e.lado)e.lado=Math.random()<.5?1:-1;
+  if(d<alcance*.5&&liga('distancia')){const ang=Math.atan2(e.y-a.y,e.x-a.x);for(const o of [0,.5,-.5,1,-1]){const x=a.x+Math.cos(ang+o)*alcance*.8,y=a.y+Math.sin(ang+o)*alcance*.8;if(walk(x,y)&&linhaLivre({x,y},a)){navigate(e,x,y);e.fx=a.x-e.x;e.fy=a.y-e.y;return e.cd>0}}}
+  if(d<=alcance&&e.cd>.35&&liga('lado')){e.strafeT=(e.strafeT||0)-dt;if(!e.lado)e.lado=Math.random()<.5?1:-1;
    if(!e.dest||e.strafeT<=0){e.strafeT=.8+Math.random()*.8;if(Math.random()<.3)e.lado*=-1;const ang=Math.atan2(e.y-a.y,e.x-a.x)+e.lado*.35,r=Math.min(alcance*.85,Math.max(alcance*.6,d)),x=a.x+Math.cos(ang)*r,y=a.y+Math.sin(ang)*r;if(walk(x,y)&&linhaLivre({x,y},a))navigate(e,x,y);else e.lado*=-1}
    e.fx=a.x-e.x;e.fy=a.y-e.y;return true}}
  return false}
@@ -94,7 +96,7 @@ window.escalarDG=function(e){
  const b=e.dgBase,{vida,dano}=escalaGrupoDG(n),parte=e.max>0?e.hp/e.max:1;e.max=Math.round(b.max*vida);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
  e.dmg=Math.round(b.dmg*dano);e.weaponDamageMultiplier=b.wm*dano;if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*dano);
  e.dgK=n};
-function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
+function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||(window.inTaverna&&window.BAR&&BAR.hover&&BAR.hover(wpos()))||(window.BAU_ILHA&&BAU_ILHA.sob(wpos()))||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
  fxs.forEach(f=>f.t+=dt);for(let i=fxs.length;i--;)if(fxs[i].t>fxs[i].d)fxs.splice(i,1);
  fts.forEach(f=>{f.y-=14*dt;f.a-=dt*.9});for(let i=fts.length;i--;)if(fts[i].a<=0)fts.splice(i,1);
  p.hit-=dt;

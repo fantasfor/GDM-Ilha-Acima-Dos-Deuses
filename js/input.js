@@ -12,6 +12,7 @@ function order(click,mode=0){if(p.dead>0)return;const w=wpos();
  if(window.inDungeon&&click&&window.handleDungeonClick){
   if(window.handleDungeonClick(w,mode))return;
  }
+ if(click&&window.BAU_ILHA&&BAU_ILHA.clique(w,mode))return; // baú do acampamento (js/bau-ilha.js)
  if(click&&mode!=2&&pickCampPortal(w)){showDungeonMenu();return}
  if(click&&mode!=2&&pickCampGate(w)){
   p.npcT=null;p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;p.gateT=true;

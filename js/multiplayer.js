@@ -421,6 +421,29 @@
   seguirGrupo(null);
  }
  MP.sairDoGrupo=sairDoGrupo;
+ /* ---------- painel do grupo, fixo à esquerda: nome, vida e mana de cada membro, ao vivo ----------
+    Um quadro por membro, guardado pelo uid (nunca repete). Você primeiro, depois o líder. Vida e mana dos outros chegam
+    pela posição rápida (mesma sala); em outra sala fica a última conhecida e o nome diz onde está. */
+ const painelG=el('div');painelG.id='painelGrupo';painelG.hidden=true;painelG.setAttribute('aria-label','Grupo');document.body.append(painelG);
+ const quadrosG=new Map();
+ function atualizarPainelGrupo(){
+  const g=MP.grupo,ids=g&&g.membros?Object.keys(g.membros):[];
+  if(!uid||ids.length<2||(window.cameraMenu&&cameraMenu.ativo)){painelG.hidden=true;return}
+  painelG.hidden=false;
+  ids.sort((a,b)=>(b===uid)-(a===uid)||(b===MP.grupoLider)-(a===MP.grupoLider));
+  for(const [id,q] of quadrosG)if(!ids.includes(id)){q.el.remove();quadrosG.delete(id)}
+  ids.forEach((id,n)=>{
+   let q=quadrosG.get(id);
+   if(!q){const e=el('div','pgMembro'),nome=el('span','pgNome'),vida=el('i','pgBarra pgVida'),mana=el('i','pgBarra pgMana');vida.append(el('b'));mana.append(el('b'));e.append(nome,vida,mana);q={el:e,nome,vida:vida.firstChild,mana:mana.firstChild};quadrosG.set(id,q)}
+   if(painelG.children[n]!==q.el)painelG.insertBefore(q.el,painelG.children[n]||null);
+   const eu=id===uid,o=eu?{}:outros().get(id)||{},mesma=eu||(o.sala&&o.sala===MP.sala);
+   const hp=eu?p.hp/Math.max(1,mhp()):+o.hp,mp=eu?p.mp/Math.max(1,mmp()):+o.mp,pct=v=>(Number.isFinite(v)?Math.max(0,Math.min(1,v))*100:0)+'%';
+   q.nome.textContent=(id===MP.grupoLider?'[L] ':'')+(typeof g.membros[id]==='string'?g.membros[id]:MP.nomeDe(id))+(eu?' (você)':!o.sala?' · offline':mesma?'':' · longe');
+   q.vida.style.width=pct(hp);q.mana.style.width=pct(mp);
+   q.el.classList.toggle('morto',eu?p.dead>0:!!o.dead);q.el.classList.toggle('longe',!mesma);
+  });
+ }
+ setInterval(atualizarPainelGrupo,250);
 
  /* ---------- convites ---------- */
  async function convidar(para,tipo,extra={}){
