@@ -21,12 +21,7 @@
  const dungeonVisionCv = document.createElement('canvas');
  const dungeonVisionCtx = dungeonVisionCv.getContext('2d');
 
- // Registro de tipos de monstros da masmorra para inspeção / barra de vida
- if(typeof MONSTER_TYPES !== 'undefined'){
-  if(!MONSTER_TYPES.goblin){
-   MONSTER_TYPES.goblin = { name: 'Goblin', stats: { F: 14, A: 8, I: 4 }, bossType: 'normal' };
-  }
- }
+ // (o tipo embutido "Goblin" saiu, pedido do usuário 2026-10-28: monstro de DG sem tipo usa o Esqueleto do Serrote, gob)
 
  // Geometria Dinâmica e Configuração da Masmorra
  let CAVE_ROOMS = [];
@@ -471,7 +466,7 @@
  /* ---------- Chefe padrão da DG: Rei Esqueleto do Covil (o Lorde Goblin saiu do jogo, pedido do usuário 2026-10-23) ----------
     É um monstro do projeto como os outros (Engine › Chefes); sem ele no projeto, o Rei Esqueleto comum vira chefe. */
  const CHEFE_DG = 'rei_esqueleto_covil';
- const tipoChefeDG = () => MONSTER_TYPES[CHEFE_DG] ? CHEFE_DG : MONSTER_TYPES.esqueleto_rei ? 'esqueleto_rei' : 'goblin';
+ const tipoChefeDG = () => MONSTER_TYPES[CHEFE_DG] ? CHEFE_DG : MONSTER_TYPES.esqueleto_rei ? 'esqueleto_rei' : 'gob';
  function spawnDungeonBoss(bx, by, blvl){
   const ty = tipoChefeDG(), bossLvl = blvl || Math.max(5, p.lvl + 1);
   dungeonBoss = spawnAt(bx != null ? bx : 780, by != null ? by : 480, ty, bossLvl);
@@ -655,7 +650,7 @@
   dungeonBosses = [];
   let bossSpawned = false;
   mobsList.forEach(m => {
-   const mobType = m.type || 'goblin';
+   const mobType = m.type || 'gob';
    const targetLvl = m.lvl || Math.max(4, p.lvl);
    const isBoss = !!m.isBoss || !!(MONSTER_TYPES[mobType] && ['boss', 'grandboss'].includes(MONSTER_TYPES[mobType].bossType));
    let mon;
@@ -1328,7 +1323,7 @@
     ctx.globalAlpha = p.hit > 0 ? .5 : 1;
     const f = face(p);
     const an = anim(p, .25);
-    dr.ent = p; dr(heroImg(f.d, an), p.x + o[0], p.y + o[1], f.fl, 1, an);
+    dr.ent = p; dr(heroImg(f.d, an), p.x + o[0], p.y + o[1], f.fl, 1, an); if(window.rastroArma) rastroArma(p, f, an, p.x + o[0], p.y + o[1]);
     ctx.globalAlpha = 1;
 
     // Barra de vida e mana acima do jogador

@@ -245,10 +245,10 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
 
  /* ---- desenho dos outros jogadores (chamado pelo render.js) ---- */
  const looks=new Map();
- function lookOf(o,dir,ph,swing=0){
+ function lookOf(o,dir,ph,swing=0,esquerda=false){
   const own=CL[o.cls]&&CL[o.cls].sprite;if(own)return own;
   const base=CL[o.cls]?.base||(HS[o.cls]?o.cls:'war');
-  let key=base+o.sex+dir+ph+'w'+swing+(o.ap||'')+(window.HEROI_MANA?'m'+HEROI_MANA.versao():'');const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw')};
+  let key=base+o.sex+dir+(esquerda?'E':'')+ph+'w'+swing+(o.ap||'')+(window.HEROI_MANA?'m'+HEROI_MANA.versao():'');const E={nude:1,sex:o.sex==='f'?'f':'m',swing,shWeapon:!!(o.eq.sh&&gearType[o.eq.sh]==='sw'),esquerda:esquerda&&dir==='s'};
   if(window.APARENCIA)E.look=APARENCIA.decodificar(o.ap,E.sex); // aparência escolhida na criação (pele, cabelo, olhos, estilo)
   for(const [slot,id] of Object.entries(o.eq))if(ITEMS[id]&&gearType[id]){E[slot]=ITEMS[id];key+=slot+id}
   key+=chaveEquipAnim(Object.values(E),dir,swing?'attack':ph?'walk':'idle');
@@ -286,7 +286,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
     if(o.dead){o.vfxGiro=null;o.vfxAuras=null} // aliado morreu: o giro e as auras dele param junto
     if(o.vfxGiro&&o.vfxGiro.ate>t){const ang=t*Math.PI*2*2.2;o.fx=Math.cos(ang);o.fy=Math.sin(ang);o.fk=undefined}
     const f2=o.vfxGiro&&o.vfxGiro.ate>t?face(o):f;
-    dr.ent=o;dr(lookOf(o,f2.d,an.ph||0,an.sw||0),o.x+lg[0],o.y+lg[1],f2.fl,1,an);ctx.globalAlpha=1;
+    dr.ent=o;dr(lookOf(o,f2.d,an.ph||0,an.sw||0,f2.fl<0),o.x+lg[0],o.y+lg[1],f2.fl,1,an);ctx.globalAlpha=1;
     if(o.vfxGiro&&o.vfxGiro.ate>t&&window.VFX)VFX.lamina(ctx,o.x,o.y-8,o.vfxGiro.raio,t*Math.PI*2*2.2,o.vfxGiro.cor);
     // nome na fonte dos rótulos do jogo; barras de vida e mana iguais às do jogador, com o nível à esquerda
     ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';

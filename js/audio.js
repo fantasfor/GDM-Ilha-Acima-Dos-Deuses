@@ -95,7 +95,8 @@ function refreshLoops(){
   const luta=quer&&scene!=='tavern'&&p.dead<=0&&window.emCombate&&emCombate();
   trocar('musica',luta?'combate':quer&&!(config[scene+'.music']&&config[scene+'.music'].src)?quer:null);
   // ilha: ambiente de dia (mar, vento, pássaros) ou de noite (grilos, coruja), pelo relógio do jogo (js/tempo.js)
-  const amb=quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':quer;
+  // na taverna não há ambiente de fundo (conversa): só a música da banda e os sons dos objetos (lareira, fogueira, chafariz...)
+  const amb=quer==='tavern'?null:quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':quer;
   trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?amb:null);
  }
  lastScene=scene
@@ -387,4 +388,80 @@ setInterval(()=>{
  const a=ativos.ambiente;
  if(a&&!a.parado){const ev=AMBIENTES[a.cena].eventos;ev.forEach(([mn,mx,fn],i)=>{if(a.timers[i]<t-2)a.timers[i]=t+mn;while(a.timers[i]<t+.3){try{fn(a.saida,Math.max(t,a.timers[i]))}catch(e){}a.timers[i]+=mn+Math.random()*(mx-mn)}})}
 },150);
+
+/* ---------- sons do cenário (2026-10-28, pedido do usuário) ----------
+   Fogueiras e lareira (estalos), árvores (folhas ao vento), chafarizes, fontes e o rio (água) tocam onde estão: o volume
+   cresce quanto mais perto o herói chega ((1 - distância/alcance)², somando as fontes do mesmo tipo, até 1) e o som vem
+   do lado em que a fonte está (pan estéreo). Um conjunto de nós por tipo, no canal Ambiente (volume nas Opções). */
+const TIPOS_CENARIO={
+ fogo:{R:150,montar(d){return [fundo(d,'lowpass',360,.7,.06),fundo(d,'bandpass',1100,.8,.012)]},
+  eventos:[[.04,.16,(d,t)=>{const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type='highpass';f.frequency.value=1800+Math.random()*3500;const v=.015+Math.random()*.05;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.012+Math.random()*.03);src.connect(f);f.connect(g);g.connect(d);src.start(t,Math.random(),.06)}],
+   [.6,2.2,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(140+Math.random()*60,t);o.frequency.exponentialRampToValueAtTime(50,t+.08);g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+.1);o.connect(g);g.connect(d);o.start(t);o.stop(t+.12)}]]},
+ arvore:{R:120,montar(d){const f=fundo(d,'bandpass',2600,.5,.022),l=audio.createOscillator(),lg=audio.createGain();l.frequency.value=.13;lg.gain.value=.016;l.connect(lg);lg.connect(f.gain);l.start();return [f,{parar:()=>{try{l.stop()}catch(e){}}}]},
+  eventos:[[.3,1.4,(d,t)=>{const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter(),dur=.15+Math.random()*.35;src.buffer=ruido();f.type='bandpass';f.frequency.value=3000+Math.random()*2500;f.Q.value=.8;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.02+Math.random()*.02,t+dur*.4);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f);f.connect(g);g.connect(d);src.start(t,Math.random(),dur+.05)}]]},
+ agua:{R:160,montar(d){return [fundo(d,'bandpass',950,.6,.05),fundo(d,'highpass',4200,.5,.014)]},
+  eventos:[[.05,.25,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain(),f0=700+Math.random()*1500;o.type='sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*1.6,t+.04);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.012+Math.random()*.012,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(d);o.start(t);o.stop(t+.06)}]]}
+};
+// tipo de som de um elemento de mapa (pelo id e pelo nome do tipo); peso: quanto ele soa (churrasqueira mais baixo)
+function somDoElemento(type){
+ const t=(type+' '+((window.MAP_ELEMENT_TYPES&&MAP_ELEMENT_TYPES[type]&&MAP_ELEMENT_TYPES[type].name)||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+ if(/churrasq/.test(t))return['fogo',.5];
+ if(/fogueir|fogo|braseir|tocha|lareir/.test(t))return['fogo',1];
+ if(/chafariz|fonte|cachoeir|cascata|poco\b|lago|agua/.test(t))return['agua',1];
+ if(/arvore|pinheir|palmeir|carvalho|salgueir|\btree/.test(t))return['arvore',1];
+ return null}
+// fontes de som perto do herói: [tipo, x, y, peso]
+function fontesDoCenario(){
+ const L=[],perto=(x,y,r)=>Math.abs(x-p.x)<r&&Math.abs(y-p.y)<r;
+ if(window.inTaverna&&window.TAVERNA_LAYOUT){const T=TAVERNA_LAYOUT.L;L.push(['fogo',T.lareira.x,T.lareira.y+10,1]);for(const e of T.decor){const s=somDoElemento(e.type);if(s)L.push([s[0],e.x,e.y,s[1]])}return L}
+ if(window.inDungeon||window.inArena||window.inTutorial)return L;
+ if(typeof CX!='undefined')L.push(['fogo',CX,CY,1]); // fogueira do acampamento
+ if(typeof trees!='undefined')for(const t of trees)if(perto(t.x,t.y,130))L.push(['arvore',t.x,t.y-10,.6]);
+ if(typeof mapElements!='undefined')for(const e of mapElements)if(perto(e.x,e.y,170)){const s=somDoElemento(e.type);if(s)L.push([s[0],e.x,e.y,s[1]])}
+ // rio: o ponto de água mais perto em volta do herói
+ if(typeof inRiver=='function'){let melhor=null;for(const r of [0,24,48,72,100])for(let a=0;a<(r?12:1);a++){const x=p.x+Math.cos(a*Math.PI/6)*r,y=p.y+Math.sin(a*Math.PI/6)*r;if(inRiver(x,y)&&(!melhor||r<melhor.r))melhor={x,y,r}}if(melhor)L.push(['agua',melhor.x,melhor.y,.8])}
+ return L}
+const cenario={}; // tipo -> {g (volume), pan, nos, timers}
+setInterval(()=>{
+ if(!audio||!bus||audio.state!=='running'||!unlocked||typeof p=='undefined')return;
+ const t=agora(),soma={},lado={},fontes=document.hidden?[]:fontesDoCenario();
+ for(const [tipo,x,y,peso] of fontes){const R=TIPOS_CENARIO[tipo].R,d=Math.hypot(x-p.x,y-p.y);if(d>=R)continue;const w=peso*(1-d/R)**2;soma[tipo]=(soma[tipo]||0)+w;lado[tipo]=(lado[tipo]||0)+w*Math.max(-1,Math.min(1,(x-p.x)/(R*.6)))}
+ for(const tipo in TIPOS_CENARIO){
+  const alvo=Math.min(1,soma[tipo]||0),def=TIPOS_CENARIO[tipo];let c=cenario[tipo];
+  if(!c&&alvo>.005){const g=audio.createGain(),pan=audio.createStereoPanner?audio.createStereoPanner():null;g.gain.value=0;if(pan){g.connect(pan);pan.connect(bus.ambiente)}else g.connect(bus.ambiente);
+   c=cenario[tipo]={g,pan,nos:def.montar(g),timers:def.eventos.map(([a,b])=>t+a+Math.random()*(b-a))}}
+  if(!c)continue;
+  c.g.gain.setTargetAtTime(alvo,t,.25);if(c.pan&&alvo>0)c.pan.pan.setTargetAtTime(Math.max(-.85,Math.min(.85,(lado[tipo]||0)/Math.max(1e-6,soma[tipo]))),t,.25);
+  // eventos (estalos, folhas, respingos) só com o som audível
+  if(alvo>.02)def.eventos.forEach(([mn,mx,fn],i)=>{if(c.timers[i]<t-2)c.timers[i]=t+mn;while(c.timers[i]<t+.3){try{fn(c.g,Math.max(t,c.timers[i]))}catch(e){}c.timers[i]+=mn+Math.random()*(mx-mn)}});
+  // longe de tudo por um tempo: desmonta os nós (economiza processamento)
+  if(alvo<=.005){c.quieto=(c.quieto||0)+1;if(c.quieto>40){(c.nos||[]).forEach(n=>n.parar());try{c.g.disconnect()}catch(e){}delete cenario[tipo]}}else c.quieto=0;
+ }
+},150);
+/* ---------- passos do herói (2026-10-28, pedido do usuário) ----------
+   Um passo a cada ~18 px andados (mais rápido = mais passos), alternando pé esquerdo e direito, com o som do chão:
+   madeira (taverna, pontes), pedra (DG, pátio do bar, arena) ou terra/grama (ilha). Canal Efeitos, bem baixo. */
+let passoX=null,passoY=0,passoAnda=0,passoPe=0;
+function chaoDoPasso(){
+ if(window.inTaverna)return window.BAR&&BAR.dentro(p.x,p.y)?'pedra':'madeira';
+ if(window.inDungeon||window.inArena)return 'pedra';
+ if(typeof onBridge=='function'&&onBridge(p.x,p.y))return 'madeira';
+ return 'terra'}
+function tocarPasso(tipo){
+ if(!audio||!bus)return;const t=agora(),pe=(passoPe^=1)?1:.92,src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain();
+ src.buffer=ruido();src.playbackRate.value=pe;
+ if(tipo==='madeira'){f.type='bandpass';f.frequency.value=420*pe;f.Q.value=1.6;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+.07);
+  const o=audio.createOscillator(),og=audio.createGain();o.frequency.setValueAtTime(150*pe,t);o.frequency.exponentialRampToValueAtTime(80,t+.06);og.gain.setValueAtTime(.025,t);og.gain.exponentialRampToValueAtTime(.0001,t+.07);o.connect(og);og.connect(bus.efeitos);o.start(t);o.stop(t+.08)}
+ else if(tipo==='pedra'){f.type='highpass';f.frequency.value=1800*pe;g.gain.setValueAtTime(.03,t);g.gain.exponentialRampToValueAtTime(.0001,t+.045)}
+ else{f.type='lowpass';f.frequency.value=900*pe;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.035,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.11)}
+ src.connect(f);f.connect(g);g.connect(bus.efeitos);src.start(t,Math.random()*1.2,.14)}
+setInterval(()=>{
+ if(!audio||!bus||audio.state!=='running'||typeof p=='undefined'||document.hidden)return;
+ if(passoX===null){passoX=p.x;passoY=p.y;return}
+ const d=Math.hypot(p.x-passoX,p.y-passoY);passoX=p.x;passoY=p.y;
+ // teleporte (portal, entrar na taverna) não conta; parado, morto ou sentado não dá passo
+ if(d>40||p.dead>0||(window.MESAS&&MESAS.sentado)){passoAnda=0;return}
+ passoAnda+=d;if(passoAnda>=18){passoAnda=0;tocarPasso(chaoDoPasso())}
+},50);
+SOM.cenario=()=>Object.fromEntries(Object.entries(cenario).map(([k,c])=>[k,+c.g.gain.value.toFixed(3)]));
 })();

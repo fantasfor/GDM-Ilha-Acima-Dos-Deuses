@@ -250,7 +250,7 @@
    ctx.fillStyle='#f87171';ctx.font='bold 6px monospace';ctx.fillText('PvP',x,y-28+Math.round(Math.sin(time*4)*1.5))}]);
   // o balcão fica na frente da taverneira
   L.push([OY+91,()=>ctx.drawImage(fundo,8,66,186,26,OX+8,OY+66,186,26)]);
-  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
+  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);if(window.rastroArma)rastroArma(p,f,an,p.x+o[0],p.y+o[1]);ctx.globalAlpha=1;
    const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25-ACIMA_HEROI()),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
   if(window.BAR)BAR.objetos(L);
@@ -420,7 +420,7 @@
   const box=$('dialogue');box.classList.remove('dgModal');
   const mu=musicaAgora();
   box.innerHTML='<b>Taverneira Bete</b><p>Bem-vindo ao Javali Dourado! Aqui todo mundo se encontra.'+(mu&&!mu.pausa?' O Bardo Lírio está tocando <b>'+mu.m.nome+'</b>.':'')+'</p>'+
-   '<p>Suas habilidades funcionam com os outros: curas curam quem está perto ou o amigo que você mirar, bênçãos e proteções fortalecem o grupo e ataques só empurram. Ninguém se machuca aqui dentro.</p>'+
+   '<p>Aqui dentro é lugar de descanso: nada de habilidades nem brigas. Ninguém se machuca na taverna.</p>'+
    '<p class=tm>Procurando trabalho? Veja o quadro de missões na parede.</p>'+
    '<button type="button" data-tav-bebida>Pedir uma bebida ('+moeda(5)+'): vida e mana cheias</button><button type="button" data-tav-vender>Vender itens</button><button type="button" data-close-dialog>Até mais</button>';
   box.classList.add('open');
@@ -554,28 +554,15 @@
   const r=NUVEM.db.ref('salas/taverna/fx').push({de:NUVEM.uid,nome:NUVEM.nome(),...fx,t:firebase.database.ServerValue.TIMESTAMP});
   setTimeout(()=>r.remove().catch(()=>{}),6000);
  }
+ /* na taverna inteira (e no pátio do bar) nenhuma habilidade funciona (pedido do usuário, 2026-10-28): nem de pé, nem
+    sentado. Corta já ao apertar a tecla (antes da mira) e no lançamento. As curas/bênçãos entre jogadores de antes
+    (enviar/receber) ficam só para receber de clientes antigos. */
+ const AVISO_TAV='Habilidades não funcionam na taverna';let avisoTav=-9;
+ const avisar=()=>{if(time-avisoTav>1){avisoTav=time;ft(p.x,p.y-24,AVISO_TAV,'#ccc')}};
  const cast0=cast;
- cast=function(s){
-  if(!window.inTaverna)return cast0(s);
-  // sentado numa mesa (jogando ou não): sem habilidades; o resto da taverna segue as regras de sempre
-  if(window.MESAS&&MESAS.sentado){ft(p.x,p.y-24,'Saia da mesa para usar habilidades','#ccc');return}
-  const tipo=tipoDe(s);
-  if(s.f&&s.f.tg){
-   // habilidade com alvo: mira outro jogador perto do cursor
-   if(p.dead>0||s.t>0||!s.f||p.mp<s.mana||s.lock)return cast0(s);
-   const w=wpos(),alvo=jogadorPerto(w);
-   if(!alvo){ft(p.x,p.y-24,'Mire em outro jogador','#ccc');return}
-   if(dist(p,alvo)>200){ft(p.x,p.y-24,'Longe demais','#ccc');return}
-   p.mp-=s.mana;s.t=s.cd*cooldownMultiplier(p);p.fx=alvo.x-p.x;p.fy=alvo.y-p.y;
-   fxs.push({x:alvo.x,y:alvo.y,r:18,c:COR[tipo],t:0,d:.5});ring(alvo.x,alvo.y,14,COR[tipo],.4);
-   ft(alvo.x,alvo.y-30,s.n,COR[tipo]);if(window.playGameSound)playGameSound('magic');
-   enviar({tipo,alvo:alvo.uid,x:Math.round(alvo.x),y:Math.round(alvo.y),r:16,hab:s.n});
-   return;
-  }
-  const t0=s.t;cast0(s);
-  if(s.t>t0)enviar({tipo,x:Math.round(p.x),y:Math.round(p.y),r:Math.max(30,Math.min(70,+s.radius||48)),hab:s.n});
- };
- function receber(f){
+ cast=function(s){if(window.inTaverna){avisar();return}return cast0(s)};
+ if(window.teclaHabilidade){const th0=teclaHabilidade;window.teclaHabilidade=function(s,e){if(window.inTaverna){avisar();return}return th0.apply(this,arguments)}}
+ void enviar;void jogadorPerto; function receber(f){
   if(!f||!window.inTaverna||f.de===(window.NUVEM&&NUVEM.uid))return;
   if(Date.now()+((window.NUVEM&&NUVEM.offset)||0)-(f.t||0)>4000)return;
   const cor=COR[f.tipo]||'#fff';

@@ -568,6 +568,13 @@
   return melhor?{id:melhor.id,msg:texto.slice(melhor.nome.length).trim()}:null;
  };
  const abrirSussurro=id=>{if(window.abrirChatCom)abrirChatCom('/s '+MP.nomeDe(id)+' ')};
+ /* interações com um jogador (as mesmas do painel Jogadores), para o menu do alvo aliado (js/alvo-aliado.js) */
+ MP.acoesJogador=id=>{const o=outros().get(id),g=MP.grupo,l=[];
+  if(!o||id===uid)return l;
+  if(o.sala!=='ilha:'+uid)l.push(['Convidar para a sua ilha',()=>convidar(id,'ilha')]);
+  if(!(g&&g.membros&&g.membros[id])&&!(MP.grupoLider&&MP.grupoLider!==uid))l.push(['Convidar para o grupo',()=>convidar(id,'grupo')]);
+  if(!MP.amigos[id])l.push(['Adicionar amigo',()=>convidar(id,'amizade')]);
+  l.push(['Sussurrar',()=>abrirSussurro(id)]);return l};
 
  /* ---------- painel: jogadores online, amigos, grupo e ilha ---------- */
  const painel=el('section','mpPainel');painel.hidden=true;painel.setAttribute('aria-label','Jogadores');

@@ -13,7 +13,7 @@ Object.assign(FX_INFO,{
  // Curandeiro (js/curandeiro.js): curas instantâneas (não ficam como efeito) e a Presença Curativa (+% de dano)
  cura:{n:'Cura',c:'#6fe36f',kind:'curapct',good:true},luz:{n:'Iluminação',c:'#fff3a0',kind:'curapct',good:true},curafixa:{n:'Pulso de Luz',c:'#ffe9a0',kind:'curaabs',good:true},
  presenca:{n:'Presença Curativa',c:'#7fe8a0',kind:'dmgup',good:true,aura:true},
- gelo:{n:'Gelo',c:'#8fd8ff',kind:'slow',power:5,stacks:10,atk:true,congela:3}}); // -5% de movimento e ataque por acúmulo; 10 acúmulos congelam 3 s // cada acúmulo deixa 10% mais lento // aura: chamas e contorno na cor do efeito (js/vfx-habilidades.js)
+ gelo:{n:'Gelo',c:'#8fd8ff',kind:'slow',power:5,stacks:10,atk:true,maxFx:'congelado',maxFxDur:2,maxResto:1}}); // Freio: -5% de movimento e ataque por acúmulo; 10 acúmulos = Congelado 2 s e o gelo volta para 1 acúmulo // cada acúmulo deixa 10% mais lento // aura: chamas e contorno na cor do efeito (js/vfx-habilidades.js)
 /* atordoado: espiral desenhada girando em cima da cabeça (js/vfx-habilidades.js) */
 /* buffs do mesmo tipo não somam: vale o mais forte */
 function stSum(t,kind){let m=0,b=0;if(t&&t.st)for(const k in t.st){const f=FX_INFO[k];if(!f||f.kind!=kind)continue;if(f.good)b=Math.max(b,t.st[k].pw);else m+=t.st[k].pw*(t.st[k].n||1)}return m+b}

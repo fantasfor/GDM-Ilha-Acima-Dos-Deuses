@@ -33,7 +33,8 @@ let weaponDamageRolls=null,weaponDamage2Rolls=null;
 function qualityWeaponRange(it,q){const range=weaponDamageRange(it);return range?{min:Math.round(range.min*qMul(q)),max:Math.round(range.max*qMul(q))}:null}
 function qualityWeaponRange2(it,q){const range=weaponDamage2Range(it);return range?{min:Math.round(range.min*qMul(q)),max:Math.round(range.max*qMul(q))}:null}
 /* segundo dano (do outro tipo) da arma de uma mão: sorteado no golpe; fora do golpe, a média */
-const danoExtraMao=mao=>{const s=EQ[mao];if(!s||gearType[s.id]!=='sw')return 0;if(weaponDamage2Rolls&&weaponDamage2Rolls.has(s))return weaponDamage2Rolls.get(s);const r=qualityWeaponRange2(ITEMS[s.id],s.q);return r?(r.min+r.max)/2:0};
+const danoExtraMao=mao=>{if(mao=='ambas'){if(weaponDamage2Rolls&&weaponDamage2Rolls.has('ambas'))return weaponDamage2Rolls.get('ambas');return (danoExtraMao('sw')+danoExtraMao('sh'))/2*(typeof fatorAmbas=='function'?fatorAmbas():.8)} // duas armas: média × 80%
+ const s=EQ[mao];if(!s||gearType[s.id]!=='sw')return 0;if(weaponDamage2Rolls&&weaponDamage2Rolls.has(s))return weaponDamage2Rolls.get(s);const r=qualityWeaponRange2(ITEMS[s.id],s.q);return r?(r.min+r.max)/2:0};
 function withWeaponDamageRoll(action){
  if(weaponDamageRolls)return action();
  weaponDamageRolls=new Map();weaponDamage2Rolls=new Map();
@@ -43,11 +44,13 @@ function withWeaponDamageRoll(action){
    if(range)weaponDamageRolls.set(s,rollWeaponDamage(range));
    if(r2)weaponDamage2Rolls.set(s,rollWeaponDamage(r2));
   }
+  // duas armas ao mesmo tempo: um sorteio na faixa combinada (média das duas × 80%, js/combat.js ambasFaixas)
+  const A=typeof ambasFaixas=='function'&&ambasFaixas();if(A){if(A.r)weaponDamageRolls.set('ambas',rollWeaponDamage(A.r));if(A.r2)weaponDamage2Rolls.set('ambas',rollWeaponDamage(A.r2))}
   return action();
  }finally{weaponDamageRolls=null;weaponDamage2Rolls=null}
 }
 const heroC={};
-function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const mana=window.HEROI_MANA&&HEROI_MANA.jogador(dir,an);if(mana)return mana; /* personagem Mana Seed (js/heroi-mana.js) */const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);let key=p.cls+p.sex+dir+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
+function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const mana=window.HEROI_MANA&&HEROI_MANA.jogador(dir,an);if(mana)return mana; /* personagem Mana Seed (js/heroi-mana.js) */const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);/* olhando para a esquerda: camadas próprias (js/sprites.js ORDEM_CAMADAS) */if(dir==='s'&&typeof face=='function'&&face(p).fl<0)E.esquerda=1;let key=p.cls+p.sex+dir+(E.esquerda?'E':'')+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
  key+=chaveEquipAnim(Object.values(E),dir,E.swing?'attack':an&&an.mv?'walk':'idle');if(Object.keys(heroC).length>600)for(const k in heroC)delete heroC[k];return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
 /* Os 6 primeiros espaços são a barra de atalhos (teclas 1–6) e só aceitam consumíveis.
    A bolsa não tem limite: sem espaço livre, ela cresce. */
@@ -169,7 +172,7 @@ function configureMonster(e,type,level){
 // classes de referência do plano de balanceamento (js/balanceamento.js): Guerreiro (físico) e Mago (mágico) do projeto
 const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};
 const MB={sl:{max:40,dmg:5,spd:28,xp:10,g:3,aggro:60,wu:.35,ac:1.1,base:'sl'},gob:{max:130,dmg:15,spd:34,xp:55,g:24,aggro:90,wu:.45,ac:1.25,base:'goblin'}};
-function pickType(far){return far?'goblin':'sl'}
+function pickType(far){return far?'gob':'sl'}
 function spawn(e){let x,y,t=0;do{x=rnd(0,W);y=rnd(0,W);t++}while(t<500&&(!walk(x,y)||V(x/T|0,y/T|0)>25||insideCamp(x,y,8)));
  const far=Math.hypot(x-CX,y-CY)>240&&Math.random()<.55,type=pickType(far),B=MB[type];
  Object.assign(e,{img:SP[B.base].d,sp:SP[B.base],max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac});

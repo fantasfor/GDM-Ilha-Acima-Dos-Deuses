@@ -44,7 +44,7 @@ let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=
 $('bag').onclick=e=>{e.stopPropagation();togInv()};
 INV_CATEGORIES.forEach(([id,label])=>{const button=document.createElement('button');button.type='button';button.className='invCategory';button.setAttribute('aria-pressed',id=='all'?'true':'false');button.setAttribute('aria-label',label);button.title=label;button.dataset.category=id;const icon=document.createElement('img');icon.src=INV_CATEGORY_ICONS[id].toDataURL();icon.alt='';icon.setAttribute('aria-hidden','true');button.appendChild(icon);button.onclick=e=>{e.stopPropagation();invCategory=id;invEquipSlot=null;renderInv()};$('invCategories').appendChild(button)});
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
-let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
+let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R',ambas:'2X'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
 SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();window.mirarOuLancar?mirarOuLancar(s):cast(s)};d.onmouseenter=()=>{if(window.MIRA)MIRA.previa=s};d.onmouseleave=()=>{if(window.MIRA&&MIRA.previa===s)MIRA.previa=null}; /* mouse no botão: prévia do alcance e da área (js/mira.js) */const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
 /* painel de habilidade e de item: "Rótulo: valor", cada tipo de informação com a sua cor (css/ui2.css #tip .t*) */
@@ -90,6 +90,7 @@ const skillPicker=document.createElement('div');skillPicker.id='skillPicker';doc
 let skillPickerSlot=-1;
 function closeSkillPicker(){skillPicker.classList.remove('open');skillPickerSlot=-1}
 function openSkillPicker(index,button){
+ {const b=trocaBloqueada();if(b){ft(p.x,p.y-24,b,'#e8bd3e');return}}
  if(inCombat()){ft(p.x,p.y-24,'Troca de habilidade só fora de combate','#e8bd3e');return}
  if(SK[index]&&SK[index].t>0){ft(p.x,p.y-24,'Aguarde a habilidade terminar a recarga','#e8bd3e');return}
  if(skillPickerSlot===index&&skillPicker.classList.contains('open')){closeSkillPicker();return}
@@ -343,8 +344,14 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  window.insp=insp;
  const isDungeonBossTarget = window.inDungeon && window.dungeonBoss && (p.tgt === window.dungeonBoss || insp === window.dungeonBoss);
  const info=(p.tgt&&canSee(p.tgt.x,p.tgt.y)?p.tgt:null)||(insp&&canSee(insp.x,insp.y)?insp:null),monster=info&&MONSTER_TYPES[info.ty],mon=$('mon');
- mon.style.display=(monster && !isDungeonBossTarget)?'flex':'none';
- window.alvoInfo=monster?info:null; // efeitos do alvo aparecem abaixo desta caixa (js/effects.js)
+ // aliado selecionado com o clique esquerdo (js/alvo-aliado.js): mesmo painel, borda verde, sem barra de mana
+ const ali=!(monster&&!isDungeonBossTarget)&&window.ALVO_ALIADO&&ALVO_ALIADO.sel?ALVO_ALIADO.info():null;
+ mon.style.display=(monster && !isDungeonBossTarget)||ali?'flex':'none';mon.classList.toggle('aliado',!!ali);
+ window.alvoInfo=monster?info:ali&&ali.ent?ali.ent:null; // efeitos do alvo aparecem abaixo desta caixa (js/effects.js)
+ if(ali){const mc=$('monic').getContext('2d');mc.clearRect(0,0,40,40);mc.imageSmoothingEnabled=false;const im=ali.img;
+  if(im){const k=Math.min(36/im.width,36/im.height),iw=Math.round(im.width*k),ih=Math.round(im.height*k);mc.drawImage(im,Math.round((40-iw)/2),Math.round((40-ih)/2),iw,ih)}else{mc.fillStyle='#7c5a34';mc.fillRect(19,8,2,28);mc.fillRect(10,12,20,3);mc.fillStyle='#d6b98a';mc.fillRect(15,4,10,9)}
+  $('monhp').style.width=ali.vida*100+'%';$('monhpt').textContent=ali.vidaTxt;$('monmp').style.width='0%';$('monmpt').textContent='';
+  $('monname').textContent=ali.nome+' Nv '+ali.nivel+' · aliado';mon.classList.remove('elite')}
  if(monster){const mc=$('monic').getContext('2d');mc.clearRect(0,0,40,40);mc.imageSmoothingEnabled=false;
   const k=Math.min(36/info.img.width,36/info.img.height),iw=Math.round(info.img.width*k),ih=Math.round(info.img.height*k);
   mc.drawImage(info.img,Math.round((40-iw)/2),Math.round((40-ih)/2),iw,ih);

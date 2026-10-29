@@ -67,26 +67,31 @@ for(const [id,ataque] of [['sw','corte'],['sw2','pesado'],['sw3','vertical']]){c
 /* ---------- habilidades ---------- */
 if(L('effects').length){L('effects').forEach(e=>{FX_INFO[e.id]={...FX_INFO[e.id],...e,n:e.n||e.name||e.id,c:e.c||e.color||'#fff',kind:e.kind||'dot',tick:n(e.tick,1),dtype:['true','physical','magic'].includes(e.dtype)?e.dtype:'true'}})}
 const FXATTR={F:'Força',A:'Agilidade',I:'Inteligência',physicalPower:'poder físico',magicPower:'poder mágico',dmg:'dano de equipamento',weaponPower:'poder da arma'};
+/* valores de um efeito de arma/habilidade para os textos: os que acumulam (veneno, sangramento, lentidão…) usam só a
+   configuração do efeito (combat.js resolveFx); os outros, a da arma/habilidade com o efeito como padrão */
+const fxVal=f=>{const i=FX_INFO[f.type]||{},ac=typeof decai=='function'&&decai(f.type);return ac?{ac,pw:n(i.power),dur:Math.max(.5,n(i.dur,3)),attr:i.attr,attrPct:n(i.attrPct)}:{ac,pw:n(f.power,n(i.power)),dur:Math.max(.5,n(f.dur,n(i.dur,3))),attr:'',attrPct:0}};
+const escalaTxt=v=>v.attrPct&&v.attr&&v.attr!='none'?' + '+v.attrPct+'% de '+(FXATTR[v.attr]||v.attr):'';
 const fxText=l=>Array.isArray(l)&&l.length?' '+l.filter(f=>FX_INFO[f.type]).map(f=>(f.chance==null||f.chance===''?100:f.chance)+'% de '+(f.target=='self'?'ganhar ':'causar ')+FX_INFO[f.type].n+' por '+(f.dur||3)+'s'+(fxKind(f.type)=='dot'?' ('+[n(f.power)||'',n(f.pct)?n(f.pct)+'% do dano'+(f.src=='physical'?' físico':f.src=='magic'?' mágico':''):'',n(f.attrPct)&&f.attr&&f.attr!='none'?n(f.attrPct)+'% de '+(FXATTR[f.attr]||f.attr):''].filter(Boolean).join(' + ')+' por '+(FX_INFO[f.type].tick==1?'segundo':FX_INFO[f.type].tick+'s')+')':fxKind(f.type)=='slow'?' (-'+n(f.power)+'% vel.)':fxKind(f.type)=='vuln'?' (+'+n(f.power)+'% dano recebido)':fxExtra(f))).join('; ')+'.':'';
 const SDEF={};
 /* efeito no painel: só o tipo e o número (ex.: "3 de dano de Queimadura por acúmulo/s", "1 de Regeneração de vida/s") */
-const efeitoTexto=l=>(Array.isArray(l)?l:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const i=FX_INFO[f.type],pw=n(f.power,n(i.power)),ch=f.chance==null||f.chance===''||+f.chance>=100?'':' ('+n(f.chance)+'%)',k=i.kind,dur=n(f.dur,n(i.dur,3)),ac=typeof decai=='function'&&decai(f.type);
- const t=k=='dot'?pw+' de dano de '+i.n+(ac?' por acúmulo':'')+'/s':k=='slow'?'-'+pw+'% '+i.n+(i.atk?' (movimento e ataque)':'')+(ac?' por acúmulo':'')+(i.congela?', '+(i.stacks||1)+' acúmulos congelam '+i.congela+' s':''):k=='hot'?pw+' de '+i.n+' de vida/s':k=='stun'?i.n+' '+dur+' s':k=='physup'?'+'+pw+'% de dano físico ('+i.n+')':k=='magup'?'+'+pw+'% de dano mágico ('+i.n+')':k=='dmgup'?'+'+pw+'% de dano ('+i.n+')':k=='dmgdown'?'-'+pw+'% de dano ('+i.n+')':k=='guard'?'-'+pw+'% de dano recebido ('+i.n+')':k=='haste'?'+'+pw+'% de velocidade ('+i.n+')':k=='vuln'?'+'+pw+'% de dano recebido ('+i.n+')':i.n;
- return t+(ac||k=='stun'?'':' por '+dur+' s')+ch}).join(' · ');
+const efeitoTexto=l=>(Array.isArray(l)?l:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{const i=FX_INFO[f.type],V=fxVal(f),pw=V.pw,ch=f.chance==null||f.chance===''||+f.chance>=100?'':' ('+n(f.chance)+'%)',k=i.kind,dur=V.dur,ac=V.ac;
+ const t=k=='dot'?pw+escalaTxt(V)+' de dano de '+i.n+(ac?' por acúmulo':'')+'/s':k=='slow'?'-'+pw+'% '+i.n+(i.atk?' (movimento e ataque)':'')+(ac?' por acúmulo':'')+(i.congela?', '+(i.stacks||1)+' acúmulos congelam '+i.congela+' s':''):k=='hot'?pw+' de '+i.n+' de vida/s':k=='stun'?i.n+' '+dur+' s':k=='physup'?'+'+pw+'% de dano físico ('+i.n+')':k=='magup'?'+'+pw+'% de dano mágico ('+i.n+')':k=='dmgup'?'+'+pw+'% de dano ('+i.n+')':k=='dmgdown'?'-'+pw+'% de dano ('+i.n+')':k=='guard'?'-'+pw+'% de dano recebido ('+i.n+')':k=='haste'?'+'+pw+'% de velocidade ('+i.n+')':k=='vuln'?'+'+pw+'% de dano recebido ('+i.n+')':k=='regenPct'?'-'+pw+'% de regeneração de vida ('+i.n+')':k=='armorPct'?'-'+pw+'% de defesa física ('+i.n+')':i.n;
+ return t+(ac?' (−1 acúmulo a cada '+dur+' s)':k=='stun'?'':' por '+dur+' s')+ch}).join(' · ');
 window.efeitoTexto=efeitoTexto;
 /* frase completa de cada efeito para as dicas dos itens, gerada da configuração (Engine › item › efeitos), ex.:
    "20% de chance de aplicar Veneno durante 5 s, causando 5 de dano por segundo por acúmulo (até 3 acúmulos)".
    proprio: o efeito é em quem usa o item (armadura: ao ser atingido) */
 const efeitoFrase=(l,proprio)=>(Array.isArray(l)?l:[]).filter(f=>f&&FX_INFO[f.type]).map(f=>{
- const i=FX_INFO[f.type],k=i.kind,ch=f.chance==null||f.chance===''?100:n(f.chance),dur=Math.max(.5,n(f.dur,n(i.dur,3))),pw=n(f.power,n(i.power)),ac=decai(f.type),por=Math.max(1,Math.round(n(f.acumulos)||1)),max=i.stacks||1;
+ const i=FX_INFO[f.type],k=i.kind,ch=f.chance==null||f.chance===''?100:n(f.chance),V=fxVal(f),dur=V.dur,pw=V.pw,ac=V.ac,por=Math.max(1,Math.round(n(f.acumulos)||1)),max=i.stacks||1;
  const verbo=proprio?(ch>=100?'Ganha ':'ganhar '):(ch>=100?'Aplica ':'aplicar ');
- let t=(ch>=100?'':ch+'% de chance de ')+verbo+i.n+' durante '+dur+' s';
- if(k=='dot'){const tipo=i.dtype=='magic'?' mágico':i.dtype=='physical'?' físico':'',partes=[pw?String(pw):'',n(f.pct)?n(f.pct)+'% do dano'+(f.src=='physical'?' físico':f.src=='magic'?' mágico':''):'',n(f.attrPct)&&f.attr&&f.attr!='none'?n(f.attrPct)+'% de '+(FXATTR[f.attr]||f.attr):''].filter(Boolean);
+ let t=(ch>=100?'':ch+'% de chance de ')+verbo+i.n+(ac?'':' durante '+dur+' s');
+ if(k=='dot'){const tipo=i.dtype=='magic'?' mágico':i.dtype=='physical'?' físico':'',partes=[pw?String(pw):'',V.attrPct&&V.attr&&V.attr!='none'?V.attrPct+'% de '+(FXATTR[V.attr]||V.attr):''].filter(Boolean);
   t+=', causando '+(partes.join(' + ')||'0')+' de dano'+tipo+' a cada '+(n(i.tick,1)==1?'segundo':n(i.tick,1)+' s')+(ac&&max>1?' por acúmulo':'')}
  else if(k=='slow')t+=', reduzindo '+(i.atk?'o movimento e o ataque':'o movimento')+' em '+pw+'%'+(ac&&max>1?' por acúmulo':'')+(i.congela?'; com '+max+' acúmulos congela por '+i.congela+' s':'');
  else if(k=='vuln')t+=' (+'+pw+'% de dano recebido)';
  else if(k!='stun'){const x=fxExtra(f).replace(/^ \(|\)$/g,'');if(x)t+=' ('+x+')'}
- if(ac&&max>1)t+=' (até '+max+' acúmulos'+(por>1?', '+por+' por acerto':'')+')';
+ if(ac){const x=i.maxFx&&FX_INFO[i.maxFx],xk=x&&x.kind,xd=x?(xk=='regenPct'?' (-'+n(x.power)+'% de regeneração de vida'+(i.maxEnquanto?', enquanto no máximo':'')+')':xk=='armorPct'?' (-'+n(x.power)+'% de defesa física'+(i.maxEnquanto?', enquanto no máximo':'')+')':xk=='stun'?' por '+n(i.maxFxDur,2)+' s'+(i.maxResto!=null?', depois volta para '+i.maxResto+' acúmulo'+(+i.maxResto==1?'':'s'):''):''):'';
+  t+=' (até '+max+' acúmulo'+(max>1?'s':'')+(por>1?', '+por+' por acerto':'')+'; perde 1 acúmulo a cada '+dur+' s'+(x?'; com '+max+': '+x.n+xd:'')+')'}
  return t}).join('; ');
 window.efeitoFrase=efeitoFrase;
 // tempo de conjuração: o da habilidade; sem valor, projéteis levam 0,5 s e o resto é instantâneo
@@ -327,10 +332,13 @@ if(ids.length){
  pickType=function(far){
   const c=ids.filter(k=>k!='gob'&&CM[k].min<=p.lvl&&CM[k].max>=p.lvl);
   if(c.length&&Math.random()<Math.min(.6,.2*c.length)){let r=Math.random()*c.reduce((a,k)=>a+questSpawnWeight(k,CM[k].w),0);for(const k of c){r-=questSpawnWeight(k,CM[k].w);if(r<=0)return k}return c[0]}
-  return far?'goblin':'sl'};
+  return far?'gob':'sl'};
  window.repop=()=>en.forEach(e=>{if(!e.boss&&e.hp>0)spawn(e)});
  repop()}
 const questBoss=en.find(e=>e.boss);
 if(questBoss&&MONSTER_TYPES.boss&&MONSTER_TYPES.boss.custom){configureMonster(questBoss,'boss',questBoss.lvl);questBoss.hp=questBoss.max}
+/* chefe da missão inicial (2026-10-28, pedido do usuário): é o Glooc Saqueador do projeto (glooc_saqueador, editável na
+   Engine) e o tipo embutido "boss" sai da lista de monstros. Sem ele no projeto, fica o embutido. */
+else if(questBoss&&MONSTER_TYPES.glooc_saqueador){const x=questBoss.x,y=questBoss.y;configureMonster(questBoss,'glooc_saqueador',questBoss.lvl);questBoss.boss=true;questBoss.x=x;questBoss.y=y;questBoss.hp=questBoss.max;delete MONSTER_TYPES.boss}
 applySkills();
 })();

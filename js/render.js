@@ -340,7 +340,9 @@ function anim(u,wu,slime){
  if(u.aw>0&&wu){
   if(slime)u.hopT=0;
   const k=1-u.aw/wu;
-  a.sw=k<.34?1:k<.67?2:3;a.k=k;
+  // golpe fluido: segura o preparo (passo 1) e acelera até o golpe (2) e a volta (3); passo fracionário em oitavos
+  // (js/sprites.js poseArma interpola entre os passos); o rastro da ponta da arma é js/rastro-arma.js
+  a.sw=k<.22?1:Math.round((1+2*(1-Math.pow(1-(k-.22)/.78,3)))*8)/8;a.k=k;
   if(slime){
    if(k<.5){const q=k/.5;a.sy=1-.18*q;a.sx=1+.14*q;a.dy=q}
    else{const q=(k-.5)/.5;a.sy=.82+.28*q;a.sx=1.14-.18*q;a.dy=1-q*2;a.dx=s*q*2}
@@ -712,7 +714,7 @@ window.desenharMonstro=e=>{const o=[0,0],scale=ESCALA_MUNDO,spriteH=wh(e.img)*sc
  ctx.font='5px monospace';ctx.textBaseline='middle';ctx.fillStyle='#fff2d7';ctx.fillText(String(e.lvl),barX+barW+3,barY+1.5); // efeitos do monstro: ícones abaixo da caixa do alvo (js/effects.js)
  ctx.textBaseline='alphabetic'};
  en.forEach(e=>{if(e.hp>0&&canSee(e.x,e.y))L.push([e.y,()=>desenharMonstro(e)])});
- if(p.dead<=0&&!cameraMenu.ativo)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;(f=>{const an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an)})(face(p));ctx.globalAlpha=1;
+ if(p.dead<=0&&!cameraMenu.ativo)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;(f=>{const an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);if(window.rastroArma)rastroArma(p,f,an,p.x+o[0],p.y+o[1])})(face(p));ctx.globalAlpha=1;
   const barW=28,t=1/S,barX=Math.round(p.x-barW/2),barY=Math.round(p.y-25-ACIMA_HEROI()),maxHp=mhp(),maxMp=mmp(),hpRatio=Math.max(0,Math.min(1,p.hp/maxHp)),mpRatio=Math.max(0,Math.min(1,p.mp/maxMp)),hpSegments=Math.ceil(maxHp/100);
   ctx.fillStyle='#3a3a3a';ctx.fillRect(barX-t,barY-t,barW+2*t,3+3*t);
   ctx.fillStyle='#173d1c';ctx.fillRect(barX,barY,barW,2);ctx.fillStyle='#4cd04f';ctx.fillRect(barX,barY,barW*hpRatio,2);

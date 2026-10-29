@@ -22,7 +22,7 @@
  const qslots=[...Array(6)].map((_,i)=>{const s=E('button','qslot');s.type='button';s.dataset.i=i;s.innerHTML='<img alt=""><b></b><kbd>'+(i+1)+'</kbd>';
   s.onclick=e=>{e.stopPropagation();useSlot(i)};
   s._tip=()=>I[i]?itemTip(I[i].id,I[i].q)+'<div class=tm>Tecla '+(i+1)+' · arraste itens da mochila para cá</div>':'<b>Atalho '+(i+1)+'</b><div class=tm>Vazio. Arraste uma poção ou outro consumível da mochila para cá. Só consumíveis ficam nos atalhos.</div>';
-  dragSource(s,()=>i);dropTarget(s,from=>swapSlots(from,i));qgrid.append(s);return s});
+  dragSource(s,()=>i);dropTarget(s,from=>swapSlots(from,i),i);qgrid.append(s);return s});
  dock.append(quick);
  // alerta de vida baixa
  const vignette=E('div');vignette.id='lowhp';document.body.append(vignette);
@@ -32,7 +32,10 @@
  /* ---------- arrastar e soltar ---------- */
  let dragFrom=null;
  function dragSource(el,get){el.draggable=true;el.addEventListener('dragstart',e=>{dragFrom=get();e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','slot')}catch(err){}el.classList.add('dragging');tipEl.style.display='none'});el.addEventListener('dragend',()=>{dragFrom=null;el.classList.remove('dragging');document.querySelectorAll('.dropOver').forEach(x=>x.classList.remove('dropOver'))})}
- function dropTarget(el,fn){el.addEventListener('dragover',e=>{if(dragFrom==null)return;e.preventDefault();el.classList.add('dropOver')});el.addEventListener('dragleave',()=>el.classList.remove('dropOver'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dropOver');const f=dragFrom;dragFrom=null;if(f!=null)fn(f)})}
+ // bolsa (opcional): índice do espaço da mochila; aí também aceita um item arrastado do Baú da ilha (js/bau-ilha.js)
+ const doBau=()=>window.BAU_ILHA&&BAU_ILHA.arrastandoDoBau!=null;
+ function dropTarget(el,fn,bolsa){el.addEventListener('dragover',e=>{if(dragFrom==null&&!(bolsa!=null&&doBau()))return;e.preventDefault();el.classList.add('dropOver')});el.addEventListener('dragleave',()=>el.classList.remove('dropOver'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dropOver');const f=dragFrom;dragFrom=null;if(f!=null){fn(f);dispatchEvent(new Event('mochila-mudou'))}else if(bolsa!=null&&doBau())BAU_ILHA.soltarNaMochila(bolsa)})}
+ window.HUD_ARRASTO=()=>dragFrom; // o Baú da ilha aceita itens arrastados da Mochila
  // atalhos 1–6 (espaços 0–5 da bolsa) só aceitam consumíveis
  const podeEm=(k,s)=>k>=QUICK_N||!s||ehConsumivel(s.id);
  function swapSlots(a,b){
@@ -91,7 +94,7 @@
    dragSource(d,()=>i)}
   else d.setAttribute('aria-label','Espaço vazio');
   if(i<6)d.append(E('kbd','',String(i+1)));
-  dropTarget(d,from=>swapSlots(from,i));
+  dropTarget(d,from=>swapSlots(from,i),i);
   return d;
  }
  renderInv=function(){

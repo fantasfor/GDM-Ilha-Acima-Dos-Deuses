@@ -123,7 +123,7 @@ function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.
   else movePlayer(CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt);
   p.bf=Math.max(0,p.bf-dt);
   const a=attributes();
-  p.hp=Math.min(mhp(),p.hp+regenHp()*dt);p.mp=Math.min(mmp(),p.mp+regenMp()*dt);
+  p.hp=Math.min(mhp(),p.hp+regenHp()*reducaoPct(p,'regenPct')*dt); /* Fratura reduz a regeneração */p.mp=Math.min(mmp(),p.mp+regenMp()*dt);
   if(window.inDungeon&&window.updateDungeon)updateDungeon(dt);
  }
  for(const e of en){
@@ -134,7 +134,7 @@ function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.
   if(e.mpProxy){if(window.MP)MP.moverProxy(e,dt);continue}
   // conversando (diálogo do tutorial ou de NPC aberto): os monstros ficam parados e não atacam
   if(conversando){e.aw=0;e.skillWindup=false;e.dest=null;continue}
-  tickAttributeBuffs(e,dt);e.cd-=dt;e.hit-=dt;e.alert=Math.max(0,(e.alert||0)-dt);e.giveUp=Math.max(0,(e.giveUp||0)-dt);tickStatus(e,dt);if(e.hp<=0)continue;e.skillCd=Math.max(0,e.skillCd-dt);const ea=monsterAttributes(e);e.hp=Math.min(monsterMaxHp(e),e.hp+(ea.F*CALC.monRegenPerF+monsterAttribute(e,'regenHp'))*dt);e.mp=Math.min(monsterMaxMp(e),e.mp+(ea.I*CALC.monRegenPerI+monsterAttribute(e,'regenMp'))*dt);
+  tickAttributeBuffs(e,dt);e.cd-=dt;e.hit-=dt;e.alert=Math.max(0,(e.alert||0)-dt);e.giveUp=Math.max(0,(e.giveUp||0)-dt);tickStatus(e,dt);if(e.hp<=0)continue;e.skillCd=Math.max(0,e.skillCd-dt);const ea=monsterAttributes(e);e.hp=Math.min(monsterMaxHp(e),e.hp+(ea.F*CALC.monRegenPerF+monsterAttribute(e,'regenHp'))*reducaoPct(e,'regenPct')*dt);e.mp=Math.min(monsterMaxMp(e),e.mp+(ea.I*CALC.monRegenPerI+monsterAttribute(e,'regenMp'))*dt);
   // reset: CALC.monsterReset s fora de combate (sem perseguir nem apanhar) e o monstro volta para casa recuperando 5% da vida máxima por segundo
   if(e.chasing)e.foraCombate=0;else e.foraCombate=(e.foraCombate||0)+dt;
   if(e.foraCombate>=(CALC.monsterReset||10)){const mx=monsterMaxHp(e),mm=monsterMaxMp(e);

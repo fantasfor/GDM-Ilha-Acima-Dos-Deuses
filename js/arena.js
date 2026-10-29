@@ -13,7 +13,7 @@
  window.inArena=false;
  window.arenaWalk=(x,y)=>(dentro(x,y,4)&&!noPilar(x,y))||(Math.abs(x-PORTAO.x)<12&&y>=CYa+RY-8&&y<=PORTAO.y+4);
  window.arenaParede=(x,y)=>!dentro(x,y)||noPilar(x,y,-2);
- let ilhaPos=null,enGuardado=null,fundo=null,boneco=null;
+ let ilhaPos=null,enGuardado=null,fundo=null,boneco=null,bonecoAliado=null;
  const feed=[]; // abates recentes (no alto da tela)
  p.pvp=p.pvp||{abates:0,mortes:0};
 
@@ -193,10 +193,17 @@
   const L=[];
   for(const e of en)if(e.duelo&&e.hp>0&&window.desenharMonstro&&ve(e.x,e.y))L.push([e.y,()=>desenharMonstro(e)]); // fora da visão não aparece
   PILARES.forEach(q=>L.push([q.y,()=>pilar(q)]));
-  if(boneco)L.push([boneco.y,()=>{if(p.tgt===boneco)circ(boneco.x,boneco.y,12,'#f55');desenharBoneco(boneco);const r=boneco.hp/boneco.max;R(ctx,boneco.x-14,boneco.y-22,28,1,'#4b121c');R(ctx,boneco.x-14,boneco.y-22,28*r,1,'#ed354e');ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('Boneco de treino',boneco.x+.4,boneco.y-24.6);ctx.fillStyle='#ffe28a';ctx.fillText('Boneco de treino',boneco.x,boneco.y-25)}]);
+  // texto com sombra; lista de efeitos ativos (nome, acúmulos e tempo) em cima de um boneco
+  const txt=(s,x,y,c)=>{ctx.fillStyle='#000';ctx.fillText(s,x+.4,y+.4);ctx.fillStyle=c;ctx.fillText(s,x,y)};
+  const efeitosDe=(b,y0)=>{let y=y0;for(const [k,s] of Object.entries(b.st||{})){const f=FX_INFO[k];if(!f||!s)continue;txt(f.n+(s.n>1?' x'+s.n:'')+(s.enquanto?'':' '+Math.max(0,s.t).toFixed(1)+'s'),b.x,y,f.c||'#e7dcc4');y-=6}};
+  if(boneco)L.push([boneco.y,()=>{if(p.tgt===boneco)circ(boneco.x,boneco.y,12,'#f55');desenharBoneco(boneco);const r=boneco.hp/boneco.max;R(ctx,boneco.x-14,boneco.y-22,28,1,'#4b121c');R(ctx,boneco.x-14,boneco.y-22,28*r,1,'#ed354e');ctx.font='5px monospace';ctx.textAlign='center';
+   txt('Boneco de treino',boneco.x,boneco.y-25,'#ffe28a');txt('DPS '+Math.round(porSegundo(boneco.danos||[])),boneco.x,boneco.y-31,'#f87171');efeitosDe(boneco,boneco.y-37)}]);
+  // boneco aliado (esquerda): curas por segundo e os efeitos que recebeu
+  if(bonecoAliado){const b=bonecoAliado;L.push([b.y,()=>{if(window.ALVO_ALIADO&&ALVO_ALIADO.eh(b))circ(b.x,b.y,12,'#7ad07a');desenharBoneco(b);const r=b.hp/b.max;R(ctx,b.x-14,b.y-22,28,1,'#173d1c');R(ctx,b.x-14,b.y-22,28*r,1,'#4cd04f');ctx.font='5px monospace';ctx.textAlign='center';
+   txt('Boneco aliado',b.x,b.y-25,'#8fe388');txt('Cura/s '+Math.round(porSegundo(b.curas)),b.x,b.y-31,'#6fe36f');efeitosDe(b,b.y-37)}])}
   // alvo marcado nos outros jogadores
   for(const e of en)if(e.pvp&&e.uid&&p.tgt===e)L.push([e.y-.1,()=>circ(e.x,e.y,12,'#f55')]);
-  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
+  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);if(window.rastroArma)rastroArma(p,f,an,p.x+o[0],p.y+o[1]);ctx.globalAlpha=1;
    const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25-ACIMA_HEROI()),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
   if(p.dead>0)L.push([p.y,desenharHeroiMorto]);
@@ -412,7 +419,9 @@
   clearMovementInput();window.inArena=true;proj.length=0;
   // começa na lateral esquerda (o adversário/boneco fica à direita)
   const l=arenaWalk(CXa-RX*.72,CYa)?{x:CXa-RX*.72,y:CYa}:lugarLivre();p.x=l.x;p.y=l.y;p.fx=1;p.fy=0;p.dead=0;p.hp=mhp();p.mp=mmp();p.st=null;
-  boneco=o.partida||o.duelo?null:{pvp:true,boneco:true,x:CXa+RX*.4,y:CYa,hp:5000,max:5000,hit:0,lvl:p.lvl,name:'Boneco de treino',img:null};if(boneco)en.push(boneco);
+  boneco=o.partida||o.duelo?null:{pvp:true,boneco:true,x:CXa+RX*.4,y:CYa,hp:5000,max:5000,mp:0,hit:0,lvl:p.lvl,name:'Boneco de treino',img:null,danos:[],stats:{F:0,A:0,I:0},attributeStats:{}};if(boneco)en.push(boneco);
+  // treino: boneco aliado à esquerda para testar curas, bênçãos e auras (começa com 40% da vida)
+  bonecoAliado=o.partida||o.duelo?null:{aliadoTreino:true,x:CXa-RX*.42,y:CYa,hp:2000,max:5000,mp:0,hit:0,lvl:p.lvl,name:'Boneco aliado',st:null,curas:[],cheioDesde:null,hpAntes:2000,stats:{F:0,A:0,I:0},attributeStats:{}};
   if(o.duelo){duelo=o.duelo;en.push(criarMestre(o.duelo))} // duelo: você à esquerda, o Mestre à direita
   ft(p.x,p.y-30,o.duelo?'DUELO':o.partida?'PARTIDA':'TREINO','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);atualizarBotao();
  }
@@ -420,7 +429,7 @@
   if(!window.inArena)return;
   if(partida&&!partida.acabou){ft(p.x,p.y-24,'Só dá para sair no fim da partida (ou desistindo).','#f87171');return}
   window.inArena=false;clearMovementInput();p.tgt=null;
-  en.length=0;if(enGuardado)en.push(...enGuardado);enGuardado=null;boneco=null;duelo=null;
+  en.length=0;if(enGuardado)en.push(...enGuardado);enGuardado=null;boneco=null;bonecoAliado=null;duelo=null;
   const volta=ilhaPos&&walk(ilhaPos.x,ilhaPos.y)?ilhaPos:{x:CX,y:CY+34};p.x=volta.x;p.y=volta.y;ilhaPos=null;
   p.dead=0;p.hp=mhp();p.mp=mmp();
   if(!silencioso)ft(p.x,p.y-24,'De volta à ilha','#ffd84a');
@@ -491,14 +500,20 @@
  /* ---- dano entre jogadores (salas/{sala}/pvp) ---- */
  const nuvem=()=>window.NUVEM&&window.MP&&MP.sala&&MP.sala.startsWith('arena:');
  function enviar(o){if(!nuvem())return;const r=NUVEM.db.ref('salas/'+MP.sala+'/pvp').push({de:NUVEM.uid,nome:NUVEM.nome(),...o,t:TS()});setTimeout(()=>r.remove().catch(()=>{}),6000)}
+ /* DPS do boneco: dano dos últimos 5 s dividido pelo tempo desde o primeiro golpe dessa janela (mín. 1 s) */
+ const registrarDano=(e,v)=>{(e.danos=e.danos||[]).push([time,v])};
+ const porSegundo=(lst,janela=5)=>{while(lst.length&&time-lst[0][0]>janela)lst.shift();if(!lst.length)return 0;const s=lst.reduce((a,x)=>a+x[1],0);return s/Math.max(1,time-lst[0][0])};
  /* chamado pelo hurtE (combat.js) quando o alvo é um jogador inimigo ou o boneco */
  function golpe(e,d,magic,fx,dot){
+  if(e.boneco&&e.hp>0){ // treino: o boneco recebe efeitos e dano contínuo e mostra o DPS
+   if(dot){const v=Math.round(typeof d=='object'?(d.physical||0)+(d.magic||0):+d||0);if(v<=0)return;e.hp-=v;e.hit=.1;registrarDano(e,v);ftDano(e.x,e.y-22,String(v),dot,false,0);if(e.hp<=0)e.hp=e.max;return}
+   if(fx&&fx.length)applyFx(e,fx)}
   if(dot||e.hp<=0)return;
   const roll=combatRoll(p,1),mul=roll.damage,obj=d&&typeof d=='object'?d:magic?{physical:0,magic:+d||0}:{physical:+d||0,magic:0};
   const fis=Math.round((obj.physical||0)*mul),mag=Math.round((obj.magic||0)*mul),total=fis+mag;
   e.hit=.15;if(window.playGameSound)playGameSound(magic?'magicHit':'sword');if(window.marcarCombate)marcarCombate();
   ftDano(e.x,e.y-22,total+(roll.crit?'!':''),null,roll.crit,mag/(total||1));
-  if(e.boneco){e.hp-=total;if(e.hp<=0){e.hp=e.max;aviso('Boneco de treino derrubado!','#e7dcc4')}return}
+  if(e.boneco){e.hp-=total;registrarDano(e,total);if(e.hp<=0){e.hp=e.max;aviso('Boneco de treino derrubado!','#e7dcc4')}return}
   // perfuração e efeitos (atordoar, gelo, fogo…) vão junto: o alvo aplica em si; atordoado, ele perde a conjuração
   const efs=(fx||[]).filter(f=>f&&!f.self&&FX_INFO[f.type]).slice(0,4).map(f=>[f.type,Math.round(f.chance??100),+(+f.dur||0).toFixed(1),+(+f.pw||0).toFixed(2)]);
   ultimoDano=agora();enviar({tipo:'golpe',alvo:e.uid,d:fis,m:mag,pf:+bonus('physicalPen').toFixed(3),pm:+bonus('magicPen').toFixed(3),...(efs.length?{fx:efs}:{})});
@@ -530,7 +545,10 @@
  const upd0=upd;upd=function(dt){upd0(dt);if(window.inArena){moverTiros(dt);moverEfeitosM(dt)}else{tiros.length=0;efeitosM.length=0}
   for(const m of feed)m.t-=dt*.25;while(feed.length&&feed[feed.length-1].t<=0)feed.pop();
   if(!window.inArena)return;
-  if(boneco){boneco.hit-=dt}
+  if(boneco){boneco.hit-=dt;tickStatus(boneco,dt);if(boneco.hp<=0)boneco.hp=boneco.max}
+  if(bonecoAliado){const b=bonecoAliado;b.hit-=dt;tickStatus(b,dt);if(b.hp>b.hpAntes)b.curas.push([time,b.hp-b.hpAntes]);b.hpAntes=b.hp;
+   // cheio por 3 s: volta a 40% para dar para testar de novo
+   if(b.hp>=b.max*.999){if(b.cheioDesde==null)b.cheioDesde=time;else if(time-b.cheioDesde>3){b.hp=b.hpAntes=Math.round(b.max*.4);b.cheioDesde=null}}else b.cheioDesde=null}
   const remotos=window.MP?MP.remotos:new Map(),vistos=new Set();
   for(const r of remotos.values()){
    if(!partida||!partida.membros[r.uid]||partida.membros[r.uid].equipe===partida.equipe)continue;
@@ -545,7 +563,10 @@
    if(!partida.acabou&&agora()-partida.inicio>DURACAO+20000)terminar('empate')}
   else if(p.y>CYa+RY+2&&Math.abs(p.x-PORTAO.x)<12)sair();
  };
- window.ARENA={entrar,sair,golpe,aceitarConvite,abrirPainel,desistir,
+ /* curas e bênçãos em área (curandeiro.js, grito, inspiração… via efeitoAliados) também valem para o boneco aliado */
+ const efeitoAliados0=window.efeitoAliados;
+ window.efeitoAliados=lista=>{const b=bonecoAliado;if(window.inArena&&b)for(const f of lista||[])if(f&&FX_INFO[f.tipo]&&Math.hypot(b.x-f.x,b.y-f.y)<=(+f.r||20)+6)applyFx(b,[{caster:p,type:f.tipo,chance:100,pw:+f.pw||0,dur:+f.dur||0,limpa:+f.limpa||0}]);if(efeitoAliados0)efeitoAliados0(lista)};
+ window.ARENA={entrar,sair,golpe,aceitarConvite,abrirPainel,desistir,bonecoAliado:()=>bonecoAliado,resetarBoneco:b=>{if(!b)return;b.hp=b.hpAntes=b===bonecoAliado?Math.round(b.max*.4):b.max;b.st=null;b.danos=[];b.curas=[]},
   sala:()=>partida&&partida.sala||null,emPartida:()=>!!partida,
   ve:(x,y)=>ve(x,y),aliado:id=>!!(partida&&partida.membros&&partida.membros[id]&&partida.membros[id].equipe===partida.equipe),
   duelo:comecarDuelo,venceuDuelo,emDuelo:()=>!!duelo,iaMestre,

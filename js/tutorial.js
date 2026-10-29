@@ -291,7 +291,7 @@
   if(mestre)L.push([mestre.y,()=>{const f=face(mestre),c=CL[p.cls]||{},spr=c.sprite||(HS[c.base||p.cls]||HS.war)[f.d];dr(spr,mestre.x,mestre.y,f.fl,1,anim(mestre,0));nome(mestre.nm,mestre.x,mestre.y-22-ACIMA_HEROI());
    if(!DIALOGO_ABERTO()){ctx.fillStyle='#ffd84a';ctx.font='bold 7px monospace';ctx.fillText('!',mestre.x,mestre.y-29+Math.round(Math.sin(time*4)*1.5))}}]);
   for(const e of en)if(e.hp>0&&window.desenharMonstro)L.push([e.y,()=>desenharMonstro(e)]);
-  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);ctx.globalAlpha=1;
+  if(p.dead<=0)L.push([p.y,()=>{const o=lunge(p,p.wt,p.aw,.25);ctx.globalAlpha=p.hit>0?.5:1;const f=face(p),an=anim(p,.25);dr.ent=p;dr(heroImg(f.d,an),p.x+o[0],p.y+o[1],f.fl,1,an);if(window.rastroArma)rastroArma(p,f,an,p.x+o[0],p.y+o[1]);ctx.globalAlpha=1;
    const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25-ACIMA_HEROI()),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
   if(p.dead>0)L.push([p.y,desenharHeroiMorto]);

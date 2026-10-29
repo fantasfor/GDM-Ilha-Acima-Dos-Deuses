@@ -6,12 +6,12 @@ if(!Object.keys(SPAWN).length)SPAWN.sl={min:1,w:1};
 window.SPAWNINFO=SPAWN;
 const DEFAULT_PORTAL_DEFS=[
  {id:'portal_ruins',name:'Ruínas do Norte',minLevel:1,targetLevel:1,countMin:2,countMax:3,eliteChance:.03,frequency:1,monsters:[{id:'sl',chance:65},{id:'javaporco',chance:35}]},
- {id:'portal_cliff',name:'Penhasco Leste',minLevel:4,targetLevel:6,countMin:2,countMax:4,eliteChance:.05,frequency:1,monsters:[{id:'goblin',chance:45},{id:'wolf',chance:35},{id:'lobo_negro',chance:20}]},
+ {id:'portal_cliff',name:'Penhasco Leste',minLevel:4,targetLevel:6,countMin:2,countMax:4,eliteChance:.05,frequency:1,monsters:[{id:'gob',chance:45},{id:'wolf',chance:35},{id:'lobo_negro',chance:20}]},
  {id:'portal_wolf_trail',name:'Trilha dos Lobos',minLevel:4,targetLevel:6,countMin:2,countMax:3,eliteChance:.08,frequency:.9,monsters:[{id:'wolf',chance:60},{id:'lobo_neve',chance:40}]},
- {id:'portal_forest',name:'Floresta Antiga',minLevel:7,targetLevel:10,countMin:3,countMax:4,eliteChance:.08,frequency:1,monsters:[{id:'shroom',chance:50},{id:'esqueleto_mago',chance:30},{id:'goblin',chance:20}]},
+ {id:'portal_forest',name:'Floresta Antiga',minLevel:7,targetLevel:10,countMin:3,countMax:4,eliteChance:.08,frequency:1,monsters:[{id:'shroom',chance:50},{id:'esqueleto_mago',chance:30},{id:'gob',chance:20}]},
  {id:'portal_mushroom_grove',name:'Bosque dos Cogumelos',minLevel:7,targetLevel:9,countMin:3,countMax:4,eliteChance:.1,frequency:1.1,monsters:[{id:'shroom',chance:45},{id:'esqueleto_curador',chance:35},{id:'toco_vivo',chance:20}]},
- {id:'portal_coast',name:'Costa Sul',minLevel:11,targetLevel:14,countMin:3,countMax:5,eliteChance:.1,frequency:1,monsters:[{id:'glooc_espada',chance:50},{id:'glooc_cetro',chance:30},{id:'goblin',chance:20}]},
- {id:'portal_guardian_sanctum',name:'Santuário do Guardião',minLevel:15,targetLevel:18,countMin:2,countMax:3,eliteChance:.12,frequency:.7,monsters:[{id:'esqueleto_guerreiro',chance:50},{id:'goblin',chance:40},{id:'boss',chance:10}]}
+ {id:'portal_coast',name:'Costa Sul',minLevel:11,targetLevel:14,countMin:3,countMax:5,eliteChance:.1,frequency:1,monsters:[{id:'glooc_espada',chance:50},{id:'glooc_cetro',chance:30},{id:'gob',chance:20}]},
+ {id:'portal_guardian_sanctum',name:'Santuário do Guardião',minLevel:15,targetLevel:18,countMin:2,countMax:3,eliteChance:.12,frequency:.7,monsters:[{id:'esqueleto_guerreiro',chance:50},{id:'gob',chance:40},{id:'glooc_saqueador',chance:10}]}
 ];
 /* Cada monstro do portal tem chance de vir (%), quantidade mín/máx e chance de elite (%).
    Portais antigos (quantidade e elite no portal) dividem a quantidade pela chance de cada monstro. */
