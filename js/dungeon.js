@@ -27,6 +27,8 @@
  let CAVE_ROOMS = [];
  let CAVE_CORRIDORS = [];
  let DUNGEON_DOORS = [];
+ let SELO_CHEFE = null;
+ const noSelo = (x, y, pad = 0) => !!SELO_CHEFE && SELO_CHEFE.fechado && Math.abs(x - SELO_CHEFE.porta.x) <= SELO_CHEFE.porta.w / 2 + pad && Math.abs(y - SELO_CHEFE.porta.y) <= SELO_CHEFE.porta.h / 2 + pad;
  let DUNGEON_DECORATIONS = [];
  let DUNGEON_THEME = 'cave';
  let DUNGEON_ART = {};
@@ -41,6 +43,8 @@
   CAVE_ROOMS = (cfg.rooms || []).map(r => ({ ...r }));
   CAVE_CORRIDORS = (cfg.corridors || []).map(c => ({ ...c }));
   DUNGEON_DOORS = (cfg.doors || []).map(door => ({ ...door }));
+  // selo da arena do chefe (2026-10-29): a passagem fecha quando o herói entra na arena e abre quando o chefe morre
+  SELO_CHEFE = cfg.seloChefe && Number.isFinite(+cfg.seloChefe.x) ? { ...cfg.seloChefe, fechado: false, aberto: false } : null; window.SELO_CHEFE = SELO_CHEFE;
   DUNGEON_DECORATIONS = (cfg.decorations || []).map(d => ({ ...d }));
   // decorações sólidas (árvores, lápides, troncos...) numa grade de 32 px para a colisão ficar barata
   DECOR_SOLIDOS = new Map();
@@ -211,6 +215,7 @@
    if(Math.abs(x - door.x) <= halfW && Math.abs(y - door.y) <= halfH) return false;
   }
 
+  if(noSelo(x, y, pad)) return false; // selo da arena fechado
   // decorações sólidas (árvores, lápides, troncos)
   if(DECOR_SOLIDOS.size && window.decorSolida(x, y)) return false;
 
@@ -233,9 +238,34 @@
   if(!window.inDungeon) return false;
   const dentro = DUNGEON_CHAO ? (id => !!id && !(texturasChao()[id] && texturasChao()[id].parede))(chaoDG(x, y)) : [...CAVE_ROOMS, ...CAVE_CORRIDORS].some(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
   if(!dentro) return true;
+  if(noSelo(x, y)) return true;
   return DUNGEON_DOORS.some(door => !dungeonDoorOpen(door) && Math.abs(x - door.x) <= Math.max(8, Number(door.w) || 12) / 2 && Math.abs(y - door.y) <= Math.max(8, Number(door.h) || 56) / 2);
  };
 
+ /* selo da arena: fecha quando o herói entra (com o chefe vivo), abre quando o chefe morre; morreu e voltou de fora: reabre */
+ function updateSeloChefe(){
+  const S = SELO_CHEFE; if(!S || S.aberto) return;
+  const dentro = Math.hypot(p.x - S.x, p.y - S.y) < S.r;
+  if(!S.fechado && dentro && p.dead <= 0 && !dungeonBossesDefeated()){
+   S.fechado = true; ring(S.porta.x, S.porta.y, 40, '#b07ad8', .8); ft(p.x, p.y - 34, 'A passagem se fechou!', '#c084fc');
+   if(window.tremerDG) tremerDG(.4); if(window.playGameSound) playGameSound('portalFecha');
+  } else if(S.fechado && dungeonBossesDefeated()){
+   S.fechado = false; S.aberto = true; ring(S.porta.x, S.porta.y, 40, '#4ade80', .8); ft(S.porta.x, S.porta.y - 30, 'A passagem se abriu', '#4ade80');
+  } else if(S.fechado && (p.dead > 0 || Math.hypot(p.x - S.x, p.y - S.y) > S.r + 40)) S.fechado = false;
+ }
+ // a barreira: energia roxa correndo entre duas colunas de pedra (pixel art, animada)
+ function desenharSeloChefe(){
+  const S = SELO_CHEFE; if(!S || !S.fechado) return;
+  const P = S.porta, vert = P.h > P.w, L = vert ? P.h : P.w, cor = ['#311339', '#4f2052', '#7a3ca8', '#b07ad8', '#d9b8ff'];
+  ctx.save(); ctx.translate(Math.round(P.x), Math.round(P.y)); if(!vert) ctx.rotate(Math.PI / 2);
+  for(let y = -L / 2; y < L / 2; y += 2){
+   const w = 3 + Math.round(2 * Math.sin(time * 6 + y * .3)), k = Math.floor((time * 10 + y * .25) % 5 + 5) % 5;
+   ctx.globalAlpha = .55 + .35 * Math.sin(time * 4 + y * .2); ctx.fillStyle = cor[k]; ctx.fillRect(-w, Math.round(y), w * 2, 2);
+  }
+  ctx.globalAlpha = 1;
+  for(const s of [-1, 1]){ const yy = s * L / 2; ctx.fillStyle = '#000'; ctx.fillRect(-5, yy - (s > 0 ? 9 : 1), 10, 10); ctx.fillStyle = '#5e5668'; ctx.fillRect(-4, yy - (s > 0 ? 8 : 0), 8, 8); ctx.fillStyle = '#8e8898'; ctx.fillRect(-4, yy - (s > 0 ? 8 : 0), 8, 2); ctx.fillStyle = '#d9b8ff'; ctx.fillRect(-1, yy - (s > 0 ? 5 : -3), 2, 2); }
+  ctx.restore();
+ }
  function updateDungeonDoors(){
   DUNGEON_DOORS.forEach(door => {
    if(door.opened || !dungeonDoorOpen(door)) return;
@@ -481,11 +511,10 @@
   return dungeonBoss;
  }
  function updateBossAI(dt){
+  // barra de dano recente (delayedHp) de todos os chefes, os da config da DG também (antes só o sorteado: a barra do Glooc
+  // Chefe ficava cheia por trás), descendo 35% da vida máxima por segundo
+  for(const b of new Set([dungeonBoss, ...dungeonBosses])) if(b && b.delayedHp > b.hp) b.delayedHp = Math.max(b.hp, b.delayedHp - dt * Math.max(140, monsterMaxHp(b) * .35));
   if(!dungeonBoss) return;
-  // Animação de barra de dano recente (delayedHp)
-  if(dungeonBoss.delayedHp > dungeonBoss.hp){
-   dungeonBoss.delayedHp = Math.max(dungeonBoss.hp, dungeonBoss.delayedHp - dt * 140);
-  }
 
   // Verificação de morte do Boss
   if(dungeonBoss.hp <= 0){
@@ -576,7 +605,7 @@
   if(!window.inDungeon) return;
   if(dungeonShake > 0) dungeonShake = Math.max(0, dungeonShake - dt * 2);
 
-  updateDungeonDoors();
+  updateDungeonDoors();updateSeloChefe();
   if(!clearRecorded && dungeonBossesDefeated()){
    clearRecorded = true;
    const ms = performance.now() - (window.dungeonEnteredAt || performance.now());
@@ -733,6 +762,7 @@
 
  function exitDungeon(toCampPortal = true){
   if(!window.inDungeon) return;
+  if(window.barraChefeAberta){ window.barraChefeAberta = false; const m = document.getElementById('mon'); if(m) m.classList.remove('abaixoBarraChefe'); }
   if(window.STATS_DG) STATS_DG.fim(); // painel de estatísticas do fim (antes de sair da sala do grupo)
   window.inDungeon = false;
   limparTelegrafos();
@@ -762,6 +792,42 @@
 
  /* ---------- ELEMENTOS DE RENDERIZAÇÃO DA MASMORRA ---------- */
  // 1. Decorações da Caverna (Pixel Art)
+ /* objetos animados (2026-10-29, pedido do usuário: "faz animações em todos objetos"), pelo nome do elemento: fogo (braseiro,
+    fogueira, churrasqueira, tocha) com chama tremulando, brasas subindo e brilho no chão; caldeirão com bolhas e vapor; lampião
+    pulsando; bandeirinhas balançando; estalagmite de obsidiana com reflexo piscando; estalagmite de pedra com gota escorrendo */
+ const ANIM_DECOR = {}, TOPO_ARTE = new WeakMap();
+ function tipoAnimDecor(dec){
+  if(!dec.el) return null; if(dec.el in ANIM_DECOR) return ANIM_DECOR[dec.el];
+  const nome = (dec.el + ' ' + ((window.PIXLIB && PIXLIB[dec.el] && PIXLIB[dec.el].name) || (window.PACOTE_MAPA && PACOTE_MAPA.elementos[dec.el] && PACOTE_MAPA.elementos[dec.el].name) || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return ANIM_DECOR[dec.el] = /caldeir/.test(nome) ? 'caldeirao' : /braseir|fogueir|churrasq|tocha/.test(nome) ? 'fogo' : /lampiao/.test(nome) ? 'lampiao' : /bandeir/.test(nome) ? 'bandeira' : /obsidiana/.test(nome) ? 'obsidiana' : /estalagmite/.test(nome) ? 'gota' : null;
+ }
+ // ponto mais alto do desenho perto do meio (onde fica a chama ou a boca do caldeirão), em pixels do desenho
+ function topoArte(arte){
+  if(TOPO_ARTE.has(arte)) return TOPO_ARTE.get(arte);
+  let topo = 0; try{ const W = arte.width, H = arte.height, d = arte.getContext('2d').getImageData(0, 0, W, H).data, c = W >> 1;
+   achou: for(let y = 0; y < H; y++) for(let x = c - 2; x <= c + 2; x++) if(d[(y * W + x) * 4 + 3] > 200){ topo = y; break achou; } }catch(e){}
+  TOPO_ARTE.set(arte, topo); return topo;
+ }
+ function animarDecoracao(g, tipo, arte, x, y, w, h){
+  const q = arte.q || 1, x0 = Math.round(x), topo = Math.round(y - h + 3 + topoArte(arte) / q), fase = x * .37 + y * .11;
+  const P = (px, py, cor, a = 1) => { g.globalAlpha = a; g.fillStyle = cor; g.fillRect(Math.round(px), Math.round(py), 1, 1); };
+  if(tipo === 'fogo' || tipo === 'caldeirao'){
+   const gr = g.createRadialGradient(x0, topo + 2, 1, x0, topo + 2, 30); gr.addColorStop(0, 'rgba(255,170,70,' + (.16 + .05 * Math.sin(time * 9 + fase)) + ')'); gr.addColorStop(1, 'rgba(255,120,40,0)'); g.fillStyle = gr; g.fillRect(x0 - 30, topo - 28, 60, 60);
+  }
+  if(tipo === 'fogo'){
+   const fogo = ['#b8402a', '#e8743a', '#f7b84a', '#efc56a'];
+   for(let dx = -2; dx <= 2; dx++){ const alt = Math.max(0, Math.round(3.6 - Math.abs(dx) * 1.1 + Math.sin(time * 13 + dx * 1.7 + fase) * 1.3)); for(let j = 0; j < alt; j++) P(x0 + dx, topo - 1 - j, fogo[Math.min(3, Math.max(0, alt - j - 1 - (Math.abs(dx) > 1 ? 1 : 0)))], .95); }
+   for(let k = 0; k < 3; k++){ const f = (time * .9 + k / 3 + fase) % 1; P(x0 + Math.sin(f * 9 + k * 2) * 2.5, topo - 3 - f * 16, f < .5 ? '#f7b84a' : '#b8402a', 1 - f); } // brasas subindo
+  }
+  if(tipo === 'caldeirao'){
+   for(let k = 0; k < 3; k++){ const f = (time * 1.4 + k * .37 + fase) % 1, bx = x0 - 3 + ((k * 5 + Math.floor(time * 1.4 + k * .37 + fase) * 3) % 7); if(f < .7){ P(bx, topo + 1, '#9ab84a', .9); if(f > .45) P(bx, topo, '#c8e070', .9); } } // bolhas
+   for(let k = 0; k < 4; k++){ const f = (time * .45 + k / 4 + fase) % 1; P(x0 - 2 + Math.sin(f * 6 + k) * 3 + k, topo - 2 - f * 14, '#c8c4cc', (1 - f) * .55); } // vapor
+  }
+  if(tipo === 'lampiao'){ const gr = g.createRadialGradient(x0, topo + 4, 1, x0, topo + 4, 20); gr.addColorStop(0, 'rgba(255,214,120,' + (.2 + .08 * Math.sin(time * 6 + fase)) + ')'); gr.addColorStop(1, 'rgba(255,190,90,0)'); g.fillStyle = gr; g.fillRect(x0 - 20, topo - 16, 40, 40); }
+  if(tipo === 'obsidiana'){ const f = (time * .5 + fase) % 3; if(f < .35){ const py = topo + 6 + Math.floor(fase * 7) % 10, k = f < .18 ? 1 : .5; P(x0 - 1, py, '#ffffff', k); P(x0 - 2, py, '#d9b8ff', k * .7); P(x0, py, '#d9b8ff', k * .7); P(x0 - 1, py - 1, '#d9b8ff', k * .7); P(x0 - 1, py + 1, '#d9b8ff', k * .7); } }
+  if(tipo === 'gota'){ const f = (time * .35 + fase) % 2.5; if(f < 1){ const py = topo + 2 + f * (h * .8); P(x0 - 1 + (f > .5 ? 1 : 0), py, '#6e9cc4', .9); P(x0 - 1 + (f > .5 ? 1 : 0), py - 1, '#3d5a8c', .6); } }
+  g.globalAlpha = 1;
+ }
  function drawDungeonDecoration(dec,target,original=false){
   const ctx=target||cv.getContext('2d');
   const { x, y, type } = dec;
@@ -770,8 +836,10 @@
   if(arte){
    // 1:1 (padrão do jogo): o desenho no tamanho real, com os pés na posição; as altas balançam com o vento
    const q = arte.q || 1, w = arte.width / q, h = arte.height / q;
-   if(dec.balanca && !target){ const sk = Math.sin(time * 1.3 + x * .07) * .05; ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.transform(1, 0, sk, 1, 0, 0); ctx.drawImage(arte, Math.round(-w / 2), Math.round(-h + 3), w, h); ctx.restore(); }
+   const anim = !target && tipoAnimDecor(dec);
+   if((dec.balanca || anim === 'bandeira') && !target){ const sk = anim === 'bandeira' ? Math.sin(time * 2.2 + x * .05) * .035 : Math.sin(time * 1.3 + x * .07) * .05; ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.transform(1, 0, sk, 1, 0, 0); ctx.drawImage(arte, Math.round(-w / 2), Math.round(-h + 3), w, h); ctx.restore(); }
    else ctx.drawImage(arte, Math.round(x - w / 2), Math.round(y - h + 3), w, h);
+   if(anim) animarDecoracao(ctx, anim, arte, x, y, w, h);
    return;
   }
   // decorações desenhadas por código (barril, caixote, ossos, estalagmite, poça, cristal, teia, estandarte, árvore, arbusto e flor)
@@ -971,10 +1039,34 @@
  for(const [type,name] of Object.entries({escada:'Escada'})){
   gameArtRegister('dg-decor-'+type,name+' da DG',{w:40,h:48,ay:42/48,draw:g=>drawDungeonDecoration({x:20,y:42,type},g,true)});
  }
- gameArtRegister('dg-torch','Tocha da DG',{w:12,h:16,ay:12/16,draw:g=>{
-  g.fillStyle='#33271f';g.fillRect(4,10,4,6);
-  g.fillStyle='#ea580c';g.fillRect(4,6,4,5);g.fillStyle='#fde047';g.fillRect(5,7,2,3);
- }});
+ /* tocha de pé (2026-10-29, pedido do usuário: refazer as tochas, com interação com o chão): cabo de madeira fincado num
+    monte de pedras, copo de ferro e a chama em 3 quadros (tremula para os lados e solta faísca); contorno preto, cores da
+    paleta do jogo (js/paleta.js). 11×20, o pé (centro do monte) é o ponto da tocha. */
+ const TOCHA_QUADROS=[];
+ function tochaQuadro(f){
+  if(TOCHA_QUADROS[f])return TOCHA_QUADROS[f];
+  const W=11,H=20,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),cel=new Array(W*H).fill(null);
+  const P=(x,y,cor)=>{if(x>=0&&y>=0&&x<W&&y<H)cel[y*W+x]=cor};
+  const pedra=['#3a3040','#5e5668','#8e8898'],madeira=['#4e2430','#7d3f34','#a8653f'],aco=['#3e3a52','#7c8098','#c4c8d6'],fogo=['#b8402a','#e8743a','#f7b84a'],nucleo='#efc56a';
+  // monte de pedras (luz no alto à esquerda)
+  for(let y=15;y<H;y++)for(let x=0;x<W;x++){const u=(x+.5-5.5)/4.8,v=(y+.5-18.4)/2.8;if(u*u+v*v<=1)P(x,y,u+v<-.6?pedra[2]:u+v>.5||y>=H-1?pedra[0]:pedra[1])}
+  P(2,16,pedra[2]);P(8,17,pedra[0]);
+  // cabo fincado no monte
+  for(let y=8;y<17;y++){P(4,y,madeira[2]);P(5,y,y%3?madeira[1]:madeira[0])}
+  // copo de ferro
+  for(let x=3;x<=7;x++){P(x,6,aco[2]);P(x,7,x<5?aco[1]:aco[0])}P(3,8,aco[0]);P(7,8,aco[0]);
+  // contorno de tudo menos a chama
+  const cont=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(cel[y*W+x])continue;if([[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>{const X=x+a,Y=y+b;return X>=0&&Y>=0&&X<W&&Y<H&&cel[Y*W+X]}))cont.push([x,y])}
+  for(const [x,y] of cont)P(x,y,'#000000');
+  // chama (sem contorno): mais alta e pendendo para um lado em cada quadro
+  const alt=[5,6,5][f],lado=[0,-1,1][f];
+  for(let j=0;j<alt;j++){const y=5-j,meio=Math.round(5+lado*j/alt),lar=Math.max(0,Math.round(2.2-j*.5));
+   for(let dx=-lar;dx<=lar;dx++)P(meio+dx,y,Math.abs(dx)==lar&&lar>0?fogo[0]:j<alt-2&&Math.abs(dx)<1?nucleo:Math.abs(dx)<=1?fogo[2]:fogo[1])}
+  if(f==2)P(7,0,fogo[2]); if(f==1)P(3,1,fogo[1]); // faísca
+  for(let i=0;i<W*H;i++)if(cel[i]){g.fillStyle=cel[i];g.fillRect(i%W,(i/W)|0,1,1)}
+  return TOCHA_QUADROS[f]=c}
+ function desenharTocha(g,x,y){const f=Math.floor(time*7+x*.37)%3;g.fillStyle='rgba(0,0,0,.28)';g.beginPath();g.ellipse(Math.round(x)+1,Math.round(y)+1,6,2,0,0,7);g.fill();g.drawImage(tochaQuadro(f),Math.round(x)-5,Math.round(y)-18)}
+ gameArtRegister('dg-torch','Tocha da DG',{w:11,h:20,ay:18/20,draw:g=>g.drawImage(tochaQuadro(0),0,0)});
  // Desenho dos elementos da DG para a Engine montar a cena com as mesmas artes do jogo.
  window.DG_DRAW={
   temas:DUNGEON_THEME_COLORS, estiloTema:ESTILO_TEMA_DG, pisoTema:PISO_TEMA_DG,
@@ -1111,15 +1203,18 @@
   const allBoxes = DUNGEON_CHAO ? [] : [...CAVE_ROOMS, ...CAVE_CORRIDORS];
   const palette = DUNGEON_THEME_COLORS[DUNGEON_THEME] || DUNGEON_THEME_COLORS.cave;
   // artes da DG: a própria (config.art), a editada em Artes do jogo, ou a padrão do tema (piso do pacote, parede e moldura de paredes-dg.js)
-  const temaDG = getActiveDungeonConfig().theme||'cave', estiloEscolhido = getActiveDungeonConfig().paredeEstilo, estiloDG = estiloEscolhido || ESTILO_TEMA_DG[temaDG], pisoDG = PISO_TEMA_DG[temaDG] && window.PACOTE_MAPA && PACOTE_MAPA.texturas[PISO_TEMA_DG[temaDG]];
+  const temaDG = lerDungeonConfig().theme||'cave', estiloEscolhido = lerDungeonConfig().paredeEstilo, estiloDG = estiloEscolhido || ESTILO_TEMA_DG[temaDG], pisoDG = PISO_TEMA_DG[temaDG] && window.PACOTE_MAPA && PACOTE_MAPA.texturas[PISO_TEMA_DG[temaDG]];
   const floorData = DUNGEON_ART.floor||gameArtData('dg-floor-'+temaDG)||(pisoDG?pisoDG.data:null), wallData = DUNGEON_ART.wall||(estiloEscolhido&&window.PAREDES_DG?PAREDES_DG.face(estiloEscolhido):null)||gameArtData('dg-wall-'+temaDG)||(estiloDG&&window.PAREDES_DG?PAREDES_DG.face(estiloDG):null);
   const floorPattern = cachedDungeonPattern(floorData);
   const wallPattern = cachedDungeonPattern(wallData);
   if(DUNGEON_CHAO && window.CHAO){
    const bordaData = DUNGEON_ART.borda||(estiloEscolhido&&window.PAREDES_DG?PAREDES_DG.borda(estiloEscolhido):null)||gameArtData('dg-borda-'+temaDG)||(estiloDG&&window.PAREDES_DG?PAREDES_DG.borda(estiloDG):null);
-   if(!dungeonCamada) dungeonCamada = CHAO.dgCamada(DUNGEON_CHAO, texturasChao(), { piso: CHAO.comAnim(cachedDungeonArt(floorData), floorData, cachedDungeonArt), parede: CHAO.comAnim(cachedDungeonArt(wallData), wallData, cachedDungeonArt), borda: cachedDungeonArt(bordaData), largura: getActiveDungeonConfig().bordaLargura, cores: palette, estilos: window.PAREDES_DG ? PAREDES_DG.estilosDe(getActiveDungeonConfig(), cachedDungeonArt) : null });
+   if(!dungeonCamada) dungeonCamada = CHAO.dgCamada(DUNGEON_CHAO, texturasChao(), { piso: CHAO.comAnim(cachedDungeonArt(floorData), floorData, cachedDungeonArt), parede: CHAO.comAnim(cachedDungeonArt(wallData), wallData, cachedDungeonArt), borda: cachedDungeonArt(bordaData), largura: lerDungeonConfig().bordaLargura, cores: palette, estilos: window.PAREDES_DG ? PAREDES_DG.estilosDe(lerDungeonConfig(), cachedDungeonArt) : null });
    if(dungeonCamada){
-    ctx.drawImage(dungeonCamada.c, dungeonCamada.x, dungeonCamada.y);
+    { // só o pedaço visível da camada (desenhar o mapa inteiro escalado a cada quadro custava caro, como na ilha)
+     const C = dungeonCamada, vw = cv.width / S, vh = cv.height / S, sx = Math.max(0, Math.floor(p.x - vw / 2 - C.x) - 8), sy = Math.max(0, Math.floor(p.y - vh / 2 - C.y) - 8), sw = Math.min(C.c.width - sx, Math.ceil(vw) + 16), sh = Math.min(C.c.height - sy, Math.ceil(vh) + 16);
+     if(sw > 0 && sh > 0) ctx.drawImage(C.c, sx, sy, sw, sh, C.x + sx, C.y + sy, sw, sh);
+    }
     // piso e parede animados (lava, pântano, sangue, rachaduras, paredes de chamas e cripta): só o que está à vista
     const mw = cv.width / S / 2 + 48, mh = cv.height / S / 2 + 64;
     CHAO.dgAnimar(ctx, dungeonCamada, time, { x0: p.x - mw, y0: p.y - mh, x1: p.x + mw, y1: p.y + mh });
@@ -1202,20 +1297,11 @@
 
   // 5. Elementos Decorativos da Caverna (Chão / Cenário)
   DUNGEON_DECORATIONS.forEach(dec => { if(!dec.alto) drawDungeonDecoration(dec); });
+  desenharSeloChefe();
   // 6. Tochas da Caverna com Iluminação Dinâmica
   dungeonTorches.forEach(t => {
    if(drawCustomDungeonObject(t))return;
-   if(!gameArtDraw('dg-torch',ctx,t.x,t.y)){
-   // Suporte de ferro da tocha
-   ctx.fillStyle = '#33271f';
-   ctx.fillRect(t.x - 2, t.y - 2, 4, 6);
-   // Fogo animado
-   const fl = Math.sin(time * 16 + t.x) * 1.2;
-   ctx.fillStyle = '#ea580c';
-   ctx.fillRect(t.x - 2, t.y - 6 + fl, 4, 5);
-   ctx.fillStyle = '#fde047';
-   ctx.fillRect(t.x - 1, t.y - 5 + fl, 2, 3);
-   }
+   if(!gameArtDraw('dg-torch',ctx,t.x,t.y))desenharTocha(ctx,t.x,t.y); // tocha de pé animada (sem desenho próprio do projeto)
    // Brilho quente radial no chão/parede
    const tg = ctx.createRadialGradient(t.x, t.y, 2, t.x, t.y, 48);
    tg.addColorStop(0, 'rgba(251,146,60,0.24)');
@@ -1407,8 +1493,13 @@
 
  /* ---------- BARRA DE VIDA DE ELITE DO BOSS NO TOPO DA TELA ---------- */
  function drawDungeonEliteBossBar(){
-  const boss = dungeonBoss || dungeonBosses.find(enemy => enemy.hp > 0);
-  if(!boss || (boss.hp <= 0 && (boss.delayedHp || 0) <= 0)) return;
+  // o chefe selecionado (alvo ou inspecionado); antes pegava o primeiro chefe da lista e a barra mostrava a vida de outro
+  const ehChefe = e => e && (e === dungeonBoss || dungeonBosses.includes(e));
+  const boss = ehChefe(p.tgt) ? p.tgt : ehChefe(window.insp) ? window.insp : null;
+  const mostra = !!boss && !(boss.hp <= 0 && (boss.delayedHp || 0) <= 0);
+  // o quadro do alvo (#mon) desce para baixo da barra grande enquanto ela aparece (antes ficava um por cima do outro)
+  if(mostra !== window.barraChefeAberta){ window.barraChefeAberta = mostra; const m = document.getElementById('mon'); if(m) m.classList.toggle('abaixoBarraChefe', mostra); }
+  if(!mostra) return;
   // A vida do boss só aparece quando o jogador clica nele (selecionado como alvo ou inspecionado)
   const isSelected = (p.tgt === boss) || (window.insp === boss);
   if(!isSelected) return;

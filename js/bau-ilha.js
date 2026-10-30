@@ -1,6 +1,6 @@
 /* ---------- Baú da ilha (2026-10-28) ----------
    Baú pessoal no acampamento para guardar itens. Individual: cada jogador tem o seu, salvo junto do progresso (save
-   local e nuvem, campo "bau"); na ilha de outro jogador ele não aparece.
+   local e nuvem, campo "bau"). Aparece também na ilha de outro jogador, mas abre sempre o baú de quem clicou.
    10 abas de 10 linhas × 5 colunas (50 espaços cada, 500 no total). O espaço k fica na aba floor(k/50); saves antigos
    (40 espaços) caem inteiros na aba 1.
    Clique no baú (de perto; de longe o herói anda até ele) abre o painel:
@@ -20,7 +20,8 @@
  let arteF=null,arteA=null,aberto=false,alvo=false,el=null,aba=0;
  let arrasto=null; // {de:'bau'|'mochila', i} enquanto um item do painel é arrastado
  const arte=a=>!window.BAUS||typeof pixelArt!='function'?null:a?arteA||(arteA=pixelArt(BAUS.arte('madeira',true))):arteF||(arteF=pixelArt(BAUS.arte('madeira',false)));
- const visivel=()=>!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.inTutorial&&!(window.MP&&MP.visitando);
+ // aparece em toda ilha, inclusive na de outro jogador (2026-10-28): quem abre vê sempre o PRÓPRIO baú
+ const visivel=()=>!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.inTutorial;
  const perto=()=>Math.hypot(p.x-POS.x,p.y-POS.y)<34;
  const sob=w=>!!w&&visivel()&&Math.abs(w.x-POS.x)<13&&w.y>POS.y-22&&w.y<POS.y+4;
  const aviso=t=>{ft(p.x,p.y-24,t,'#f87171');if(el&&!el.hidden){const m=el.querySelector('.biMsg');if(m)m.textContent=t}};

@@ -36,10 +36,12 @@ function campWallSegmentClear(from,to){
 /* ---------- água (refeita em 2026-10-23: ilha mais viva) ----------
    O rio nasce no Lago Grande ao norte (o único lago), desce a leste do acampamento (duas pontes) e cai no vazio no sul.
    A margem do lago é irregular (o raio muda com o ângulo) e ele é um pouco mais largo que alto (perspectiva de cima). */
-const RIO_Y0=CY-470,RBR=[CY-180,CY+200];
+// 2026-10-29 (imagem do usuário, área azul): lago maior (raio 74 → 120) e um pouco mais ao norte; o rio nasce dentro dele.
+// As pontes ficam onde as estradas novas cruzam o rio.
+const RIO_Y0=CY-470,RBR=[CY-196,CY+185];
 const riverX=y=>CX+380+34*Math.sin(y/70)+14*Math.sin(y/23);
 const riverW=y=>y<RIO_Y0?0:9+5*Math.min(1,(y-RIO_Y0)/700)+2*Math.sin(y/50);
-const LAGO={x:Math.round(riverX(RIO_Y0)),y:RIO_Y0,r:74,nome:'Lago Grande',s:3};
+const LAGO={x:Math.round(riverX(RIO_Y0)),y:CY-492,r:120,nome:'Lago Grande',s:3};
 const LAGOS=[LAGO];
 window.LAGOS=LAGOS;
 const lagoR=(L,a)=>L.r*(1+.13*Math.sin(3*a+L.s)+.08*Math.sin(5*a+L.s*2)+.04*Math.sin(9*a+L.s*3));
@@ -50,22 +52,72 @@ const rioDist=(x,y)=>{let rd=Infinity,rw=1;if(y>=RIO_Y0){rd=Math.abs(x-riverX(y)
  for(const L of LAGOS){if(Math.abs(x-L.x)>L.r*1.4+30||Math.abs(y-L.y)>L.r*1.2+30)continue;const [ld,lr]=lagoDist(L,x,y);if(ld-lr<rd-rw){rd=ld;rw=lr}}return [rd,rw]};
 const inRiver=(x,y,m=0)=>{const [rd,rw]=rioDist(x,y);return rd<rw+m};
 const onBridge=(x,y)=>RBR.some(b=>Math.abs(y-b)<11&&Math.abs(x-riverX(b))<riverW(b)+14);
-/* caminhos de terra (refeitos em 2026-10-23): estradas curvas (pontos de passagem suavizados) que saem das 4 saídas do
-   acampamento: ao sul até a cachoeira, a leste pelas duas pontes, ao norte até o lago e a oeste até a floresta */
-const CAMINHOS=(()=>{const [B1,B2]=RBR,b1=riverX(B1),b2=riverX(B2),w1=riverW(B1)+18,w2=riverW(B2)+18;
- // curva suave por dentro dos pontos (Catmull-Rom), em trechos curtos
- const suave=pts=>{const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+/* caminhos de terra (refeitos em 2026-10-29 pelas linhas vermelhas da imagem do usuário): uma estrada em anel em volta do
+   acampamento (com a entrada do portão sul) e, saindo dela, ao norte até o lago, a leste pela ponte de cima até o outro lado
+   do lago, ao sul até a cachoeira, a sudeste pela ponte de baixo até a borda, e a oeste e a sudoeste até a borda */
+// curva suave por dentro dos pontos (Catmull-Rom), em trechos curtos
+const suaveCaminho=pts=>{const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
   for(let k=0;k<8;k++){const t=k/8,t2=t*t,t3=t2*t,f=(a,b,c,d)=>.5*(2*b+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3);out.push([f(p0[0],p1[0],p2[0],p3[0]),f(p0[1],p1[1],p2[1],p3[1])])}}
   out.push(pts[pts.length-1]);return out};
- return [
-  [[CX,CY+140],[CX-20,CY+250],[CX-40,CY+350],[CX+40,CY+470],[CX+120,CY+560],[riverX(CY+620)-70,CY+620]],             // sul: cachoeira
-  [[CX-25,CY+300],[CX+120,CY+260],[b2-150,B2+24],[b2-w2,B2]],[[b2+w2,B2],[b2+120,B2+50],[b2+190,B2+150],[b2+230,B2+260]], // sudeste: ponte de baixo
-  [[CX+140,CY],[CX+230,CY-50],[b1-110,B1+10],[b1-w1,B1]],[[b1+w1,B1],[b1+110,B1-30],[b1+150,B1-160],[LAGO.x+LAGO.r+50,LAGO.y+30]], // leste: ponte de cima e lago
-  [[CX,CY-140],[CX-30,CY-260],[CX+40,CY-380],[LAGO.x-LAGO.r-60,LAGO.y+50],[LAGO.x-LAGO.r-12,LAGO.y+20]],             // norte: margem do lago
-  [[CX-140,CY],[CX-280,CY+30],[CX-420,CY-20],[CX-520,CY-110],[CX-560,CY-200]],                                          // oeste: floresta
-  [[CX-280,CY+30],[CX-370,CY+170],[CX-440,CY+330]]].map(suave)})();const CAMINHO_SEGS=CAMINHOS.flatMap(l=>l.slice(1).map((q,i)=>[l[i],q]));
-function caminhoDist(x,y){let best=Infinity;for(const [a,b] of CAMINHO_SEGS){if(x<Math.min(a[0],b[0])-24||x>Math.max(a[0],b[0])+24||y<Math.min(a[1],b[1])-24||y>Math.max(a[1],b[1])+24)continue;
- const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy))),d=Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);if(d<best)best=d}return best}
+const segsCaminho=ls=>ls.flatMap(l=>l.slice(1).map((q,i)=>[l[i],q]));
+/* distância até a linha mais perto de um conjunto de trechos, com índice em grade de 32 px (o terreno pergunta isto em
+   cada pixel da ilha; antes cada pergunta passava por todos os trechos). Além de m px a resposta é Infinity. */
+const indiceSegs=(segs,m)=>{const G=Math.ceil(W/32),cel=Array.from({length:G*G},()=>[]);
+ segs.forEach((s,k)=>{const [a,b]=s,i0=Math.max(0,Math.floor((Math.min(a[0],b[0])-m)/32)),i1=Math.min(G-1,Math.floor((Math.max(a[0],b[0])+m)/32)),j0=Math.max(0,Math.floor((Math.min(a[1],b[1])-m)/32)),j1=Math.min(G-1,Math.floor((Math.max(a[1],b[1])+m)/32));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)cel[j*G+i].push(s)});return{G,cel,m}};
+const distIndice=(I,x,y)=>{const i=Math.floor(x/32),j=Math.floor(y/32);if(i<0||j<0||i>=I.G||j>=I.G)return Infinity;let best=Infinity;
+ for(const [a,b] of I.cel[j*I.G+i]){const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1))),d=Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);if(d<best)best=d}
+ return best<=I.m?best:Infinity};
+const ANEL_R=176; // meia largura do anel (o muro do acampamento fica em 132)
+/* as 4 estradas que saem da ilha (oeste, sudoeste, sul e sudeste) vão até a beira do vazio, atravessando a areia */
+const CAMINHOS=(()=>{const [B1,B2]=RBR,b1=riverX(B1),b2=riverX(B2),w1=riverW(B1)+18,w2=riverW(B2)+18,R=ANEL_R;
+ // anel: quadrado de cantos arredondados, fechado (começa e termina no meio do lado de cima)
+ const anel=[[0,-R],[R-55,-R],[R-16,-R+16],[R,-R+55],[R,0],[R,R-55],[R-16,R-16],[R-55,R],[0,R],[-R+55,R],[-R+16,R-16],[-R,R-55],[-R,0],[-R,-R+55],[-R+16,-R+16],[-R+55,-R],[0,-R]].map(([x,y])=>[CX+x,CY+y]);
+ return [anel,
+  [[CX-10,CY-R],[CX-24,CY-254],[CX-27,CY-329],[CX-5,CY-380],[CX+66,CY-413],[CX+166,CY-425],[CX+234,CY-439]],                       // norte: margem oeste do lago
+  [[CX+R,CY-35],[CX+208,CY-66],[CX+230,CY-128],[CX+259,CY-178],[b1-60,B1+2],[b1-w1,B1]],                                           // leste: até a ponte de cima
+  [[b1+w1,B1],[CX+519,CY-207],[CX+556,CY-250],[CX+570,CY-313],[CX+553,CY-371],[CX+516,CY-417],[CX+477,CY-439]],                    // depois da ponte: margem leste do lago
+  [[CX,CY+130],[CX,CY+R],[CX-8,CY+208],[CX-32,CY+259],[CX-49,CY+318],[CX-35,CY+385],[CX-2,CY+452],[CX+44,CY+519],[CX+116,CY+561],[CX+234,CY+590],[CX+314,CY+624],[CX+338,CY+674]], // saída sul: cachoeira
+  [[CX-21,CY+237],[CX+49,CY+222],[CX+166,CY+208],[CX+259,CY+192],[b2-w2,B2]],                                                    // sudeste: até a ponte de baixo
+  [[b2+w2,B2],[CX+506,CY+230],[CX+546,CY+284],[CX+578,CY+343],[CX+607,CY+388],[CX+642,CY+422],[CX+655,CY+432]],                    // saída sudeste
+  [[CX-690,CY-210],[CX-647,CY-203],[CX-590,CY-193],[CX-523,CY-183],[CX-496,CY-150],[CX-486,CY-103],[CX-459,CY-55],[CX-413,CY-18],[CX-329,CY-8],[CX-220,CY-2],[CX-R,CY]], // saída oeste
+  [[CX-215,CY-2],[CX-271,CY+24],[CX-304,CY+57],[CX-334,CY+108],[CX-358,CY+183],[CX-378,CY+284],[CX-395,CY+385],[CX-422,CY+486],[CX-444,CY+570],[CX-469,CY+630],[CX-475,CY+648]]  // saída sudoeste
+ ].map(suaveCaminho)})();const CAMINHO_SEGS=segsCaminho(CAMINHOS),CAMINHO_IDX=indiceSegs(CAMINHO_SEGS,40);
+function caminhoDist(x,y){return distIndice(CAMINHO_IDX,x,y)}
+/* ---------- floresta (2026-10-29, pedido do usuário: a ilha como uma floresta de verdade) ----------
+   Mata fechada em quase tudo; clareiras abertas onde os portais soltam os monstros; de cada clareira sai uma trilha de terra
+   até a estrada mais perto (os monstros andam muito por ali). Na clareira e na trilha a grama está gasta: pisada,
+   amarelada e com terra aparecendo, mais no meio (desgasteIlha, usado pelo terreno e pelos tufos da ilha viva). */
+const CLAREIRAS=[
+ {x:CX-440,y:CY-430,r:95},{x:CX-300,y:CY-250,r:80},{x:CX+60,y:CY-560,r:75},{x:CX-560,y:CY+150,r:85},
+ {x:CX-210,y:CY+400,r:95},{x:CX+190,y:CY+390,r:80},{x:CX+540,y:CY-10,r:80},{x:CX+500,y:CY+560,r:70},
+ // mais arenas de spawn (2026-10-29, pedido do usuário) nos trechos grandes de mata
+ {x:CX-218,y:CY-551,r:75},{x:CX-601,y:CY-68,r:65},{x:CX-520,y:CY+330,r:70},{x:CX-218,y:CY+599,r:70},{x:CX+165,y:CY-301,r:75},{x:CX+499,y:CY+399,r:60},
+ // +5 pela mata e +1 ao lado do lago, a leste dele (2026-10-29, pedido do usuário)
+ {x:CX-335,y:CY-585,r:55},{x:CX-68,y:CY+532,r:60},{x:CX+265,y:CY+299,r:55},{x:CX-335,y:CY+499,r:55},{x:CX+590,y:CY+130,r:55},{x:CX+530,y:CY-530,r:55}
+].map((c,i)=>({...c,id:'clareira'+(i+1),s:i*1.7+.4}));
+window.CLAREIRAS=CLAREIRAS;
+// borda irregular: o raio muda com o ângulo
+const clareiraR=(c,x,y)=>{const a=Math.atan2(y-c.y,x-c.x);return c.r*(1+.12*Math.sin(3*a+c.s)+.07*Math.sin(5*a+c.s*2))};
+// 0 no centro, 1 na borda da clareira mais perto (maior que 1 fora)
+const clareiraFator=(x,y)=>{let f=Infinity;for(const c of CLAREIRAS){if(Math.abs(x-c.x)>c.r*2||Math.abs(y-c.y)>c.r*2)continue;const d=Math.hypot(x-c.x,y-c.y)/clareiraR(c,x,y);if(d<f)f=d}return f};
+const naClareira=(x,y,folga=1)=>clareiraFator(x,y)<folga;
+window.naClareira=naClareira;
+/* trilhas: da borda da clareira até o ponto de estrada mais perto que dá para alcançar sem cruzar água, com uma curva */
+const TRILHAS=(()=>{const pts=CAMINHOS.flatMap(l=>l.filter((q,i)=>i%3==0));
+ const secoAte=(a,b)=>{for(let k=1;k<20;k++){const x=a[0]+(b[0]-a[0])*k/20,y=a[1]+(b[1]-a[1])*k/20;if(inRiver(x,y,10))return false}return true};
+ return CLAREIRAS.map((c,i)=>{let alvo=null,bd=Infinity;for(const q of pts){const d=Math.hypot(q[0]-c.x,q[1]-c.y);if(d<bd&&secoAte([c.x,c.y],q)){bd=d;alvo=q}}
+  if(!alvo)return null;const ang=Math.atan2(alvo[1]-c.y,alvo[0]-c.x),ini=[c.x+Math.cos(ang)*c.r*.5,c.y+Math.sin(ang)*c.r*.5],
+   curva=(hash(i*13+5,i*7+1)-.5)*.5*bd,meio=[(ini[0]+alvo[0])/2-Math.sin(ang)*curva,(ini[1]+alvo[1])/2+Math.cos(ang)*curva];
+  return suaveCaminho([ini,meio,alvo])}).filter(Boolean)})();
+const TRILHA_IDX=indiceSegs(segsCaminho(TRILHAS),40);
+const trilhaDist=(x,y)=>distIndice(TRILHA_IDX,x,y);
+// terra por onde os monstros gostam de andar: estrada ou trilha
+const terraDist=(x,y)=>Math.min(caminhoDist(x,y),trilhaDist(x,y));
+window.terraDist=terraDist;
+/* desgaste da grama (0 a 1): forte no meio da clareira, some um pouco além da borda; ao longo da trilha, faixa gasta */
+const desgasteIlha=(x,y)=>{const f=clareiraFator(x,y),dc=f<1.25?1-Math.max(0,Math.min(1,(f-.45)/.8)):0,td=trilhaDist(x,y),dt=td<14?(1-td/14)*.75:0;return Math.max(dc,dt)};
+window.desgasteIlha=desgasteIlha;
 const map=document.createElement('canvas');map.width=map.height=W;
 const islandTerrainKinds=['grass','sand','void','camp','river','bridge'],islandTerrainMask=new Uint8Array(W*W);
 /* biomas da grama (js/ilha-viva.js usa as mesmas regras para os tufos e as flores animadas):
@@ -80,26 +132,55 @@ window.biomaIlha=biomaIlha;window.floridoIlha=floridoIlha;
  const hx=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
  const C={deep:hx('#173f73'),deep2:hx('#1c5a8c'),wat:hx('#2775a8'),sh:hx('#3f97c4'),raso:hx('#62b6d2'),reflexo:hx('#a6dcec'),foam:hx('#dff2f6'),
   sand:hx('#e3cc8f'),sand2:hx('#d4b878'),molhada:hx('#a8905e'),lama:hx('#7d6a46'),
-  d1:hx('#8c6c49'),d2:hx('#7f6140'),d3:hx('#9a7a55'),r1:hx('#6b5848'),r2:hx('#4d3f34'),r3:hx('#1d1712'),moss:hx('#3f6b34')};
- // rampas da grama (escuro → claro) por bioma
- const G={campo:['#2f6e31','#3c843a','#4b9a44','#5dae50','#78c260'].map(hx),mata:['#1f4f2a','#29622f','#347536','#418843','#55a04e'].map(hx),
-  seco:['#5d7a34','#73903c','#8aa548','#a3b656','#bfc86c'].map(hx)};
- const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+  d1:hx('#8c6c49'),d2:hx('#7f6140'),d3:hx('#9a7a55'),pisada:hx('#7d8a44'),pisada:hx('#7d8a44'),r1:hx('#6b5848'),r2:hx('#4d3f34'),r3:hx('#1d1712'),moss:hx('#3f6b34')};
+ /* grama de uma cor só (2026-10-29, pedido do usuário): o mesmo verde na ilha toda; o que dá vida são fiapos de capim de 2
+    pixels (um traço deitado para a direita, como o vento) no verde um tom abaixo, com a ponta às vezes um tom acima.
+    Terra natural: marrom terroso que conversa com esse verde; da grama para a terra passa por grama pisada salpicada
+    (pixel a pixel, sem misturar cores), a beira da terra é mais escura (úmida, com grama teimando) e o meio tem pedrinhas. */
+ const GR=hx('#4b9a44'),GR_E=hx('#3c843a'),GR_C=hx('#62ad4f'),PIS=hx('#6f8a40'),TE=hx('#76603f'),TE_E=hx('#644f36'),TE_C=hx('#8b7550'),PEDRINHA=hx('#9a8a6e'),TE_S=hx('#4f3d2b');
+ C.d1=TE;C.d2=TE_E;C.pisada=PIS;
  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
- // poucos tons (pedido do usuário: menos pixels de cores diferentes): 3 faixas lisas por bioma, sem pontilhado
- const tom=(rampa,v)=>rampa[v<.42?1:v<.62?2:3];
- const gramaEm=(x,y)=>{const b=biomaIlha(x,y),n=vn(x,y,48)*.7+vn(x,y,17)*.3;
-  return b>.64?tom(G.mata,n):b<.32?tom(G.seco,n):tom(G.campo,n)};
+ /* tufinhos espaçados (2026-10-29, o usuário achou os fiapos espalhados serrilhados demais): no máximo um tufo por célula
+    de 9×7 px, em 40% delas; o tufo é um "w" de 5 pixels (folha do meio mais alta, ponta clara) sobre o verde liso */
+ const TUFO=[[0,0,0],[0,-1,0],[-1,0,0],[1,0,0],[0,-2,1]];
+ const tufoEm=(x,y)=>{for(const [dx,dy,c] of TUFO){const ox=x-dx,oy=y-dy,cx=Math.floor(ox/9),cy=Math.floor(oy/7);if(hash(cx*5+1,cy*3+7)>.4)continue;
+   if(cx*9+1+Math.floor(hash(cx,cy*11)*7)===ox&&cy*7+2+Math.floor(hash(cx*13,cy)*4)===oy)return c?GR_C:GR_E}return null};
+ const gramaEm=(x,y)=>tufoEm(x,y)||GR;
+ /* terra pelo quanto já entrou no caminho (q: < 0 grama, 0 a 1 beira, > 1 miolo); h = sorteio fixo do pixel */
+ /* sem salpicado (2026-10-29, o usuário achou serrilhado): faixas lisas — grama pisada por fora, beira de terra úmida e o
+    miolo de terra com uma pedrinha ou outra */
+ const terraEm=(q,h,grama)=>{if(q<0)return q>-.42?PIS:grama;
+  if(q<.38)return TE_E;
+  return h>.993?PEDRINHA:h>.982?TE_C:TE};
+ const qCam=(x,y,v)=>{const rec=(vn(x,y,11)-.5)*2.2,dc=Math.hypot((x-CX)/T,(y-CY)/T)+(vn(x,y,20)-.5)*2.4;let q=-9;
+  if(v<28.3&&dc>=5.4){const pd=v<26.8?caminhoDist(x+(vn(x,y,40)-.5)*16,y+(vn(x+77,y,40)-.5)*16):caminhoDist(x,y),pw=9+(vn(x,y,12)-.5)*3,
+    td=v<26.2?trilhaDist(x+(vn(x,y,30)-.5)*8,y+(vn(x+5,y,30)-.5)*8):Infinity,tw=4.6+(vn(x+9,y,10)-.5)*1.6;
+   q=Math.max((pw-(pd+rec))/2.6,(tw-(td+rec*.6))/1.8)}
+  if(dc<7.2)q=Math.max(q,(5.9-dc)*T/14+rec/4);return q};
  for(let y=0;y<W;y++)for(let x=0;x<W;x++){
   const wob=(vn(x,y,24)-.5)*2.2+(vn(x,y,9)-.5)*.8,v=Vp(x,y)+wob;
   if(v>28.6){islandTerrainMask[y*W+x]=2;continue} // vazio: fica transparente (o espaço aparece por trás)
   const dc=Math.hypot((x-CX)/T,(y-CY)/T)+(vn(x,y,20)-.5)*2.4,n=vn(x,y,14),f=vn(x,y,4),px=hash(x*3+1,y*7+2);
   let c,kind=v>26.2?1:0;
   if(v>26.2){c=mix(C.sand,C.sand2,n);if(v>28)c=mix(c,C.r1,Math.min(1,(v-28)/.6)*.7)}
-  else{c=gramaEm(x,y);if(v>25)c=mix(c,C.sand,(v-25)/1.2*.6)}
-  if(v<26.8&&dc>=5.4){const pd=caminhoDist(x+(vn(x,y,40)-.5)*16,y+(vn(x+77,y,40)-.5)*16),pw=6+(vn(x,y,12)-.5)*3;
-   if(pd<pw+2){const d=n>.5?C.d1:C.d2;if(pd<pw){c=d;kind=3}else c=mix(c,d,.5)}}
-  if(dc<5.9){const t=Math.max(0,Math.min(1,(5.9-dc)/1.2)),d=n>.5?C.d1:C.d2;c=t>.5?d:mix(c,d,.5);kind=3}
+  else{c=gramaEm(x,y);if(v>25)c=mix(c,C.sand,(v-25)/1.2*.6);
+   /* grama gasta pelos monstros (clareiras e trilhas, desgasteIlha): em tons fixos (sem degradê), da grama pisada e
+      amarelada até a terra aparecendo no meio, em manchas */
+   if(v<25.8){const w=desgasteIlha(x,y);if(w>.05){const g=w*(.55+.9*(vn(x,y,9)*.65+vn(x+41,y,26)*.35))-Math.max(0,v-24.6);
+    // clareira gasta: q > 0 onde a terra aparece; antes disso, grama pisada salpicada
+    const q=(g-.9)/.25;if(q>-.9){const t=terraEm(q,px,c);c=t;if(q>=0)kind=3}}}}
+  /* estradas (até a beira do vazio, nas 4 saídas), trilhas dos monstros e o chão batido do acampamento. Mais grossos e em
+     2,5D (2026-10-29, pedido do usuário): o caminho é uma vala rasa no chão, com a luz vindo do alto à esquerda — o barranco
+     de cima fica na sombra (faixa escura), o de baixo pega luz (terra clara) e a grama na beira de cima ganha um friso claro.
+     qCam: quanto o pixel entrou no caminho (< 0 grama, 0 a 1 beira, > 1 miolo); comparado com 2 px acima e abaixo. */
+  {const q=qCam(x,y,v);
+   if(q>-1.2&&(q>=0||kind===0&&v<=25)){const qa=qCam(x,y-2,v),qb=qCam(x,y+2,v);
+    if(q>=0){let t=terraEm(q,px,c);kind=3;
+     if(q<1.2&&qa<q-.12)t=q<.6?TE_S:TE_E;          // barranco de cima: sombra
+     else if(q<.75&&qb<q-.12)t=TE_C;                // barranco de baixo: luz
+     c=t}
+    else if(qb>=0&&q>-.6)c=GR_C;                     // friso de grama clara na beira de cima
+    else c=terraEm(q,px,c)}}
   {const [rd,rw0]=rioDist(x,y),rw=rw0+(vn(x,y,18)-.5)*3;
    if(rd<rw+9){
     if(rd<rw){const t=1-rd/rw,lago=rw0>20;                             // t: 0 na margem, 1 no meio
@@ -131,7 +212,7 @@ window.biomaIlha=biomaIlha;window.floridoIlha=floridoIlha;
  for(let n=0;n<6500;n++){const x=Math.floor(hash(n,1)*W),y=Math.floor(hash(n,2)*W),v=Vp(x,y),dc=Math.hypot((x-CX)/T,(y-CY)/T);
   if(v<24.5&&dc>6.4&&livreDeAgua(x,y,3)){const r=hash(n,3),b=biomaIlha(x,y),fl=floridoIlha(x,y);
    if(fl>.68&&b>.3&&r<.7){const [p,q]=CORES_FLOR[Math.floor(vnoise(x,y,220)*CORES_FLOR.length)%CORES_FLOR.length];dot(x,y+1,1,2,'#2f6f2c');dot(x-1,y,3,1,p);dot(x,y-1,1,3,p);dot(x,y,1,1,q)}
-   else if(r<.18){const esc=b>.64?'#1d4a24':'#2f6f2c',cla=b<.32?'#c2c86a':'#6bbf5f';dot(x,y,1,3,esc);dot(x+1,y+1,1,2,cla)}
+   else if(r<.18){const esc='#3c843a',cla='#62ad4f'; /* grama de uma cor só: os tufos no mesmo verde */dot(x,y,1,3,esc);dot(x+1,y+1,1,2,cla)}
    else if(r<.38&&b>.64){dot(x,y,1,2,'#e8dcc0');dot(x-1,y-1,3,1,n%2?'#c0392b':'#a8743a');if(n%3==0){dot(x+3,y+1,1,1,'#e8dcc0');dot(x+2,y,3,1,'#c0392b')}}
    else if(r<.43){dot(x,y,3,2,'#8a8f96');dot(x,y,2,1,'#b8bec6');if(b>.5)dot(x,y-1,2,1,'#4f7d3a')}
    }
@@ -192,7 +273,15 @@ window.applyIslandTerrainArt=()=>{
 };
 /* tipos de elemento do mapa: só os dos pacotes (js/pacote-mapa.js) e da biblioteca do projeto (2026-10-24, pedido do usuário:
  os elementos embutidos — pedras, arbusto, tronco, cerca, cristal, cogumelo, cacto, toco, placa e muro — não eram usados na ilha e saíram) */
-const MAP_ELEMENT_TYPES={};
+/* a mata da ilha (2026-10-29, pedido do usuário: a vegetação do mesmo bioma das árvores, pedras meio enterradas) volta a ter
+ elementos desenhados pelo jogo (js/scenery.js), nas folhas, madeira e pedra das árvores da ilha, no lugar dos do pacote
+ "floresta sombria" (verde-azulado escuro, de outro clima) */
+const MAP_ELEMENT_TYPES={
+ mata_arbusto:{name:'Arbusto da mata',radius:5,blocks:false},mata_samambaia:{name:'Samambaia da mata',radius:4,blocks:false},
+ mata_pedra:{name:'Pedra meio enterrada',radius:7,blocks:true},mata_toco:{name:'Toco da mata',radius:6,blocks:true},
+ mata_tronco:{name:'Tronco caído da mata',radius:10,blocks:true},mata_cogumelos:{name:'Cogumelos da mata',radius:4,blocks:false}};
+// elementos que a geração da mata põe sozinha (são trocados quando a ilha é refeita)
+window.ehMatoDaIlha=t=>/^px:pk_fn_|^mata_/.test(t);
 window.PIXLIB={};
 /* elementos do pacote de mapa (js/pacote-mapa.js); um elemento da biblioteca do projeto com o mesmo id tem prioridade */
 for(const [id,e] of Object.entries(window.PACOTE_MAPA&&PACOTE_MAPA.elementos||{})){PIXLIB[id]={...e.data,name:e.name};MAP_ELEMENT_TYPES['px:'+id]={name:e.name,radius:e.raio||6,blocks:!!e.solido}}
@@ -212,7 +301,7 @@ const bloqueiaTiro=(x,y)=>{if(window.inTutorial)return false;if(window.inArena)r
 const linhaLivre=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,n=Math.ceil(Math.hypot(dx,dy)/4);for(let i=1;i<n;i++)if(bloqueiaTiro(a.x+dx*i/n,a.y+dy*i/n))return false;return true};
 window.linhaLivre=linhaLivre;window.bloqueiaTiro=bloqueiaTiro;
 // longe das árvores e dos elementos sólidos: ninguém nasce nem para escondido atrás da copa (mesma área em que a árvore fica transparente)
-const longeDeArvores=(x,y)=>{if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return true;for(const t of trees)if(Math.abs(t.x-x)<18&&y>t.y-30&&y<t.y+7)return false;for(const e of mapElements){const ty=MAP_ELEMENT_TYPES[e.type];if(ty&&ty.blocks&&Math.hypot(e.x-x,e.y-y)<ty.radius+12)return false}return true};
+const longeDeArvores=(x,y)=>{if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return true;for(const t of arvoresPerto(x,y+12,19))if(Math.abs(t.x-x)<18&&y>t.y-30&&y<t.y+7)return false;for(const e of mapElements){const ty=MAP_ELEMENT_TYPES[e.type];if(ty&&ty.blocks&&Math.hypot(e.x-x,e.y-y)<ty.radius+12)return false}return true};
 window.longeDeArvores=longeDeArvores;
 for(let n=0;n<1200&&trees.length<72;n++){const x=rnd(0,W),y=rnd(0,W);if(V(x/T|0,y/T|0)<25.5&&Math.hypot(x-CX,y-CY)>95&&!inRiver(x,y,16))trees.push({x,y})}
 if(Array.isArray(PROJ.map&&PROJ.map.trees)){trees.splice(0,trees.length,...PROJ.map.trees.filter(t=>t&&Number.isFinite(t.x)&&Number.isFinite(t.y)&&t.x>=0&&t.x<W&&t.y>=0&&t.y<W).map(t=>({x:t.x,y:t.y})))}
@@ -228,35 +317,77 @@ function arvoresDoAnel(existentes){const out=[],todas=[...(existentes||[])],ANTI
   const t={x:Math.round(jx),y:Math.round(jy)};out.push(t);todas.push(t)}
  return out}
 if(ILHA_MIGROU)trees.push(...arvoresDoAnel(trees));
-/* layout da ilha (2026-10-23, mundo.ilhaLayout 1): florestas fechadas nas bordas e em manchas, bosques soltos, árvores isoladas
-   no campo, um anel de árvores na margem do lago e do rio (sem encostar na água), clareira grande em volta do acampamento
-   e nada em cima dos caminhos. Determinístico (mesma ilha sempre); a Engine grava estas árvores no projeto uma vez. */
+/* layout 4 da ilha (2026-10-29, pedido do usuário: floresta de verdade; mundo.ilhaLayout 5; a 4 trouxe mais clareiras e a mata longe da base, a 5 mais 6 clareiras): mata fechada em quase tudo,
+   mais rala na beira das estradas, das clareiras e do anel do acampamento, com aberturas naturais pequenas; nada nas
+   estradas, trilhas, clareiras, água e pontes (a copa, que sobe ~40 px, também não cobre o caminho). Determinístico (mesma
+   ilha sempre); a Engine grava estas árvores e os elementos (elementosDaIlha) no projeto uma vez. */
 function arvoresDaIlha(){const out=[],perto=new Map(),cel=(x,y)=>(x>>4)+','+(y>>4);
  const ocupado=(x,y,d)=>{for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const l=perto.get(((x>>4)+i)+','+((y>>4)+j));if(l)for(const t of l)if(Math.abs(t.x-x)<d&&Math.abs(t.y-y)<d*.8)return true}return false};
  const poe=(x,y)=>{const t={x:Math.round(x),y:Math.round(y)};out.push(t);const k=cel(t.x,t.y);if(!perto.has(k))perto.set(k,[]);perto.get(k).push(t)};
- for(let y=T;y<W-T;y+=9)for(let x=T;x<W-T;x+=9){const jx=x+(hash(x,y*3)-.5)*8,jy=y+(hash(y,x*5)-.5)*8,v=V(jx/T|0,jy/T|0);
-  if(v>=25.6)continue;                                                                  // praia e borda
-  const dc=Math.hypot(jx-CX,jy-CY);if(dc<CAMP_SAFE_HALF_SIZE+60)continue;                 // clareira do acampamento
-  // longe da água e dos caminhos, e a copa (que sobe ~40 px) também não cobre o caminho nem o lago
-  if(inRiver(jx,jy,16)||inRiver(jx,jy-24,10)||caminhoDist(jx,jy)<20||caminhoDist(jx,jy-22)<16||onBridge(jx,jy+12))continue;
-  if(Math.hypot(jx-LAGO.x,(jy-LAGO.y)*1.25)<LAGO.r*1.25+46)continue;                       // clareira em volta do lago
-  const borda=Math.max(0,(v-20.5)/5),mancha=vnoise(jx,jy,150),mata=biomaIlha(jx,jy)>.62?.18:0;
-  const dens=borda*.62+Math.max(0,mancha-.52)*1.7+mata-(dc<CAMP_SAFE_HALF_SIZE+200?.3:0);
+ for(let y=T;y<W-T;y+=7)for(let x=T;x<W-T;x+=7){const jx=x+(hash(x,y*3)-.5)*6,jy=y+(hash(y,x*5)-.5)*6,v=V(jx/T|0,jy/T|0);
+  if(v>=25.6)continue;                                                                   // praia e borda
+  const da=campDistance(jx,jy);if(da<ANEL_R+90)continue;                                  // anel e campo de visão em volta da base
+  if(inRiver(jx,jy,14)||inRiver(jx,jy-24,10)||onBridge(jx,jy+12))continue;
+  if(Math.hypot(jx-LAGO.x,(jy-LAGO.y)*1.25)<LAGO.r*1.25+26)continue;                       // margem do lago
+  const rd=caminhoDist(jx,jy),td=trilhaDist(jx,jy);
+  if(rd<19||caminhoDist(jx,jy-22)<15||td<12||trilhaDist(jx,jy-20)<9||terraPerto(jx,jy,6))continue; // caminhos mais largos (layout 7); tronco fora da terra pintada
+  const cf=clareiraFator(jx,jy)+(vnoise(jx,jy,22)-.5)*.25;if(cf<1.05)continue;            // clareiras (borda irregular)
+  let dens=.9;
+  if(vnoise(jx+500,jy,120)<.24)dens=.12;                                                  // aberturas naturais no meio da mata
+  if(rd<36)dens*=.5;if(td<20)dens*=.6;if(cf<1.4)dens*=.55;if(da<ANEL_R+160)dens*=.3;if(v>24.6)dens*=.6;
   const r=hash(jx*7|0,jy*3|0);
-  if(dens>.6){if(r<.62&&!ocupado(jx,jy,12))poe(jx,jy)}                                     // floresta fechada
-  else if(dens>.38){if(r<.26&&!ocupado(jx,jy,16))poe(jx,jy)}                                // bosque solto
-  else if(r<.016&&!ocupado(jx,jy,44))poe(jx,jy)}                                          // árvore sozinha no campo
+  if(dens>.6){if(r<.95&&!ocupado(jx,jy,11))poe(jx,jy)}                                      // mata fechada
+  else if(dens>.25){if(r<.6&&!ocupado(jx,jy,15))poe(jx,jy)}                                  // mata rala (beiras)
+  else if(r<.05&&!ocupado(jx,jy,30))poe(jx,jy)}                                            // árvore solta na abertura
  return out}
 window.arvoresDaIlha=arvoresDaIlha;
-if(!(+(PROJETO&&PROJETO.mundo&&PROJETO.mundo.ilhaLayout)>=1)){trees.splice(0,trees.length,...arvoresDaIlha());
- // elementos do projeto que caíram em cima dos caminhos novos saem (pedras e troncos no meio da estrada)
- const fora=mapElements.filter(e=>caminhoDist(e.x,e.y)<9);for(const e of fora)mapElements.splice(mapElements.indexOf(e),1)}
+/* plantas e pedras (pacote de mapa, floresta): samambaias, arbustos, raízes e cogumelos no meio da mata e nas beiras;
+   pedras, tocos e troncos caídos mais na beira das clareiras e das estradas. Nada em cima da terra nem da água; os sólidos
+   longe dos troncos das árvores. */
+/* terra pintada perto (estrada, trilha, clareira gasta, acampamento): o caminho pintado serpenteia até ~8 px da linha do meio,
+   então a mata confere o chão de verdade (islandTerrainMask 3) além da distância até a linha */
+const terraPerto=(x,y,r)=>{for(let dy=-r;dy<=r;dy+=2)for(let dx=-r;dx<=r;dx+=2){const X=Math.round(x+dx),Y=Math.round(y+dy);if(X>=0&&Y>=0&&X<W&&Y<W&&islandTerrainMask[Y*W+X]===3)return true}return false};
+function elementosDaIlha(arvores){const out=[],ok=id=>MAP_ELEMENT_TYPES[id],perto=new Map(),k=(x,y)=>(x>>5)+','+(y>>5);
+ for(const t of arvores){const c=k(t.x,t.y);if(!perto.has(c))perto.set(c,[]);perto.get(c).push(t)}
+ const arvoresEm=(x,y,r)=>{let n=0;for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const l=perto.get(((x>>5)+i)+','+((y>>5)+j));if(l)for(const t of l)if(Math.hypot(t.x-x,t.y-y)<r)n++}return n};
+ const usados=[];const livre=(x,y,d)=>!usados.some(e=>Math.abs(e.x-x)<d&&Math.abs(e.y-y)<d);
+ const sorteia=(l,r)=>{let s=0;for(const [,w] of l)s+=w;let q=r*s;for(const [id,w] of l){q-=w;if(q<=0)return id}return l[l.length-1][0]};
+ // mata da ilha (js/scenery.js), mesmas cores das árvores
+ const MATA=[['mata_samambaia',6],['mata_arbusto',3.5],['mata_cogumelos',.8],['mata_toco',.6],['mata_pedra',.7]];
+ const BEIRA=[['mata_pedra',3],['mata_arbusto',3],['mata_toco',1.5],['mata_tronco',1.2],['mata_samambaia',2.4]];
+ const SOLIDO={mata_pedra:1,mata_toco:1,mata_tronco:1};
+ for(let y=T;y<W-T;y+=20)for(let x=T;x<W-T;x+=20){const jx=Math.round(x+(hash(x*3,y)-.5)*16),jy=Math.round(y+(hash(y*5,x)-.5)*16),v=V(jx/T|0,jy/T|0);
+  if(v>=25.4||campDistance(jx,jy)<ANEL_R+14||inRiver(jx,jy,8)||onBridge(jx,jy))continue;
+  const rd=caminhoDist(jx,jy),td=trilhaDist(jx,jy),cf=clareiraFator(jx,jy);if(rd<14||td<9||cf<.85||terraPerto(jx,jy,8))continue;
+  const beira=cf<1.35||rd<30,n=arvoresEm(jx,jy,22),r=hash(jx*11,jy*13);
+  if(!(beira?r<.42:n>=2?r<.3:r<.08))continue;
+  const id=sorteia(beira?BEIRA:MATA,hash(jx*17+3,jy*19+7));if(!ok(id))continue;
+  if(SOLIDO[id]&&arvoresEm(jx,jy,id=='mata_tronco'?20:13))continue;
+  if(!livre(jx,jy,id=='mata_tronco'?30:14))continue;
+  const e={type:id,x:jx,y:jy};out.push(e);usados.push(e)}
+ return out}
+window.elementosDaIlha=elementosDaIlha;
+if(!(+(PROJETO&&PROJETO.mundo&&PROJETO.mundo.ilhaLayout)>=7)){ // 7: caminhos mais largos, a mata e as plantas mais afastadas delestrees.splice(0,trees.length,...arvoresDaIlha());
+ // os elementos de natureza do projeto são trocados pelos novos; outros (cerca, placa...) ficam, se não caíram na terra ou na água
+ const outros=mapElements.filter(e=>!ehMatoDaIlha(e.type)&&!(terraDist(e.x,e.y)<9||inRiver(e.x,e.y,4)));
+ mapElements.splice(0,mapElements.length,...outros,...elementosDaIlha(trees))}
+/* grade das árvores (32 px) para perguntas de "tem árvore perto?" sem passar pela lista toda (a floresta tem milhares) */
+const GRADE_ARV={G:Math.ceil(W/32),cel:null};
+function indexarArvores(){const G=GRADE_ARV.G,c=Array.from({length:G*G},()=>[]);for(const t of trees){const i=Math.floor(t.x/32),j=Math.floor(t.y/32);if(i>=0&&j>=0&&i<G&&j<G)c[j*G+i].push(t)}GRADE_ARV.cel=c}
+function arvoresPerto(x,y,r){const G=GRADE_ARV.G,out=[];if(!GRADE_ARV.cel)indexarArvores();const i0=Math.max(0,Math.floor((x-r)/32)),i1=Math.min(G-1,Math.floor((x+r)/32)),j0=Math.max(0,Math.floor((y-r)/32)),j1=Math.min(G-1,Math.floor((y+r)/32));
+ for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)for(const t of GRADE_ARV.cel[j*G+i])if(Math.abs(t.x-x)<=r&&Math.abs(t.y-y)<=r)out.push(t);return out}
+window.arvoresPerto=arvoresPerto;
 /* grade de passagem (2×2 px): o chão primeiro, depois cada árvore, elemento sólido e NPC "carimba" só as células em volta
    (mesmas regras do walkRaw, sem testar todas as árvores em cada célula da ilha grande) */
 function rebuildWG(){window.sceneryDirty&&sceneryDirty();WG=new Uint8Array(GW*GW);
  for(let j=0;j<GW;j++)for(let i=0;i<GW;i++)WG[j*GW+i]=groundFree(i*2+1,j*2+1)?1:0;
  const carimbo=(o,r,teste)=>{const i0=Math.max(0,Math.floor((o.x-r-2)/2)),i1=Math.min(GW-1,Math.ceil((o.x+r)/2)),j0=Math.max(0,Math.floor((o.y-r-2)/2)),j1=Math.min(GW-1,Math.ceil((o.y+r)/2));for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)if(teste(i*2+1,j*2+1))WG[j*GW+i]=0};
- for(const t of trees)carimbo(t,7,(x,y)=>Math.abs(t.x-x)<6&&Math.abs(t.y-y)<5&&Math.hypot(t.x-x,(t.y-y)*1.4)<4.5);
+ /* mata fechada não dá passagem (2026-10-29, pedido do usuário): árvore com 3 ou mais vizinhas a até 20 px bloqueia um
+    raio maior (9 px), e as vizinhas se emendam numa parede; na beira da mata (poucas vizinhas) só o tronco bloqueia */
+ indexarArvores();
+ for(const t of trees){const viz=window.inDungeon?0:arvoresPerto(t.x,t.y,20).filter(o=>o!==t&&Math.hypot(o.x-t.x,o.y-t.y)<=20).length;
+  if(viz>=3)carimbo(t,10,(x,y)=>Math.hypot(t.x-x,(t.y-y)*1.15)<9);
+  else carimbo(t,7,(x,y)=>Math.abs(t.x-x)<6&&Math.abs(t.y-y)<5&&Math.hypot(t.x-x,(t.y-y)*1.4)<4.5)}
  for(const e of mapElements){const ty=MAP_ELEMENT_TYPES[e.type];if(ty&&ty.blocks){const r=ty.radius+4;carimbo(e,r,(x,y)=>Math.hypot(e.x-x,e.y-y)<r)}}
  if(typeof NPCS!='undefined')for(const n of NPCS)if(n.x>-1000)carimbo(n,7,(x,y)=>Math.abs(n.x-x)<7&&Math.abs(n.y-y)<7&&Math.hypot(n.x-x,n.y-y)<6.5);
 }rebuildWG();

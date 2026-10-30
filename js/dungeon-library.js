@@ -16,6 +16,8 @@
  const library=window.normalizeDungeonLibrary(typeof PROJETO!=='undefined'?PROJETO.dgs:null);
  window.getDungeonLibrary=()=>clone(library);
  window.getActiveDungeonId=()=>(library.dungeons.find(d=>d.id==window.currentDungeonId)||library.dungeons.find(d=>d.id==library.activeId)||library.dungeons[0])?.id;
+ /* só para ler (nome, trilha, tema...): sem cópia. A cópia inteira (milhares de ladrilhos) a cada quadro pesava na DG */
+ window.lerDungeonConfig=()=>{const entry=library.dungeons.find(d=>d.id==window.currentDungeonId)||library.dungeons.find(d=>d.id==library.activeId)||library.dungeons[0];return entry?.config||{}};
  window.getActiveDungeonConfig=()=>{
   const entry=library.dungeons.find(d=>d.id==window.currentDungeonId)||library.dungeons.find(d=>d.id==library.activeId)||library.dungeons[0];
   return clone(entry?.config||{rooms:[],corridors:[],mobs:[],chests:[],decorations:[],torches:[],doors:[]});
@@ -114,7 +116,7 @@
   const enter=entry=>{const i=info(entry);if(i.minLevel&&p.lvl<i.minLevel)return;if(window.MP&&MP.grupoDg)montarGrupo(entry);else entrar(entry)};
   function renderList(){
    list.replaceChildren();
-   for(const entry of library.dungeons){
+   for(const entry of [...library.dungeons].sort((a,b)=>info(a).rec-info(b).rec||String(a.config.name||'').localeCompare(String(b.config.name||'')))){ // por nível (pedido do usuário)
     const i=info(entry),[dn,dc]=difficulty(i.rec),locked=i.minLevel&&p.lvl<i.minLevel,rec=records()[entry.id];
     const b=E('button','dgm-item'+(entry.id===selected?' on':'')+(locked?' locked':''));b.type='button';b.setAttribute('role','option');b.setAttribute('aria-selected',String(entry.id===selected));
     const img=E('img');img.src=monsterImg(i.boss);img.alt='';

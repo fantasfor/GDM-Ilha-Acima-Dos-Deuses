@@ -271,7 +271,7 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #d9d0c7;out
 #conta{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;background:var(--c-preto);padding:12px;box-sizing:border-box;font-family:monospace}
 #conta.open{display:flex}
 /* painel do grupo (js/multiplayer.js): fixo à esquerda, um quadro por membro */
-#painelGrupo{position:fixed;left:8px;top:56px;z-index:40;display:flex;flex-direction:column;gap:4px;width:150px;font:11px monospace;pointer-events:none}
+#painelGrupo{position:fixed;left:8px;bottom:220px;z-index:40;display:flex;flex-direction:column;gap:3px;width:150px;box-sizing:border-box;font:11px monospace;pointer-events:none}
 #painelGrupo[hidden]{display:none}
 .pgMembro{background:var(--c-preto);border:2px solid var(--c-escuro);padding:3px 5px 4px;color:var(--c-linho)}
 .pgMembro .pgNome{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
@@ -414,3 +414,10 @@ button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
 .menuAliado{position:fixed;z-index:80;display:flex;flex-direction:column;gap:3px;min-width:200px;padding:8px;background:var(--c-preto);border:2px solid var(--c-cinza);font:12px monospace;color:var(--c-linho)}
 .menuAliado b{font-size:12px;margin-bottom:3px;color:#8fe388}.menuAliado small{color:var(--c-pedra)}
 .menuAliado button{text-align:left;padding:6px 8px;background:var(--c-escuro);border:1px solid var(--c-cinza);color:var(--c-linho);font:12px monospace;cursor:pointer}.menuAliado button:hover{border-color:var(--c-linho)}
+/* UNO: coringa e +4 pretos com 4 cartinhas das 4 cores (js/mesas.js cartaUno) */
+.carta.uno.coringa{position:relative;background:#0d0d0d!important;border-color:#595959}
+.carta.uno .unoQuatro{position:relative;width:24px;height:30px;display:block}
+.carta.uno .unoQuatro i{position:absolute;width:11px;height:15px;border:1px solid #0d0d0d;border-radius:2px;box-shadow:0 0 0 1px #d9d0c7}
+.carta.uno .unoQuatro i:nth-child(1){left:1px;top:1px;transform:rotate(-12deg)}.carta.uno .unoQuatro i:nth-child(2){right:1px;top:1px;transform:rotate(10deg)}
+.carta.uno .unoQuatro i:nth-child(3){left:1px;bottom:1px;transform:rotate(8deg)}.carta.uno .unoQuatro i:nth-child(4){right:1px;bottom:1px;transform:rotate(-10deg)}
+.carta.uno .unoMais4{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:bold 13px monospace;color:#fff;text-shadow:1px 1px #0d0d0d,-1px -1px #0d0d0d,1px -1px #0d0d0d,-1px 1px #0d0d0d}

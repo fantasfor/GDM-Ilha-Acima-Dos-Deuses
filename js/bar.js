@@ -213,8 +213,8 @@
    // em partida o herói não sai da cadeira (clique no chão não levanta; só Desistir)
    if(window.MESAS&&MESAS.sentado){const m=TODAS().find(x=>x.id===MESAS.sentado.mesa);if(!m){MESAS.levantar(true);return}const s=lugar(m,MESAS.sentado.i);
     if(p.dest||(p.path&&p.path.length)||Math.hypot(p.x-s.x,p.y-s.y)>6){
-     if(MESAS.emPartida()){p.dest=null;p.path=[];p.x=s.x;p.y=s.y;if(time-avisoPreso>2){avisoPreso=time;ft(p.x,p.y-30,'Partida em andamento: use Desistir para sair da mesa','#f87171')}}
-     else MESAS.levantar()}
+     // sentado, andar (teclado ou botão direito) não levanta: só os botões Sair da mesa / Desistir (pedido do usuário, 2026-10-28)
+     p.dest=null;p.path=[];p.x=s.x;p.y=s.y;if(time-avisoPreso>2){avisoPreso=time;ft(p.x,p.y-30,MESAS.emPartida()?'Partida em andamento: use Desistir para sair da mesa':'Use o botão Sair da mesa para levantar','#f87171')}}
     else{p.x=s.x;p.y=s.y}}
   },
   // mouse em cima de algo clicável do pátio ou das mesas (botões, mesas, barman): o cursor vira a mãozinha

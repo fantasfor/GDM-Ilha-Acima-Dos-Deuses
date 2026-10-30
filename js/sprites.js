@@ -212,9 +212,16 @@ function human(cl,dir,ph=0,E={}){
  for(const s of ordem){if(s=='main'||s=='off'){(passouCorpo?depois:antes).push(s);continue}if(s=='corpo')passouCorpo=true;peca(s)}
  // escudo comum (não é arma) sem desenho: na mão de frente, à esquerda
  if(E.sh&&!E.shWeapon&&!equippedArt(E.sh,visualDir)&&dir=='d'){const [m,a]=E.sh.v.c;R(1,14,4,6,m);R(1,14,4,1,a);R(2,15,2,1,a);R(2,16,1,3,a);R(1,19,4,1,shade(m,.75))}
+ /* arma de duas mãos (machado, martelo, espada grande; 2026-10-29, pedido do usuário): a mão livre sai do lado do corpo e
+    vai segurar o cabo, logo acima da mão principal (desenhada depois da arma, por cima do cabo). A cor é a da mão principal. */
+ let mao2=null;
+ if(E.sw&&DUAS_MAOS.includes(E.sw.wt)&&!E.shWeapon&&!E.sh){
+  const lado=x=>dir=='s'?false:bk?x<8:x>=8,pele=[];
+  for(let y=0;y<G.length;y++)for(let x=0;x<(G[y]||'').length;x++)if(G[y][x]=='h'){const d=tx.getImageData(x,y,1,1).data;if(d[3]>200&&lado(x))pele.push('rgb('+d[0]+','+d[1]+','+d[2]+')');if(dir!='s'&&!lado(x))tx.clearRect(x,y,1,1)}
+  mao2={cor:pele[0]||'#e8b096'}}
  contornar(t);
  const c=mkCanvas(80+2*MARGEM,QH+2*MARGEM,2),cx=c.getContext('2d');cx.translate(26+MARGEM,4+MARGEM);cx.imageSmoothingEnabled=false;
- const {R:R2,box}=kit(cx),maos=l=>{for(const q of l)if(q=='main'?E.sw:E.sh)gearWeapon(E,visualDir,E.swing||0,box,R2,cx,q)};
+ const {R:R2,box}=kit(cx),maos=l=>{for(const q of l)if(q=='main'?E.sw:E.sh){const m2=q=='main'&&mao2?{}:null;gearWeapon(E,visualDir,E.swing||0,box,R2,cx,q,m2);if(m2&&m2.x!=null)maoNoCabo(cx,m2.x,m2.y,mao2.cor)}};
  maos(antes);
  cx.drawImage(t,-2,-2,HT.W*2,HT.H*2);
  // grade do chapéu: linha 0 = linha -5 da grade do herói (sobra uma linha para o contorno)
@@ -298,15 +305,18 @@ const POSES_ARMA={
  // de costas o golpe passa por cima da cabeça, da esquerda para a direita (antes ia para baixo, atrás do corpo)
  // parado (passo 0) a arma fica na horizontal em todas as direções (pedido do usuário): de lado aponta para a frente; de
  // frente e de costas, para fora do corpo (para o lado da mão que segura)
- corte:{s:[[0],[-130],[-65],[-40]],d:[[0],[-120],[-165],[150]],u:[[180],[-160,0,-8],[-90,12,-18],[-25,24,-8]],off:{d:[[180],[-120],[-165],[150]],u:[[0],[-20],[-90],[-155]]}},
- pesado:{s:[[0],[-170],[-35],[25]],d:[[0],[-150],[175],[120]],u:[[180],[-170,0,-8],[-95,12,-18],[-20,24,-8]]},
+ // de lado o golpe desce pela frente (até −20° e +35°): antes terminava apontando para cima (−65°/−40°) e, com a mão 1
+ // atrás do corpo (ORDEM_CAMADAS), a lâmina passava quase o golpe todo escondida atrás da cabeça (2026-10-28)
+ corte:{s:[[0],[-130],[-20],[35]],d:[[0],[-120],[-165],[150]],u:[[180],[-160,0,-8],[-90,12,-18],[-25,24,-8]],off:{d:[[180],[-120],[-165],[150]],u:[[0],[-20],[-90],[-155]]}},
+ pesado:{s:[[0],[-170],[0],[50]],d:[[0],[-150],[175],[120]],u:[[180],[-170,0,-8],[-95,12,-18],[-20,24,-8]]},
  estocada:{s:[[-60],[-5,-4],[0,8],[0,3]],d:[[-80],[95,0,-3],[90,0,7],[90,0,2]],u:[[-100],[-85,0,3],[-90,0,-7],[-90,0,-2]]},
- vertical:{s:[[-90],[-90,0,-2],[-90,1,-5],[-90,0,-1]],d:[[-90],[-90,0,-2],[-90,0,-5],[-90,0,-1]],u:[[-90],[-90,0,-2],[-90,0,-5],[-90,0,-1]]},
+ // de lado o cajado e o orbe ficam um pouco à frente do corpo (antes, no centro, sumiam atrás dele olhando para a direita)
+ vertical:{s:[[-90,8],[-90,8,-2],[-90,9,-5],[-90,8,-1]],d:[[-90],[-90,0,-2],[-90,0,-5],[-90,0,-1]],u:[[-90],[-90,0,-2],[-90,0,-5],[-90,0,-1]]},
  arco:{s:[[-90],[-90,-1],[-90,-2],[-90]],d:[[-90],[-90,0,-1],[-90,0,-2],[-90]],u:[[-90],[-90,0,1],[-90,0,2],[-90]]},
  besta:{s:[[0],[0,-1],[0,-3],[0]],d:[[90],[90,0,-1],[90,0,-3],[90]],u:[[-90],[-90,0,1],[-90,0,3],[-90]]},
  soco:{s:[[-90],[-90,-2],[-90,6],[-90,2]],d:[[-90],[-90,0,-1],[-90,0,4],[-90,0,1]],u:[[-90],[-90,0,1],[-90,0,-4],[-90,0,-1]]},
  escudo:{s:[[-90],[-90,-1],[-90,4],[-90,1]],d:[[-90],[-90],[-90,0,3],[-90,0,1]],u:[[-90],[-90],[-90,0,-2],[-90]]},
- orbe:{s:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]],d:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]],u:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]]},
+ orbe:{s:[[-90,8,-6],[-90,8,-7],[-90,8,-10],[-90,8,-7]],d:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]],u:[[-90,0,-6],[-90,0,-7],[-90,0,-10],[-90,0,-7]]},
  varinha:{s:[[0],[-115],[-55],[-35]],d:[[0],[-110],[-150],[160]],u:[[180],[-150,0,-8],[-100,12,-18],[-60,24,-8]]}
 };
 /* passo do golpe pode ser fracionário (render.js anim: golpe fluido): interpola entre os dois passos vizinhos, o ângulo pelo
@@ -331,9 +341,30 @@ function eixoArma(s){
     r={a:Math.atan2(t.y-b.y,t.x-b.x)*180/Math.PI,t,b};
     if(Math.abs(r.a+90)<8)r=padrao}}}catch(e){r=padrao} // quase em pé: igual a antes (sem girar um pouquinho)
  eixosArma.set(s,r);return r}
+/* Pixel de engate (2026-10-28, pedido do usuário): marcador posto na Engine no desenho da arma, onde fica a mão. Com ele
+   o desenho é segurado exatamente nesse pixel e, parado, fica como foi desenhado (ex.: o ícone na diagonal = espada
+   em diagonal para cima); no golpe gira só a diferença entre a pose do passo e a pose parada (POSES_ARMA passo 0).
+   Devolve {x,y} do engate e a ponta (o pixel mais longe do engate), em pixels do desenho; null sem engate. */
+const pontasEngate=new WeakMap();
+function engateArma(w,s){
+ const e=w&&w.engate;if(!e||!s||!Number.isFinite(+e.x)||!Number.isFinite(+e.y))return null;
+ let c=pontasEngate.get(s);
+ if(!c||c.x!==+e.x||c.y!==+e.y){let t={x:+e.x,y:+e.y},bd=-1;
+  try{const W=s.width,H=s.height,d=s.getContext('2d').getImageData(0,0,W,H).data;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>40){const q=(x+.5-e.x)**2+(y+.5-e.y)**2;if(q>bd){bd=q;t={x:x+.5,y:y+.5}}}}catch(er){}
+  c={x:+e.x,y:+e.y,t};pontasEngate.set(s,c)}
+ return c}
+/* giro (graus) do desenho com engate: parado (passo 0) = 0, como desenhado; do passo 1 em diante a ponta segue o ângulo
+   da pose (o mesmo arco das outras armas); entre 0 e 1 passa de um ao outro. espelha: desenho espelhado na mão. */
+function giroEngate(eg,pose,a0,step,espelha){
+ const aArte=Math.atan2(eg.t.y-(eg.y+.5),eg.t.x-(eg.x+.5))*180/Math.PI,aTela=espelha?180-aArte:aArte,dif=((aTela-a0)%360+540)%360-180;
+ return pose.a-aTela+dif*(1-Math.min(1,Math.max(0,step||0)))}
 // tela temporária para girar a arma no tamanho real (reaproveitada por tamanho)
 const telasArma={};const armaGirada=D=>telasArma[D]||(telasArma[D]=Object.assign(document.createElement('canvas'),{width:D,height:D}));
-function gearWeapon(E,dir,swing,box,R,cx,qual){ // qual: 'main' (mão 1), 'off' (mão 2) ou as duas
+// armas seguradas com as duas mãos (a mão livre vai no cabo); o cajado continua de pé numa mão só
+const DUAS_MAOS=['machado_2mao','martelo_2mao','espada_grande'];
+// mão no cabo: punho de 2×2 pixels do herói (4×4 na tela 2×) com contorno, alinhado à grade do herói
+function maoNoCabo(cx,x,y,cor){const X=Math.round(x/2)*2-2,Y=Math.round(y/2)*2-2;cx.fillStyle=CONTORNO;cx.fillRect(X-2,Y-2,8,8);cx.fillStyle=cor;cx.fillRect(X,Y,4,4);cx.fillStyle='rgba(0,0,0,.18)';cx.fillRect(X,Y+2,4,2)}
+function gearWeapon(E,dir,swing,box,R,cx,qual,mao2){ // qual: 'main' (mão 1), 'off' (mão 2) ou as duas; mao2 = {} recebe onde fica a mão livre no cabo (armas de duas mãos)
  const visualDir=dir;dir=dir[0];
  if(qual!='main'&&E.sh&&!E.shWeapon&&equippedArt(E.sh,visualDir))drawEquipmentLayers(E,['sh'],visualDir,cx);
  const sd=dir=='s',bk=dir=='u',maos=MAOS[sd?'s':bk?'u':'d'];
@@ -348,14 +379,21 @@ function gearWeapon(E,dir,swing,box,R,cx,qual){ // qual: 'main' (mão 1), 'off' 
    const st=w.v?w.v.st:0,L=st==2?20:st==1?14:16,k2=w.escalaMao==2,sh=k2?sprite.height:L,sw=k2?sprite.width:Math.max(1,Math.round(sh*sprite.width/sprite.height)),pega=w.pega??1;
    const D=(Math.ceil(Math.hypot(sw,sh)*2)+4)&~1,o=armaGirada(D),og=o.getContext('2d');og.setTransform(1,0,0,1,0,0);og.clearRect(0,0,D,D);og.imageSmoothingEnabled=false;
    // a arma é desenhada com a lâmina para a direita: na mão do lado esquerdo da tela (mão 2 de frente, mão 1 de costas) espelha
-   const espelha=!sd&&((hand=='off')!==bk);
-   og.translate(D/2,D/2);og.rotate((pose.a+90)*Math.PI/180);if(espelha)og.scale(-1,1);
+   const espelha=!sd&&((hand=='off')!==bk),eg=engateArma(w,sprite);
+   if(eg){// com pixel de engate: o pixel do engate na mão; parada como desenhada, no golpe a ponta segue a pose
+    const a0=poseArma(w.ataque,sd?'s':bk?'u':'d',hand,0).a,k=k2?1:sh/sprite.height;
+    const giro=giroEngate(eg,pose,a0,step,espelha);og.translate(D/2,D/2);og.rotate(giro*Math.PI/180);if(espelha)og.scale(-1,1);og.scale(k,k);og.drawImage(sprite,-Math.floor(eg.x),-Math.floor(eg.y));
+    if(mao2&&hand=='main'){const aA=Math.atan2(eg.t.y-(eg.y+.5),eg.t.x-(eg.x+.5))*180/Math.PI,th=(giro+(espelha?180-aA:aA))*Math.PI/180;Object.assign(mao2,{th})}}
+   else{og.translate(D/2,D/2);og.rotate((pose.a+90)*Math.PI/180);if(espelha)og.scale(-1,1);
    const ex=eixoArma(sprite);
    if(ex.a===-90)og.drawImage(sprite,Math.round(-sw/2),Math.round(-sh*pega),sw,sh);
    else{// desenho na diagonal ou deitado: alinha a ponta com "para cima" e a mão no ponto da pega, entre a ponta e o cabo
     const k=sh/sprite.height,hx=ex.t.x+(ex.b.x-ex.t.x)*pega,hy=ex.t.y+(ex.b.y-ex.t.y)*pega;
     og.rotate((-90-ex.a)*Math.PI/180);og.scale(k,sw/sprite.width);og.drawImage(sprite,-hx,-hy)}
-   cx.drawImage(o,-D,-D,D*2,D*2)}
+   if(mao2&&hand=='main'&&mao2.th==null)mao2.th=pose.a*Math.PI/180}
+   cx.drawImage(o,-D,-D,D*2,D*2);
+   // segunda mão: 3 pixels do herói acima da mão principal, ao longo do cabo (na direção da ponta)
+   if(mao2&&hand=='main'&&mao2.th!=null){const tr=cx.getTransform(),px=Math.cos(mao2.th)*6,py=Math.sin(mao2.th)*6;cx.restore();const b=cx.getTransform().inverse().transformPoint(tr.transformPoint(new DOMPoint(px,py)));mao2.x=b.x;mao2.y=b.y;cx.save()}}
   else{
    // sem desenho da mão: o próprio ícone (arma na diagonal, ponta em cima à direita), na mesma escala do ícone
    const p=w.pega??.75;cx.rotate((pose.a+45)*Math.PI/180);cx.drawImage(w.c,-32*(1-p),-32*p,32,32)}

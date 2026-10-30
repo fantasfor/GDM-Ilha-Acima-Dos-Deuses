@@ -79,6 +79,7 @@ window.playEntitySound=(category,id,event,vol=1)=>{
 
 /* ---------- cena atual: ilha, masmorra ou taverna ---------- */
 const cenaAtual=()=>window.inTaverna?'tavern':window.inDungeon?'dungeon':'world';
+const musicaDG={ultimaLuta:0};
 function refreshLoops(){
  const scene=cenaAtual(),config=settings();
  for(const kind of ['music','ambient']){
@@ -93,10 +94,22 @@ function refreshLoops(){
   const quer=document.hidden?null:scene;
   // em combate (fora da taverna) toca a música de combate; ela fica até o combate acabar (state.js emCombate, ~10 s sem golpes)
   const luta=quer&&scene!=='tavern'&&p.dead<=0&&window.emCombate&&emCombate();
-  trocar('musica',luta?'combate':quer&&!(config[scene+'.music']&&config[scene+'.music'].src)?quer:null);
+  // DG com trilha própria (config.trilha, ex.: Caverna dos Glooc): explorando, batalha e chefe
+  const cfgDG=scene==='dungeon'&&window.lerDungeonConfig?lerDungeonConfig():null,trilha=cfgDG&&cfgDG.trilha;
+  const chefeLuta=trilha&&p.dead<=0&&(window.SELO_CHEFE&&SELO_CHEFE.fechado||en.some(e=>e.isBoss&&e.hp>0&&e.mec&&Math.hypot(e.x-p.x,e.y-p.y)<380));
+  const semArquivo=!(config[scene+'.music']&&config[scene+'.music'].src);
+  if(trilha==='glooc'&&semArquivo&&quer){
+   // com folga: a batalha só volta para a exploração depois de 5 s sem luta, e o chefe fica até a arena abrir (antes a música
+   // trocava a cada pausa curta da luta e recomeçava, salpicando)
+   const quer2=chefeLuta?'gloocChefe':luta?'gloocLuta':'gloocCaverna',atual=ativos.musica&&ativos.musica.cena,ag=performance.now();
+   if(quer2!=='gloocCaverna')musicaDG.ultimaLuta=ag;
+   const segura=atual&&atual!=='gloocCaverna'&&quer2==='gloocCaverna'&&ag-(musicaDG.ultimaLuta||0)<5000;
+   const desceChefe=atual==='gloocChefe'&&quer2==='gloocLuta'&&ag-(musicaDG.ultimaLuta||0)<5000&&window.SELO_CHEFE&&SELO_CHEFE.fechado;
+   if(!segura&&!desceChefe)trocar('musica',quer2)}
+  else trocar('musica',luta?'combate':quer&&semArquivo?quer:null);
   // ilha: ambiente de dia (mar, vento, pássaros) ou de noite (grilos, coruja), pelo relógio do jogo (js/tempo.js)
   // na taverna não há ambiente de fundo (conversa): só a música da banda e os sons dos objetos (lareira, fogueira, chafariz...)
-  const amb=quer==='tavern'?null:quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':quer;
+  const amb=quer==='tavern'?null:quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':trilha==='glooc'?'cavernaGlooc':quer;
   trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?amb:null);
  }
  lastScene=scene
@@ -199,6 +212,17 @@ const sounds={
  rankUp:()=>{arpejo([67,71,74,79,83],.07,{tipo:'triangle',vol:.03,brilho:4})},
  // jogos de mesa (js/mesas.js): sininho claro quando chega a sua vez e tique nos últimos segundos do prazo
  suaVez:()=>{const t=agora();[[76,0],[83,.13]].forEach(([m,d])=>{nota(bus.efeitos,mtof(m),t+d,.5,{tipo:'triangle',vol:.05*escala,solta:.6});nota(bus.efeitos,mtof(m+12),t+d,.35,{tipo:'sine',vol:.02*escala,solta:.5})})},
+ // UNO!: dois toques curtos e agudos com um brilho (mesa de jogo, js/mesas.js)
+ /* Glooc e o Chefe da Tribo (2026-10-29): golpe com grunhido, machadada pesada, grito de guerra, impulso e queda do pulo,
+    giro e o machado voando; o selo da arena fechando */
+ gloocGolpe:()=>{noise(.14,.028,800,0,'bandpass',2600,1.2);tone(380,250,.09,'sawtooth',.012,.02);tone(300,210,.07,'square',.006,.03)},
+ gloocMachado:()=>{noise(.22,.034,900,0,'lowpass',260,.9);tone(240,150,.12,'sawtooth',.013,.02);tone(90,48,.16,'sine',.03,.17);noise(.08,.02,500,.17,'lowpass',200,.8)},
+ gloocGrito:()=>{const t=agora();for(const [f0,v,dt] of [[170,.05,0],[118,.04,.04],[230,.02,.08]]){const o=audio.createOscillator(),g=audio.createGain(),fl=audio.createBiquadFilter(),l=audio.createOscillator(),lg=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f0,t+dt);o.frequency.linearRampToValueAtTime(f0*1.25,t+dt+.25);o.frequency.exponentialRampToValueAtTime(f0*.6,t+dt+1.1);l.frequency.value=9;lg.gain.value=f0*.05;l.connect(lg);lg.connect(o.frequency);fl.type='bandpass';fl.frequency.value=750;fl.Q.value=1.4;g.gain.setValueAtTime(.0001,t+dt);g.gain.linearRampToValueAtTime(v*escala,t+dt+.08);g.gain.exponentialRampToValueAtTime(.0001,t+dt+1.2);o.connect(fl);fl.connect(g);g.connect(bus.efeitos);o.start(t+dt);l.start(t+dt);o.stop(t+dt+1.25);l.stop(t+dt+1.25)}noise(1,.02,1400,0,'bandpass',500,1.1)},
+ saltoImpulso:()=>{noise(.36,.03,280,0,'bandpass',2600,1.3);tone(200,320,.2,'sawtooth',.012)},
+ saltoQueda:()=>{tone(95,34,.55,'sine',.09);noise(.45,.06,520,0,'lowpass',90,.8);for(let k=0;k<5;k++)noise(.05,.015,2400,.08+k*.07,'highpass',1800,.7)},
+ giroChefe:()=>{for(let k=0;k<3;k++)noise(.12,.024,600,k*.11,'bandpass',2200,1.6)},
+ machadoVoa:()=>{for(let k=0;k<6;k++){noise(.05,.02,1400,k*.11,'bandpass',3000,2);tone(520,420,.04,'triangle',.006,k*.11)}},
+ portalFecha:()=>{tone(220,70,.8,'sawtooth',.02);tone(880,440,.6,'sine',.018,.05);noise(.7,.02,3000,0,'bandpass',600,1.5)}, uno:()=>{const t=agora();[[79,0],[84,.09]].forEach(([m,d])=>{nota(bus.efeitos,mtof(m),t+d,.22,{tipo:'square',vol:.03*escala,solta:.25,filtro:3200});nota(bus.efeitos,mtof(m+12),t+d,.16,{tipo:'sine',vol:.02*escala,solta:.2})});noise(.18,.008,7000,.1,'highpass',10000,.6)},
  tiqueVez:()=>{tone(1400,1300,.05,'square',.008);tone(700,650,.04,'sine',.01)},
  quest:()=>{arpejo([62,66,69,74],.11,{tipo:'triangle',vol:.035,dur:.22});const t=agora()+.48;[62,66,69,74].forEach(m=>nota(bus.efeitos,mtof(m+12),t,.7,{tipo:'sine',vol:.02*escala,solta:.9}))},
  // pegar item por raridade (somRaridade): cada nível é maior e mais brilhante que o anterior
@@ -260,7 +284,11 @@ window.playGameSound=function(name,vol=1){
  }finally{escala=1}
 };
 
-/* ---------- música gerada: uma trilha por lugar, com troca suave ---------- */
+/* bateria da Caverna dos Glooc: bumbo, tambor tribal (tom), caixa/chimbal de ruído e o ruído subindo antes do drop */
+function bumboGlooc(d,t,v,q=1){const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(150*q,t);o.frequency.exponentialRampToValueAtTime(42,t+.12);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.24);o.connect(g);g.connect(d);o.start(t);o.stop(t+.26)}
+function tomGlooc(d,t,v,f0){const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='triangle';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*.55,t+.22);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.34);f.type='lowpass';f.frequency.value=900;o.connect(g);g.connect(f);f.connect(d);o.start(t);o.stop(t+.36)}
+function chiadoGlooc(d,t,v,fq,dur,tipo,n){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type=tipo;f.frequency.value=fq;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f);f.connect(g);g.connect(d);src.start(t,((n||0)*.173)%1.5,dur+.02)}
+function riserGlooc(d,t,dur,v){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();src.loop=true;f.type='bandpass';f.Q.value=2.5;f.frequency.setValueAtTime(350,t);f.frequency.exponentialRampToValueAtTime(9000,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+dur);g.gain.setValueAtTime(.0001,t+dur+.01);src.connect(f);f.connect(g);g.connect(d);src.start(t);src.stop(t+dur+.02)}/* ---------- música gerada: uma trilha por lugar, com troca suave ---------- */
 // cada trilha recebe (destino, tempo, passo) e agenda as notas daquele passo
 const TRILHAS={
  // ilha: calma, dó maior, I-vi-IV-V, pad + arpejo dedilhado + melodia pentatônica
@@ -313,7 +341,69 @@ const TRILHAS={
   if(s%2===0||ciclo>=8){const m=ac[RIFF[s]]+24+(ciclo>=8&&s%8===7?2:0);nota(d,mtof(m),t,P*.9,{tipo:'square',vol:.009,ataque:.004,solta:.08,filtro:3200})}
   if(ciclo>=8&&s===0)ac.forEach(m=>nota(d,mtof(m+12),t,P*15,{tipo:'sawtooth',vol:.005,ataque:.02,solta:.3,filtro:2400,detune:7}));
  }},
- // taverna: as 5 músicas de js/musica-taverna.js, no compasso do relógio do jogo (todos os jogadores ouvem igual):
+ /* ---- Caverna dos Glooc (DG nível 5, 2026-10-29, pedido do usuário) ----
+    gloocCaverna: explorando — ré menor lenta: drone grave, tambor tribal distante com eco, kalimba pentatônica e gotas.
+    gloocLuta: batalha — 140 bpm; uns 3 s devagar (bumbo espaçado, ruído subindo, caixa acelerando) e cai no drop: bumbo,
+    palma, tambores tribais, baixo pulsando, metais e o riff agudo; a cada 8 compassos uma pausa curta e outro drop.
+    gloocChefe: o chefe — 150 bpm; ~10 s sombrios (coro grave, batida de coração, ruído subindo, caixa acelerando) e o drop
+    épico: impacto, bateria em tempo dobrado, rufos de tambor, metais em acordes, arpejo rápido e o coro por cima. */
+ gloocCaverna:{passo:60/76/2,continua:true,toca(d,t,n,est){
+  const P=60/76/2,s=n%16,bar=Math.floor(n/16)%8,ACORDES=[[50,57],[46,53],[48,55],[45,52],[50,57],[53,60],[46,53],[45,52]],ac=ACORDES[bar];
+  if(bar%2===1&&s===0){const FRASE=[[69,0],[72,2],[74,4],[72,7],[69,10]];for(const [m,k] of FRASE)nota(d,mtof(m+(bar>=4?-2:0)),t+k*P,P*1.6,{tipo:'sine',vol:.016,ataque:.05,solta:.6,vibrato:.004})} /* frase da flauta a cada 2 compassos */
+  if(s===0){nota(d,mtof(ac[0]-12),t,P*16,{tipo:'sawtooth',vol:.013,ataque:1.6,solta:2,filtro:300});nota(d,mtof(ac[1]-12),t,P*16,{tipo:'triangle',vol:.012,ataque:2,solta:2,detune:-5})}
+  if(s===0||s===6||s===10){tomGlooc(d,t,.05,118);tomGlooc(d,t+.34,.014,118)} // tambor distante e o eco
+  const PENTA=[62,65,67,69,72,74,77];
+  if([2,5,8,13].includes(s)&&Math.random()<.6){est.k=Math.max(0,Math.min(6,(est.k??3)+Math.round((Math.random()-.5)*3)));const m=PENTA[est.k];nota(d,mtof(m),t,.04,{tipo:'triangle',vol:.02,solta:.9,filtro:2800});nota(d,mtof(m+12),t,.03,{tipo:'sine',vol:.006,solta:.6})}
+  if(Math.random()<.06)nota(d,1400+Math.random()*900,t,.02,{tipo:'sine',vol:.01,solta:.25}); // gota
+ }},
+ gloocLuta:{passo:60/140/4,toca(d,t,n,est){
+  const P=60/140/4,s=n%16,b=Math.floor(n/16),RAIZ=[38,34,36,33],ACORDES=[[62,65,69],[58,62,65],[60,64,67],[57,61,64]];
+  if(b<2){ // começa devagar (~3 s)
+   if(b===0&&s===0){ACORDES[0].forEach(m=>nota(d,mtof(m-12),t,P*32,{tipo:'sawtooth',vol:.008,ataque:2.4,solta:.4,filtro:1400}));riserGlooc(d,t,P*32,.028)}
+   if(s===0||s===8)bumboGlooc(d,t,.08);
+   if(b===1&&s===12)tomGlooc(d,t,.05,160);
+   if(b===1){const k=s<8?2:1;if(s%k===0)chiadoGlooc(d,t,.008+s*.0012,1800,.06,'bandpass',n)}
+   return}
+  // ciclo de 20 compassos (~34 s): drop A (0–7), drop B com outros acordes (8–15), pausa (16–17) e subida (18–19)
+  const c=(b-2)%20,i=c%4,B2=c>=8&&c<16,ac=B2?[[58,62,65],[60,64,67],[62,65,69],[57,61,64]][i]:ACORDES[i],raiz=B2?[34,36,38,33][i]:RAIZ[i];
+  if(c===16||c===17){if(s===0)ac.forEach(m=>nota(d,mtof(m),t,P*16,{tipo:'sine',vol:.012,ataque:.2,solta:.5}));if(s%8===0)tomGlooc(d,t,.03,130);return} /* pausa */
+  if(c>=18){if(c===18&&s===0)riserGlooc(d,t,P*32,.03);if(s%4===0)bumboGlooc(d,t,.07);const k=c===18?4:s<8?2:1;if(s%k===0)chiadoGlooc(d,t,.008+(c-18)*.01+s*.001,1800,.05,'bandpass',n);return} /* subindo para o próximo drop */
+  if(c===0&&s===0){chiadoGlooc(d,t,.05,700,1.1,'lowpass',n);bumboGlooc(d,t,.13,.8)} // impacto do drop
+  if(s%4===0||s===10)bumboGlooc(d,t,.11);
+  if(s===4||s===12)chiadoGlooc(d,t,.032,1500,.12,'bandpass',n);
+  if(s%2===1)chiadoGlooc(d,t,.006,9000,.03,'highpass',n);
+  if([2,3,6,14].includes(s))tomGlooc(d,t,.035,[180,160,140,120][[2,3,6,14].indexOf(s)]);
+  if(s%2===0){const m=raiz+(s%4===2?12:0),o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o.frequency.value=mtof(m);f.type='lowpass';f.Q.value=5;f.frequency.setValueAtTime(260,t);f.frequency.exponentialRampToValueAtTime(1800,t+P*.6);f.frequency.exponentialRampToValueAtTime(220,t+P*1.6);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.04,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+P*1.7);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+P*1.8)}
+  if(c<4&&(s===0||s===6))ac.forEach(m=>nota(d,mtof(m-12),t,P*1.6,{tipo:'sawtooth',vol:.01,ataque:.005,solta:.12,filtro:1600})); // metais
+  const RIFF=[0,2,1,0,2,1,0,2,1,0,2,1,2,1,0,1],PENTA=[62,65,67,69,72,74];
+  if(c%8>=4&&(s%2===0||c%8>=6))nota(d,mtof(PENTA[(RIFF[s]+i*2+(B2?3:0))%6]+12+(B2?12:0)),t,P*.85,{tipo:'square',vol:.009,ataque:.004,solta:.07,filtro:3400});
+ }},
+ gloocChefe:{passo:60/150/4,toca(d,t,n,est){
+  const P=60/150/4,s=n%16,b=Math.floor(n/16),RAIZ=[38,34,31,33],CORO=[[62,65,69],[58,62,65],[55,58,62],[57,61,64]];
+  if(b<6){ // começo sombrio (~10 s)
+   const ac=CORO[b%4];
+   if(b===0&&s===0)nota(d,mtof(26),t,P*96,{tipo:'sawtooth',vol:.016,ataque:3,solta:1,filtro:220});
+   if(s===0)ac.forEach((m,k)=>{nota(d,mtof(m-12),t,P*16,{tipo:'sine',vol:.016,ataque:1.2,solta:.8,vibrato:.004});nota(d,mtof(m-12),t,P*16,{tipo:'triangle',vol:.006,ataque:1.4,solta:.8,detune:k*6-6})});
+   if(s===0||s===3)bumboGlooc(d,t,s?.05:.08,.7); // batida de coração
+   if(b>=2&&s===8)tomGlooc(d,t,.04,100);
+   if(b===4&&s===0)riserGlooc(d,t,P*32,.035);
+   if(b===5){const k=s<8?2:1;if(s%k===0)chiadoGlooc(d,t,.01+s*.0016,1700,.06,'bandpass',n)}
+   return}
+  // ciclo de 24 compassos (~38 s): drop (0–15), ponte em meio-tempo com o coro (16–19) e a subida (20–23) de volta ao drop
+  const c=(b-6)%24,i=c%4,ac=CORO[i],raiz=RAIZ[i];
+  if(c>=16&&c<20){if(s===0){ac.forEach(m=>{nota(d,mtof(m),t,P*16,{tipo:'sine',vol:.016,ataque:.4,solta:.6,vibrato:.004});nota(d,mtof(m-12),t,P*16,{tipo:'triangle',vol:.008,ataque:.5,solta:.6})});bumboGlooc(d,t,.09,.7)}if(s===8)chiadoGlooc(d,t,.03,1200,.16,'bandpass',n);if(s===12||s===14)tomGlooc(d,t,.035,120);if(s%4===2)nota(d,mtof(ac[(s/4|0)%3]+12),t,P*1.8,{tipo:'triangle',vol:.012,solta:.3,filtro:2400});return} /* ponte */
+  if(c>=20){if(c===20&&s===0)riserGlooc(d,t,P*64,.04);if(s===0||s===8)bumboGlooc(d,t,.08,.7);if(c>=22){const k=c===22?4:s<8?2:1;if(s%k===0)chiadoGlooc(d,t,.01+(c-22)*.012+s*.0012,1700,.06,'bandpass',n)}if(s===0)ac.forEach(m=>nota(d,mtof(m-12),t,P*16,{tipo:'sawtooth',vol:.007,ataque:1,solta:.4,filtro:700+(c-20)*500}));return} /* subida */
+  if(c===0&&s===0){chiadoGlooc(d,t,.07,500,1.6,'lowpass',n);bumboGlooc(d,t,.15,.6);nota(d,48,t,.9,{tipo:'sine',vol:.08,solta:.6})} // impacto épico
+  if(s%4===0||(c>=8&&s%2===0))bumboGlooc(d,t,.11);
+  if(s===4||s===12){chiadoGlooc(d,t,.04,1200,.16,'bandpass',n);nota(d,200,t,.05,{tipo:'triangle',vol:.03,solta:.08})}
+  if(s%2===1)chiadoGlooc(d,t,.005,9500,.03,'highpass',n);
+  if(c%2===1&&s>=13)tomGlooc(d,t,.04,[170,140,115][s-13]); // rufo
+  if(s===0||s===3||s===6)ac.forEach(m=>nota(d,mtof(m-12),t,P*(s===6?3:1.5),{tipo:'sawtooth',vol:.011,ataque:.004,solta:.15,filtro:1900})); // metais
+  if(s===0)nota(d,mtof(raiz-12),t,P*4,{tipo:'sine',vol:.07,solta:.1});
+  if(s%4===2)nota(d,mtof(raiz),t,P*1.5,{tipo:'sawtooth',vol:.02,solta:.08,filtro:900});
+  nota(d,mtof(ac[s%3]+24+(s>=8?12:0)),t,P*.8,{tipo:'square',vol:.006,ataque:.003,solta:.05,filtro:3600}); // arpejo
+  if(s===0)ac.forEach(m=>nota(d,mtof(m+12),t,P*16,{tipo:'sine',vol:.008,ataque:.3,solta:.5,vibrato:.004})); // coro
+ }}, // taverna: as 5 músicas de js/musica-taverna.js, no compasso do relógio do jogo (todos os jogadores ouvem igual):
  // baixo, dedilhado de alaúde, melodia (rabeca/flauta), pandeiro e bumbo; aplauso entre as músicas
  tavern:{sincronizada:true,tocaPasso(d,t,info){
   const m=info.m,P=m.passos,k=info.passo,s=k%P,bar=Math.floor(k/P)%m.barras,pl=m.passo,forte=s===0||(P===8?s===4:s===3);
@@ -345,7 +435,11 @@ const AMBIENTES={
   [9,22,(d,t)=>{for(const [k,f0,dur] of [[0,420,.32],[.45,400,.5]]){const o=audio.createOscillator(),g=audio.createGain(),ti=t+k;o.type='sine';o.frequency.setValueAtTime(f0,ti);o.frequency.exponentialRampToValueAtTime(f0*.86,ti+dur);g.gain.setValueAtTime(.0001,ti);g.gain.linearRampToValueAtTime(.022,ti+.05);g.gain.exponentialRampToValueAtTime(.0001,ti+dur);o.connect(g);g.connect(d);o.start(ti);o.stop(ti+dur+.02)}}]]}, dungeon:{montar(d){return [fundo(d,'lowpass',110,.7,.07),fundo(d,'bandpass',300,3,.004)]},
   eventos:[[1.2,4,(d,t)=>{const f=900+Math.random()*700;for(const [k,v] of [[0,.03],[.27,.01],[.5,.004]]){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+k);o.frequency.exponentialRampToValueAtTime(f*.45,t+k+.07);g.gain.setValueAtTime(v,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.1);o.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.12)}}],
    [8,18,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(40,t+1.4);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.03,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+1.5);o.connect(g);g.connect(d);o.start(t);o.stop(t+1.6)}]]},
- tavern:{montar(d){
+ // Caverna dos Glooc: o ronco grave da caverna, gotas com eco e, de vez em quando, Glooc tagarelando lá longe
+ cavernaGlooc:{montar(d){return [fundo(d,'lowpass',100,.7,.06),fundo(d,'bandpass',260,3,.004)]},
+  eventos:[[1,3.5,(d,t)=>{const f=900+Math.random()*900;for(const [k,v] of [[0,.028],[.3,.009],[.55,.004]]){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+k);o.frequency.exponentialRampToValueAtTime(f*.45,t+k+.07);g.gain.setValueAtTime(v,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.1);o.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.12)}}],
+   [7,16,(d,t)=>{const n=3+Math.floor(Math.random()*4);for(let i=0;i<n;i++){const ti=t+i*(.09+Math.random()*.07),o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter(),f0=420+Math.random()*380;o.type='sawtooth';o.frequency.setValueAtTime(f0,ti);o.frequency.exponentialRampToValueAtTime(f0*(Math.random()<.5?1.4:.7),ti+.07);f.type='bandpass';f.frequency.value=1100;f.Q.value=4;g.gain.setValueAtTime(.0001,ti);g.gain.linearRampToValueAtTime(.006,ti+.01);g.gain.exponentialRampToValueAtTime(.0001,ti+.08);o.connect(f);f.connect(g);g.connect(d);o.start(ti);o.stop(ti+.1)}}],
+   [9,20,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(64,t);o.frequency.exponentialRampToValueAtTime(38,t+1.5);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.028,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(g);g.connect(d);o.start(t);o.stop(t+1.7)}]]}, tavern:{montar(d){
   // conversa ao fundo: ruído na faixa da voz, oscilando
   const voz=fundo(d,'bandpass',420,1.3,.02);const lfo=audio.createOscillator(),lg=audio.createGain();lfo.frequency.value=.35;lg.gain.value=.008;lfo.connect(lg);lg.connect(voz.gain);lfo.start();
   return [voz,fundo(d,'lowpass',180,.7,.012),{parar:()=>lfo.stop()}];
@@ -360,12 +454,15 @@ function fundo(d,tipo,freq,q,vol){
 }
 const ativos={musica:null,ambiente:null}; // {cena, saida(gain), ...}
 SOM.estado=()=>({contexto:audio?audio.state:'nenhum',musica:ativos.musica&&ativos.musica.cena,ambiente:ativos.ambiente&&ativos.ambiente.cena,notas:ativos.musica?ativos.musica.n:0});
+const posMusica={};
 function trocar(canal,cena){
  const a=ativos[canal];if(a&&a.cena===cena)return;
+ if(a&&canal==='musica')posMusica[a.cena]={n:a.n,quando:performance.now()};
  if(a){const t=agora();a.saida.gain.cancelScheduledValues(t);a.saida.gain.setValueAtTime(a.saida.gain.value,t);a.saida.gain.linearRampToValueAtTime(0,t+1.4);a.parado=true;setTimeout(()=>{(a.nos||[]).forEach(n=>n.parar());try{a.saida.disconnect()}catch(e){}},1600);ativos[canal]=null}
  if(!cena)return;
  const saida=audio.createGain(),t=agora();saida.gain.setValueAtTime(0,t);saida.gain.linearRampToValueAtTime(1,t+2);saida.connect(bus[canal]);
- const novo={cena,saida,prox:t+.15,n:0,est:{}};
+ const volta=canal==='musica'&&TRILHAS[cena]&&TRILHAS[cena].continua&&posMusica[cena]&&performance.now()-posMusica[cena].quando<120000?posMusica[cena].n:0; /* música de exploração continua de onde parou ao voltar da luta */
+ const novo={cena,saida,prox:t+.15,n:volta,est:{}};
  if(canal==='ambiente'){const amb=AMBIENTES[cena];novo.nos=amb.montar(saida);novo.timers=amb.eventos.map(([a,b])=>t+a+Math.random()*(b-a))}
  ativos[canal]=novo;
 }
@@ -384,7 +481,7 @@ setInterval(()=>{
  if(!audio||audio.state!=='running')return;
  const t=agora(),m=ativos.musica;
  if(m&&!m.parado&&TRILHAS[m.cena].sincronizada){if(window.MUSICA_TAVERNA)tocarSincronizada(m,t)}
- else if(m&&!m.parado){const tr=TRILHAS[m.cena];if(m.prox<t-1)m.prox=t+.05;while(m.prox<t+.6){try{tr.toca(m.saida,m.prox,m.n,m.est)}catch(e){console.error('Música:',e)}m.prox+=tr.passo;m.n++}}
+ else if(m&&!m.parado){const tr=TRILHAS[m.cena];if(m.prox<t-1)m.prox=t+.05;while(m.prox<t+1.2){ /* 1,2 s de antecedência: com o jogo pesado o intervalo atrasa e as notas saíam picotadas */try{tr.toca(m.saida,m.prox,m.n,m.est)}catch(e){console.error('Música:',e)}m.prox+=tr.passo;m.n++}}
  const a=ativos.ambiente;
  if(a&&!a.parado){const ev=AMBIENTES[a.cena].eventos;ev.forEach(([mn,mx,fn],i)=>{if(a.timers[i]<t-2)a.timers[i]=t+mn;while(a.timers[i]<t+.3){try{fn(a.saida,Math.max(t,a.timers[i]))}catch(e){}a.timers[i]+=mn+Math.random()*(mx-mn)}})}
 },150);
@@ -399,6 +496,12 @@ const TIPOS_CENARIO={
    [.6,2.2,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(140+Math.random()*60,t);o.frequency.exponentialRampToValueAtTime(50,t+.08);g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+.1);o.connect(g);g.connect(d);o.start(t);o.stop(t+.12)}]]},
  arvore:{R:120,montar(d){const f=fundo(d,'bandpass',2600,.5,.022),l=audio.createOscillator(),lg=audio.createGain();l.frequency.value=.13;lg.gain.value=.016;l.connect(lg);lg.connect(f.gain);l.start();return [f,{parar:()=>{try{l.stop()}catch(e){}}}]},
   eventos:[[.3,1.4,(d,t)=>{const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter(),dur=.15+Math.random()*.35;src.buffer=ruido();f.type='bandpass';f.frequency.value=3000+Math.random()*2500;f.Q.value=.8;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.02+Math.random()*.02,t+dur*.4);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f);f.connect(g);g.connect(d);src.start(t,Math.random(),dur+.05)}]]},
+ // caldeirão no fogo (cozinha dos Glooc): bolhas estourando devagar
+ borbulha:{R:120,montar(d){return [fundo(d,'lowpass',240,.8,.03)]},
+  eventos:[[.12,.45,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain(),f0=180+Math.random()*260;o.type='sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*2.2,t+.06);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.03+Math.random()*.02,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.08);o.connect(g);g.connect(d);o.start(t);o.stop(t+.09)}]]},
+ // estalagmites: gotas pingando com eco
+ goteira:{R:110,montar(d){return []},
+  eventos:[[.8,2.6,(d,t)=>{const f=1500+Math.random()*900;for(const [k,v] of [[0,.035],[.22,.01]]){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+k);o.frequency.exponentialRampToValueAtTime(f*.5,t+k+.06);g.gain.setValueAtTime(v,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.09);o.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.1)}}]]},
  agua:{R:160,montar(d){return [fundo(d,'bandpass',950,.6,.05),fundo(d,'highpass',4200,.5,.014)]},
   eventos:[[.05,.25,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain(),f0=700+Math.random()*1500;o.type='sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*1.6,t+.04);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.012+Math.random()*.012,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(d);o.start(t);o.stop(t+.06)}]]}
 };
@@ -414,9 +517,15 @@ function somDoElemento(type){
 function fontesDoCenario(){
  const L=[],perto=(x,y,r)=>Math.abs(x-p.x)<r&&Math.abs(y-p.y)<r;
  if(window.inTaverna&&window.TAVERNA_LAYOUT){const T=TAVERNA_LAYOUT.L;L.push(['fogo',T.lareira.x,T.lareira.y+10,1]);for(const e of T.decor){const s=somDoElemento(e.type);if(s)L.push([s[0],e.x,e.y,s[1]])}return L}
- if(window.inDungeon||window.inArena||window.inTutorial)return L;
+ // DG: tochas, braseiros, fogueiras, lampiões e a churrasqueira (fogo), caldeirão (bolhas) e estalagmites (gotas)
+ if(window.inDungeon){
+  for(const t of window.dungeonTorches||[])if(perto(t.x,t.y,170))L.push(['fogo',t.x,t.y,.8]);
+  for(const d of window.DUNGEON_DECORATIONS||[]){if(!d.el||!perto(d.x,d.y,170))continue;const nome=(d.el+' '+((window.PIXLIB&&PIXLIB[d.el]&&PIXLIB[d.el].name)||(window.PACOTE_MAPA&&PACOTE_MAPA.elementos[d.el]&&PACOTE_MAPA.elementos[d.el].name)||'')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+   if(/caldeir/.test(nome))L.push(['borbulha',d.x,d.y,1],['fogo',d.x,d.y,.5]);else if(/churrasq/.test(nome))L.push(['fogo',d.x,d.y,.5]);else if(/fogueir|braseir|tocha|lampiao/.test(nome))L.push(['fogo',d.x,d.y,/lampiao/.test(nome)?.35:1]);else if(/estalagmite/.test(nome))L.push(['goteira',d.x,d.y,.5])}
+  return L}
+ if(window.inArena||window.inTutorial)return L;
  if(typeof CX!='undefined')L.push(['fogo',CX,CY,1]); // fogueira do acampamento
- if(typeof trees!='undefined')for(const t of trees)if(perto(t.x,t.y,130))L.push(['arvore',t.x,t.y-10,.6]);
+ if(typeof trees!='undefined')for(const t of (window.arvoresPerto?arvoresPerto(p.x,p.y,140):trees))if(perto(t.x,t.y,130))L.push(['arvore',t.x,t.y-10,.6]);
  if(typeof mapElements!='undefined')for(const e of mapElements)if(perto(e.x,e.y,170)){const s=somDoElemento(e.type);if(s)L.push([s[0],e.x,e.y,s[1]])}
  // rio: o ponto de água mais perto em volta do herói
  if(typeof inRiver=='function'){let melhor=null;for(const r of [0,24,48,72,100])for(let a=0;a<(r?12:1);a++){const x=p.x+Math.cos(a*Math.PI/6)*r,y=p.y+Math.sin(a*Math.PI/6)*r;if(inRiver(x,y)&&(!melhor||r<melhor.r))melhor={x,y,r}}if(melhor)L.push(['agua',melhor.x,melhor.y,.8])}

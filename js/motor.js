@@ -48,7 +48,7 @@
   tipoTerrenoBase(x,y){x=Math.floor(x);y=Math.floor(y);if(!(x>=0&&y>=0&&x<W&&y<W))return 'fora';const v=V(x/T|0,y/T|0);return v>28.6?'vazio':inRiver(x,y)?(onBridge(x,y)?'ponte':'rio'):v>26.2?'areia':Math.hypot((x-CX)/T,(y-CY)/T)<5.9||caminhoDist(x,y)<6?'terra':'grama'},
   /* árvores dos bosques da borda nova (a Engine grava no projeto ao converter uma ilha antiga) */
   arvoresDoAnel:existentes=>arvoresDoAnel(existentes),
-  arvoresDaIlha:()=>arvoresDaIlha(),noCaminho:(x,y)=>caminhoDist(x,y)<9||inRiver(x,y,4),
+  arvoresDaIlha:()=>arvoresDaIlha(),elementosDaIlha:arvores=>elementosDaIlha(arvores),noCaminho:(x,y)=>terraDist(x,y)<12||inRiver(x,y,4),
   npcs:()=>NPCS.filter(n=>n.x>-1000).map(n=>({nome:n.nm,cls:n.cls,x:n.x,y:n.y,sprite:(CL[n.cls]&&CL[n.cls].sprite)||HS[n.cls]?.d||null})),
   tiposElemento:()=>Object.entries(MAP_ELEMENT_TYPES).filter(([id])=>!id.startsWith('px:')).map(([id,t])=>({id,nome:t.name,raio:t.radius,solido:!!t.blocks,variantes:sceneryVariants(id)})),
   arteArvore:(x,y)=>(window.TREEV&&TREEV[treeVar({x,y})])||TREE,
@@ -113,7 +113,9 @@
    const E={nude:1,sex:'m',swing:o.passo||0,look:APARENCIA.padrao('m')};
    if(tipo==='arma'){const ataque=POSES_ARMA[o.ataque]?o.ataque:base&&POSES_ARMA[base.ataque]?base.ataque:'corte';
     const pega=o.pega!=null&&o.pega!==''?Math.max(0,Math.min(1,+o.pega/100)):base&&base.pega!=null?base.pega:.7;
-    E.sw={...(base||{v:{c:['#9aa7b8','#7a4a25'],st:0}}),equippedSprite:art,equippedSprites:null,equippedAnim:null,escalaMao:2,pega,ataque}}
+    // o.engate {x,y}: pixel de engate em pixels do desenho (js/sprites.js engateArma); sem ele, a pega
+    const k=art.width/(data.w||art.width),engate=o.engate&&Number.isFinite(+o.engate.x)?{x:+o.engate.x*k,y:+o.engate.y*k}:null;
+    E.sw={...(base||{v:{c:['#9aa7b8','#7a4a25'],st:0}}),equippedSprite:art,equippedSprites:null,equippedAnim:null,escalaMao:2,pega,ataque,engate}}
    else{const slot=o.slot||'ch';E[slot]={...(base||{v:{c:['#9aa7b8','#9aa7b8'],st:0}}),equippedAnim:null,equippedSprites:{...(base&&base.equippedSprites||{}),[o.dir||'d']:art}}}
    return human('war',dir||'d',0,E)},
   aparenciaPadrao:()=>({estilos:APARENCIA.ESTILOS,cores:APARENCIA.CORES,ref:APARENCIA.REF}),

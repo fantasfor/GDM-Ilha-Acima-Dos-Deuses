@@ -309,10 +309,11 @@ function dr(img,x,y,fl,sc=1,an){const k=sc/(img.q||1),w=img.width*k,hh=img.heigh
 const monsterAnimationArtCache=new WeakMap();
 /* 4 posições: de frente (d), de costas (u), de lado para a direita (animation) e para a esquerda (direcoes.esquerda, desenhada
    à parte com a luz do mesmo lado; sem ela o lado é espelhado). esqMonstro diz se o desenho da esquerda vale (aí não espelha). */
-const esqMonstro=(e,dir,fl)=>{const d=!e.dungeonAnimation&&MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].direcoes,a=d&&d.esquerda;return fl<0&&dir!='d'&&dir!='u'&&!!(a&&a.idle&&a.idle.length)};
+const esqMonstro=(e,dir,fl)=>{const T=MONSTER_TYPES[e.ty],d=!e.dungeonAnimation&&T&&(e.semMachado&&T.semArma?T.semArma:T).direcoes,a=d&&d.esquerda;return fl<0&&dir!='d'&&dir!='u'&&!!(a&&a.idle&&a.idle.length)};
 window.esqMonstro=esqMonstro;
 function monsterSpriteFrame(e,dir,an,fl=1){
- const definition=MONSTER_TYPES[e.ty],base=e.dungeonAnimation||definition&&definition.animation;
+ // sem a arma na mão (o Chefe Glooc arremessou o machado): os quadros sem arma, se o monstro tiver
+ const tipo=MONSTER_TYPES[e.ty],definition=e.semMachado&&tipo&&tipo.semArma?tipo.semArma:tipo,base=e.dungeonAnimation||definition&&definition.animation;
  const vista=!e.dungeonAnimation&&definition&&definition.direcoes&&definition.direcoes[dir=='d'?'frente':dir=='u'?'costas':esqMonstro(e,dir,fl)?'esquerda':''];
  const animation=vista&&vista.idle&&vista.idle.length?{...vista,durations:vista.durations||base&&base.durations}:base;
  if(!animation)return fr(e.sp,dir,an);
@@ -399,9 +400,11 @@ function pick(w){
  let best=null,bd=Infinity;
  for(const e of en){
   if(e.hp<=0||!canSee(e.x,e.y))continue;
-  const img=e.img,q=img&&img.q||1,sc=ESCALA_MUNDO;
+  // o quadro desenhado agora (monstros com animação própria são maiores que e.img) na escala do monstro (2026-10-29: o
+  // mouse em cima de Glooc e chefes às vezes não pegava, a caixa era a do desenho base, menor)
+  const img=e._fr||e.img,q=img&&img.q||1,sc=e._sc||ESCALA_MUNDO;
   const half=Math.max(11,(img?img.width/q:16)*sc/2+5),h=Math.max(26,(img?img.height/q:16)*sc+8);
-  const dx=w.x-e.x,top=e.y-h,bottom=e.y+6;
+  const dx=w.x-e.x,top=e.y-h-(e.saltoZ||0),bottom=e.y+6;
   if(Math.abs(dx)>half||w.y<top||w.y>bottom)continue;
   const d=Math.hypot(dx,(w.y-(e.y-h/2))*.7);
   if(d<bd){bd=d;best=e}
@@ -411,10 +414,38 @@ function pick(w){
 function lunge(u,t,aw,wu){if(!(aw>0)||!t)return[0,0];const d=Math.hypot(t.x-u.x,t.y-u.y)||1,k=5*(1-aw/wu);return[(t.x-u.x)/d*k,(t.y-u.y)/d*k]}
 function bar(x,y,w,f,c){ctx.fillStyle='#000a';ctx.fillRect(Math.round(x-w/2)-1,Math.round(y)-1,w+2,4);ctx.fillStyle=c;ctx.fillRect(Math.round(x-w/2),Math.round(y),Math.round(w*f),2)}
 function circ(x,y,r,c,fill){ctx.beginPath();ctx.ellipse(x,y,r,r*.75,0,0,7);if(fill){ctx.fillStyle=c;ctx.fill()}else{ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke()}}
+/* vento da ilha (2026-10-29, pedido do usuário: o vento sopra para a direita, não vai e volta). 0 = calmo, 1 = rajada forte.
+   Sempre um pouco de vento; as rajadas são ondas que atravessam a ilha da esquerda para a direita (~60 px/s), então as
+   árvores e as plantas de um lugar dobram juntas e a rajada passa para as vizinhas da direita; por cima, um tremor leve. */
+window.VENTO=(x,y,t)=>{const a=Math.max(0,Math.sin(t*.55-x*.009-y*.0035)),b=Math.max(0,Math.sin(t*.31-x*.005+y*.002+1.7)),g=Math.min(1,a*a*.8+b*.35),
+ f=Math.sin(t*2.6+x*.07+y*.05)*.5+Math.sin(t*4.1+x*.13)*.5;return Math.max(0,Math.min(1,.18+.7*g+f*(.06+.1*g)))};
+// elementos do mapa que balançam: plantas (samambaia, arbusto, grama, flores...) dobram mais, árvores menos;
+// pedra, toco, tronco, cogumelo, raiz e árvore morta ficam parados
+const PLANTA_VENTO={},plantaVento=t=>{if(!(t in PLANTA_VENTO)){const n=(t+' '+((MAP_ELEMENT_TYPES[t]&&MAP_ELEMENT_TYPES[t].name)||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+ PLANTA_VENTO[t]=/pedra|toco|tronco|cogumelo|raiz|vaso|morta|seca/.test(n)?0:/samambaia|arbusto|moita|grama|capim|flor|junco|planta|folhag|trigo|bush|fern|grass|flower/.test(n)?.13:/arvore|pinheir|espinheir|palmeir|carvalho|tree/.test(n)?.07:0}return PLANTA_VENTO[t]};
+/* pé preso no chão (2026-10-29, pedido do usuário: o mesmo efeito das árvores em tudo que está na grama): moita de capim
+   crescido nascendo no pé de cada desenho (onde ele encosta no chão), por cima dele; feita uma vez por desenho */
+const CAPIM_PE=new WeakMap(),CAPIM_COR=['#2f6e31','#3c843a','#62ad4f'];
+function capimPe(c){
+ if(CAPIM_PE.has(c))return CAPIM_PE.get(c);let d;const w=c.width,h=c.height;
+ try{d=c.getContext('2d').getImageData(0,0,w,h).data}catch(er){CAPIM_PE.set(c,null);return null}
+ const base=[];let fundo=-1;for(let x=0;x<w;x++){let y=-1;for(let yy=h-1;yy>=0;yy--)if(d[(yy*w+x)*4+3]>200){y=yy;break}base.push(y);if(y>fundo)fundo=y}
+ if(fundo<0){CAPIM_PE.set(c,null);return null}
+ const pe=x=>x>=0&&x<w&&base[x]>=fundo-3?base[x]:-1,M=4,o=document.createElement('canvas');o.width=w+M*2;o.height=fundo+3;const g=o.getContext('2d');
+ let s=(w*131+h*71)|0;const r=()=>{s=Math.imul(s^s>>>15,2246822507)+0x9e3779b9|0;return((s>>>0)%1000)/1000};
+ for(let x=-M;x<w+M;x++){let y=pe(x),junto=y>=0;if(!junto){for(let k=1;k<=3&&y<0;k++)y=Math.max(pe(x-k),pe(x+k));if(y<0)continue;y=fundo}
+  if(r()>(junto?.85:.55))continue;const hh=junto?2+Math.floor(r()*3):1+Math.floor(r()*2),pende=hh>=3&&r()<.5;
+  for(let j=0;j<hh;j++){g.fillStyle=CAPIM_COR[j==hh-1?2:j==0?0:1];g.fillRect(x+M+(pende&&j==hh-1?1:0),y+1-j,1,1)}}
+ const out={c:o,M};CAPIM_PE.set(c,out);return out}
+const naGrama=(x,y)=>{if(window.inDungeon||window.inTaverna||window.inArena||typeof islandTerrainMask=='undefined')return false;x|=0;y|=0;return x>=0&&y>=0&&x<W&&y<W&&islandTerrainMask[y*W+x]===0};
 function drawMapElement(e){
- const s=sceneryFor(e);if(!s)return;const k=1/(s.c.q||1);
- ctx.drawImage(s.c,Math.round((e.x-s.ax*k)*S)/S,Math.round((e.y-s.ay*k)*S)/S,s.c.width*k,s.c.height*k)
+ const s=sceneryFor(e);if(!s)return;const k=1/(s.c.q||1),bal=plantaVento(e.type);
+ if(bal&&!window.inDungeon){ctx.save();ctx.translate(Math.round(e.x*S)/S,Math.round(e.y*S)/S);ctx.transform(1,0,-(bal*.15+VENTO(e.x,e.y,time)*bal),1,0,0);
+  ctx.drawImage(s.c,-s.ax*k,-s.ay*k,s.c.width*k,s.c.height*k);ctx.restore();capimNoPe(e,s,k);return}
+ ctx.drawImage(s.c,Math.round((e.x-s.ax*k)*S)/S,Math.round((e.y-s.ay*k)*S)/S,s.c.width*k,s.c.height*k);
+ capimNoPe(e,s,k)
 }
+function capimNoPe(e,s,k){if(!naGrama(e.x,e.y))return;const cp=capimPe(s.c);if(cp)ctx.drawImage(cp.c,Math.round((e.x-(s.ax+cp.M)*k)*S)/S,Math.round((e.y-s.ay*k)*S)/S,cp.c.width*k,cp.c.height*k)}
 /* carpinteiro escondido (missão): uma tora grossa na frente dele, só a cabeça para fora, gritando por socorro num balão */
 function drawCarpenterDebris(n){
  const x=n.x,y=n.y+2,R=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(a),Math.round(b),w,h)};
@@ -646,7 +677,7 @@ function draw(){
  for(let y=Math.floor((p.y-190)/5)*5;y<p.y+190;y+=5){const rx=riverX(y),rw=riverW(y);if(rw<4||Math.abs(rx-p.x)>340||(RIO_FIM&&y>RIO_FIM.y-4))continue;
   for(let k=0;k<3;k++){const o=hash(y,k)*2-1,yy=y+Math.floor((time*7+hash(k,y)*5)%5);if(RBR.some(b=>Math.abs(yy-b)<12))continue;ctx.fillStyle=(y/5+k)%2?'#ffffff40':'#bfe8f835';ctx.fillRect(Math.round(rx+o*(rw-3)+Math.sin(time*1.3+y*.4+k*2)*1.5),yy,3,1)}}
  // brilho da fogueira
- {const fl=.5+.12*Math.sin(time*9)+.06*Math.sin(time*23),g=ctx.createRadialGradient(CX,CY,4,CX,CY,95);g.addColorStop(0,'rgba(255,170,60,'+(.38*fl)+')');g.addColorStop(1,'rgba(255,120,30,0)');ctx.fillStyle=g;ctx.fillRect(CX-100,CY-100,200,200)}
+ if(Math.abs(CX-p.x)<cv.width/S/2+100&&Math.abs(CY-p.y)<cv.height/S/2+100){/* só com a fogueira na tela */const fl=.5+.12*Math.sin(time*9)+.06*Math.sin(time*23),g=ctx.createRadialGradient(CX,CY,4,CX,CY,95);g.addColorStop(0,'rgba(255,170,60,'+(.38*fl)+')');g.addColorStop(1,'rgba(255,120,30,0)');ctx.fillStyle=g;ctx.fillRect(CX-100,CY-100,200,200)}
  // alvos de meteoro
  mets.forEach(m=>{circ(m.x,m.y,36,'#f604',true);circ(m.x,m.y,36,'#f90')});if(window.drawPortals)drawPortals();if(window.desenharTelegrafos)desenharTelegrafos();if(window.CURANDEIRO)CURANDEIRO.desenhar();
  const L=[];
@@ -654,7 +685,7 @@ function draw(){
  // árvores e elementos do mapa ficam sempre à vista, dentro ou fora do campo de visão (pedido do usuário, 2026-10-24)
  // desenha tudo o que cabe na tela (com folga para a copa alta), qualquer que seja o zoom
  const naTela=(x,y)=>Math.abs(x-p.x)<cv.width/S/2+60&&y-p.y>-cv.height/S/2-20&&y-p.y<cv.height/S/2+80;
- trees.forEach(t=>{if(naTela(t.x,t.y)){const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2+t.y)*.012,sy:1,rot:0,sk:Math.sin(time*1.4+t.x*.09)*.07});ctx.globalAlpha=1}])}});
+ trees.forEach(t=>{if(naTela(t.x,t.y)){const hid=occ.some(u=>u.y<t.y&&u.y>t.y-48&&Math.abs(u.x-t.x)<26),a0=t.a==null?1:t.a;t.a=a0+((hid?.42:1)-a0)*.18;L.push([t.y,()=>{ctx.globalAlpha=t.a;dr(TREEV[treeVar(t)]||TREE,t.x,t.y,1,1,{dx:0,dy:0,sx:1+Math.sin(time*2.6+t.y)*.01,sy:1,rot:0,sk:-(.012+VENTO(t.x,t.y-24,time)*.07)});ctx.globalAlpha=1}])}});
  mapElements.forEach(e=>{if(naTela(e.x,e.y))L.push([e.y,()=>drawMapElement(e)])});
  if(wallBuilt){
   for(const post of campWallPosts)if(naTela(post.x,post.y))L.push([post.y,()=>drawCampLog(post.x,post.y)]);
@@ -698,7 +729,7 @@ window.animMonstro=(e,slime)=>{if(temQuadros(e)){anim(e,0,false);return null}con
 window.desenharMonstro=e=>{const o=[0,0],scale=ESCALA_MUNDO,spriteH=wh(e.img)*scale,labelY=e.y-spriteH-1;
  if(p.tgt==e)circ(e.x,e.y,12,'#f55'); // alvo marcado; o mouse em cima ganha contorno vermelho no próprio desenho (abaixo)
  if(e.elite&&!e.boss){const k=.5+.5*Math.sin(time*4+e.x*.1);ctx.save();ctx.globalAlpha=.22+.18*k;ctx.fillStyle='#f0a52e';ctx.beginPath();ctx.ellipse(e.x,e.y,9+k*1.5,4+k*.6,0,0,7);ctx.fill();ctx.globalAlpha=.55+.3*k;ctx.strokeStyle='#ffd36b';ctx.lineWidth=.6;ctx.stroke();ctx.restore()}
- ctx.globalAlpha=e.hit>0?.5:1;(f=>{const isSlime=e.ty==='sl'||e.base==='sl'||(MONSTER_TYPES[e.ty]&&/gosma|slime/i.test(MONSTER_TYPES[e.ty].name));const an=animMonstro(e,isSlime);if(hov==e)dr.borda='#ff2b2b';const esq=esqMonstro(e,f.d,f.fl);dr(monsterSpriteFrame(e,f.d,an||{},f.fl),e.x+o[0],e.y+o[1],esq?1:f.fl,scale,an)})(face(e));ctx.globalAlpha=1;
+ ctx.globalAlpha=e.hit>0?.5:1;(f=>{const isSlime=e.ty==='sl'||e.base==='sl'||(MONSTER_TYPES[e.ty]&&/gosma|slime/i.test(MONSTER_TYPES[e.ty].name));const an=animMonstro(e,isSlime);if(hov==e)dr.borda='#ff2b2b';const esq=esqMonstro(e,f.d,f.fl);e._sc=scale;dr(e._fr=monsterSpriteFrame(e,f.d,an||{},f.fl),e.x+o[0]+(e.agachado?(Math.floor(time*30)%2?1:-1):0) /* tomando impulso para o pulo: treme */,e.y+o[1]-(e.saltoZ||0),esq?1:f.fl,scale,an) /* saltoZ: no ar (pulo do Chefe Glooc) */})(face(e));ctx.globalAlpha=1;
  const maxHp=monsterMaxHp(e),hpRatio=Math.max(0,Math.min(1,e.hp/maxHp)),maxMp=monsterMaxMp(e),mpRatio=maxMp?Math.max(0,Math.min(1,e.mp/maxMp)):0,name=e.name||(MONSTER_TYPES[e.ty]&&MONSTER_TYPES[e.ty].name)||'Monstro';
  ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#d8d8d8';
  const mark=e.bossType=='grandboss'?'♛ ':e.bossType=='boss'?'★ ':e.elite?'✦ ':'';

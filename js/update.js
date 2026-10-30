@@ -60,6 +60,14 @@ function moveAlong(agent,speed,dt){
  if(dist(agent,agent.dest)<Math.max(3,speed*dt)){agent.dest=null;agent.path=[];agent.pathKey='';if(agent!==p&&!agent.boss&&!agent.chasing)agent.roamT=5}
  return agent.x!==before||agent.y!==oldY
 }
+/* desencalhar (2026-10-29): quem ficar num ponto onde não dá para andar (dentro de uma decoração sólida ou da parede, depois
+   de um empurrão, pulo ou queda) vai para o ponto livre mais perto; monstros dentro da parede não podiam ser alvejados */
+function desencalhar(u){
+ if(walk(u.x,u.y))return false;
+ for(let r=3;r<=36;r+=3)for(let k=0;k<16;k++){const a=k/16*Math.PI*2,x=u.x+Math.cos(a)*r,y=u.y+Math.sin(a)*r;if(walk(x,y)){u.x=x;u.y=y;u.dest=null;u.path=[];return true}}
+ return false}
+window.desencalhar=desencalhar;
+let desencalharT=0;
 function movePlayer(sp,dt){
  if(!p.dest)return;
  moveAlong(p,sp,dt)
@@ -88,7 +96,8 @@ window.reaparecer=function(){if(!(p.dead>0)||p.dead>=1e8)return;p.dead=0;p.morre
    3 → 3,5×, 4 → 4,5×. Elites também; o Chefe (grandboss) não. Recalcula se o grupo muda, a partir dos valores originais. */
 /* dificuldade da DG pelo grupo (pedido do usuário, 2026-10-23): sozinho é o normal; cada jogador a mais multiplica a vida
    máxima por 1,7 e o dano por 1,3 (2 jogadores: ×1,7 e ×1,3; 3: ×2,89 e ×1,69; 4: ×4,91 e ×2,2). Vale para todos, chefe também */
-const escalaGrupoDG=n=>({vida:Math.pow(1.7,Math.max(0,n-1)),dano:Math.pow(1.3,Math.max(0,n-1))});
+/* 2026-10-28 (pedido do usuário): o dano NÃO aumenta mais com o grupo; só a vida (×1,7 por jogador a mais) */
+const escalaGrupoDG=n=>({vida:Math.pow(1.7,Math.max(0,n-1)),dano:1});
 window.escalaGrupoDG=escalaGrupoDG;
 window.escalarDG=function(e){
  if(!e||e.pvp||e.duelo)return;const n=Math.max(1,window.MP&&MP.tamanhoGrupo||1);if(e.dgK===n)return;
@@ -96,7 +105,7 @@ window.escalarDG=function(e){
  const b=e.dgBase,{vida,dano}=escalaGrupoDG(n),parte=e.max>0?e.hp/e.max:1;e.max=Math.round(b.max*vida);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
  e.dmg=Math.round(b.dmg*dano);e.weaponDamageMultiplier=b.wm*dano;if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*dano);
  e.dgK=n};
-function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||(window.inTaverna&&window.BAR&&BAR.hover&&BAR.hover(wpos()))||(window.BAU_ILHA&&BAU_ILHA.sob(wpos()))||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
+function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);desencalharT-=dt;if(desencalharT<=0){desencalharT=.3;for(const e of en)if(e.hp>0&&!e.dash&&!(e.mec&&e.mec.salto))desencalhar(e)}if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||(window.inTaverna&&window.BAR&&BAR.hover&&BAR.hover(wpos()))||(window.BAU_ILHA&&BAU_ILHA.sob(wpos()))||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
  fxs.forEach(f=>f.t+=dt);for(let i=fxs.length;i--;)if(fxs[i].t>fxs[i].d)fxs.splice(i,1);
  fts.forEach(f=>{f.y-=14*dt;f.a-=dt*.9});for(let i=fts.length;i--;)if(fts[i].a<=0)fts.splice(i,1);
  p.hit-=dt;
@@ -117,10 +126,17 @@ function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.
   if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(window.MP&&MP.soDono&&MP.soDono()){}else if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Glooc Saqueador primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
   if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))toggleCampGate()}
   if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))showDungeonMenu()}
-  const kx=(held.has('mover_direita')?1:0)-(held.has('mover_esquerda')?1:0)+p.joy.x;
-  const ky=(held.has('mover_baixo')?1:0)-(held.has('mover_cima')?1:0)+p.joy.y,kl=Math.hypot(kx,ky);
+  /* medo (grito do Chefe Glooc): enquanto durar, o herói é empurrado para longe de quem gritou, mesmo parado, e os comandos de
+     andar não valem; acaba na hora se o chefe morrer (antes, clicar no baú do chefe fazia o herói andar ao contrário) */
+  let medo=!!p.st&&Object.keys(p.st).some(k=>fxKind(k)==='medo'&&p.st[k].t>0);
+  if(medo&&p.medoFonte&&!(p.medoFonte.hp>0)){for(const k of Object.keys(p.st))if(fxKind(k)==='medo')delete p.st[k];p.medoFonte=null;medo=false}
+  if(medo&&pst>0){const F=p.medoFonte||p,dx=p.x-F.x,dy=p.y-F.y,d=Math.hypot(dx,dy)||1,ux=d>1?dx/d:-(p.fx||0),uy=d>1?dy/d:-(p.fy||1);
+   p.dest=null;p.path=[];p.pathKey='';p.npcT=null;move(p,{x:p.x+ux*40,y:p.y+uy*40},CALC.move*pst*.9,dt);if(!p.tgt){p.fx=ux;p.fy=uy}} // com medo ainda dá para atacar quem estiver no alcance (o alvo não é apagado)
+  const inv=1;
+  const kx=medo?0:inv*((held.has('mover_direita')?1:0)-(held.has('mover_esquerda')?1:0)+p.joy.x);
+  const ky=medo?0:inv*((held.has('mover_baixo')?1:0)-(held.has('mover_cima')?1:0)+p.joy.y),kl=Math.hypot(kx,ky);
   if(kl>.08){p.dest=null;p.path=[];p.pathKey='';p.tgt=null;p.npcT=null;p.gateT=false;p.portalT=false;move(p,{x:p.x+kx/kl*40,y:p.y+ky/kl*40},CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt)}
-  else movePlayer(CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt);
+  else if(!medo)movePlayer(CALC.move*pst*(1+spdB()+(p.bf>0?.3:0)),dt);
   p.bf=Math.max(0,p.bf-dt);
   const a=attributes();
   p.hp=Math.min(mhp(),p.hp+regenHp()*reducaoPct(p,'regenPct')*dt); /* Fratura reduz a regeneração */p.mp=Math.min(mmp(),p.mp+regenMp()*dt);
@@ -181,16 +197,22 @@ function upd(dt){conversando=emConversa();if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.
    else if(hasSkill&&d>Math.max(20,attackRange)&&e.mp>=e.skill.cost&&e.skillCd<=0)flank(e,attackRange-4,a);
    else if(hasSkill&&d<=attackRange&&ve&&e.mp>=e.skill.cost&&e.skillCd<=0){e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;e.aw=e.skill.windup/Math.max(.1,1+monsterAttribute(e,'castSpeed'));e.noAtk=0;e.skillWindup=true;e.mp-=e.skill.cost;applyActionAttributes(e,e.skill);e.skillCd=e.skill.cd*cooldownMultiplier(e);if(!(window.playEntitySound&&playEntitySound('skills',e.skill.id,'cast'))&&window.playEntitySound)playEntitySound('monsters',e.ty,'skill');ft(e.x,e.y-24,e.skill.name,'#f9c')}
    else if(d>attackRange||!ve){if(!ve)approach(e,a,8);else if(e.bossType=='grandboss')approach(e,a,Math.max(12,attackRange-4));else flank(e,Math.max(12,attackRange-4),a)}
-   else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*CALC.monAtkSpdPerA)/Math.max(.05,1-e.stats.A*CALC.monAtkSpdPerA);e.cd=Math.max(CALC.monMinInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))))/statusAtk(e); /* gelo: ataca mais devagar */if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'attack'))&&window.playGameSound&&dist(e,p)<260)playGameSound(e.weaponBasic&&e.weaponBasic.proj?(e.attackMagic?'feitico':'arco'):'swing',.45)}}
+   else{e.dest=null;e.fx=a.x-e.x;e.fy=a.y-e.y;if(e.cd<=0){e.aw=e.wu;e.noAtk=0;e.skillWindup=false;const agilityFactor=Math.max(.05,1-ea.A*CALC.monAtkSpdPerA)/Math.max(.05,1-e.stats.A*CALC.monAtkSpdPerA);e.cd=Math.max(CALC.monMinInterval,e.ac*agilityFactor*(1-Math.min(.9,statusAttributeBonus(e,'attackSpeed'))))/statusAtk(e); /* gelo: ataca mais devagar */if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'attack'))&&window.playGameSound&&dist(e,p)<260)playGameSound(e.weaponBasic&&e.weaponBasic.proj?(e.attackMagic?'feitico':'arco'):/^glooc/.test(e.ty)?(/machad|saquead|chefe/.test(e.ty)?'gloocMachado':'gloocGolpe'):'swing',/^glooc/.test(e.ty)?.7:.45)}}
   }
   else{
    if(e.chasing){e.dest=null;e.path=[];e.pathKey='';e.chasing=false;e.fa=undefined;e.alert=0;e.noAtk=0;if(e.boss&&window.inDungeon)e.foraCombate=CALC.monsterReset||10/* chefe da DG: saiu da sala, reseta na hora */}
    if(e.boss){if(dist(e,home)>3)navigate(e,home.x,home.y);else{e.dest=null;e.path=[];e.pathKey=''}}
-   else if(Math.hypot(e.x-home.x,e.y-home.y)>e.roamRadius)navigate(e,home.x,home.y);
+   else if(Math.hypot(e.x-home.x,e.y-home.y)>Math.max(e.roamRadius,e.rumo||0))navigate(e,home.x,home.y);
    else{
    if(!e.dest)e.roamT-=dt;
    if(!e.dest&&e.roamT<=0){
-    for(let attempt=0;attempt<12;attempt++){
+    /* na ilha os monstros andam à toa, mas costumam seguir a terra (trilhas das clareiras e estradas, js/world.js terraDist):
+       6 em 10 passeios procuram um ponto de terra até ~2× mais longe; e.rumo deixa ir até lá sem ser puxado de volta */
+    e.rumo=0;
+    if(!window.inDungeon&&!window.inArena&&!window.inTutorial&&window.terraDist&&!e.seguidor&&Math.random()<.6){const R=Math.max(120,e.roamRadius*2.2);
+     for(let attempt=0;attempt<16;attempt++){const angle=rnd(0,Math.PI*2),radius=rnd(24,R),x=home.x+Math.cos(angle)*radius,y=home.y+Math.sin(angle)*radius;
+      if(terraDist(x,y)<4&&walk(x,y)&&!insideCamp(x,y,8)){e.rumo=radius+16;navigate(e,x,y);break}}}
+    if(!e.dest)for(let attempt=0;attempt<12;attempt++){
      const angle=rnd(0,Math.PI*2),radius=rnd(18,e.roamRadius),x=home.x+Math.cos(angle)*radius,y=home.y+Math.sin(angle)*radius;
      if(walk(x,y)&&!insideCamp(x,y,8)&&longeDeArvores(x,y)){navigate(e,x,y);break}
     }

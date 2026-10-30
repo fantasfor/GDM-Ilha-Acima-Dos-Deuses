@@ -154,6 +154,8 @@
    // giro: lâmina girando junto com o herói (a ponta está no ângulo para onde ele olha)
    if(typeof p!=='undefined'&&p.canal&&p.canal.visual){const v=p.canal.visual,span=Math.PI*1.4;
     lamina(g,p.x,p.y-8,v.raio,p.canal.ang,-span,0,off=>1+off/span,v.cor,1)}
+   // chefes girando (Giro Glooc): a mesma lâmina do herói
+   if(typeof en!=='undefined')for(const e of en)if(e.hp>0&&e.canal&&e.canal.visual){const v=e.canal.visual,span=Math.PI*1.4;lamina(g,e.x,e.y-12,v.raio,e.canal.ang,-span,0,off=>1+off/span,v.cor,1)}
    // conjurando: faíscas na cor da habilidade girando e fechando em volta do herói
    if(typeof p!=='undefined'&&p.conj&&p.conj.total>.3){const c=p.conj,k=1-c.r/c.total,cor=c.s.vfxColor||'#9bd4ff',rr=10-k*6,t0=performance.now()/1000*6;
     for(let i=0;i<5;i++){const a=t0+i*Math.PI*2/5;px(g,Math.round(p.x+Math.cos(a)*rr),Math.round(p.y-10+Math.sin(a)*rr*.6),i%2?'#ffffff':cor,.85)}g.globalAlpha=1}

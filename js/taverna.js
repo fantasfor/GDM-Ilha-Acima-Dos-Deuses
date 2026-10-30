@@ -339,6 +339,9 @@
   if(window.inArena&&window.ARENA)ARENA.sair(true);
   if(window.MP&&MP.antesDeSair)MP.antesDeSair();
   ilhaPos={x:p.x,y:p.y};enGuardado=en.splice(0,en.length);montarMestres();
+  // na taverna não há auras nem bônus de habilidade: a aura ligada desliga e os efeitos positivos saem (2026-10-28)
+  if(window.CURANDEIRO&&CURANDEIRO.desligar)CURANDEIRO.desligar();
+  if(p.st)for(const [k,s] of Object.entries(p.st))if(FX_INFO[k]&&FX_INFO[k].good)delete p.st[k];
   clearMovementInput();window.inTaverna=true;
   p.x=ENTRADA.x;p.y=ENTRADA.y;p.fx=0;p.fy=-1;proj.length=0;
   ft(p.x,p.y-30,'Taverna do Javali Dourado','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);
@@ -352,7 +355,7 @@
   if(!silencioso)ft(p.x,p.y-24,'De volta à ilha','#ffd84a');
   atualizarBotao();if(window.saveGame)saveGame();
  }
- window.entrarTaverna=entrar;window.sairTaverna=sair;
+ window.entrarTaverna=entrar;window.sairTaverna=sair;window.falarMestreTaverna=cls=>{const m=MESTRES.find(x=>x.cls===cls);if(m)falarMestre(m)}; /* abre o diálogo do Mestre da classe */
  const botao=document.createElement('button');botao.type='button';botao.className='ib tavBtn';
  function atualizarBotao(){botao.textContent=window.inTaverna?'Sair da taverna':'Taverna';botao.title=window.inTaverna?'Voltar para a sua ilha':'Ir para a taverna, onde todos os jogadores se encontram'}
  botao.onclick=()=>window.inTaverna?sair():entrar();atualizarBotao();
@@ -404,16 +407,29 @@
   const c=CL[m.cls];if(!c)return;
   const box=$('dialogue');box.classList.remove('dgModal');
   const atual=p.cls===m.cls,aprendida=!!(p.classProgress&&p.classProgress[m.cls]);
+  /* arma inicial da classe (2026-10-29, pedido do usuário): quem já aprendeu a classe pode pedir as armas do kit inicial
+     (arma e escudo) de novo; só entrega as que não estão na mochila nem equipadas */
+  const armasKit=(c.kit||[]).filter(r=>ITEMS[r.id]&&(gearType[r.id]==='sw'||gearType[r.id]==='sh')).map(r=>r.id);
+  const tem=id=>I.some(s=>s&&s.id===id)||Object.values(EQ).some(s=>s&&s.id===id);
+  const pedirArma=(atual||aprendida)&&armasKit.length?'<button type="button" data-tav-arma>Pedir a arma inicial de '+c.n+'</button>':'';
   const ps=c.passive&&c.passive.n?'<p>Passiva: <b>'+c.passive.n+'</b>'+(c.passive.d?' – '+c.passive.d:'')+'</p>':'';
   // classe nova: só vencendo o Mestre num duelo na arena (Mestre nível 10 com os atributos da classe); já aprendida: trocar é grátis
   box.innerHTML='<b>'+m.nm+'</b>'+
-   (atual?'<p>Você já é '+c.n+'. Continue treinando! Quer medir forças de novo?</p><button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
-    :aprendida?'<p>Você já aprendeu '+c.n+': trocar é grátis.</p>'+ps+'<button type="button" data-tav-classe>Trocar para '+c.n+'</button><button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
+   (atual?'<p>Você já é '+c.n+'. Continue treinando! Quer medir forças de novo?</p>'+pedirArma+'<button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
+    :aprendida?'<p>Você já aprendeu '+c.n+': trocar é grátis.</p>'+ps+'<button type="button" data-tav-classe>Trocar para '+c.n+'</button>'+pedirArma+'<button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
     :'<p>Quer seguir o caminho de '+c.n+'? Prove o seu valor: vença-me num duelo na arena. Eu luto no <b>nível 10</b>, com a força de um '+c.n+'.</p>'+ps+
      '<p class=tm>Perder não custa nada: você volta para a taverna e pode tentar de novo.</p><button type="button" data-tav-duelo>Desafiar o Mestre</button>')+
    '<button type="button" data-close-dialog>Até mais</button>';
   box.classList.add('open');
   const b=box.querySelector('[data-tav-classe]');if(b)b.onclick=()=>{box.classList.remove('open');setClass(m.cls)};
+  const ba=box.querySelector('[data-tav-arma]');if(ba)ba.onclick=()=>{
+   const faltam=armasKit.filter(id=>!tem(id));
+   if(!faltam.length){ft(p.x,p.y-30,'Você já tem a arma inicial','#ccc');box.querySelector('p').textContent='Você já tem as armas do começo de '+c.n+'. Cuide bem delas!';ba.remove();return}
+   const dadas=faltam.filter(id=>addItem(id));
+   if(!dadas.length){ft(p.x,p.y-30,'Mochila cheia','#f88');return}
+   dirtyInv=true;saveGame();if(window.playGameSound)playGameSound('item');
+   ft(p.x,p.y-30,'Recebeu: '+dadas.map(id=>String(ITEMS[id].n||id).replace(/ \(.*$/,'')).join(', '),'#ffd84a');
+   box.querySelector('p').textContent=(dadas.length>1?'Aqui estão ':'Aqui está ')+dadas.map(id=>String(ITEMS[id].n||id).replace(/ \(.*$/,'')).join(' e ')+'. Use bem!';ba.remove()};
   const dd=box.querySelector('[data-tav-duelo]');if(dd)dd.onclick=()=>{box.classList.remove('open');if(window.ARENA&&ARENA.duelo)ARENA.duelo(m.cls)};
  }
  function falarTaverneira(){

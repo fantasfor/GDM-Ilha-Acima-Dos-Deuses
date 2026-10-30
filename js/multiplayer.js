@@ -49,7 +49,7 @@
    if(id===uid||o.sala!==MP.sala||o.x==null)continue;
    vistos.add(id);
    let r=MP.remotos.get(id);if(!r){r={uid:id,remote:true,st:null};MP.remotos.set(id,r)}
-   r.x=o.x;r.y=o.y;r.dead=!!o.dead;r.hp=o.hp;r.name=o.name;r.lvl=o.lvl;
+   r.x=o.x;r.y=o.y;r.dead=!!o.dead;r.hp=o.hp;r.mp=o.mp;r.efs=o.efs||'';r.name=o.name;r.lvl=o.lvl;
   }
   for(const id of [...MP.remotos.keys()])if(!vistos.has(id))MP.remotos.delete(id);
  }
@@ -84,7 +84,7 @@
  // aplica a escala do tamanho atual do grupo a partir dos valores originais (pode subir e descer durante a DG)
  // a escala da DG pelo número de jogadores fica em update.js (escalarDG: cada jogador a mais = vida ×1,7 e dano ×1,3)
  function escalar(e){if(window.inDungeon&&window.escalarDG)escalarDG(e)}
- MP.escalaTexto=n=>{const k=window.escalaGrupoDG?escalaGrupoDG(n):{vida:1,dano:1},f=v=>v.toFixed(2).replace(/\.?0+$/,'').replace('.',',');return 'vida ×'+f(k.vida)+' e dano ×'+f(k.dano)+' em todos os monstros, chefe também'};
+ MP.escalaTexto=n=>{const k=window.escalaGrupoDG?escalaGrupoDG(n):{vida:1,dano:1},f=v=>v.toFixed(2).replace(/\.?0+$/,'').replace('.',',');return 'vida ×'+f(k.vida)+' em todos os monstros, chefe também (o dano não muda)'};
  const codificar=e=>[e.ty,e.lvl||1,Math.round(e.x),Math.round(e.y),Math.max(0,Math.ceil(e.hp)),Math.round(monsterMaxHp(e)),
   (e.elite?1:0)|(e.boss?2:0)|(e.aw>0?4:0),Math.sign(Math.round(e.fx||0)),e.dungeonRoomId==null?'':e.dungeonRoomId].join('|');
  function publicar(agora){
@@ -357,7 +357,7 @@
  // o líder avisa o grupo da DG em que está (os membros recebem o convite para entrar)
  function publicarDgDoGrupo(){
   if(!window.inDungeon||!MP.dgSala||hostDe(MP.dgSala)!==uid)return;
-  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.getActiveDungeonConfig&&getActiveDungeonConfig().name)||'Masmorra'}).catch(e=>falhou(e,'chamar o grupo para a masmorra'));
+  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.lerDungeonConfig&&lerDungeonConfig().name)||'Masmorra'}).catch(e=>falhou(e,'chamar o grupo para a masmorra'));
  }
  function entrarDgDoGrupo(){
   const g=MP.grupo;if(!g||!g.dg)return;
@@ -430,7 +430,12 @@
   const g=MP.grupo,ids=g&&g.membros?Object.keys(g.membros):[];
   if(!uid||ids.length<2||(window.cameraMenu&&cameraMenu.ativo)){painelG.hidden=true;return}
   painelG.hidden=false;
-  ids.sort((a,b)=>(b===uid)-(a===uid)||(b===MP.grupoLider)-(a===MP.grupoLider));
+  // só os outros membros (a sua vida e mana já estão na barra de baixo), líder primeiro; o painel fica em cima do
+  // minimapa, logo acima do nome do lugar e da hora (2026-10-28, pedido do usuário)
+  const lab=document.getElementById('mmLabel'),mm=document.getElementById('mm');
+  if(lab&&mm){const r=mm.getBoundingClientRect(),l=lab.getBoundingClientRect();painelG.style.left=r.left+'px';painelG.style.width=r.width+'px';painelG.style.top='auto';painelG.style.bottom=(innerHeight-l.top+6)+'px'}
+  ids.splice(0,ids.length,...ids.filter(id=>id!==uid));
+  ids.sort((a,b)=>(b===MP.grupoLider)-(a===MP.grupoLider));
   for(const [id,q] of quadrosG)if(!ids.includes(id)){q.el.remove();quadrosG.delete(id)}
   ids.forEach((id,n)=>{
    let q=quadrosG.get(id);

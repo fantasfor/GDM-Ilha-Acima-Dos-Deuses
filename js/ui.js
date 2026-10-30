@@ -48,7 +48,7 @@ let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
 SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?' wk':'');d.style.backgroundImage='url('+s.ic+')';d._tip=()=>skTip(s);d.innerHTML=(i<6?'<button class="skillSelect" type="button" aria-label="Trocar habilidade do slot '+s.k.toUpperCase()+'" title="Trocar habilidade">⇅</button>':'')+'<b>'+s.k.toUpperCase()+'</b><em>'+s.mana+'</em><u></u><span></span>';d.onclick=e=>{e.stopPropagation();window.mirarOuLancar?mirarOuLancar(s):cast(s)};d.onmouseenter=()=>{if(window.MIRA)MIRA.previa=s};d.onmouseleave=()=>{if(window.MIRA&&MIRA.previa===s)MIRA.previa=null}; /* mouse no botão: prévia do alcance e da área (js/mira.js) */const select=d.querySelector('.skillSelect');if(select){select.dataset.skillSlot=i;select.onclick=e=>{e.stopPropagation();openSkillPicker(i,select)}}$('sks').appendChild(d);s.el=d;s.u=d.querySelector('u');s.cn=d.querySelector('span')});
 /* painel de habilidade e de item: "Rótulo: valor", cada tipo de informação com a sua cor (css/ui2.css #tip .t*) */
-const NOME_ARMA={espada:'Espada',espada_grande:'Espada grande',adaga:'Adaga',machadinha:'Machadinha',machado_2mao:'Machado',maca:'Maça',martelo_2mao:'Martelo',lanca:'Lança',arco:'Arco',besta:'Besta',manopla:'Manopla',escudo:'Escudo',cajado:'Cajado',cetro:'Cetro',orbe:'Orbe',serrote:'Serrote'};
+const NOME_ARMA={espada:'Espada',espada_grande:'Espada grande',adaga:'Adaga',machadinha:'Machadinha',machado_2mao:'Machado',maca:'Maça',martelo_2mao:'Martelo',lanca:'Lança',arco:'Arco',besta:'Besta',manopla:'Manopla',escudo:'Escudo',cajado:'Cajado',cetro:'Cetro',orbe:'Orbe'};
 const nomeArma=k=>NOME_ARMA[k]||k;
 const tl=(rot,val,cls,cor)=>val===''||val==null?'':'<div class=tlin><span class=tl>'+rot+':</span> <span class='+cls+(cor?' style="color:'+cor+'"':'')+'>'+val+'</span></div>';
 const skTip=s=>{if(!s.n)return '<b>Habilidade da arma</b><div class=tm>Vazio: a arma equipada não tem habilidade para este espaço.</div>';
@@ -350,7 +350,7 @@ function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.
  window.alvoInfo=monster?info:ali&&ali.ent?ali.ent:null; // efeitos do alvo aparecem abaixo desta caixa (js/effects.js)
  if(ali){const mc=$('monic').getContext('2d');mc.clearRect(0,0,40,40);mc.imageSmoothingEnabled=false;const im=ali.img;
   if(im){const k=Math.min(36/im.width,36/im.height),iw=Math.round(im.width*k),ih=Math.round(im.height*k);mc.drawImage(im,Math.round((40-iw)/2),Math.round((40-ih)/2),iw,ih)}else{mc.fillStyle='#7c5a34';mc.fillRect(19,8,2,28);mc.fillRect(10,12,20,3);mc.fillStyle='#d6b98a';mc.fillRect(15,4,10,9)}
-  $('monhp').style.width=ali.vida*100+'%';$('monhpt').textContent=ali.vidaTxt;$('monmp').style.width='0%';$('monmpt').textContent='';
+  $('monhp').style.width=ali.vida*100+'%';$('monhpt').textContent=ali.vidaTxt;$('monmp').style.width=(ali.mana==null?0:ali.mana*100)+'%';$('monmpt').textContent=ali.manaTxt||'';
   $('monname').textContent=ali.nome+' Nv '+ali.nivel+' · aliado';mon.classList.remove('elite')}
  if(monster){const mc=$('monic').getContext('2d');mc.clearRect(0,0,40,40);mc.imageSmoothingEnabled=false;
   const k=Math.min(36/info.img.width,36/info.img.height),iw=Math.round(info.img.width*k),ih=Math.round(info.img.height*k);

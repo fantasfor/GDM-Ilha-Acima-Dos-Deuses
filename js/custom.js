@@ -246,6 +246,12 @@ L('items').forEach(it=>{
  if(o.escalaReduz){const k=o.escalaReduz,red=c=>c&&c.width?reduzirArte(c,Math.max(1,c.width*k),Math.max(1,c.height*k)):c;
   for(const d in o.equippedSprites)o.equippedSprites[d]=red(o.equippedSprites[d]);
   for(const d in o.equippedAnim||{}){const a=o.equippedAnim[d];for(const e of ['idle','walk','attack'])a[e]=a[e].map(red)}}
+ /* arma (2026-10-28, pedido do usuário): "Na mão, usar o desenho do ícone" (o ícone já na diagonal vira o desenho da mão,
+    em todas as direções) e o pixel de engate, marcado na Engine em pixels do desenho e levado ao tamanho do desenho na mão */
+ if(it.kind=='weapon'){
+  if(it.maoIcone&&it.sprite){const c=pixelArt(it.sprite);if(c){o.equippedSprite=c;o.equippedSprites={};delete o.equippedAnim}}
+  const dEng=it.maoIcone?it.sprite:it.equippedSprite,e=it.engate;
+  if(e&&Number.isFinite(+e.x)&&Number.isFinite(+e.y)&&o.equippedSprite&&dEng&&dEng.w){const k=o.equippedSprite.width/dEng.w;o.engate={x:+e.x*k,y:+e.y*k}}}
  o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL()});
 if(ITEMS.saw){ITEMS.saw.c=sawToolIcon();ITEMS.saw.ic=ITEMS.saw.c.toDataURL();ITEMS.saw.equippedSprite=typeof reduzirArte==='function'?reduzirArte(sawToolSprite(),14,6):sawToolSprite();ITEMS.saw.escalaMao=2} // na mão no padrão: 1 pixel = 1 pixel do herói
 for(const key of Object.keys(heroC))delete heroC[key];
@@ -318,7 +324,9 @@ L('monsters').forEach(m=>{
  const k=fatorMonstro(m),sprite=reduzido(m.sprite,k),sp=sprite?{d:sprite,u:sprite,s:sprite,ds:sprite,us:sprite,w:null}:null;
  const reduzirAnim=A=>k<1&&A?{...A,...Object.fromEntries(['idle','walk','attack'].map(a=>[a,(A[a]||[]).map(f=>reduzido(f,k)).filter(Boolean)]))}:A;
  const animation=reduzirAnim(m.animation),direcoes=m.direcoes&&typeof m.direcoes=='object'?{frente:reduzirAnim(m.direcoes.frente),costas:reduzirAnim(m.direcoes.costas),esquerda:reduzirAnim(m.direcoes.esquerda)}:null;
- MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,ataqueDoNivel:!!m.ataqueDoNivel,sprite,sp,animation,direcoes,size:n(m.size,100),attackSpeed:atk,moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
+ /* semArma: os mesmos quadros sem a arma na mão (Chefe Glooc depois de arremessar o machado) */
+ const semArma=m.semArma&&m.semArma.animation?{animation:reduzirAnim(m.semArma.animation),direcoes:m.semArma.direcoes?{frente:reduzirAnim(m.semArma.direcoes.frente),costas:reduzirAnim(m.semArma.direcoes.costas),esquerda:reduzirAnim(m.semArma.direcoes.esquerda)}:null}:null;
+ MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,ataqueDoNivel:!!m.ataqueDoNivel,sprite,sp,animation,direcoes,semArma,size:n(m.size,100),attackSpeed:atk,moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,
   bossType:['boss','grandboss'].includes(m.bossType)?m.bossType:'normal',equipment:{stats:total,weaponRanges,weapon:weapon?{damageType:weapon.damageType=='magic'?'magic':'physical',basic:weapon.basic||{},effects:Array.isArray(weapon.effects)?weapon.effects:[]}:null},
   drops:normDrops(m),skills:createdSkills,nivelMin:n(m.minLevel,0), // nível mínimo de aparição: base do +8% de dano por nível (multNivelMonstro)
   ia:{esquiva:!!(m.ia&&m.ia.esquiva===true),distancia:!!(m.ia&&m.ia.distancia===true),lado:!!(m.ia&&m.ia.lado===true)}, // táticas (update.js iaTatica); padrão: todas desligadas (ligue na Engine)

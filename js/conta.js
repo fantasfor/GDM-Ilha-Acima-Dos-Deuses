@@ -202,7 +202,7 @@
    if(sala!==this.posSala)trocarPos(sala);
    if(me.sons&&me.sons.length){this.somSeq=(this.somSeq+1)%1000;this.sons=me.sons.slice(-6).map(t=>String(t).replace(/[|,]/g,'').slice(0,200)).join(',').slice(0,700)}
    // posição em inteiros, direção com 2 casas e ping em passos de 10 ms: parado, a linha quase não muda e não é reenviada
-   const rapido=[Math.round(me.x),Math.round(me.y),Math.round(me.fx*100)/100,Math.round(me.fy*100)/100,Math.round(me.hp*100)/100,Math.round((me.mp||0)*100)/100,me.dead?1:0,Math.round((me.ping||0)/10)*10,this.somSeq,this.sons].join('|');
+   const rapido=[Math.round(me.x),Math.round(me.y),Math.round(me.fx*100)/100,Math.round(me.fy*100)/100,Math.round(me.hp*100)/100,Math.round((me.mp||0)*100)/100,me.dead?1:0,Math.round((me.ping||0)/10)*10,this.somSeq,this.sons,String(me.efs||'').slice(0,90)].join('|');
    if(rapido!==this.rapidoEnviado&&agora-this.ultimoRapido>=90){this.ultimoRapido=agora;this.rapidoEnviado=rapido;db.ref('pos/'+sala+'/'+user.uid).set(rapido).catch(()=>{});this.sons=''} // os eventos vão uma vez só (quem recebe compara o número da sequência)
    // lento: nome, classe, equipamento e sala (lista de jogadores e amigos); posição só de vez em quando
    const dados={name:this.name,cls:me.cls,sex:me.sex,lvl:me.lvl,hp:Math.round(me.hp*10)/10,dead:me.dead,dg:me.dg,eq:me.eq,sala};
@@ -232,14 +232,14 @@
  const ATRASO_MS=110,amostras=new Map(),rapidos=new Map();let posOff=null;
  function aplicarRapido(id,s){
   if(id===user.uid||typeof s!=='string')return;
-  const [x,y,fx,fy,hp,mp,dead,ping,seq,sons]=s.split('|'),r={x:+x,y:+y,fx:+fx||0,fy:+fy||0,hp:+hp,mp:+mp||0,dead:dead==='1',ping:+ping||0};
+  const [x,y,fx,fy,hp,mp,dead,ping,seq,sons,efs]=s.split('|'),r={x:+x,y:+y,fx:+fx||0,fy:+fy||0,hp:+hp,mp:+mp||0,dead:dead==='1',ping:+ping||0,efs:efs||''};
   if(!Number.isFinite(r.x)||!Number.isFinite(r.y))return;
   const ant=rapidos.get(id);rapidos.set(id,Object.assign(r,{seq}));
   const a=amostras.get(id)||[];a.push({t:performance.now(),x:r.x,y:r.y});
   // teleporte (troca de mapa, entrada em DG): começa do ponto novo
   if(a.length>1&&Math.hypot(a[a.length-2].x-r.x,a[a.length-2].y-r.y)>160)a.splice(0,a.length-1);
   while(a.length>12)a.shift();amostras.set(id,a);
-  const o=nuvem.outros.get(id);if(o)Object.assign(o,{x:r.x,y:r.y,fx:r.fx,fy:r.fy,hp:r.hp,mp:r.mp,dead:r.dead,ping:r.ping,sala:nuvem.posSala});
+  const o=nuvem.outros.get(id);if(o)Object.assign(o,{x:r.x,y:r.y,fx:r.fx,fy:r.fy,hp:r.hp,mp:r.mp,dead:r.dead,ping:r.ping,efs:r.efs,sala:nuvem.posSala});
   if(ant&&seq!==ant.seq&&sons&&nuvem.aoSom)nuvem.aoSom(id,sons.split(','),r);
  }
  function trocarPos(sala){
@@ -259,7 +259,7 @@
    const v=s.val()||{},o=nuvem.outros.get(s.key)||{};
    for(const k of Object.keys(o))if(!(k in v))delete o[k];
    Object.assign(o,v);
-   const r=rapidos.get(s.key);if(r&&v.sala===nuvem.posSala)Object.assign(o,{x:r.x,y:r.y,fx:r.fx,fy:r.fy,hp:r.hp,mp:r.mp,dead:r.dead,ping:r.ping});
+   const r=rapidos.get(s.key);if(r&&v.sala===nuvem.posSala)Object.assign(o,{x:r.x,y:r.y,fx:r.fx,fy:r.fy,hp:r.hp,mp:r.mp,dead:r.dead,ping:r.ping,efs:r.efs});
    nuvem.outros.set(s.key,o);
   };
   lista.on('child_added',guardar);lista.on('child_changed',guardar);lista.on('child_removed',s=>nuvem.outros.delete(s.key));

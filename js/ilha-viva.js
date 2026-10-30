@@ -10,12 +10,13 @@
  if(typeof map==='undefined'||typeof islandTerrainMask==='undefined')return;
  const h=(a,b)=>hash(a,b),R=Math.round;
  const escuro=()=>window.cameraMenu&&cameraMenu.ativo?0:window.TEMPO&&TEMPO.escuro?TEMPO.escuro():0; // no menu é sempre dia
- // vento: onda lenta que atravessa a ilha + rajadas (a grama e os juncos de um lugar dobram juntos)
- const vento=(x,y,t)=>{const rajada=Math.max(0,Math.sin(t*.45-x*.006-y*.002)),base=Math.sin(t*1.9+x*.045+y*.03);return base*(.35+.25*rajada)+rajada*.9};
+ // vento para a direita, o mesmo das árvores (render.js VENTO, 0 a 1): a grama e os juncos de um lugar dobram juntos
+ const vento=(x,y,t)=>window.VENTO?VENTO(x,y,t):.3;
  const tipoChao=(x,y)=>{x|=0;y|=0;return x>=0&&y>=0&&x<W&&y<W?islandTerrainMask[y*W+x]:2};
  const visivel=(x,y,m=20)=>{const vw=cv.width/S/2+m,vh=cv.height/S/2+m;return Math.abs(x-p.x)<vw&&Math.abs(y-p.y)<vh};
  /* ---- tufos de grama e juncos: desenhos prontos (variante × 5 inclinações), um drawImage por tufo ---- */
- const CORES_TUFO={campo:['#2f6e31','#4b9a44','#78c260'],mata:['#1d4a24','#347536','#55a04e'],seco:['#5d7a34','#8aa548','#c2c86a']};
+ // grama de uma cor só (2026-10-29): os tufos são do mesmo verde em toda a ilha (o nome do bioma ficou só para sortear o desenho)
+ const UM_TUFO=['#2f6e31','#3c843a','#62ad4f'],CORES_TUFO={campo:UM_TUFO,mata:UM_TUFO,seco:UM_TUFO};
  function tufo(cores,lam,inc,alto){const c=mkCanvas(9,8),g=c.getContext('2d');
   for(let k=0;k<lam;k++){const x0=2+k*2-(lam>3?1:0),hh=alto-(k%2)-(k==0?1:0),dx=inc*(hh/alto);
    for(let j=0;j<hh;j++){const t=j/hh,x=R(x0+dx*t*t*1.6);g.fillStyle=j<1?cores[0]:j>hh-2?cores[2]:cores[1];g.fillRect(x,7-j,1,1)}}
@@ -26,29 +27,38 @@
    if(taboa&&k==0){const x=R(x0+inc*1.4);g.fillStyle='#7a4a24';g.fillRect(x,2,1,3);g.fillStyle='#3f7a35';g.fillRect(x,1,1,1)}}
   return c}
  const JUNCOS=[0,1].map(t=>[-2,-1,0,1,2].map(i=>junco(i,t)));
- const quadroVento=(x,y,t)=>Math.max(0,Math.min(4,R(2+vento(x,y,t)*1.6)));
- function plantas(t){
-  // tufos espalhados (poucos: a grama do chão já tem cor; o tufo é só o movimento do vento)
-  const x0=Math.floor((p.x-cv.width/S/2-10)/10)*10,x1=p.x+cv.width/S/2+10,y0=Math.floor((p.y-cv.height/S/2-10)/10)*10,y1=p.y+cv.height/S/2+14;
-  for(let y=y0;y<y1;y+=10)for(let x=x0;x<x1;x+=10){const r=h(x*7+3,y*13+5);if(r<.8)continue;
-   const px=x+R(h(x,y+1)*9),py=y+R(h(x+1,y)*9),k=tipoChao(px,py);
-   if(k===0){if(insideCamp(px,py,-10))continue;const b=biomaIlha(px,py),bio=b>.64?'mata':b<.32?'seco':'campo';
-    ctx.drawImage(TUFOS[bio][R(r*97)%3][quadroVento(px,py,t)],px-4,py-7)}
-   else if(k===1||k===0){continue}}
-  // juncos nas margens (onde a água está a 2–7 px)
-  for(let y=y0;y<y1;y+=5)for(let x=x0;x<x1;x+=5){const r=h(x*11+1,y*3+7);if(r<.55)continue;const px=x+R(h(x,y+2)*4),py=y+R(h(x+2,y)*4);
+ // quadro 2 = em pé, 3 e 4 = dobrado para a direita (sem vento, volta a ficar quase em pé)
+ const quadroVento=(x,y,t)=>Math.max(2,Math.min(4,R(1.8+vento(x,y,t)*2.4)));
+ /* os pontos de tufo, junco e brilho da água não mudam (sorteio fixo por posição): calculados uma vez por bloco de 120 px
+    e guardados (antes eram centenas de sorteios e consultas de terreno a cada quadro) */
+ const BLOCO=120,blocos=new Map();
+ function bloco(bx,by){const k=bx+','+by;let b=blocos.get(k);if(b)return b;b={tufos:[],juncos:[],brilhos:[]};const X=bx*BLOCO,Y=by*BLOCO;
+  for(let y=Y;y<Y+BLOCO;y+=10)for(let x=X;x<X+BLOCO;x+=10){const r=h(x*7+3,y*13+5);if(r<.8)continue;
+   const px=x+R(h(x,y+1)*9),py=y+R(h(x+1,y)*9);if(tipoChao(px,py)!==0||insideCamp(px,py,-10))continue;
+   const bi=biomaIlha(px,py);b.tufos.push([px,py,TUFOS[bi>.64?'mata':bi<.32?'seco':'campo'][R(r*97)%3]])}
+  for(let y=Y;y<Y+BLOCO;y+=5)for(let x=X;x<X+BLOCO;x+=5){const r=h(x*11+1,y*3+7);if(r<.55)continue;const px=x+R(h(x,y+2)*4),py=y+R(h(x+2,y)*4);
    if(tipoChao(px,py)===4||tipoChao(px,py)===5)continue;const [rd,rw]=rioDist(px,py);if(rd<rw+2||rd>rw+7)continue;
-   if(typeof onBridge=='function'&&onBridge(px,py+6))continue;
-   ctx.drawImage(JUNCOS[r>.85?1:0][quadroVento(px,py,t)],px-3,py-10)}}
+   if(typeof onBridge=='function'&&onBridge(px,py+6))continue;b.juncos.push([px,py,JUNCOS[r>.85?1:0]])}
+  for(let y=Y;y<Y+BLOCO;y+=6)for(let x=X;x<X+BLOCO;x+=6){const r=h(x*5+9,y*9+1);if(r<.6)continue;const px=x+R(h(x,y+5)*5),py=y+R(h(x+5,y)*5);
+   if(tipoChao(px,py)===4)b.brilhos.push([px,py,r])}
+  if(blocos.size>400)blocos.clear();blocos.set(k,b);return b}
+ function blocosNaTela(m){const vw=cv.width/S/2+m,vh=cv.height/S/2+m,l=[];
+  for(let by=Math.floor((p.y-vh)/BLOCO);by<=Math.floor((p.y+vh)/BLOCO);by++)for(let bx=Math.floor((p.x-vw)/BLOCO);bx<=Math.floor((p.x+vw)/BLOCO);bx++)l.push(bloco(bx,by));return l}
+ function plantas(t){
+  const x0=p.x-cv.width/S/2-14,x1=p.x+cv.width/S/2+14,y0=p.y-cv.height/S/2-14,y1=p.y+cv.height/S/2+20;
+  for(const b of blocosNaTela(20)){
+   // tufos espalhados (poucos: a grama do chão já tem cor; o tufo é só o movimento do vento); grama gasta pelos monstros: sem tufo
+   for(const [px,py,d] of b.tufos){if(px<x0||px>x1||py<y0||py>y1||window.desgasteIlha&&desgasteIlha(px,py)>.4)continue;ctx.drawImage(d[quadroVento(px,py,t)],px-4,py-7)}
+   // juncos nas margens (onde a água está a 2–7 px)
+   for(const [px,py,d] of b.juncos){if(px<x0||px>x1||py<y0||py>y1)continue;ctx.drawImage(d[quadroVento(px,py,t)],px-3,py-10)}}}
  /* ---- água: brilhos, ondinhas, peixes, ninfeias ---- */
  const ondas=[],peixes=[];let proxOnda=0,proxPeixe=2;
  const pontoNaAgua=(L,borda=.75)=>{const a=Math.random()*Math.PI*2,r=lagoR(L,a)*Math.sqrt(Math.random())*borda;return {x:L.x+Math.cos(a)*r,y:L.y+Math.sin(a)*r/1.25}};
  function agua(t,dt){
   // brilhos de sol: pontos fixos que acendem e apagam (mais de dia)
   const brilho=1-escuro()*.7;
-  const x0=Math.floor((p.x-cv.width/S/2)/6)*6,x1=p.x+cv.width/S/2,y0=Math.floor((p.y-cv.height/S/2)/6)*6,y1=p.y+cv.height/S/2;
-  for(let y=y0;y<y1;y+=6)for(let x=x0;x<x1;x+=6){const r=h(x*5+9,y*9+1);if(r<.6)continue;const px=x+R(h(x,y+5)*5),py=y+R(h(x+5,y)*5);
-   if(tipoChao(px,py)!==4)continue;const s=Math.sin(t*(1.3+r*2)+r*40);if(s<.86)continue;
+  const x0=p.x-cv.width/S/2,x1=p.x+cv.width/S/2,y0=p.y-cv.height/S/2,y1=p.y+cv.height/S/2;
+  for(const b of blocosNaTela(0))for(const [px,py,r] of b.brilhos){if(px<x0||px>x1||py<y0||py>y1)continue;const s=Math.sin(t*(1.3+r*2)+r*40);if(s<.86)continue;
    ctx.globalAlpha=(s-.86)/.14*brilho;ctx.fillStyle='#ffffff';ctx.fillRect(px,py,1,1);if(s>.97){ctx.fillRect(px-1,py,3,1);ctx.fillRect(px,py-1,1,3)}}
   ctx.globalAlpha=1;
   // ondinhas e peixes nos lagos visíveis
@@ -89,13 +99,13 @@
   if(typeof trees!='undefined'&&folhas.length<26)for(const tr of trees){if(Math.abs(tr.x-p.x)>200||Math.abs(tr.y-p.y)>130||Math.random()>dt*.35)continue;
    const v=window.treeVar?treeVar(tr):0,[c1,c2]=corFolha(v);folhas.push({x:tr.x+(Math.random()-.5)*26,y:tr.y-26-Math.random()*14,chao:tr.y+(Math.random()*16-4),t:0,f:Math.random()*9,c:Math.random()<.5?c1:c2})}
   for(let i=folhas.length;i--;){const f=folhas[i];f.t+=dt;f.f+=dt*3;
-   if(f.y<f.chao){f.y+=dt*9;f.x+=Math.sin(f.f)*dt*14+vento(f.x,f.y,t)*dt*6}else if(f.t>6){folhas.splice(i,1);continue}
+   if(f.y<f.chao){f.y+=dt*9;f.x+=Math.sin(f.f)*dt*7+vento(f.x,f.y,t)*dt*26}else if(f.t>6){folhas.splice(i,1);continue}
    ctx.globalAlpha=f.y<f.chao?1:Math.max(0,1-(f.t-4)/2);ctx.fillStyle=f.c;ctx.fillRect(R(f.x),R(f.y),Math.sin(f.f)>0?2:1,1)}
   ctx.globalAlpha=1;
   // pólen e poeirinha no sol
   while(polens.length<(dia>.5?14:0)){const q=novoEm(200,(x,y)=>tipoChao(x,y)===0);if(!q)break;polens.push({...q,f:Math.random()*9})}
   if(dia<=.5)polens.length=0;
-  for(let i=polens.length;i--;){const o=polens[i];o.f+=dt;o.x+=Math.sin(o.f*.7)*dt*3+vento(o.x,o.y,t)*dt*2;o.y-=dt*1.2;if(Math.hypot(o.x-p.x,o.y-p.y)>260){polens.splice(i,1);continue}
+  for(let i=polens.length;i--;){const o=polens[i];o.f+=dt;o.x+=Math.sin(o.f*.7)*dt*2+vento(o.x,o.y,t)*dt*9;o.y-=dt*1.2;if(Math.hypot(o.x-p.x,o.y-p.y)>260){polens.splice(i,1);continue}
    ctx.globalAlpha=.35+.35*Math.sin(o.f*2);ctx.fillStyle='#fff8d0';ctx.fillRect(R(o.x),R(o.y)-8,1,1)}
   ctx.globalAlpha=1;
   // pássaros: um bando de vez em quando, voando alto, com as sombras no chão

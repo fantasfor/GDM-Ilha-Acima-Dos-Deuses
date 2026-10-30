@@ -336,3 +336,5 @@ body.emTutorial .tavBtn{display:none}
 #assistindo button{background:#262626;color:#D9D0C7;border:1px solid #595959;padding:4px 10px;font:12px monospace;cursor:pointer}
 #assistindo button:hover{background:#595959}
 #telaMorte button[hidden]{display:none}
+/* com a barra grande do chefe no topo (DG), o quadro do alvo fica logo abaixo dela */
+#mon.abaixoBarraChefe{top:calc(66px + env(safe-area-inset-top,0px))}

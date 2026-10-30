@@ -23,12 +23,18 @@
   if(melhor){const a=alvo();if(a&&typeof ring=='function')ring(a.x,a.y,10,'#7ad07a',.3);return true}
   return false;
  }
- // dados para o painel (js/ui.js): nome, nível, vida (0..1), texto da vida e a imagem
+ /* efeitos ativos de outro jogador (chegam na posição rápida como "id:acúmulos.id:acúmulos", js/online.js): um objeto com st
+    para os ícones do painel de alvo (js/effects.js); refeito só quando a lista muda. O tempo restante não vem pela rede. */
+ const cacheEfs=new Map();
+ function efeitosDe(a){let c=cacheEfs.get(a.uid);const s=a.efs||'';if(c&&c.s===s)return c.ent;
+  const st={};for(const par of s.split('.')){const [k,n]=par.split(':');if(k&&window.FX_INFO&&FX_INFO[k])st[k]={n:Math.max(1,+n||1),t:1,d:1,remoto:true}}
+  c={s,ent:{hp:1,st}};cacheEfs.set(a.uid,c);return c.ent}
+ // dados para o painel (js/ui.js): nome, nível, vida e mana (0..1), textos e a imagem
  function info(){
   const a=alvo();if(!a){sel=null;return null}
-  if(sel.tipo==='boneco')return{nome:a.name,nivel:a.lvl,vida:a.hp/a.max,vidaTxt:Math.ceil(a.hp)+' / '+a.max,img:null,ent:a};
-  const img=window.spriteDeJogador?spriteDeJogador(a.uid):null,hp=Number.isFinite(+a.hp)?Math.max(0,Math.min(1,+a.hp)):1;
-  return{nome:a.name||'Jogador',nivel:a.lvl||1,vida:hp,vidaTxt:Math.round(hp*100)+'%',img,ent:null};
+  if(sel.tipo==='boneco')return{nome:a.name,nivel:a.lvl,vida:a.hp/a.max,vidaTxt:Math.ceil(a.hp)+' / '+a.max,mana:null,img:null,ent:a};
+  const img=window.spriteDeJogador?spriteDeJogador(a.uid):null,hp=Number.isFinite(+a.hp)?Math.max(0,Math.min(1,+a.hp)):1,mp=Number.isFinite(+a.mp)?Math.max(0,Math.min(1,+a.mp)):null;
+  return{nome:a.name||'Jogador',nivel:a.lvl||1,vida:hp,vidaTxt:Math.round(hp*100)+'%',mana:mp,manaTxt:mp==null?'':Math.round(mp*100)+'%',img,ent:efeitosDe(a)};
  }
  /* menu do botão direito no painel */
  let menu=null;

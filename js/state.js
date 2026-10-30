@@ -100,7 +100,8 @@ function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;c
 function unequip(sl){if(!EQ[sl])return;if(armaTravada())return;I[livre(EQ[sl].id)]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
 /* consumível: o herói bebe por castTime s (padrão 0,5; barra e som de gole) e só então faz efeito; atordoado cancela sem gastar */
 function useSlot(i,preferredSlot){const s=I[i];if(!s||p.dead>0)return;if(gearType[s.id]){equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
- if(p.beber)return;const ct=+d.castTime||0;if(ct>0){p.beber={i,id:s.id,r:ct,total:ct};if(window.playGameSound)playGameSound('beber');return}
+ if(p.beber)return;if(p.canal||p.conj||p.dash){ft(p.x,p.y-24,'Ocupado: termine a habilidade','#ccc');return} // nada de beber girando ou conjurando (pedido do usuário)
+ const ct=+d.castTime||0;if(ct>0){p.beber={i,id:s.id,r:ct,total:ct};if(window.playGameSound)playGameSound('beber');return}
  usarConsumivel(i)}
 function usarConsumivel(i){const s=I[i];if(!s)return;const d=ITEMS[s.id];if(!d||!d.use)return;
  const h=d.heal||{},vh=Math.round((h.hp||0)+mhp()*(h.hpPct||0)/100),vm=Math.round((h.mp||0)+mmp()*(h.mpPct||0)/100);if(vh){p.hp=Math.min(mhp(),p.hp+vh);ft(p.x,p.y-12,'+'+vh,'#6f6')}if(vm){p.mp=Math.min(mmp(),p.mp+vm);ft(p.x,p.y-12,'+'+vm,'#6cf')}
@@ -173,7 +174,8 @@ function configureMonster(e,type,level){
 const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};
 const MB={sl:{max:40,dmg:5,spd:28,xp:10,g:3,aggro:60,wu:.35,ac:1.1,base:'sl'},gob:{max:130,dmg:15,spd:34,xp:55,g:24,aggro:90,wu:.45,ac:1.25,base:'goblin'}};
 function pickType(far){return far?'gob':'sl'}
-function spawn(e){let x,y,t=0;do{x=rnd(0,W);y=rnd(0,W);t++}while(t<500&&(!walk(x,y)||V(x/T|0,y/T|0)>25||insideCamp(x,y,8)));
+/* nasce numa clareira da floresta (js/world.js CLAREIRAS) */
+function spawn(e){let x,y,t=0;const cl=window.CLAREIRAS&&CLAREIRAS.length?CLAREIRAS:null;do{if(cl&&t<300){const c=cl[Math.floor(Math.random()*cl.length)],a=rnd(0,6.283),r=Math.sqrt(Math.random())*c.r*.7;x=c.x+Math.cos(a)*r;y=c.y+Math.sin(a)*r}else{x=rnd(0,W);y=rnd(0,W)}t++}while(t<500&&(!walk(x,y)||V(x/T|0,y/T|0)>25||insideCamp(x,y,8)));
  const far=Math.hypot(x-CX,y-CY)>240&&Math.random()<.55,type=pickType(far),B=MB[type];
  Object.assign(e,{img:SP[B.base].d,sp:SP[B.base],max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac});
  configureMonster(e,type,monsterLevel());
@@ -214,6 +216,6 @@ function toggleCampGate(){
 }
 const boss={boss:true,img:SP.glooc.d,sp:SP.glooc,max:420,dmg:20,spd:25,xp:180,g:80,aggro:110,wu:.6,ac:1.8};
 configureMonster(boss,'boss',monsterLevel());
-boss.x=boss.hx=CX+232;boss.y=boss.hy=CY-345;boss.roamRadius=14; /* colado no esconderijo do carpinteiro (combat.js ESCONDERIJO): ronda a tora */boss.hp=boss.max;boss.fx=0;boss.fy=1;boss.aw=0;boss.cd=0;boss.hit=0;boss.rt=0;en.push(boss);
-const ft=(x,y,t,c)=>fts.push({x,y,t,c,a:1});
+{const E=typeof ESCONDERIJO!=='undefined'?ESCONDERIJO:{x:CX+224,y:CY-150};boss.x=boss.hx=E.x-28;boss.y=boss.hy=E.y+14}boss.roamRadius=14; /* colado no esconderijo do carpinteiro (combat.js ESCONDERIJO): ronda a tora */boss.hp=boss.max;boss.fx=0;boss.fy=1;boss.aw=0;boss.cd=0;boss.hit=0;boss.rt=0;en.push(boss);
+const ft=(x,y,t,c)=>{for(let i=fts.length-1;i>=0&&i>=fts.length-8;i--){const o=fts[i];if(o.a>.8&&Math.abs(o.x-x)<34&&Math.abs(o.y-y)<9)y=o.y-10}fts.push({x,y,t,c,a:1})}; /* dois textos no mesmo ponto (nome da mecânica e o grito, por ex.) empilham em vez de sobrepor */
 const ring=(x,y,r,c,d=.4)=>fxs.push({x,y,r,c,t:0,d});

@@ -11,6 +11,10 @@
 window.CURANDEIRO=(()=>{
  const n=(v,d=0)=>Number.isFinite(+v)&&v!==''&&v!=null?+v:d;
  const zonas=[],agenda=[],ondas=[];let presenca=null;
+ /* aura ligada (Presença Curativa): os bônus dela ficam fixos no herói enquanto ela estiver ligada (sem contagem) e saem na
+    hora em que ela desliga (pedido do usuário, 2026-10-28). Os efeitos que ela pôs ficam marcados com aura:true. */
+ const tirarBonusDaAura=()=>{for(const [k,s] of Object.entries(p.st||{}))if(s&&s.aura)delete p.st[k]};
+ const desligarPresenca=msg=>{if(!presenca)return;presenca=null;tirarBonusDaAura();if(msg)ft(p.x,p.y-30,msg,'#ccc')};
  const amp=()=>1+Math.max(0,bonus('healAmp'));
  const aliados=(x,y,r,lista)=>{if(window.efeitoAliados)efeitoAliados(lista.map(f=>({...f,x,y,r})))};
  const aliadoSob=w=>{if(!window.MP||!MP.remotos)return null;let m=null,bd=16;for(const o of MP.remotos.values()){if(o.x==null)continue;const d=Math.hypot(o.x-w.x,o.y-8-w.y);if(d<bd){bd=d;m=o}}return m};
@@ -29,7 +33,7 @@ window.CURANDEIRO=(()=>{
      d:()=>'Ilumina a área em volta de você por '+dur+' s (ela acompanha você): a cada segundo quem está nela cura '+pct+'% da vida máxima e os inimigos da área levam '+dano+'% da sua vida máxima em dano mágico.',
      info:()=>({cura:+(pct*amp()).toFixed(1)+'% da vida máxima por segundo, por '+dur+' s',dano:Math.round(mhp()*dano/100*buffDano('magic'))+' mágico por segundo ('+dano+'% da sua vida máxima), por '+dur+' s',alcance:'em você (acompanha você)',area:r+' px'})}}
    case 'auraContinua':{const mana=n(s.manaPorSeg,2),dpct=n(s.danoPct,2),reg=n(s.regen,2);
-    return{f:()=>{if(presenca){presenca=null;ft(p.x,p.y-30,(s.name||'Presença')+' desligada','#ccc');return}presenca={id:s.id,r,mana,dpct,reg,prox:0,cor:col};ft(p.x,p.y-30,s.name||'Presença','#7fe8a0')},
+    return{f:()=>{if(presenca){desligarPresenca((s.name||'Presença')+' desligada');return}presenca={id:s.id,r,mana,dpct,reg,prox:0,cor:col};ft(p.x,p.y-30,s.name||'Presença','#7fe8a0')},
      d:()=>'Liga/desliga: você e os aliados a até '+r+' px ganham +'+dpct+'% de dano físico e mágico e '+reg+' de vida por segundo. Gasta '+mana+' de mana por segundo enquanto estiver ligada.',
      info:()=>({cura:reg+' de vida por segundo (você e aliados)',alcance:'em você',area:r+' px (você e aliados)',efeito:'+'+dpct+'% de dano físico e mágico · -'+mana+' de mana por segundo · aperte de novo para desligar'})}}
    case 'pulso':{const pct=n(s.curaPct,3),dano=n(s.danoVidaPct,20),k=Math.max(1,n(s.pulsos,3)),emp=n(s.empurra,14);
@@ -52,11 +56,11 @@ window.CURANDEIRO=(()=>{
     for(const e of en)if(e.hp>0&&Math.hypot(e.x-z.x,e.y-z.y)<=z.r)hurtE(e,{physical:0,magic:z.danoTick},true)}
    if(z.t<=0)zonas.splice(i,1)}
   if(presenca){
-   if(p.dead>0){presenca=null;return}
+   if(p.dead>0){desligarPresenca();return}
    presenca.prox-=dt;if(presenca.prox>0)return;presenca.prox=1;
-   if(p.mp<presenca.mana){presenca=null;ft(p.x,p.y-30,'Sem mana: Presença desligada','#ccc');return}
+   if(p.mp<presenca.mana){desligarPresenca('Sem mana: Presença desligada');return}
    p.mp-=presenca.mana;const raio=presenca.r*areaMultiplier(p),efs=[{type:'presenca',pw:presenca.dpct,dur:1.6},{type:'regen',pw:presenca.reg,dur:1.6}];
-   applyFx(p,efs.map(f=>({...f,chance:100,caster:p,silencioso:true})));aliados(p.x,p.y,raio,efs.map(f=>({tipo:f.type,pw:f.pw,dur:f.dur})));
+   applyFx(p,efs.map(f=>({...f,chance:100,caster:p,silencioso:true})));for(const f of efs)if(p.st&&p.st[f.type])p.st[f.type].aura=true;aliados(p.x,p.y,raio,efs.map(f=>({tipo:f.type,pw:f.pw,dur:f.dur})));
    if(window.marcarAura)marcarAura(p.x,p.y,raio,presenca.cor,1.6)}}
  /* áreas: círculo de linha contínua com brilho por dentro. Iluminação = no chão onde foi lançada (raios de luz subindo);
     Presença Curativa = acompanha o herói enquanto estiver ligada */
@@ -94,6 +98,6 @@ window.CURANDEIRO=(()=>{
   for(const z of zonas){const a=Math.max(0,Math.min(1,z.t*2,(z.dur-z.t)*4));area(z.x,z.y,z.r,z.cor||'#fff3a0',a,t);
    ctx.save();for(let k=0;k<12;k++){const q=(t*.6+k/12)%1,ang=k*2.4,rr=z.r*.85*Math.sqrt((k*.37)%1),x=Math.round(z.x+Math.cos(ang)*rr),y=Math.round(z.y+Math.sin(ang)*rr*.8);ctx.globalAlpha=a*(1-q)*.8;ctx.fillStyle='#fff6c8';ctx.fillRect(x,y-Math.round(q*18),1,3)}ctx.restore()}
   if(presenca&&p.dead<=0)area(p.x,p.y,presenca.r*areaMultiplier(p),presenca.cor||'#7fe8a0',.8,t)} /* habilidade que saiu da barra (troca de espaço/classe): a aura desliga e as áreas e pulsos dela param */
- function sincronizar(ids){if(presenca&&!ids.has(presenca.id))presenca=null;for(let i=zonas.length;i--;)if(!ids.has(zonas[i].id))zonas.splice(i,1);for(let i=agenda.length;i--;)if(agenda[i].id&&!ids.has(agenda[i].id))agenda.splice(i,1)}
- return{criar,tick,desenhar,sincronizar,ligada:()=>!!presenca}
+ function sincronizar(ids){if(presenca&&!ids.has(presenca.id))desligarPresenca();for(let i=zonas.length;i--;)if(!ids.has(zonas[i].id))zonas.splice(i,1);for(let i=agenda.length;i--;)if(agenda[i].id&&!ids.has(agenda[i].id))agenda.splice(i,1)}
+ return{criar,tick,desenhar,sincronizar,ligada:()=>!!presenca,desligar:desligarPresenca}
 })();

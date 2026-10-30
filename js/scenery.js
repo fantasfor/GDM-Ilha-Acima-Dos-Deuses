@@ -71,7 +71,10 @@ function rockBody(b,o){
  const r=mul(o.seed),hs=[2,3,4,5].map((f,k)=>({f,a:(r()-.5)*.34/(1+k*.5),p:r()*6.28})),rad=th=>1+hs.reduce((s,q)=>s+q.a*Math.cos(q.f*th+q.p),0),
   pts=[...Array(o.facets||7)].map(()=>({x:o.cx+(r()-.5)*o.rx*1.7,y:o.cy+(r()-.5)*o.ry*1.5,off:(r()-.5)*.36})),sd=o.seed;
  const d=(x,y)=>{const dx=(x+.5-o.cx)/o.rx,dy=(y+.5-o.cy)/(y<o.cy?o.ry:o.ry*.72);return Math.hypot(dx,dy)/rad(Math.atan2(dy,dx))};
- shape(b,(x,y)=>{const q=d(x,y);return q<1?o.ry*Math.sqrt(1-q*q)*1.05+noise(x,y,3,sd)*1.2:-1},o.ramp,{k:1,tex:(x,y,t)=>{
+ // o.g: linha do chão (pedra meio enterrada): abaixo dela a pedra some na terra, e perto dela fica mais escura (suja de terra)
+ const chao=x=>o.g+(noise(x,0,3,sd+5)-.5)*1.6;
+ shape(b,(x,y)=>{if(o.g!=null&&y+.5>chao(x))return-1;const q=d(x,y);return q<1?o.ry*Math.sqrt(1-q*q)*1.05+noise(x,y,3,sd)*1.2:-1},o.ramp,{k:1,tex:(x,y,t)=>{
+  if(o.g!=null&&y+.5>chao(x)-2.4)t-=.26;
   let a=1e9,c=1e9,ai=0;pts.forEach((p,i)=>{const e=Math.hypot(x-p.x,(y-p.y)*1.2);if(e<a){c=a;a=e;ai=i}else if(e<c)c=e});
   t+=pts[ai].off;if(c-a<1.1&&ih(ai,Math.round(c*3),sd)>.45)t-=.3;
   const s=ih(x,y,sd);if(s>.965)t+=.22;else if(s<.03)t-=.2;
@@ -81,6 +84,43 @@ function rockSprite(kind,vi){const D=(kind=='rock'?ROCKV:BOULDV)[vi],b=new B(D.w
  D.b.forEach((o,i)=>rockBody(b,{...o,seed:sd+i*31,ramp:R[D.ramp],moss:D.moss,facets:D.facets}));outline(b,R[D.ramp][0]);
  return{c:cvs(b),ax:D.w/2,ay:D.h-4}}
 
+/* ---- pé no chão (2026-10-29, pedido do usuário: a vegetação da ilha toda do mesmo bioma, as pedras meio enterradas) ----
+   capim: fiapos de capim nas cores dos tufos da mata (js/ilha-viva.js) nascendo no chão, na frente do pé do objeto e um
+   pouco para os lados, cobrindo a borda de baixo; terra: torrões de terra escura no contato com o chão. */
+const CAPIM=[[47,110,49],[60,132,58],[98,173,79]],TERRA=[[84,66,45],[100,79,54]];
+function capim(b,sd,dens=.45,terra=0){const r=mul(sd),base=[];
+ for(let x=0;x<b.w;x++){let y=-1;for(let yy=b.h-1;yy>=0;yy--)if(b.solid(x,yy)){y=yy;break}base.push(y)}
+ const em=x=>base[x]>=0?base[x]:base[x-1]>=0?base[x-1]:base[x+1]>=0?base[x+1]:base[x-2]>=0?base[x-2]:base[x+2]>=0?base[x+2]:-1;
+ for(let x=0;x<b.w;x++){const y=em(x);if(y<0)continue;const dentro=base[x]>=0;
+  if(terra&&dentro&&r()<terra)b.set(x,y+1,TERRA[r()<.6?0:1]);
+  if(r()<(dentro?dens:dens*.6)){const h=1+Math.floor(r()*(dentro?3:2.4));for(let j=0;j<h;j++)b.set(x,y+1-j,CAPIM[j==h-1?2:j==0?0:1])}}}
+
+/* ---- samambaias (mesmas folhas das árvores): folhas em arco saindo do centro, desenhadas pixel a pixel — o talo e, a cada
+   2 px, um folíolo de cada lado (o de cima pega luz, o de baixo fica na sombra); as folhas de trás (para cima) saem primeiro ---- */
+const FERNV=[{w:32,h:20,ramp:'leaf',n:7,L:13},{w:28,h:18,ramp:'carvalho',n:6,L:11},{w:34,h:22,ramp:'leaf2',n:8,L:14},{w:26,h:17,ramp:'carvalho',n:5,L:10}];
+function fernSprite(vi){const D=FERNV[vi],b=new B(D.w,D.h),sd=vi*37+3,r=mul(sd),cx=D.w/2,by=D.h-4,G=R[D.ramp];shadow(b,cx,by+.5,D.w*.36,2);
+ const fol=[];for(let k=0;k<D.n;k++){const a=(196+148*(k+.5)/D.n+(r()-.5)*12)*Math.PI/180;fol.push({a,L:D.L*(.82+r()*.28)})}
+ fol.sort((p,q)=>Math.abs(Math.cos(p.a))-Math.abs(Math.cos(q.a))); // as de pé primeiro, as deitadas para os lados por cima
+ for(const {a,L} of fol){const ca=Math.cos(a),sa=Math.sin(a),droop=.7*Math.abs(ca),P=t=>[cx+ca*L*t,by+sa*L*t+droop*L*t*t];
+  const n=Math.ceil(L*2.2);for(let i=0;i<=n;i++){const t=i/n,[x,y]=P(t),[x2,y2]=P(Math.min(1,t+.02)),tl=Math.hypot(x2-x,y2-y)||1,ux=(x2-x)/tl,uy=(y2-y)/tl;
+   b.set(Math.floor(x),Math.floor(y),G[t<.3?1:2]);
+   if(i%4==2&&t>.1&&t<.95){const ll=Math.round((1-t)*3.4+1);for(const s of [-1,1]){const px=-uy*s,py=ux*s,cima=py<0||Math.abs(py)<.2&&s>0,dx=px*.8+ux*.55,dy=py*.8+uy*.55;
+    for(let j=1;j<=ll;j++)b.set(Math.floor(x+dx*j),Math.floor(y+dy*j),cima?(j==ll?G[5]:G[4]):(j==ll?G[3]:G[2]))}}}}
+ outline(b,G[0]);capim(b,sd+1,.25);return{c:cvs(b),ax:cx,ay:by}}
+
+/* ---- pedras meio enterradas (granito quente com musgo, como as pedras da mata): a parte de baixo some no chão ---- */
+const PEDRAV=[
+ {w:22,h:15,ramp:'granite',b:[{cx:11,cy:9,rx:7.5,ry:5.5}],g:9.6},
+ {w:28,h:17,ramp:'granite',moss:1,b:[{cx:14,cy:10,rx:10,ry:6.5}],g:10.8},
+ {w:34,h:22,ramp:'granite',moss:1,b:[{cx:17,cy:14,rx:13,ry:9}],g:15},
+ {w:32,h:17,ramp:'granite',moss:1,b:[{cx:11,cy:10,rx:7,ry:5},{cx:21,cy:10,rx:8.5,ry:6}],g:10.7},
+ {w:18,h:12,ramp:'granite',b:[{cx:9,cy:7.5,rx:5.5,ry:4}],g:7.9},
+ {w:40,h:24,ramp:'granite',moss:1,b:[{cx:15,cy:15,rx:11,ry:8.5},{cx:27,cy:16,rx:10,ry:7}],g:16.6}];
+function pedraChaoSprite(vi){const D=PEDRAV[vi],b=new B(D.w,D.h),sd=(vi+1)*613+41;
+ shadow(b,D.w/2,D.g+1,D.w*.44,2.2);
+ D.b.forEach((o,i)=>rockBody(b,{...o,g:D.g,seed:sd+i*31,ramp:R[D.ramp],moss:D.moss}));outline(b,R[D.ramp][0]);
+ capim(b,sd+7,.55,.5);return{c:cvs(b),ax:D.w/2,ay:Math.round(D.g)+1}}
+
 /* ---- arbustos ---- */
 const BUSHV=[
  {w:40,h:28,ramp:'leaf',lobes:[[13,16,9],[26,15,10],[20,12,9],[20,18,8]]},
@@ -89,14 +129,14 @@ const BUSHV=[
  {w:38,h:26,ramp:'moss',flower:[[255,246,216],[255,214,74]],lobes:[[12,15,8],[26,15,9],[19,11,8]]},
  {w:36,h:26,ramp:'leaf',flower:[[245,138,192],[255,232,244]],lobes:[[10,15,8],[24,16,8],[17,11,8]]},
  {w:30,h:22,ramp:'leaf2',berry:[90,108,255],lobes:[[15,11,9]]}];
-function bushSprite(vi){const D=BUSHV[vi],b=new B(D.w,D.h),sd=vi*53+5,r=mul(sd);
+function bushSprite(vi,pe){const D=BUSHV[vi],b=new B(D.w,D.h),sd=vi*53+5,r=mul(sd);
  shadow(b,D.w/2,D.h-3,D.w*.42,2.4);
  const lz=(x,y)=>{let z=-1;for(const[cx,cy,rr]of D.lobes){const e=noise(x,y,2.6,sd)-.5,q=Math.hypot((x+.5-cx)/rr,(y+.5-cy)/(rr*.86))-e*.4;if(q<1)z=Math.max(z,rr*Math.sqrt(1-q*q))}return z};
  shape(b,(x,y)=>{const z=lz(x,y);return z<0?-1:z+noise(x,y,3.2,sd+2)*2.2},R[D.ramp],{k:1,tex:(x,y,t)=>{const s=ih(x,y,sd);return t+(noise(x,y,4,sd+9)-.5)*.34+(s>.95?.2:s<.04?-.18:0)}});
  const pts=[];for(let k=0;k<160&&pts.length<(D.berry?6:D.flower?7:0);k++){const x=Math.floor(4+r()*(D.w-8)),y=Math.floor(4+r()*(D.h-9));if(b.solid(x,y)&&b.solid(x+1,y+1)&&lz(x,y)>2&&!pts.some(p=>Math.abs(p[0]-x)<4&&Math.abs(p[1]-y)<4))pts.push([x,y])}
  pts.forEach(([x,y])=>{if(D.berry){const c=D.berry;b.set(x,y,c.map(v=>Math.min(255,v*1.5)));b.set(x+1,y,c);b.set(x,y+1,c);b.set(x+1,y+1,c.map(v=>v*.55))}
   else{const[pc,cc]=D.flower;[[1,0],[0,1],[2,1],[1,2]].forEach(([a,e])=>b.set(x+a-1,y+e-1,pc));b.set(x,y,cc)}});
- outline(b,R[D.ramp][0]);return{c:cvs(b),ax:D.w/2,ay:D.h-3.5}}
+ outline(b,R[D.ramp][0]);if(pe)capim(b,sd+3,.45,.25);return{c:cvs(b),ax:D.w/2,ay:D.h-3.5}}
 
 /* ---- troncos ---- */
 function logBody(b,o){const{x0,x1,cy,r,side}=o,sd=o.seed,ramp=R[o.ramp];
@@ -115,13 +155,13 @@ const LOGV=[
  {w:56,h:28,b:[{x0:5,x1:49,cy:16,r:6.5,side:1,ramp:'drift',moss:1}]},
  {w:50,h:28,b:[{x0:5,x1:43,cy:16,r:8,side:-1,ramp:'wood',hollow:1}]},
  {w:58,h:38,b:[{x0:6,x1:50,cy:18,r:6,side:1,ramp:'wood'},{x0:9,x1:52,cy:30,r:6.5,side:-1,ramp:'drift'}]}];
-function logSprite(vi){const D=LOGV[vi],b=new B(D.w,D.h);shadow(b,D.w/2,D.h-4,D.w*.42,2.6);D.b.forEach((o,i)=>logBody(b,{...o,seed:vi*17+i*5+3}));outline(b,R.wood[0]);return{c:cvs(b),ax:D.w/2,ay:D.h-5}}
+function logSprite(vi,pe){const D=LOGV[vi],b=new B(D.w,D.h);shadow(b,D.w/2,D.h-4,D.w*.42,2.6);D.b.forEach((o,i)=>logBody(b,{...o,seed:vi*17+i*5+3}));outline(b,R.wood[0]);if(pe)capim(b,vi*17+9,.5,.35);return{c:cvs(b),ax:D.w/2,ay:D.h-5}}
 
 /* ---- toco ---- */
 const STUMPV=[
  {w:36,h:34,rx:10,hh:13,ramp:'wood'},{w:36,h:34,rx:10,hh:12,ramp:'wood',moss:1},{w:30,h:42,rx:8,hh:20,ramp:'drift'},
  {w:36,h:34,rx:10,hh:12,ramp:'wood',mush:1},{w:42,h:30,rx:13,hh:9,ramp:'wood'}];
-function stumpSprite(vi){const D=STUMPV[vi],b=new B(D.w,D.h),sd=vi*29+11,ramp=R[D.ramp],cx=D.w/2,base=D.h-6,top=base-D.hh,ry=D.rx*.42;
+function stumpSprite(vi,pe){const D=STUMPV[vi],b=new B(D.w,D.h),sd=vi*29+11,ramp=R[D.ramp],cx=D.w/2,base=D.h-6,top=base-D.hh,ry=D.rx*.42;
  shadow(b,cx,base+1,D.rx*1.25,3);
  const rxAt=y=>D.rx*(1+.28*Math.max(0,(y-(base-7))/7)**2);
  shape(b,(x,y)=>{if(y<top)return-1;const rr=rxAt(y),dx=(x+.5-cx)/rr,edge=base+ry*Math.sqrt(Math.max(0,1-dx*dx));if(Math.abs(dx)>=1||y>edge)return-1;return rr*Math.sqrt(1-dx*dx)},ramp,{k:1,tex:(x,y,t)=>{
@@ -129,7 +169,7 @@ function stumpSprite(vi){const D=STUMPV[vi],b=new B(D.w,D.h),sd=vi*29+11,ramp=R[
  for(let y=Math.floor(top-ry);y<=top+ry;y++)for(let x=Math.floor(cx-D.rx);x<=cx+D.rx;x++){const e=Math.hypot((x+.5-cx)/D.rx,(y+.5-top)/ry);if(e>=1)continue;let c;
   if(e>.84)c=ramp[2];else{const k=Math.floor(e*6+noise(x,y,2.5,sd)*1.1);c=k%2?ramp[4]:ramp[3];if(e<.12)c=ramp[2]}b.set(x,y,c)}
  if(D.mush){[[cx-4,top-1,3],[cx+4,top+1,2]].forEach(([mx,my,s])=>{for(let j=0;j<s;j++)b.set(mx,my-j,R.stem[3]);for(let j=-s;j<=s;j++)for(let i=-s;i<=s;i++)if(i*i+j*j*1.6<=s*s+1&&j<=0)b.set(mx+i,my-s-1+j,j==0?R.capr[2]:R.capr[3]);b.set(mx-1,my-s-2,R.stem[5])})}
- outline(b,ramp[0]);return{c:cvs(b),ax:cx,ay:base+1}}
+ outline(b,ramp[0]);if(pe)capim(b,sd+3,.5,.35);return{c:cvs(b),ax:cx,ay:base+1}}
 
 /* ---- cristais ---- */
 const CRYV=[
@@ -200,7 +240,7 @@ function buildTree(v){const w=48,h=52,b=new B(w,h),sd=v*61+9,tx=24;shadow(b,tx,4
  let canopy,ramp=R.leaf,tr=R.wood,trW=3.4,trTop=34;
  if(v==0)canopy=(x,y)=>{let z=-1;[[24,17,13],[13,25,10],[35,25,10],[24,28,11]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.8,sd)-.5)*.3;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z};
  else if(v==1){ramp=R.leaf2;trW=4;canopy=(x,y)=>{let z=-1;[[24,20,17],[11,28,9],[37,28,9],[24,12,9]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.88))-(noise(x,y,2.6,sd)-.5)*.32;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
- else if(v==2){ramp=R.pine;trW=2.8;trTop=40;canopy=(x,y)=>{const t=[[4,17,10],[13,25,14],[22,34,18]];for(const[ay,by,hw]of t){if(y<ay||y>by+Math.sin(x*1.3)*.9)continue;const k=(y-ay)/(by-ay),w2=hw*(.15+.85*k),dx=(x+.5-tx);if(Math.abs(dx)<w2)return(1-Math.abs(dx)/w2)*w2*.8+3+(1-k)*3+noise(x,y,2.4,sd)*1.4}return-1}}
+ else if(v==2){ramp=R.pine;trW=2.8;trTop=30;/* o tronco entra embaixo da última camada de folhas (antes começava em 40 e ficava solto) */canopy=(x,y)=>{const t=[[4,17,10],[13,25,14],[22,34,18]];for(const[ay,by,hw]of t){if(y<ay||y>by+Math.sin(x*1.3)*.9)continue;const k=(y-ay)/(by-ay),w2=hw*(.15+.85*k),dx=(x+.5-tx);if(Math.abs(dx)<w2)return(1-Math.abs(dx)/w2)*w2*.8+3+(1-k)*3+noise(x,y,2.4,sd)*1.4}return-1}}
  else if(v==3){ramp=R.leaf2;tr=R.birch;trW=2.5;trTop=30;canopy=(x,y)=>{let z=-1;[[24,15,9],[16,22,8],[32,22,8],[24,24,7]].forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.4,sd)-.5)*.34;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
  // 4 cerejeira florida (copa rosa em tufos), 5 árvore de outono (laranja), 6 carvalho grande (copa larga e escura)
  else{const bolas=v==4?[[24,16,10],[14,22,8],[34,21,8],[20,27,7],[30,28,7]]:v==5?[[24,18,12],[14,25,9],[34,25,9],[24,10,8]]:[[24,19,15],[10,26,10],[38,26,10],[17,12,9],[31,12,9]];
@@ -208,7 +248,18 @@ function buildTree(v){const w=48,h=52,b=new B(w,h),sd=v*61+9,tx=24;shadow(b,tx,4
   canopy=(x,y)=>{let z=-1;bolas.forEach(([cx,cy,r])=>{const q=Math.hypot((x+.5-cx)/r,(y+.5-cy)/(r*.9))-(noise(x,y,2.6,sd)-.5)*.34;if(q<1)z=Math.max(z,r*Math.sqrt(1-q*q))});return z}}
  shape(b,(x,y)=>{let z=cap(x,y,tx,46,tx,trTop,trW);const f=Math.max(0,(y-43)/4);if(y>=42&&y<=47){const q=Math.abs(x+.5-tx)/(trW+3.2*f);if(q<1)z=Math.max(z,trW*Math.sqrt(1-q*q))}return z},tr,{k:1,tex:(x,y,t)=>{t+=(noise(x*1.4,y*.3,1,sd)-.5)*.5;if(canopy(x,y-3)>=0||canopy(x,y-5)>=0)t-=.32;if(v==3&&ih(x,y,sd)>.9&&(y%5<2))return{t:.0,ramp:R.birch};return t}});
  shape(b,(x,y)=>{const z=canopy(x,y);return z<0?-1:z+noise(x,y,3.4,sd+4)*2.2},ramp,{k:1,tex:(x,y,t)=>{const s=ih(x,y,sd);return t+(noise(x,y,4,sd+9)-.5)*.36+(s>.95?.2:s<.04?-.18:0)}});
- outline(b,ramp[0]);const c=cvs(b);c.pad=0;return c}
+ outline(b,ramp[0]);capimArvore(b,tx,sd);const c=cvs(b);c.pad=0;return c}
+/* pé da árvore preso no chão (2026-10-29, pedido do usuário): moita de capim crescido em volta da base do tronco, mais alta
+   colada no tronco (cobre a base e as raízes, alguns fios pendem para a direita com o vento) e baixa ao lado, sobre a sombra;
+   torrões de terra escura no encontro com o chão. Só na base: a borda de baixo da copa não ganha capim. */
+function capimArvore(b,tx,sd){const r=mul(sd*7+3),base={};
+ // a base de cada coluna é medida antes de desenhar: um fio que pende para a coluna vizinha não pode virar "tronco" dela
+ for(let x=tx-11;x<=tx+11;x++){base[x]=-1;for(let yy=Math.min(b.h-1,47);yy>=39;yy--)if(b.solid(x,yy)){base[x]=yy;break}}
+ for(let x=tx-11;x<=tx+11;x++){const d=Math.abs(x+.5-tx),noTronco=base[x]>=0,y=noTronco?base[x]:46;if(d>11)continue;
+  if(noTronco&&r()<.45)b.set(x,y+1,TERRA[r()<.6?0:1]);
+  if(r()>(noTronco?.95:.92-d*.07))continue;
+  const h=noTronco?3+Math.floor(r()*4):2+Math.floor(r()*3)-(d>7?1:0),pende=h>=3&&r()<.55;
+  for(let j=0;j<h;j++)b.set(x+(pende&&j==h-1?1:0),y+1-j,CAPIM[j==h-1?2:j==0?0:1])}}
 for(let i=0;i<7;i++)TREEV.push(buildTree(i));
 /* arte do mapa editada pelo GM: PROJ.mapArt[tipo][variante] = pixel art (null = desenho padrão) */
 const artOv=(t,vi)=>{const o=PROJ.mapArt&&PROJ.mapArt[t],d=o&&o[vi];return d&&d.pixels?d:null};
@@ -239,7 +290,9 @@ function fenceSprite(kind,vi,links){const wall=kind=='stonewall',k=1,ph=wall?24:
  outline(b,ramp[0]);return{c:cvs(b),ax:ox,ay:oy+1}}
 
 /* ---- seleção de variante / cache ---- */
-const FAM={rock:[6,rockSprite,'rock'],boulder:[6,rockSprite,'boulder'],bush:[6,bushSprite],log:[5,logSprite],stump:[5,stumpSprite],crystal:[6,crystalSprite],mushroom:[5,mushSprite],cactus:[5,cactusSprite],sign:[4,signSprite]};
+const FAM={rock:[6,rockSprite,'rock'],boulder:[6,rockSprite,'boulder'],bush:[6,bushSprite],log:[5,logSprite],stump:[5,stumpSprite],crystal:[6,crystalSprite],mushroom:[5,mushSprite],cactus:[5,cactusSprite],sign:[4,signSprite],
+ // mata da ilha (2026-10-29): mesmas folhas, madeira e pedra das árvores, com o pé no chão (capim e terra)
+ mata_arbusto:[6,vi=>bushSprite(vi,1)],mata_samambaia:[4,fernSprite],mata_pedra:[6,pedraChaoSprite],mata_toco:[5,vi=>stumpSprite(vi,1)],mata_tronco:[5,vi=>logSprite(vi,1)],mata_cogumelos:[4,vi=>mushSprite([0,1,2,4][vi])]}; // sem o azul que brilha (é de caverna, não da mata de dia)
 const cache={};
 const vari=(e,n)=>Math.floor(ih(Math.round(e.x),Math.round(e.y),31)*n)%n;
 window.sceneryFor=function(e){

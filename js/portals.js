@@ -77,8 +77,9 @@ function openPortal(){
  const positions=[];
  for(let y=8;y<W-8;y+=16)for(let x=8;x<W-8;x+=16){
   const a=areaOf(x,y),available=availableByArea[a];
-  const borda=V(x/T|0,y/T|0); // portais só na faixa perto da borda da ilha (28,6 = beira do vazio)
-  if(available>0&&walk(x,y)&&longeDeArvores(x,y)&&borda<=25&&borda>=PORTAL_BORDA&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
+  // portais só nas clareiras da floresta (js/world.js CLAREIRAS, 2026-10-29); sem clareiras, na faixa perto da borda da ilha
+  const borda=V(x/T|0,y/T|0),lugar=window.CLAREIRAS&&CLAREIRAS.length?naClareira(x,y,.7):borda<=25&&borda>=PORTAL_BORDA;
+  if(available>0&&lugar&&walk(x,y)&&longeDeArvores(x,y)&&!insideCamp(x,y,20)&&dist(p,{x,y})>=120&&!portals.some(q=>Math.hypot(q.x-x,q.y-y)<96))positions.push({x,y,a,available})
  }
  const candidates=portalOptions.filter(def=>positions.some(pos=>pos.available>=minPack(def)));
  if(!candidates.length)return;

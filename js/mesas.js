@@ -175,7 +175,9 @@
  function cartaTruco(c,{costas,onClick,dest}={}){const d=E(onClick?'button':'div','carta truco'+(costas?' costas':'')+(dest?' destaque':''));if(onClick){d.type='button';d.onclick=onClick}
   if(!costas){const n=c.slice(-1),r=c.slice(0,-1);d.append(E('b','',r),E('span','',J().truco.NOME_NAIPE[n]));if(n==='o'||n==='c')d.classList.add('verm')}return d}
  function cartaUno(c,{costas,onClick,apagada,sel}={}){const d=E(onClick?'button':'div','carta uno'+(costas?' costas':'')+(apagada?' apagada':'')+(sel?' sel':''));if(onClick){d.type='button';d.onclick=onClick}
-  if(!costas){const cor=c[0]==='W'?null:c[0],s=c[0]==='W'?(c==='W4'?'+4':'★'):c.slice(1);d.style.background=cor?CORUNO[cor]:'#262626';d.append(E('b','',s==='S'?'⊘':s==='R'?'⇄':s==='+'?'+2':s))}return d}
+  // coringa (W) e +4 (W4): carta preta com 4 cartinhas das 4 cores (2026-10-28, pedido do usuário); o +4 com o número em cima
+  if(!costas&&c[0]==='W'){d.classList.add('coringa');d.style.background='#0d0d0d';const q=E('span','unoQuatro');for(const k of ['r','b','y','g']){const m=E('i');m.style.background=CORUNO[k];q.append(m)}d.append(q);if(c==='W4')d.append(E('b','unoMais4','+4'));return d}
+  if(!costas){const cor=c[0],s=c.slice(1);d.style.background=CORUNO[cor];d.append(E('b','',s==='S'?'⊘':s==='R'?'⇄':s==='+'?'+2':s))}return d}
  function pedraDom(s,{costas,onClick,deitada}={}){const d=E(onClick?'button':'div','pedra'+(costas?' costas':'')+(deitada?' deitada':''));if(onClick){d.type='button';d.onclick=onClick}
   if(!costas){const [a,b]=typeof s==='string'?s.split('-').map(Number):s;for(const v of [a,b]){const h=E('span','meia');h.dataset.v=v;for(let k=0;k<v;k++)h.append(E('i'));d.append(h)}}return d}
  function desenharPainel(){
@@ -257,7 +259,7 @@
    else for(const a of acs){if(a.t==='comprar')bt.append(B('Comprar',()=>agir(painel.mesa,a)));if(a.t==='passar')bt.append(B('Passar',()=>agir(painel.mesa,a)))}
    // botão UNO: declara o seu (antes ou logo depois de ficar com 1 carta) ou denuncia quem ficou com 1 sem declarar
    const unoA=acs.find(a=>a.t==='uno')||acs.find(a=>a.t==='denunciar');
-   if(unoA){const b=B('UNO!',()=>agir(painel.mesa,unoA),'mesaBtn uno');b.title=unoA.t==='uno'?'Declarar UNO (ficar com 1 carta)':'Denunciar: '+nomeDe(j,j.jog[st.exposto])+' não disse UNO (compra '+U.PENA_UNO+')';bt.append(b)}
+   if(unoA){const b=B('UNO!',()=>{if(window.playGameSound)playGameSound('uno');agir(painel.mesa,unoA)},'mesaBtn uno');b.title=unoA.t==='uno'?'Declarar UNO (ficar com 1 carta)':'Denunciar: '+nomeDe(j,j.jog[st.exposto])+' não disse UNO (compra '+U.PENA_UNO+')';bt.append(b)}
    if(!st.fim&&vez(st,eu_i)&&!junto)bt.append(E('small','mesaDica','Sua vez.'));box.append(bt)}
  }
  function mesaDomino(box,j,st,eu_i){
