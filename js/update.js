@@ -62,11 +62,23 @@ function moveAlong(agent,speed,dt){
 }
 /* desencalhar (2026-10-29): quem ficar num ponto onde não dá para andar (dentro de uma decoração sólida ou da parede, depois
    de um empurrão, pulo ou queda) vai para o ponto livre mais perto; monstros dentro da parede não podiam ser alvejados */
+/* medo (grito do Chefe Glooc): sem ataque básico e sem habilidades enquanto durar (pedido do usuário) */
+function comMedo(u){if(!u.st)return false;for(const k in u.st)if(u.st[k].t>0&&fxKind(k)==='medo')return true;return false}
+window.comMedo=comMedo;
 function desencalhar(u){
  if(walk(u.x,u.y))return false;
  for(let r=3;r<=36;r+=3)for(let k=0;k<16;k++){const a=k/16*Math.PI*2,x=u.x+Math.cos(a)*r,y=u.y+Math.sin(a)*r;if(walk(x,y)){u.x=x;u.y=y;u.dest=null;u.path=[];return true}}
  return false}
 window.desencalhar=desencalhar;
+/* duas entidades nunca ocupam o mesmo espaço (pedido do usuário, vale para tudo): quem ficar sobreposto (pouso do pulo, investida,
+   empurrão, nascimento) é afastado aos poucos para o lado livre; o herói só sai se o monstro não tiver para onde ir */
+function separarCorpos(dt){
+ const vivos=en.filter(e=>e.hp>0&&!e.mpProxy&&!e.dash&&!(e.saltoZ>0)),lista=p.dead<=0&&!p.dash?[p,...vivos]:vivos,passo=Math.max(.5,90*dt);
+ const empurra=(u,ux,uy,k)=>{const x=u.x+ux*k,y=u.y+uy*k;if(walk(x,y)&&(u===p||!insideCamp(x,y))){u.x=x;u.y=y;return true}return false};
+ for(let i=0;i<lista.length;i++)for(let j=i+1;j<lista.length;j++){const a=lista[i],b=lista[j],R=raioCorpo(a)+raioCorpo(b)-1,dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dx)>=R||Math.abs(dy)>=R)continue;
+  const d=Math.hypot(dx,dy);if(d>=R)continue;const ux=d>.01?dx/d:Math.cos(j*2.4),uy=d>.01?dy/d:Math.sin(j*2.4),k=Math.min(passo,R-d);
+  if(a===p){if(!empurra(b,ux,uy,k))empurra(p,-ux,-uy,k)}else{empurra(b,ux,uy,k/2);empurra(a,-ux,-uy,k/2)}}
+}
 let desencalharT=0;
 function movePlayer(sp,dt){
  if(!p.dest)return;
@@ -105,7 +117,7 @@ window.escalarDG=function(e){
  const b=e.dgBase,{vida,dano}=escalaGrupoDG(n),parte=e.max>0?e.hp/e.max:1;e.max=Math.round(b.max*vida);e.hp=Math.round(e.max*parte);if(e.delayedHp!=null)e.delayedHp=e.hp;
  e.dmg=Math.round(b.dmg*dano);e.weaponDamageMultiplier=b.wm*dano;if(b.wb!=null)e.weaponDamageBase=Math.round(b.wb*dano);
  e.dgK=n};
-function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);desencalharT-=dt;if(desencalharT<=0){desencalharT=.3;for(const e of en)if(e.hp>0&&!e.dash&&!(e.mec&&e.mec.salto))desencalhar(e)}if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||(window.inTaverna&&window.BAR&&BAR.hover&&BAR.hover(wpos()))||(window.BAU_ILHA&&BAU_ILHA.sob(wpos()))||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
+function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);desencalharT-=dt;if(desencalharT<=0){desencalharT=.3;for(const e of en)if(e.hp>0&&!e.dash&&!(e.mec&&e.mec.salto))desencalhar(e)}separarCorpos(dt);if(p.tgt&&!canSee(p.tgt.x,p.tgt.y)){p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null}hov=p.dead>0?null:pick(wpos());hovN=p.dead>0?null:pickN(wpos());const dgHov=window.inDungeon&&window.pickDungeonHover?window.pickDungeonHover(wpos()):null;cv.style.cursor=hov||hovN||dgHov||(window.inTaverna&&window.BAR&&BAR.hover&&BAR.hover(wpos()))||(window.BAU_ILHA&&BAU_ILHA.sob(wpos()))||pickCampGate(wpos())||pickCampPortal(wpos())?'pointer':'crosshair';NPCS.forEach(n=>{if(p.dead<=0&&dist(n,p)<90){n.fx=p.x-n.x;n.fy=p.y-n.y}else{n.fx=0;n.fy=1}});
  fxs.forEach(f=>f.t+=dt);for(let i=fxs.length;i--;)if(fxs[i].t>fxs[i].d)fxs.splice(i,1);
  fts.forEach(f=>{f.y-=14*dt;f.a-=dt*.9});for(let i=fts.length;i--;)if(fts[i].a<=0)fts.splice(i,1);
  p.hit-=dt;
@@ -116,13 +128,14 @@ function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);d
  else{
   tickAttributeBuffs(p,dt);SK.forEach(s=>s.t=Math.max(0,s.t-dt));p.acd-=dt;tickStatus(p,dt);if(window.tickDash)tickDash(dt);if(window.tickCanal)tickCanal(dt);if(window.CURANDEIRO)CURANDEIRO.tick(dt);
   // bebendo uma poção: atordoar cancela; no fim faz efeito (state.js usarConsumivel)
-  if(p.beber){const b=p.beber;if(statusSpeed(p)==0&&(p.st&&Object.keys(p.st).some(k=>fxKind(k)=='stun'))){p.beber=null;ft(p.x,p.y-24,'Interrompido','#ccc')}else if((b.r-=dt)<=0){p.beber=null;if(I[b.i]&&I[b.i].id===b.id)usarConsumivel(b.i)}}const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
+  if(p.beber){const b=p.beber;if(statusSpeed(p)==0&&(p.st&&Object.keys(p.st).some(k=>fxKind(k)=='stun'))){p.beber=null;ft(p.x,p.y-24,'Interrompido','#ccc')}else if((b.r-=dt)<=0){p.beber=null;const s=pilhaDe(b.i);if(s&&s.id===b.id)usarConsumivel(b.i)}}const pst=statusSpeed(p);if(pst==0){p.dest=null;p.aw=0;p.wt=null;p.attackBasic=null;p.acd=Math.max(p.acd,.15)}
   // conjuração em andamento (combat.js cast/lancar): só ser atordoado interrompe (dá para andar); no fim a habilidade sai
   if(p.conj){const c=p.conj;
    if(pst==0){p.conj=null;ft(p.x,p.y-24,'Conjuração interrompida','#ccc')} // só atordoar/congelar interrompe; andar não cancela
    else if((c.r-=dt)<=0){p.conj=null;if(c.t&&c.t.hp<=0)ft(p.x,p.y-24,'Sem alvo','#ccc');else if(p.mp<c.s.mana)ft(p.x,p.y-24,'Sem mana','#ccc');else{lancar(c.s,c.w,c.t);if(c.volta&&c.volta.hp>0&&!p.canal)p.tgt=c.volta /* volta a atacar o alvo de antes */}}}
+  if(p.aw>0&&comMedo(p)){p.aw=0;p.wt=null;p.attackBasic=null} /* com medo: o golpe que começava é perdido */
   if(p.aw>0){p.aw-=dt;p.dest=null;if(p.aw<=0){const t=p.wt,b=p.attackBasic||basicForDistance(t?dist(p,t):Infinity),landed=!!(t&&t.hp>0&&dist(p,t)-targetReach(t)<b.rng+8&&linhaLivre(p,t));if(landed){const {damage,bfx}=withWeaponDamageRoll(()=>({damage:basicAttackDamage(b),bfx:resolveFx(b.effects,charDamage(b.damageType))}));if(b.proj){const a=Math.atan2(t.y-8-p.y,t.x-p.x);proj.push({x:p.x,y:p.y-8,vx:Math.cos(a)*190,vy:Math.sin(a)*190,t:1.6,d:damage,magic:b.damageType=='magic',c:b.proj,tg:t,fx:bfx,seta:b.damageType!='magic'&&typeof armaDeTiro=='function'&&armaDeTiro(b.weaponSlot)})}else{hurtE(t,damage,b.damageType=='magic',bfx);ring(t.x,t.y-8,10,'#fff',.15)}if(p.basicMode=='alternate'&&b.weaponSlot)p.basicNext=b.weaponSlot=='sw'?'sh':'sw'}p.wt=null;p.attackBasic=null}}
-  else if(p.tgt){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d),livre=linhaLivre(p,p.tgt);if(d>b.rng||!livre)approach(p,p.tgt,livre?Math.max(8,b.rng-3)+reach:6+reach);/* parede no meio: contorna até ver o alvo */else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}else if(window.playGameSound)playGameSound(b.proj?(b.damageType=='magic'?'feitico':'arco'):'swing',.8)}}}
+  else if(p.tgt&&!comMedo(p)){const reach=targetReach(p.tgt),d=dist(p,p.tgt)-reach,b=basicForDistance(d),livre=linhaLivre(p,p.tgt);if(d>b.rng||!livre)approach(p,p.tgt,livre?Math.max(8,b.rng-3)+reach:6+reach);/* parede no meio: contorna até ver o alvo */else{p.dest=null;p.path=[];p.pathKey='';p.fx=p.tgt.x-p.x;p.fy=p.tgt.y-p.y;if(p.acd<=0){p.aw=.25;p.wt=p.tgt;p.attackBasic=b;p.acd=attackInterval();if(window.somDoJogador)somDoJogador('a.'+Math.round(p.tgt.x)+'.'+Math.round(p.tgt.y));if(window.playEntitySound&&b.som){playEntitySound(...b.som);if(window.somDoJogador)somDoJogador('b.'+b.som.join('.'))}else if(window.playGameSound)playGameSound(b.proj?(b.damageType=='magic'?'feitico':'arco'):'swing',.8)}}}
   if(p.npcT){const n=p.npcT;if(dist(p,n)<28){p.npcT=null;p.dest=null;p.path=[];p.pathKey='';p.fx=n.x-p.x;p.fy=n.y-p.y;if(window.MP&&MP.soDono&&MP.soDono()){}else if(n.carpenter){if(!questDone)ft(n.x,n.y-26,'Derrote o Glooc Saqueador primeiro!','#ffd84a');else showCarpenterDialogue()}else if(n.blacksmith){showBlacksmithDialogue()}}else approach(p,n,22)}
   if(p.gateT&&dist(p,campGate)<40){p.gateT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))toggleCampGate()}
   if(p.portalT&&dist(p,campPortal)<45){p.portalT=false;p.dest=null;p.path=[];p.pathKey='';if(!(window.MP&&MP.soDono&&MP.soDono()))showDungeonMenu()}
@@ -130,8 +143,9 @@ function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);d
      andar não valem; acaba na hora se o chefe morrer (antes, clicar no baú do chefe fazia o herói andar ao contrário) */
   let medo=!!p.st&&Object.keys(p.st).some(k=>fxKind(k)==='medo'&&p.st[k].t>0);
   if(medo&&p.medoFonte&&!(p.medoFonte.hp>0)){for(const k of Object.keys(p.st))if(fxKind(k)==='medo')delete p.st[k];p.medoFonte=null;medo=false}
+  if(medo&&(p.conj||p.canal)){p.conj=null;p.canal=null;ft(p.x,p.y-24,'Interrompido pelo medo','#c084fc')} /* o medo corta a habilidade em andamento */
   if(medo&&pst>0){const F=p.medoFonte||p,dx=p.x-F.x,dy=p.y-F.y,d=Math.hypot(dx,dy)||1,ux=d>1?dx/d:-(p.fx||0),uy=d>1?dy/d:-(p.fy||1);
-   p.dest=null;p.path=[];p.pathKey='';p.npcT=null;move(p,{x:p.x+ux*40,y:p.y+uy*40},CALC.move*pst*.9,dt);if(!p.tgt){p.fx=ux;p.fy=uy}} // com medo ainda dá para atacar quem estiver no alcance (o alvo não é apagado)
+   p.dest=null;p.path=[];p.pathKey='';p.npcT=null;move(p,{x:p.x+ux*40,y:p.y+uy*40},CALC.move*pst*.9,dt);p.fx=ux;p.fy=uy} // com medo não ataca nem usa habilidade (comMedo); o alvo fica guardado para depois
   const inv=1;
   const kx=medo?0:inv*((held.has('mover_direita')?1:0)-(held.has('mover_esquerda')?1:0)+p.joy.x);
   const ky=medo?0:inv*((held.has('mover_baixo')?1:0)-(held.has('mover_cima')?1:0)+p.joy.y),kl=Math.hypot(kx,ky);

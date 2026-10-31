@@ -15,14 +15,17 @@
  port._tip=()=>'<b>'+CL[p.cls].n+' · Nível '+p.lvl+'</b>'+$('st').innerHTML.replace(/<div class="gl">.*$/,'')+'<div class=tm>Atributos completos: Mochila › Atributos</div>';
  // botões laterais com atalho
  [['codexBtn','J'],['bag','I'],['skillBtn','K']].forEach(([id,k])=>{const b=$(id);if(b)b.dataset.key=k});
- // itens rápidos: os 6 primeiros espaços da bolsa (teclas 1–6)
+ // acesso rápido (teclas 1–6): espaços próprios, fora da mochila (js/state.js RAPIDO)
  const quick=E('div');quick.id='quick';
  const qhead=E('div','qhead','<span>Itens</span><b id="qgold"></b>');
  const qgrid=E('div','qgrid');quick.append(qhead,qgrid);
  const qslots=[...Array(6)].map((_,i)=>{const s=E('button','qslot');s.type='button';s.dataset.i=i;s.innerHTML='<img alt=""><b></b><kbd>'+(i+1)+'</kbd>';
-  s.onclick=e=>{e.stopPropagation();useSlot(i)};
-  s._tip=()=>I[i]?itemTip(I[i].id,I[i].q)+'<div class=tm>Tecla '+(i+1)+' · arraste itens da mochila para cá</div>':'<b>Atalho '+(i+1)+'</b><div class=tm>Vazio. Arraste uma poção ou outro consumível da mochila para cá. Só consumíveis ficam nos atalhos.</div>';
-  dragSource(s,()=>i);dropTarget(s,from=>swapSlots(from,i),i);qgrid.append(s);return s});
+  s.onclick=e=>{e.stopPropagation();useSlot('q'+i)};
+  s.oncontextmenu=e=>{e.preventDefault();e.stopPropagation();if(RAPIDO[i]){tirarRapido(i);dispatchEvent(new Event('mochila-mudou'))}};
+  s._tip=()=>RAPIDO[i]?itemTip(RAPIDO[i].id,RAPIDO[i].q)+'<div class=tm>Tecla '+(i+1)+' · botão direito: devolver à mochila · arraste para trocar de lugar</div>':'<b>Acesso rápido '+(i+1)+'</b><div class=tm>Vazio. Arraste uma poção ou outro consumível da mochila para cá, ou clique nele com o botão direito e escolha "Pôr no acesso rápido".</div>';
+  dragSource(s,()=>'q'+i);
+  dropTarget(s,from=>{if(typeof from=='number')paraRapido(from,i);else if(/^q\d$/.test(from))trocarRapido(+from[1],i)});
+  qgrid.append(s);return s});
  dock.append(quick);
  // alerta de vida baixa
  const vignette=E('div');vignette.id='lowhp';document.body.append(vignette);
@@ -36,12 +39,11 @@
  const doBau=()=>window.BAU_ILHA&&BAU_ILHA.arrastandoDoBau!=null;
  function dropTarget(el,fn,bolsa){el.addEventListener('dragover',e=>{if(dragFrom==null&&!(bolsa!=null&&doBau()))return;e.preventDefault();el.classList.add('dropOver')});el.addEventListener('dragleave',()=>el.classList.remove('dropOver'));el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dropOver');const f=dragFrom;dragFrom=null;if(f!=null){fn(f);dispatchEvent(new Event('mochila-mudou'))}else if(bolsa!=null&&doBau())BAU_ILHA.soltarNaMochila(bolsa)})}
  window.HUD_ARRASTO=()=>dragFrom; // o Baú da ilha aceita itens arrastados da Mochila
- // atalhos 1–6 (espaços 0–5 da bolsa) só aceitam consumíveis
- const podeEm=(k,s)=>k>=QUICK_N||!s||ehConsumivel(s.id);
+ // soltar num espaço b da mochila: vindo do acesso rápido (q0…q5), de um equipamento (sw, he…) ou de outro espaço
  function swapSlots(a,b){
-  if(typeof a=='string'){if(b<QUICK_N){unequip(a);return}if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
+  if(typeof a=='string'&&/^q\d$/.test(a)){tirarRapido(+a[1],b);return}
+  if(typeof a=='string'){if(I[b]&&!fits(a,I[b].id)){unequip(a);return}if(I[b])useSlot(b,a);else{if(armaTravada())return;const old=EQ[a];EQ[a]=null;I[b]=old;dirtyInv=true;setPortrait();saveGame()}return}
   if(a===b)return;
-  if(!podeEm(b,I[a])||!podeEm(a,I[b])){ft(p.x,p.y-24,'Atalhos 1–6: só itens consumíveis','#ccc');return}
   [I[a],I[b]]=[I[b],I[a]];dirtyInv=true;saveGame();
  }
 
@@ -57,15 +59,13 @@
  sortBtn.onclick=e=>{e.stopPropagation();sortBag()};foot.append(cap,hint,sortBtn);invp.append(foot);
  const SLOT_ORDER=['sw','sh','he','ch','le','bo','ca','ne','ri'];
  const catOf=s=>{const t=gearType[s.id],d=ITEMS[s.id];return d.use?0:d.material?1:t?2+SLOT_ORDER.indexOf(t==='sh'?'sh':t):20};
- function sortBag(){const items=I.filter(Boolean).sort((a,b)=>catOf(a)-catOf(b)||(b.q||0)-(a.q||0)||a.id.localeCompare(b.id));I.fill(null);
-  // consumíveis primeiro (enchem os atalhos); o resto começa depois dos atalhos
-  const nc=items.filter(s=>ehConsumivel(s.id)).length,base=Math.max(QUICK_N,nc);I.length=Math.max(I.length,base+items.length-nc);I.fill(null);
-  items.forEach((s,i)=>I[i<nc?i:base+i-nc]=s);dirtyInv=true;saveGame();ft(p.x,p.y-24,'Mochila organizada','#e7cb88')}
+ function sortBag(){const items=I.filter(Boolean).sort((a,b)=>catOf(a)-catOf(b)||(b.q||0)-(a.q||0)||a.id.localeCompare(b.id));
+  I.length=Math.max(I.length,items.length);I.fill(null);items.forEach((s,i)=>I[i]=s);dirtyInv=true;saveGame();ft(p.x,p.y-24,'Mochila organizada','#e7cb88')}
  // ícone de escudo para o espaço Mão 2 vazio
  const SHIELD=spr(["..kkkkkkkk..",".kssssssssk.",".kswwsssssk.",".kswssssssk.",".kssssssssk.",".kssssssssk.","..kssssssk..","...kssssk...","....kssk....",".....kk....."],{k:'#243243',s:'#8796a8',w:'#dbe8f2'});
  const EMPTY_ICON={he:'he',ch:'ch',le:'le',bo:'bo',ca:'ca',ne:'ne',r1:'ri',r2:'ri',sw:'sw'};
  const emptyIcon=id=>(id=='sh'?SHIELD:INV_CATEGORY_ICONS[EMPTY_ICON[id]]).toDataURL();
- const catMatch=(s,cat)=>{const t=gearType[s.id],d=ITEMS[s.id];if(cat=='all')return true;if(cat=='consumables')return !!d.use;if(cat=='materials')return !!d.material;if(cat=='sw')return t=='sw'||t=='sh';return t==cat};
+ const catMatch=itemNaCategoria; // js/ui.js (o baú usa o mesmo filtro)
  /* menu do botão direito */
  const menu=E('div');menu.id='invMenu';document.body.append(menu);
  const closeMenu=()=>{menu.classList.remove('open');menu.replaceChildren()};
@@ -79,7 +79,12 @@
    if(t=='sw'&&!d.th)add('Equipar na Mão 2',()=>{useSlot(i,'sh');closeMenu()});
    if(t=='ri')add('Equipar no Anel 2',()=>{useSlot(i,'r2');closeMenu()})}
   else if(d.use)add('Usar',()=>{useSlot(i);closeMenu()});
-  if(i>=QUICK_N&&d.use){const free=[0,1,2,3,4,5];add('Mover para os atalhos (1–6)',()=>{const j=free.find(k=>!I[k]);swapSlots(i,j==null?0:j);closeMenu()})}
+  // pôr no acesso rápido: um botão para cada espaço (1–6), mostrando o que já está nele
+  if(d.use){menu.append(E('div','imNote','Pôr no acesso rápido:'));const fila=E('div','imRapido');
+   for(let k=0;k<QUICK_N;k++){const r=RAPIDO[k],b=E('button',r?'ocupado':'',(r&&r.id!==s.id?'<img src="'+ITEMS[r.id].ic+'" alt="">':'')+'<kbd>'+(k+1)+'</kbd>');b.type='button';
+    b.title=r?(r.id===s.id?'Somar à pilha do espaço '+(k+1):'Trocar com '+itemName(r.id)+' (espaço '+(k+1)+')'):'Espaço '+(k+1)+' (vazio)';
+    b.onclick=e=>{e.stopPropagation();paraRapido(i,k);closeMenu();dispatchEvent(new Event('mochila-mudou'))};fila.append(b)}
+   menu.append(fila)}
   if(QUEST_ITEMS.has(s.id))menu.append(E('div','imNote','Item de missão: não pode ser descartado.'));
   else add('Descartar'+(s.n>1?' (×'+s.n+')':''),b=>{if(!b.dataset.ok){b.dataset.ok='1';b.textContent='Clique de novo para confirmar';b.classList.add('danger');return}I[i]=null;dirtyInv=true;saveGame();ft(p.x,p.y-24,itemName(s.id)+' descartado','#f99');closeMenu()},'danger');
   menu.classList.add('open');const w=menu.offsetWidth,h=menu.offsetHeight;menu.style.left=Math.max(4,Math.min(innerWidth-w-4,x))+'px';menu.style.top=Math.max(4,Math.min(innerHeight-h-4,y))+'px';
@@ -93,13 +98,12 @@
    d.oncontextmenu=e=>{e.preventDefault();e.stopPropagation();openMenu(i,e.clientX,e.clientY)};
    dragSource(d,()=>i)}
   else d.setAttribute('aria-label','Espaço vazio');
-  if(i<6)d.append(E('kbd','',String(i+1)));
   dropTarget(d,from=>swapSlots(from,i),i);
   return d;
  }
  renderInv=function(){
   // bolsa sem limite: sempre sobra pelo menos uma fileira vazia no fim
-  arrumarAtalhos();let last=I.length-1;while(last>=0&&!I[last])last--;
+  let last=I.length-1;while(last>=0&&!I[last])last--;
   const want=Math.max(40,Math.ceil((last+1+8)/8)*8),old=I.length;I.length=want;if(want>old)I.fill(null,old);
   const el=$('eql'),er=$('eqr');el.innerHTML='';er.innerHTML='';grid.innerHTML='';
   const sprite=heroImg('d'),px=sprite.getContext('2d').getImageData(0,0,sprite.width,sprite.height).data;let x0=sprite.width,y0=sprite.height,x1=-1,y1=-1;
@@ -115,7 +119,7 @@
    if(s)dragSource(d,()=>id);
    dropTarget(d,from=>{if(typeof from=='number'&&I[from]&&fits(id,I[from].id))useSlot(from,id);else if(typeof from=='number'&&I[from])ft(p.x,p.y-24,'Não serve em '+SLOT_LABEL[id],'#ccc')});
    col.append(d)}
-  $('invCategories').querySelectorAll('.invCategory').forEach(b=>{const on=b.dataset.category==invCategory;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on))});
+  barraMochila.atualizar(); // categoria escolhida e quantos itens há em cada uma (js/ui.js)
   // na aba "Todos" mostra a bolsa inteira (com espaços vazios); nas outras, só o que combina
   if(invCategory=='all')I.forEach((s,i)=>grid.append(slotEl(i,s)));
   else{const hits=I.map((s,i)=>[s,i]).filter(([s])=>s&&catMatch(s,invCategory));hits.forEach(([s,i])=>grid.append(slotEl(i,s)));if(!hits.length)grid.append(E('div','invEmpty','Nada nesta categoria.'))}
@@ -131,8 +135,8 @@
  const hud0=hud;hud=function(){hud0();
   badge.textContent=p.lvl;$('lv').textContent=p.lvl>=CALC.maxLevel?'XP MÁX':'XP '+p.xp+'/'+p.lvl*CALC.xpPerLevel;
   {const g=p.gold|0;if(g!==ouroVisto){ouroVisto=g;$('invGold').innerHTML=moeda(g);$('qgold').innerHTML=moeda(g)}} // número + símbolo da moeda
-  const sig=I.slice(0,6).map(s=>s?s.id+':'+s.n+':'+s.q:'').join('|');
-  if(sig!==qsig){qsig=sig;qslots.forEach((el,i)=>{const s=I[i],img=el.querySelector('img'),b=el.querySelector('b');el.className='qslot'+(s?qc(s):' empty');if(s){img.src=ITEMS[s.id].ic;img.hidden=false;b.textContent=s.n>1?s.n:''}else{img.hidden=true;b.textContent=''}})}
+  const sig=RAPIDO.map(s=>s?s.id+':'+s.n+':'+s.q:'').join('|');
+  if(sig!==qsig){qsig=sig;qslots.forEach((el,i)=>{const s=RAPIDO[i],img=el.querySelector('img'),b=el.querySelector('b');el.className='qslot'+(s?qc(s):' empty');if(s){img.src=ITEMS[s.id].ic;img.hidden=false;b.textContent=s.n>1?s.n:''}else{img.hidden=true;b.textContent=''}})}
   const low=p.hp>0&&p.hp/mhp()<.3;document.body.classList.toggle('lowHp',low);
   // em combate as armas ficam travadas (js/state.js): marca os espaços de arma e avisa na mochila
   const cmb=window.emCombate&&emCombate();document.body.classList.toggle('emCombate',!!cmb);

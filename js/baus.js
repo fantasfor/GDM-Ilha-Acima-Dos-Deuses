@@ -32,7 +32,10 @@
   return g;
  }
  const cache={};
- function arte(tier,aberto){
+ // na paleta do jogo (2026-10-30, pedido do usuário): o desenho convertido uma vez e guardado
+ const naPaleta=d=>root.PALETA_JOGO?root.PALETA_JOGO.dadosNaPaleta(d):d,memoPal=new Map(),guardado=(k,fn)=>{if(!memoPal.has(k))memoPal.set(k,naPaleta(fn()));return memoPal.get(k)};
+ function arte(tier,aberto){return guardado(tier+'|'+aberto,()=>arteBruta(tier,aberto))}
+ function arteBruta(tier,aberto){
   tier=PAL[tier]?tier:'blue';const k=tier+(aberto?'a':'f');if(cache[k])return cache[k];
   const c={contorno:'#160e0a',sombra:'#0c0a10',dentro:'#140c0a',...PAL[tier]},W=22,H=aberto?22:18,g=grade(W,H,c);
   const base=H-1; // linha da sombra

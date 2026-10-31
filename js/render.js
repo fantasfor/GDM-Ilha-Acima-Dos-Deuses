@@ -317,7 +317,8 @@ function monsterSpriteFrame(e,dir,an,fl=1){
  const vista=!e.dungeonAnimation&&definition&&definition.direcoes&&definition.direcoes[dir=='d'?'frente':dir=='u'?'costas':esqMonstro(e,dir,fl)?'esquerda':''];
  const animation=vista&&vista.idle&&vista.idle.length?{...vista,durations:vista.durations||base&&base.durations}:base;
  if(!animation)return fr(e.sp,dir,an);
- const action=e.aw>0||e.skillWindup?'attack':time-(e.mvAt==null?-9:e.mvAt)<.15?'walk':'idle';
+ // animação adicional (e.animExtra, ex.: 'agachar'/'pulo' do Chefe Glooc) quando ela existe nesta vista; senão as de sempre
+ const action=e.animExtra&&animation[e.animExtra]&&animation[e.animExtra].length?e.animExtra:e.aw>0||e.skillWindup?'attack':time-(e.mvAt==null?-9:e.mvAt)<.15?'walk':'idle';
  const frames=animation[action]&&animation[action].length?animation[action]:animation.idle;
  if(!frames||!frames.length)return fr(e.sp,dir,an);
  if(e.spriteAction!==action){e.spriteAction=action;e.spriteActionAt=time}
@@ -465,7 +466,8 @@ function drawCarpenterDebris(n){
    madeira à mostra e portas de tábuas com travessas em Z e ferragens. */
 const TORA_CASCA=['#22130a','#3b2414','#55361f','#714a2b','#8d6038','#a97a48'],TORA_CORTE=['#8a5a30','#c08850','#e0b478'];
 const toraSprites={};
-function toraSprite(w,h,v){const k=w+'x'+h+'v'+v;if(toraSprites[k])return toraSprites[k];
+function toraSprite(w,h,v){const k0=w+'x'+h+'v'+v,novo=!toraSprites[k0],c=toraSpriteBruto(w,h,v);return novo&&window.PALETA_JOGO&&c&&c.getContext?PALETA_JOGO.canvasNaPaleta(c):c} /* na paleta do jogo (2026-10-30) */
+function toraSpriteBruto(w,h,v){const k=w+'x'+h+'v'+v;if(toraSprites[k])return toraSprites[k];
  const c=mkCanvas(w+2,h+3),g=c.getContext('2d'),P=(x,y,cor)=>{g.fillStyle=cor;g.fillRect(x,y,1,1)},rn=(a,b)=>hash(a*31+v*7+w,b*17+h);
  const ponta=Math.round(w*.55);
  for(let y=0;y<h;y++){
@@ -496,11 +498,13 @@ function drawCampLog(x,y,w=10,h=32){
  ctx.drawImage(s,x-Math.round(s.width/2),y-s.height+2)}
 /* portão: postes grossos, viga de cima com os anéis da madeira nas pontas, portas de tábuas (fechado) ou abertas para dentro */
 let portaoVigaC=null,portaoPortaC=null;
-function portaoViga(L){if(portaoVigaC&&portaoVigaC.width===L)return portaoVigaC;const c=mkCanvas(L,8),g=c.getContext('2d'),P=(x,y,cor)=>{g.fillStyle=cor;g.fillRect(x,y,1,1)};
+function portaoViga(L){if(portaoVigaC&&portaoVigaC.width===L)return portaoVigaC;return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(portaoVigaBruta(L)):portaoVigaBruta(L)}
+function portaoVigaBruta(L){const c=mkCanvas(L,8),g=c.getContext('2d'),P=(x,y,cor)=>{g.fillStyle=cor;g.fillRect(x,y,1,1)};
  for(let x=0;x<L;x++)for(let y=0;y<8;y++){const t=y===0||y===7?0:y===1?5:y<3?4:y<5?3:y<6?2:1;P(x,y,TORA_CASCA[(t>1&&hash(x>>2,y)>.85)?t-1:t])}
  for(const x0 of [0,L-6]){for(let y=1;y<7;y++)for(let x=x0;x<x0+6;x++){const r=Math.hypot(x-x0-2.5,y-3.5);P(x,y,r<1?'#8a5a30':r<2?'#e0b478':r<2.6?'#c08850':'#8a5a30')}}
  return portaoVigaC=c}
-function portaoPorta(w,h){if(portaoPortaC&&portaoPortaC.width===w)return portaoPortaC;const c=mkCanvas(w,h),g=c.getContext('2d'),R2=(x,y,a,b,cor)=>{g.fillStyle=cor;g.fillRect(x,y,a,b)};
+function portaoPorta(w,h){if(portaoPortaC&&portaoPortaC.width===w)return portaoPortaC;return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(portaoPortaBruta(w,h)):portaoPortaBruta(w,h)}
+function portaoPortaBruta(w,h){const c=mkCanvas(w,h),g=c.getContext('2d'),R2=(x,y,a,b,cor)=>{g.fillStyle=cor;g.fillRect(x,y,a,b)};
  for(let x=0;x<w;x++){const tab=Math.floor(x/5),borda=x%5===0;R2(x,0,1,h,borda?'#3b2414':tab%2?'#8d6038':'#7a5230');if(!borda&&x%5===1)R2(x,0,1,h,'#a97a48')}
  for(let x=0;x<w;x+=5)R2(x+2,0,1,2,'#3b2414');                                              // pontas das tábuas
  R2(0,5,w,3,'#55361f');R2(0,5,w,1,'#8d6038');R2(0,h-8,w,3,'#55361f');R2(0,h-8,w,1,'#8d6038'); // travessas
@@ -525,7 +529,7 @@ const fogMaskCv=document.createElement('canvas'),fogMask=fogMaskCv.getContext('2
 let VISION_RANGE=VISAO_ILHA; /* à noite a visão cai 10% (js/tempo.js); na DG não muda */
 /* árvores que bloqueiam a visão: guardadas por quadro (canSee é chamado para cada monstro; antes filtrava todas as árvores toda vez) */
 let arvVis={t:-1,x:0,y:0,r:0,l:[]};
-const visionTrees=()=>{if(window.inArena||window.inTaverna||window.inTutorial)return[];const v=arvVis;if(v.t===time&&v.x===p.x&&v.y===p.y&&v.r===VISION_RANGE)return v.l;
+const visionTrees=()=>{if(window.inArena||window.inTaverna||window.inTutorial||window.inDungeon)return[]; /* na DG as árvores da ilha (mesmas coordenadas) bloqueavam a visão: o monstro não dava para clicar */const v=arvVis;if(v.t===time&&v.x===p.x&&v.y===p.y&&v.r===VISION_RANGE)return v.l;
  v.t=time;v.x=p.x;v.y=p.y;v.r=VISION_RANGE;v.l=trees.filter(t=>Math.abs(t.x-p.x)<VISION_RANGE+40&&Math.hypot(t.x-p.x,t.y-17-p.y)<VISION_RANGE+20);return v.l};
 function treeHit(ox,oy,dx,dy,t){
  const x=(ox-t.x)/15,y=(oy-(t.y-17))/11,a=(dx/15)**2+(dy/11)**2,b=2*(x*dx/15+y*dy/11),c=x*x+y*y-1;
@@ -777,7 +781,7 @@ if(window.SAVE_FALHOU)avisoFalhaSave(); // save existe mas não carregou: avisa 
  window.personagemNovo=!restored;
  if(!restored&&!darKit(p.cls,{salvar:false})){
   if(ITEMS.sw&&!has('sw'))EQ.sw={id:'sw',n:1,q:rollQ()};
-  for(const [id,n] of [['hp',3],['mp',2]])if(ITEMS[id]&&!has(id))addItem(id,undefined,n);
+  for(const [id,n] of [['hp',3],['mp',2]])if(ITEMS[id]&&!has(id))kitItem(id,n);
  }
  if(restored)darKit(p.cls,{salvar:false}); // item novo no kit da classe (ex.: escudo do Guerreiro) chega uma vez
  if(!restored){p.hp=mhp();p.mp=mmp()}
@@ -791,7 +795,12 @@ window.cameraMenu={ativo:false,t:0,real:null,
  ligar(){if(this.ativo)return;this.ativo=true;this.real={x:p.x,y:p.y};this.t=Math.random()*60},
  desligar(){if(!this.ativo)return;this.ativo=false;if(this.real){p.x=this.real.x;p.y=this.real.y}this.real=null},
  passo(dt){this.t+=dt;const k=this.t*.03;p.x=CX+Math.cos(k)*W*.24+Math.cos(k*2.7)*W*.05;p.y=CY+Math.sin(k*1.4)*W*.2+Math.sin(k*.6)*W*.04}};
-(function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;if(MODO.motor)return;time+=dt;
+let ultimoRaf=performance.now();
+/* em segundo plano (Alt+Tab com a janela coberta, outra aba, tela trocada) o navegador para o requestAnimationFrame: o jogo
+   segue rodando por aqui (em passos de 0,05 s, até 2 s de atraso por vez), então o ataque e a luta continuam */
+setInterval(()=>{const agora=performance.now();if(agora-ultimoRaf<300||MODO.motor||cameraMenu.ativo)return;let falta=Math.min(2,(agora-last)/1000);last=agora;
+ while(falta>0){const d=Math.min(.05,falta);falta-=d;time+=d;try{upd(d)}catch(e){console.error('Erro no quadro (fundo):',e);break}}},250);
+(function loop(t){requestAnimationFrame(loop);ultimoRaf=performance.now();const dt=Math.min(.05,Math.max(0,(t-last)/1000));last=Math.max(last,t);if(MODO.motor)return;time+=dt;
  if(cameraMenu.ativo){try{cameraMenu.passo(dt);draw()}catch(e){}return}
  for(const [nome,fn] of [['upd',()=>upd(dt)],['draw',draw],['hud',hud]]){
   try{fn()}catch(e){

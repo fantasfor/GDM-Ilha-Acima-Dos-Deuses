@@ -24,25 +24,52 @@ function drawPortrait(){const W=96,H=80,g=pt.createLinearGradient(0,0,0,H);g.add
  const sh2=Math.round(h*1.15),sw2=Math.round(sh2*16/20);pt.imageSmoothingEnabled=false;
  pt.drawImage(hi,12+(hi.ox||0),1+(hi.oy||0),16,20,Math.round((W-sw2)/2),H-4-sh2+bob+8,sw2,sh2)}
 const INV_CATEGORIES=[['all','Todos'],['consumables','Consumíveis'],['materials','Materiais'],['sw','Armas'],['he','Capacete'],['ch','Peito'],['le','Calça'],['bo','Bota'],['ca','Capa'],['ne','Colar'],['ri','Anel']];
-/* ícones 16×16 dos filtros da mochila: silhuetas simples em 2 tons da paleta da interface (contorno claro, miolo cinza) */
-const INV_ICON_COR={'#':'#d9d0c7','+':'#7d756e'};
+/* ícones dos filtros da mochila e do baú (2026-10-31, refeitos a pedido do usuário: estavam grandes e fora de centro).
+   Desenho por máscara: cada letra é um material da paleta (# linho da interface, a aço, w madeira, g ouro, r sangue,
+   b água, k vão escuro; maiúscula = brilho) e o sombreado sai sozinho (luz em cima/à esquerda, sombra embaixo/à direita). Todo ícone é
+   recortado e centralizado num quadro 16×16 (também os desenhados na Engine), então fica no meio exato do botão. */
+const FILTRO_MAT={k:['#1a1414','#1a1414','#1a1414'],m:['#4a1f6e','#7a3ca8','#b07ad8'],f:['#263a3a','#3f6b45','#79a35a'],'#':['#6e655d','#a69c94','#d9d0c7'],a:['#3e3a52','#7c8098','#c4c8d6'],w:['#4e2430','#7d3f34','#a8653f'],g:['#9a5a2a','#d08a3a','#efc56a'],r:['#6e1438','#a22b4b','#cf4554'],b:['#2a2a52','#3d5a8c','#6e9cc4']};
+function centrado16(c){ // recorta a borda vazia e põe o desenho no meio de um quadro 16×16
+ if(!c||!c.getContext)return c;const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let x0=c.width,y0=c.height,x1=-1,y1=-1;
+ for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ const w=x1-x0+1,h=y1-y0+1;if(x1<0||w>16||h>16)return c;
+ const o=mkCanvas(16,16);o.getContext('2d').drawImage(c,x0,y0,w,h,Math.floor((16-w)/2),Math.floor((16-h)/2),w,h);return o}
+function iconeFiltro(rows){
+ const h=rows.length,w=Math.max(...rows.map(r=>r.length)),at=(x,y)=>y>=0&&y<h&&x>=0&&x<rows[y].length&&rows[y][x]!=='.';
+ const c=mkCanvas(w,h),g=c.getContext('2d');
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(!at(x,y))continue;const ch=rows[y][x],m=FILTRO_MAT[ch.toLowerCase()];if(!m)continue;
+  const tom=ch!==ch.toLowerCase()||!at(x,y-1)||!at(x-1,y)?2:!at(x,y+1)||!at(x+1,y)?0:1;g.fillStyle=m[tom];g.fillRect(x,y,1,1)}
+ return centrado16(c)}
 const INV_CATEGORY_ICONS={
- all:spr(["................",".######..######.",".#++++#..#++++#.",".#++++#..#++++#.",".#++++#..#++++#.",".######..######.","................","................",".######..######.",".#++++#..#++++#.",".#++++#..#++++#.",".#++++#..#++++#.",".######..######.","................","................","................"],INV_ICON_COR),
- consumables:spr(["................","......####......","......#++#......","......####......",".......##.......",".......##.......","......####......",".....##++##.....","....##++++##....","...##++++++##...","...#++++++++#...","...#++++++++#...","...##++++++##...","....########....","................","................"],INV_ICON_COR),
- materials:spr(["................",".##############.",".#++++++++++++#.",".##############.",".#+#++++++++#+#.",".#++#++++++#++#.",".#+++#++++#+++#.",".#++++#++#++++#.",".#+++++##+++++#.",".#++++#++#++++#.",".#+++#++++#+++#.",".#++#++++++#++#.",".#+#++++++++#+#.",".##############.","................","................"],INV_ICON_COR),
- sw:spr(["................","............##..","...........#+#..","..........#+#...",".........#+#....","........#+#.....",".......#+#......","..#...#+#.......","...#.#+#........","....###.........","....##..........","...#..#.........","..##............",".##.............","................","................"],INV_ICON_COR),
- he:spr(["................","................",".....######.....","...##++++++##...","..#++++++++++#..","..#++++++++++#..",".#++++++++++++#.",".#++++++++++++#.",".##############.",".#++##++++##++#.",".#++#......#++#.",".#++#......#++#.",".####......####.","................","................","................"],INV_ICON_COR),
- ch:spr(["................","..###......###..",".#+++######+++#.","#++++++++++++++#","#++##++++++##++#",".##.#++++++#.##.","....#++++++#....","....#++++++#....","....#++##++#....","....#++++++#....","....#++++++#....",".....######.....","................","................","................","................"],INV_ICON_COR),
- le:spr(["................","..############..","..#++++++++++#..","..#++++++++++#..","..#++++##++++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#+++#..#+++#..","..#####..#####..","................","................","................","................","................"],INV_ICON_COR),
- bo:spr(["................","....######......","....#++++#......","....#++++#......","....#++++#......","....#++++#......","....#++++#......","....#++++###....","....#+++++++##..","....#+++++++++#.","....###########.","................","................","................","................","................"],INV_ICON_COR),
- ca:spr(["................","....########....","...#++++++++#...","...#+######+#...","..#++++++++++#..","..#++++++++++#..",".#++++++++++++#.",".#++++++++++++#.","#++++++++++++++#","#++++++++++++++#","##+##++++++##+##","................","................","................","................","................"],INV_ICON_COR),
- ne:spr(["................",".##..........##.","..#..........#..","..##........##..","...#........#...","...##......##...","....##....##....",".....######.....","......####......",".....#++++#.....",".....#++++#.....","......#++#......",".......##.......","................","................","................"],INV_ICON_COR),
- ri:spr(["................","......####......",".....#++++#.....","......####......","....########....","...##......##...","..##........##..","..#..........#..","..#..........#..","..##........##..","...##......##...","....########....","................","................","................","................"],INV_ICON_COR)
+ all:iconeFiltro(["#####..#####","#####..#####","#####..#####","#####..#####","#####..#####","............","............","#####..#####","#####..#####","#####..#####","#####..#####","#####..#####"]),
+ consumables:iconeFiltro(["...wwww...","...wwww...","....##....","....##....","...####...","..#rrrr#..",".#rrRrrr#.",".#rRrrrr#.",".#rrrrrr#.",".#rrrrrr#.","..#rrrr#..","...####..."]),
+ materials:iconeFiltro(["....www....","...wwwww...","...wwWww...","...wwwww...","....www....",".www...www.","wwwww.wwwww","wwWww.wwWww","wwwww.wwwww",".www...www."]), // toras empilhadas
+ sw:iconeFiltro(["..........Aa",".........aaa","........aaa.",".......aaa..","......aaa...","..g..aaa....","...gaaa.....","....gg......","...wwgg.....","..ww...g....",".gw.........","gg.........."]),
+ he:iconeFiltro(["...aaaaaa...",".aaaaaaaaaa.",".aAaaaaaaaa.","aaaaaaaaaaaa","akkkkaakkkka","aaaaaaaaaaaa","aaakaaaakaaa",".aaaaaaaaaa.","..aaaaaaaa.."]), // elmo com viseira
+ ch:iconeFiltro([".##......##.","####....####","#####..#####","############",".##########.","..########..","..########..","..###gg###..","..########..","...######..."]),
+ le:iconeFiltro(["############","#####gg#####","############","#####..#####","####....####","####....####","####....####","####....####","####....####"]),
+ bo:iconeFiltro(["#######...","wwwwwww...","wwwwwww...","wwwwwww...","wwwwwww...","wwwwwwww..","wwwwwwwwww","wwwwwwwwww","wwwwwwwwww"]),
+ ca:iconeFiltro(["....gggg....","...rrrrrr...","..rrrrrrrr..","..rrRrrRrr..",".rrrRrrRrrr.",".rrrRrrRrrr.","rrrrRrrRrrrr","rrrrRrrRrrrr","rrrrrrrrrrrr"]), // capa com dobras e fivela
+ ne:iconeFiltro(["g..........g","g..........g",".g........g.","..g......g..","...gg..gg...",".....gg.....",".....rr.....","....rRrr....","....rrrr....",".....rr....."]),
+ ri:iconeFiltro([".....bb.....","....bBbb....","....bbbb....","...gggggg...","..gg....gg..",".gg......gg.",".g........g.",".gg......gg.","..gg....gg..","...gggggg..."])
 };/* ícones de filtro desenhados na Engine (Projeto › Artes › Interface: interface/filtro-<categoria>) substituem estes */
-window.INV_FILTRO_ORIGINAIS={...INV_CATEGORY_ICONS};for(const id in INV_CATEGORY_ICONS){const d=PROJ.art&&PROJ.art['interface/filtro-'+id],c=d&&pixelArt(d);if(c)INV_CATEGORY_ICONS[id]=c}
+window.INV_FILTRO_ORIGINAIS={...INV_CATEGORY_ICONS};for(const id in INV_CATEGORY_ICONS){const d=PROJ.art&&PROJ.art['interface/filtro-'+id],c=d&&pixelArt(d);if(c)INV_CATEGORY_ICONS[id]=centrado16(c)}
+// o item entra na categoria? (Todos, Consumíveis, Materiais, Armas = mão 1 e mão 2, e cada espaço de equipamento)
+function itemNaCategoria(s,cat){const t=gearType[s.id],d=ITEMS[s.id];if(cat=='all')return true;if(!d)return false;if(cat=='consumables')return !!d.use;if(cat=='materials')return !!d.material;if(cat=='sw')return t=='sw'||t=='sh';return t==cat}
+/* barra de filtros (mochila e baú): ícone a 2× no meio do botão e, no canto, quantos itens daquela categoria há;
+   categoria sem nenhum item fica apagada. contar(id) → número (opcional) */
+function barraFiltros(caixa,{ativo,escolher,contar}){
+ const botoes=INV_CATEGORIES.map(([id,label])=>{const b=document.createElement('button');b.type='button';b.className='invCategory';b.dataset.category=id;b.setAttribute('aria-label',label);
+  const im=document.createElement('img');im.src=INV_CATEGORY_ICONS[id].toDataURL();im.alt='';im.setAttribute('aria-hidden','true');
+  const n=document.createElement('small');n.className='invCatN';b.append(im,n);b.onclick=e=>{e.stopPropagation();escolher(id)};caixa.appendChild(b);return{id,label,b,n}});
+ const atualizar=()=>{const a=ativo();for(const{id,label,b,n}of botoes){const on=id===a,q=contar?contar(id):null;
+  b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));n.textContent=q?(q>99?'99+':String(q)):'';
+  b.classList.toggle('vazia',q===0&&id!=='all');b.title=label+(q!=null?': '+q+(q==1?' item':' itens'):'')}};
+ atualizar();return{atualizar}}
+window.barraFiltros=barraFiltros;window.itemNaCategoria=itemNaCategoria;
 let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
 $('bag').onclick=e=>{e.stopPropagation();togInv()};
-INV_CATEGORIES.forEach(([id,label])=>{const button=document.createElement('button');button.type='button';button.className='invCategory';button.setAttribute('aria-pressed',id=='all'?'true':'false');button.setAttribute('aria-label',label);button.title=label;button.dataset.category=id;const icon=document.createElement('img');icon.src=INV_CATEGORY_ICONS[id].toDataURL();icon.alt='';icon.setAttribute('aria-hidden','true');button.appendChild(icon);button.onclick=e=>{e.stopPropagation();invCategory=id;invEquipSlot=null;renderInv()};$('invCategories').appendChild(button)});
+const barraMochila=barraFiltros($('invCategories'),{ativo:()=>invCategory,escolher:id=>{invCategory=id;invEquipSlot=null;renderInv()},contar:id=>typeof I=='undefined'?0:I.filter(s=>s&&itemNaCategoria(s,id)).length});
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
 let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R',ambas:'2X'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
@@ -139,10 +166,11 @@ function setQuestStage(n){
  saveGame();window._noSave=true;sessionStorage.setItem('ilha-skip','1');location.reload()
 }
 /* Ganchos usados pelas ferramentas de teste da Engine (somente no Play da Engine; o jogo normal não tem trapaças). */
-/* trapaças do teste (Engine › Jogar › Ferramentas de teste): vida infinita, dano infinito, mana infinita, sem recarga */
-if(MODO.teste){window.TRAPACA={vida:false,dano:false,mana:false,recarga:false};
- // upd é de js/update.js (carrega depois deste arquivo)
- addEventListener('load',()=>{const updT=upd;upd=function(dt){updT(dt);const t=window.TRAPACA;if(p.dead>0)return;if(t.vida)p.hp=mhp();if(t.mana)p.mp=mmp();if(t.recarga)SK.forEach(s=>s.t=0)}})}
+/* trapaças do teste (Engine › Jogar › Ferramentas de teste): vida infinita, dano infinito, mana infinita, sem recarga, super velocidade */
+if(MODO.teste){window.TRAPACA={vida:false,dano:false,mana:false,recarga:false,velocidade:false};
+ // upd e move são de js/update.js (carrega depois deste arquivo); super velocidade: o herói anda 3× mais rápido
+ addEventListener('load',()=>{const updT=upd;upd=function(dt){updT(dt);const t=window.TRAPACA;if(p.dead>0)return;if(t.vida)p.hp=mhp();if(t.mana)p.mp=mmp();if(t.recarga)SK.forEach(s=>s.t=0)};
+  const moveT=move;move=function(e,d,sp,dt){return moveT(e,d,e===p&&window.TRAPACA.velocidade?sp*3:sp,dt)}})}
 if(MODO.teste)window.TESTE={
  trapacas:o=>{Object.assign(window.TRAPACA,o||{});return window.TRAPACA},
  estado:()=>({classe:p.cls,nivel:p.lvl,rank:(p.classProgress&&p.classProgress[p.cls]||{rank:1}).rank,ouro:p.gold,vida:Math.round(p.hp),missao:questStage(),dg:!!window.inDungeon,x:Math.round(p.x),y:Math.round(p.y)}),
@@ -225,7 +253,9 @@ function saveGame(){
  // visitando a ilha de outro jogador: o progresso da ilha que vale é o seu, guardado na chegada (js/multiplayer.js)
  const propria=window.ilhaParaSalvar&&ilhaParaSalvar();if(propria)Object.assign(data,propria);
  if(ITENS_ORFAOS.length)data.orfaos=ITENS_ORFAOS;
+ data.rapido=RAPIDO; // acesso rápido 1–6 (js/state.js)
  if(window.BAU_ILHA)data.bau=BAU_ILHA.dados(); // baú do acampamento (js/bau-ilha.js)
+ if(window.FORJA)data.forja=FORJA.dados(); // nível do ferreiro (js/forja.js)
  try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
 }
 window.saveGame=saveGame;
@@ -272,12 +302,22 @@ function loadGame(){
   BESTIARIO.k={};BESTIARIO.d={};const best=d.bestiario||{};
   if(best.k&&typeof best.k=='object')for(const ty in best.k)if(Number.isFinite(best.k[ty])&&best.k[ty]>0)BESTIARIO.k[ty]=Math.floor(best.k[ty]);
   if(best.d&&typeof best.d=='object')for(const ty in best.d)if(best.d[ty]&&typeof best.d[ty]=='object')for(const id in best.d[ty])if(ITEMS[id])(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1;
+  // itens já obtidos (enciclopédia); save antigo: tudo o que já caiu de monstro conta (mochila, equipados e baú entram abaixo)
+  BESTIARIO.v={};if(best.v&&typeof best.v=='object')for(const id in best.v)if(ITEMS[id])BESTIARIO.v[id]=1;
+  for(const ty in BESTIARIO.d)for(const id in BESTIARIO.d[ty])BESTIARIO.v[id]=1;
   if(!walk(p.x,p.y)){p.x=CX;p.y=CY+34}
   ITENS_ORFAOS.length=0;const orfao=s=>{if(s&&typeof s.id=='string'&&Number.isInteger(+s.n||1))ITENS_ORFAOS.push({id:s.id,n:Math.max(1,+s.n||1),q:s.q})};
   I.length=Math.max(40,d.items.length);I.fill(null);d.items.forEach((s,i)=>{if(s&&ITEMS[s.id]&&Number.isInteger(s.n)&&s.n>0)I[i]={id:s.id,n:s.n,q:s.q};else if(s&&!ITEMS[s.id])orfao(s)});
   for(const id of Object.keys(EQ)){const e=d.equipment&&d.equipment[id];EQ[id]=e&&fits(id,e.id)?{id:e.id,n:1,q:e.q}:null;if(e&&!ITEMS[e.id])orfao(e);else if(e&&!EQ[id]&&ITEMS[e.id])orfao(e)}
   if(Array.isArray(d.orfaos))d.orfaos.forEach(orfao);
+  // acesso rápido; save antigo (sem "rapido"): os espaços 1–6 da mochila eram o acesso rápido, então os consumíveis de lá vão para ele
+  RAPIDO.fill(null);
+  if(Array.isArray(d.rapido))d.rapido.slice(0,QUICK_N).forEach((s,k)=>{if(s&&ITEMS[s.id]&&Number.isInteger(s.n)&&s.n>0)RAPIDO[k]={id:s.id,n:s.n,q:s.q};else if(s&&!ITEMS[s.id])orfao(s)});
+  else for(let k=0;k<QUICK_N;k++){const s=I[k];if(s&&ehConsumivel(s.id)){RAPIDO[k]=s;I[k]=null}}
+  if(window.FORJA)FORJA.carregar(d.forja);
   if(window.BAU_ILHA)BAU_ILHA.carregar(d.bau); // depois de zerar os órfãos: tipo sumido do baú também vira órfão
+  // o que o jogador já tem (mochila, equipado, acesso rápido, baú) conta como obtido na enciclopédia
+  for(const s of [...I,...Object.values(EQ),...(Array.isArray(d.rapido)?d.rapido:[]),...(Array.isArray(d.bau)?d.bau:[])])if(s&&s.id&&ITEMS[s.id])BESTIARIO.v[s.id]=1;
   // tipo que voltou a existir: devolve à mochila (se couber; senão continua guardado)
   for(let k=ITENS_ORFAOS.length-1;k>=0;k--){const s=ITENS_ORFAOS[k];if(!ITEMS[s.id])continue;const v=I.indexOf(null);if(v<0)break;I[v]={id:s.id,n:s.n,q:s.q};ITENS_ORFAOS.splice(k,1)}
   cacaFeita=d.cacaFeita!=null?d.cacaFeita===true:d.questDone===true;cacaMortes=Math.max(0,+d.cacaMortes||0); /* save antigo que já venceu o Guardião não refaz a caça */

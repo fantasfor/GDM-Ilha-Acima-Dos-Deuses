@@ -27,9 +27,10 @@
     o = {i0, j0, H}: recorte da grade (DGs têm coordenadas negativas); a imagem tem W×H px a partir do ladrilho i0,j0. */
  function render(image,W,tiles,texs,o={}){
   // o.dg: na DG o vazio é parede (com moldura), então a beira do chão encostada nela fica lisa; só serrilha entre chãos
-  const D=image.data,i0=o.i0||0,j0=o.j0||0,N=W/TILE,M=(o.H||W)/TILE,outro=(i,j,id)=>{const v=tiles[i+','+j]||'';return v!==id&&!(o.dg&&!v)};
+  const D=image.data,i0=o.i0||0,j0=o.j0||0,N=W/TILE,M=(o.H||W)/TILE,outro=(i,j,id)=>{const v=tiles[i+','+j]||'';return v!==id&&!(o.dg&&!v)&&!(o.dg&&natural(v,texs))};
   for(const key of Object.keys(tiles)){
    const id=tiles[key],t=texs[id];if(!t)continue;
+   if(o.dg&&natural(id,texs))continue; // chão natural (trilha de terra): desenhado depois, com a borda ondulada (bordaNatural)
    const [i,j]=key.split(',').map(Number);if(!(i-i0>=0&&j-j0>=0&&i-i0<N&&j-j0<M))continue;
    const T=pixels(t.data),P=T.p,parede=!!t.parede,L=outro(i-1,j,id),R=outro(i+1,j,id),U=outro(i,j-1,id),B=outro(i,j+1,id);
    const UL=outro(i-1,j-1,id),UR=outro(i+1,j-1,id),BL=outro(i-1,j+1,id),BR=outro(i+1,j+1,id);
@@ -40,7 +41,32 @@
     const wx=i*TILE+x,wy=j*TILE+y,s=(((wy%T.h)+T.h)%T.h*T.w+((wx%T.w)+T.w)%T.w)*4,o=(gy*W+gx)*4;D[o]=P[s];D[o+1]=P[s+1];D[o+2]=P[s+2];D[o+3]=P[s+3];
    }
   }
+  if(o.dg)bordaNatural(D,W,N,M,i0,j0,tiles,texs);
   return image;
+ }
+ /* Chãos naturais nas DGs (2026-10-30, pedido do usuário: caminho de terra da DG nível 10 mais natural): em vez do quadrado do
+    ladrilho, a beira sai de um campo suave entre os centros dos ladrilhos (esquinas em escada viram curvas) cortado por um
+    ruído: ondula para dentro e para fora do chão vizinho. Onde a trilha recua, aparece o chão vizinho mais forte (ou o piso da DG). */
+ const NATURAIS=new Set(['pk_fn_trilha']);
+ function natural(id,texs){return !!id&&(NATURAIS.has(id)||!!(texs[id]&&texs[id].natural))}
+ function ruidoSuave(x,y,c){const a=x/c,b=y/c,i=Math.floor(a),j=Math.floor(b),S=t=>t*t*(3-2*t),U=S(a-i),V=S(b-j),H=(p,q)=>hash(p*7919+31,q*104729+17);
+  return (H(i,j)*(1-U)+H(i+1,j)*U)*(1-V)+(H(i,j+1)*(1-U)+H(i+1,j+1)*U)*V}
+ function bordaNatural(D,W,N,M,i0,j0,tiles,texs){
+  const chao=v=>!!v&&!(texs[v]&&texs[v].parede),alvo=new Set(),S=t=>t*t*(3-2*t),H2=TILE/2;
+  for(const k in tiles){if(!natural(tiles[k],texs))continue;const [i,j]=k.split(',').map(Number);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const q=(i+di)+','+(j+dj);if(chao(tiles[q]))alvo.add(q)}}
+  const pinta=(o,id,wx,wy)=>{const t=texs[id];if(!t){D[o+3]=0;return}const T=pixels(t.data),P=T.p,s=(((wy%T.h)+T.h)%T.h*T.w+((wx%T.w)+T.w)%T.w)*4;D[o]=P[s];D[o+1]=P[s+1];D[o+2]=P[s+2];D[o+3]=P[s+3]};
+  for(const q of alvo){
+   const [i,j]=q.split(',').map(Number);if(!(i-i0>=0&&j-j0>=0&&i-i0<N&&j-j0<M))continue;const nat=natural(tiles[q],texs);
+   for(let y=0;y<TILE;y++)for(let x=0;x<TILE;x++){
+    const wx=i*TILE+x,wy=j*TILE+y,a=(wx+.5-H2)/TILE,b=(wy+.5-H2)/TILE,ia=Math.floor(a),ib=Math.floor(b),U=S(a-ia),V=S(b-ib);
+    const cs=[tiles[ia+','+ib],tiles[(ia+1)+','+ib],tiles[ia+','+(ib+1)],tiles[(ia+1)+','+(ib+1)]],w=[(1-U)*(1-V),U*(1-V),(1-U)*V,U*V];
+    let id=null,f=0,viz=null,fv=0;
+    for(let k=0;k<4;k++){const v=cs[k];if(!v)continue;let s=0;for(let m=0;m<4;m++)if(cs[m]===v)s+=w[m];if(natural(v,texs)){if(s>f){f=s;id=v}}else if(chao(v)&&s>fv){fv=s;viz=v}}
+    if(!id)continue;
+    const o=(((j-j0)*TILE+y)*W+(i-i0)*TILE+x)*4,limiar=.5+(ruidoSuave(wx,wy,10)-.5)*.75+(hash(wx,wy)-.5)*.08;
+    if(f>limiar)pinta(o,id,wx,wy);else if(nat){if(viz)pinta(o,viz,wx,wy);else D[o+3]=0} // trilha recuou: chão vizinho (sem textura = piso da DG por baixo)
+   }
+  }
  }
  /* ---------- Chão pintado das DGs ----------
     config.chao = {"i,j": id} (pode ter coordenadas negativas); '@dg' = ladrilho de chão da própria DG (tema ou arte própria).
@@ -54,7 +80,9 @@
       (config.bordaLargura, até 16);
     - estilos por chão (config.estilosParede): a parede e a moldura em volta de um chão podem ter outro desenho
       (ex.: cripta onde o chão é de esqueletos). estilos = {idDoChao: {parede, borda}} (canvas). */
- function dgCamada(tiles,texs,{piso,parede,borda,largura,cores,estilos}){
+ /* camada da DG na paleta do jogo (2026-10-30): o chão, as paredes e as bordas já montados */
+function dgCamada(...a){const r=dgCamadaBruta(...a);if(r&&r.c&&root.PALETA_JOGO)root.PALETA_JOGO.canvasNaPaleta(r.c);return r}
+function dgCamadaBruta(tiles,texs,{piso,parede,borda,largura,cores,estilos}){
   const cx=dgCaixa(tiles);if(!cx)return null;
   const i0=cx.i0-1,j0=cx.j0-3,W=(cx.i1-cx.i0+3)*TILE,H=(cx.j1-cx.j0+5)*TILE; // folga: 2 ladrilhos da face da parede + 1 da borda em cima, 1 de borda nos outros lados
   const c=root.document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.imageSmoothingEnabled=false;

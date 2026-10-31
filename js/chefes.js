@@ -60,7 +60,7 @@
   else if(m.tipo==='espiral'){e.mec.espiral={n:Math.max(4,Math.round(val(m,'qtd'))),i:0,t:0,ang:Math.random()*6.283,voltas:val(m,'voltas')||2,vel:val(m,'vel'),pct}}
   else if(m.tipo==='salto'){const r=val(m,'raio')*area,mach=val(m,'machadoFase'),comMachado=mach>0&&vida(e)*100<=mach,atraso=comMachado?.7:0;
    // onde cair: o alvo, ou recuando pela linha até ter espaço para o corpo do chefe (antes ele caía encostado e entrava na parede)
-   {const cabe=(x,y)=>[[0,0],[9,0],[-9,0],[0,5],[0,-5],[6,4],[-6,4],[6,-4],[-6,-4]].every(([dx,dy])=>walk(x+dx,y+dy));let k=1;while(k>0&&!cabe(e.x+(a.x-e.x)*k,e.y+(a.y-e.y)*k))k-=.08;k=Math.max(0,k);a={x:e.x+(a.x-e.x)*k,y:e.y+(a.y-e.y)*k}}
+   {const cabe=(x,y)=>[[0,0],[9,0],[-9,0],[0,5],[0,-5],[6,4],[-6,4],[6,-4],[-6,-4]].every(([dx,dy])=>walk(x+dx,y+dy));const L=Math.hypot(a.x-e.x,a.y-e.y)||1,encosta=(typeof entityRadius=='function'?entityRadius(e):10)+5+2;let k=Math.max(0,(L-encosta)/L); /* cai encostado no alvo, nunca em cima dele (dois corpos não ocupam o mesmo lugar) */while(k>0&&!cabe(e.x+(a.x-e.x)*k,e.y+(a.y-e.y)*k))k-=.08;k=Math.max(0,k);a={x:e.x+(a.x-e.x)*k,y:e.y+(a.y-e.y)*k}}
    if(comMachado)e.semMachado=true; // o machado sai da mão e só volta quando ele cai do pulo
    // abaixo de machadoFase%: o machado voa primeiro (lentidão), depois o pulo (atordoa) na mesma área
    if(comMachado){if(window.playGameSound)playGameSound('machadoVoa');}
@@ -88,7 +88,9 @@
   for(let i=0;i<mecs.length;i++)M.cds[i]-=dt;
   // grito: cada vez que a vida cai mais cadaPct% (sem recarga)
   for(const m of mecs)if(m.tipo==='grito'){const n=Math.floor((1-v)*100/Math.max(1,val(m,'cadaPct'))+1e-6);if(n>(M.gritoN||0)){M.gritoN=n;if(!M.salto&&!(e.aw>0)){executar(e,m,a);return true}}}
-  if(e.aw>0||a.dead>0||d>320||M.salto||M.rodando)return false;
+  // preparando o pulo (e o machado voando antes dele): fica parado no lugar; o voo é movido pelo próprio pulo
+  if(M.salto){e.dest=null;e.path=[];e.fx=M.salto.x1-e.x;e.fy=M.salto.y1-e.y;return true}
+  if(e.aw>0||a.dead>0||d>320||M.rodando)return false;
   for(let i=0;i<mecs.length;i++){const m=mecs[i];if(m.tipo==='grito')continue;if(M.cds[i]>0)continue;if(m.fase&&v*100>+m.fase)continue;
    executar(e,m,a);M.cds[i]=Math.max(1,(val(m,'cd')||10)*cooldownMultiplier(e));return true}
   return false;
@@ -144,14 +146,14 @@
     const tonto=e.st&&statusSpeed(e)===0;
     if(tonto&&!e.mec.tonto){let n=0;for(let k=TG.length;k--;)if(TG[k].src===e){TG.splice(k,1);n++}
      if(n||e.mec.salto||e.mec.rodando||e.mec.espiral||e.mec.conjurando>0){ft(e.x,e.y-40,'Interrompido!','#ffd84a');ring(e.x,e.y,26,'#ffd84a',.6)}
-     e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false;e.mec.rodando=null;e.canal=null;e.mec.espiral=null;e.mec.conjurando=0;e.aw=0}
+     e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false;e.animExtra=null;e.mec.rodando=null;e.canal=null;e.mec.espiral=null;e.mec.conjurando=0;e.aw=0}
     e.mec.tonto=tonto;
     // pulo: parado (agachado) durante o aviso, depois voa até o centro da área em VOO s; terra levanta na saída e na queda
-    const S=e.mec.salto;if(S){S.t+=dt;if(e.hp<=0){e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false}else if(S.t>=0){e.dest=null;e.path=[];
+    const S=e.mec.salto;if(S){S.t+=dt;if(e.hp<=0){e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false;e.animExtra=null}else{e.dest=null;e.path=[];e.animExtra=S.t<S.d?'agachar':'pulo'} /* quadros próprios do pulo (Engine › Arte e animação: Agachando e Pulando) */if(S&&e.hp>0&&S.t>=0){
      if(S.t<S.d){e.saltoZ=0;e.agachado=S.t>S.d*.6}
      else{const g=Math.min(1,(S.t-S.d)/VOO);if(!S.voou){S.voou=true;e.agachado=false;poeira(e.x,e.y,10,.7);if(window.playGameSound)playGameSound('saltoImpulso')}
       const x=S.x0+(S.x1-S.x0)*g,y=S.y0+(S.y1-S.y0)*g;if(walk(x,y)){e.x=x;e.y=y}e.saltoZ=Math.sin(Math.PI*g)*30;
-      if(g>=1){e.saltoZ=0;e.mec.salto=null;e.semMachado=false;poeira(e.x,e.y,26,1.3);if(window.playGameSound)playGameSound('saltoQueda');ring(e.x,e.y,30,'#c8a070',.6)}}}}
+      if(g>=1){e.saltoZ=0;e.mec.salto=null;e.semMachado=false;e.animExtra=null;poeira(e.x,e.y,26,1.3);if(window.playGameSound)playGameSound('saltoQueda');ring(e.x,e.y,30,'#c8a070',.6)}}}}
     // giro: o mesmo do herói (lâmina girando e o desenho seguindo); bate em volta a cada tick
     const G=e.mec.rodando;if(G){G.t-=dt;if(e.canal)e.canal.ang+=dt*14;G.tk-=dt;
      if(G.tk<=0){G.tk=G.tick;if(window.playGameSound)playGameSound('giroChefe',.6);if(p.dead<=0&&dist(p,e)<=G.r+6)hurtP(Math.max(1,Math.round(mhp()*G.pct)),false,null,null,e);if(Math.random()<.5)poeira(e.x,e.y,4,.4)}
@@ -162,6 +164,9 @@
  const POEIRA=[];
  function poeira(x,y,n,forca){for(let k=0;k<n;k++){const a=Math.random()*6.283,v=(20+Math.random()*50)*forca;POEIRA.push({x:x+Math.cos(a)*6,y:y+Math.sin(a)*3,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.5,z:0,vz:(40+Math.random()*70)*forca,t:0,vida:.6+Math.random()*.5,cor:['#7d6a52','#5a4a3a','#a08a6e','#8e8898'][k%4],tam:Math.random()<.3?2:1})}}
  function atualizarPoeira(dt){for(let i=POEIRA.length;i--;){const q=POEIRA[i];q.t+=dt;q.vz-=220*dt;q.z=Math.max(0,q.z+q.vz*dt);q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.96;q.vy*=.96;if(q.t>=q.vida)POEIRA.splice(i,1)}}
+ /* o machado que o Chefe Glooc arremessa: o mesmo desenho do machado dele (item machado_chefe_glooc do projeto) */
+ let MACHADO_VOO;
+ function machadoVoando(){if(MACHADO_VOO!==undefined)return MACHADO_VOO;MACHADO_VOO=null;try{const it=(window.PROJETO&&PROJETO.dados&&PROJETO.dados.items||[]).find(i=>i.id==='machado_chefe_glooc'),s=it&&(it.sprite||it.equippedSprite);if(s&&typeof pixelArt=='function')MACHADO_VOO=pixelArt(s)}catch(e){}return MACHADO_VOO}
  /* ---- desenho no chão (ilha e DG chamam antes das entidades) ---- */
  window.desenharTelegrafos=function(){
   const tt=time;
@@ -181,8 +186,8 @@
   for(const c of CAVEIRAS){c.rastro.forEach((r,i)=>{ctx.globalAlpha=(i+1)/c.rastro.length*.7;ctx.fillStyle=i%2?'#ffb02a':'#ff5a1a';ctx.fillRect(Math.round(r.x)-1,Math.round(r.y)-1,3,3)});ctx.globalAlpha=1;
    ctx.drawImage(CAVEIRA_ARTE,Math.round(c.x)-3,Math.round(c.y)-3)}
   // machado do Chefe Glooc voando até a área, girando (some no impacto)
-  for(const tg of TG){if(!tg.machado||tg.t<0)continue;const f=Math.min(1,tg.t/tg.maxT),M=tg.machado,x=M.x0+(tg.x-M.x0)*f,y=M.y0+(tg.y-M.y0)*f-Math.sin(Math.PI*f)*26,img=window.ITEMS&&ITEMS.machado_chefe_glooc&&ITEMS.machado_chefe_glooc.c;
-   ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.rotate(tt*18);if(img)ctx.drawImage(img,-img.width/2,-img.height/2);else{ctx.fillStyle='#cfd6de';ctx.fillRect(-4,-4,8,8)}ctx.restore()}
+  for(const tg of TG){if(!tg.machado||tg.t<0)continue;const f=Math.min(1,tg.t/tg.maxT),M=tg.machado,x=M.x0+(tg.x-M.x0)*f,y=M.y0+(tg.y-M.y0)*f-Math.sin(Math.PI*f)*26,img=machadoVoando();
+   ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.rotate(tt*18);if(img){const q=img.q||1,w=img.width/q,h=img.height/q;ctx.drawImage(img,-w/2,-h/2,w,h)}else{ctx.fillStyle='#cfd6de';ctx.fillRect(-4,-4,8,8)}ctx.restore()}
   for(const tg of TG){if(tg.t<0)continue;const f=Math.max(0,Math.min(1,tg.t/tg.maxT)),forte=f>.8?.5+.5*Math.sin(tt*30):0;
    ctx.save();ctx.lineWidth=1.5;
    const cor=tg.type==='ring'?'239,68,68':tg.type==='rect'?'249,115,22':'239,68,68';

@@ -422,7 +422,7 @@ window.placeBlacksmith=placeBlacksmith;
 function showBlacksmithDialogue(){
  const box=$('dialogue');
  box.classList.remove('dgModal');
- box.innerHTML='<b>Ferreiro</b><p>Saudações, herói! Graças ao seu resgate na DG dos Goblins, estou são e salvo aqui no acampamento com meu irmão carpinteiro. Minha forja e bigorna já estão prontas! Em breve poderei forjar e aprimorar equipamentos lendários para suas aventuras.</p><button type="button" data-close-dialog>Excelente!</button>';
+ box.innerHTML='<b>Ferreiro</b><p>Saudações, herói! Graças ao seu resgate na DG dos Goblins, estou são e salvo aqui no acampamento. Minha forja e bigorna estão prontas: traga dois equipamentos iguais e eu fundo os dois num só. Pode sair melhor ou pior, e quanto mais eu forjar, melhor fico'+(window.FORJA?' (estou no nível '+FORJA.nivel+', com '+FORJA.forjados+' itens forjados)':'')+'.</p><button type="button" data-open-forja>Abrir a forja</button> <button type="button" data-close-dialog>Fechar</button>';
  box.classList.add('open')
 }
 window.showBlacksmithDialogue=showBlacksmithDialogue;
@@ -474,6 +474,7 @@ document.addEventListener('click',e=>{
   $('dialogue').classList.remove('open');
   showDungeonMenu();
  }
+ else if(button.hasAttribute('data-open-forja')){if(window.FORJA)FORJA.abrir()}
  else if(button.hasAttribute('data-rescue-blacksmith')){
   if(window.rescueBlacksmithFromDungeon)rescueBlacksmithFromDungeon();
   $('dialogue').classList.remove('open');
@@ -507,7 +508,7 @@ function darKit(c,{salvar=true}={}){
  const antes=p.kits[c],dados=Array.isArray(antes)?antes:antes?kit.map(r=>r.id).filter(id=>id!=='arma_escudo'):[]; /* save antigo (true): já tinha tudo, menos o escudo que entrou depois */
  const novos=kit.filter(r=>ITEMS[r.id]&&!dados.includes(r.id));p.kits[c]=[...new Set([...dados,...kit.map(r=>r.id)])];if(!novos.length)return false;
  for(const r of novos){const t=gearType[r.id];
-  if(!t){addItem(r.id,undefined,r.n);continue}
+  if(!t){kitItem(r.id,r.n);continue} // poções do kit já no acesso rápido (js/state.js)
   for(let k=0;k<r.n;k++){let sl=t=='ri'?(!EQ.r1?'r1':!EQ.r2?'r2':null):t;const th=EQ.sw&&ITEMS[EQ.sw.id].th;if(sl=='sw'&&EQ.sw&&!ITEMS[r.id].th&&!EQ.sh&&!th)sl='sh'; // segunda arma (escudo) vai para a mão 2
    if(sl&&!EQ[sl]&&!(sl=='sh'&&th)&&!(sl=='sw'&&ITEMS[r.id].th&&EQ.sh))EQ[sl]={id:r.id,n:1,q:50};else addItem(r.id,50)}}
  dirtyInv=true;if(window.setPortrait)setPortrait();ft(p.x,p.y-30,'Kit inicial: '+CL[c].n,'#ffd84a');if(salvar)saveGame();return true}
@@ -535,7 +536,7 @@ window.tickDash=dt=>{const d=p.dash;if(!d)return;if(p.dead>0){p.dash=null;return
  if(d.rastro&&window.VFX&&(d.g=(d.g||0)+dt)>=.02){d.g=0;const f=face(p);VFX.fantasma(heroImg(f.d),p.x,p.y,f.fl,d.dir)}
  if(k>=1){p.dash=null;d.fim()}};
 function cast(s){if(p.canal&&p.canal.id&&p.canal.id===s.id){p.canal=null;ft(p.x,p.y-24,'Cancelado','#ccc');return} // apertar de novo cancela o canal
- if(p.dead>0||s.t>0||!s.f||p.mp<s.mana)return;if(p.conj||p.canal||p.dash||p.beber){ft(p.x,p.y-24,'Ocupado: uma habilidade de cada vez','#ccc');return} /* uma coisa de cada vez (pedido do usuário) */if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const maos=s.weaponSlot?[s.weaponSlot]:['sw','sh'],armaOk=maos.some(sl=>EQ[sl]&&skillWeaponAllowed(s,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(s,null);if(!armaOk){ft(p.x,p.y-24,'Precisa de: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}const lim=typeof s.alcance=='function'?s.alcance():200;if(dist(p,t)-(s.alcance&&typeof targetReach=='function'?targetReach(t):0)>lim){ft(p.x,p.y-24,'Longe demais','#ccc');return}if(!linhaLivre(p,t)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{if(s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=w.x-p.x;p.fy=w.y-p.y}
+ if(p.dead>0||s.t>0||!s.f||p.mp<s.mana)return;if(window.comMedo&&comMedo(p)){ft(p.x,p.y-24,'Com medo!','#c084fc');return}if(p.conj||p.canal||p.dash||p.beber){ft(p.x,p.y-24,'Ocupado: uma habilidade de cada vez','#ccc');return} /* uma coisa de cada vez (pedido do usuário) */if(s.lock){ft(p.x,p.y-24,'Libera no rank '+s.lock,'#ccc');return}const maos=s.weaponSlot?[s.weaponSlot]:['sw','sh'],armaOk=maos.some(sl=>EQ[sl]&&skillWeaponAllowed(s,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(s,null);if(!armaOk){ft(p.x,p.y-24,'Precisa de: '+s.wt.join(' / '),'#ccc');return}const w=wpos();let t=null;if(s.f.tg){t=pick(w);if(!t&&p.tgt&&p.tgt.hp>0)t=p.tgt;if(!t){let b=60;en.forEach(e=>{const k=dist(e,w);if(e.hp>0&&k<b){b=k;t=e}})}if(!t){ft(p.x,p.y-24,'Sem alvo','#ccc');return}const lim=typeof s.alcance=='function'?s.alcance():200;if(dist(p,t)-(s.alcance&&typeof targetReach=='function'?targetReach(t):0)>lim){ft(p.x,p.y-24,'Longe demais','#ccc');return}if(!linhaLivre(p,t)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=t.x-p.x;p.fy=t.y-p.y}else{if(s.f.mira&&!linhaLivre(p,w)){ft(p.x,p.y-24,'Parede no caminho','#ccc');return}p.fx=w.x-p.x;p.fy=w.y-p.y}
  // com tempo de conjuração o jogador para e a habilidade sai no fim da barra (update.js); andar cancela
  const ct=tempoConj(s);if(ct>0){p.conj={s,w,t,total:ct,r:ct,volta:p.tgt&&p.tgt.hp>0?p.tgt:null};p.dest=null;p.path=[];p.tgt=null;return}
  lancar(s,w,t)}

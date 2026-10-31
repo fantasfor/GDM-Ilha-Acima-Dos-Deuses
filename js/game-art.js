@@ -13,7 +13,7 @@
   const custom=!original&&canvasFor(gameArtData(id));if(custom)return custom;
   if(!defaults.has(id)){
    const canvas=mkCanvas(entry.w,entry.h),g=canvas.getContext('2d');
-   g.imageSmoothingEnabled=false;entry.draw(g);defaults.set(id,canvas);
+   g.imageSmoothingEnabled=false;entry.draw(g);defaults.set(id,window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(canvas):canvas); // na paleta do jogo (2026-10-30)
   }
   return defaults.get(id);
  };

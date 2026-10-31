@@ -11,7 +11,7 @@
  const ACOES=[
   ['Habilidades',[['hab1','Habilidade 1','KeyQ'],['hab2','Habilidade 2','KeyW'],['hab3','Habilidade 3','KeyE'],['hab4','Habilidade 4','KeyR'],['hab5','Habilidade 5','KeyT'],['hab6','Habilidade 6','KeyY'],['hab7','Ataque básico 1','KeyZ'],['hab8','Ataque básico 2','KeyX']]],
   ['Itens',[['item1','Atalho de item 1','Digit1'],['item2','Atalho de item 2','Digit2'],['item3','Atalho de item 3','Digit3'],['item4','Atalho de item 4','Digit4'],['item5','Atalho de item 5','Digit5'],['item6','Atalho de item 6','Digit6'],['pegar','Aceitar item encontrado','Space']]],
-  ['Janelas',[['mochila','Mochila','KeyI'],['painel_hab','Habilidades','KeyK'],['enciclopedia','Enciclopédia','KeyJ'],['jogadores','Jogadores e amigos','KeyP']]],
+  ['Janelas',[['mochila','Mochila','KeyI'],['painel_hab','Habilidades','KeyK'],['enciclopedia','Enciclopédia','KeyJ'],['classes','Classes','KeyL'],['jogadores','Jogadores e amigos','KeyP']]],
   ['Online',[['chat','Abrir o chat','Enter'],['falar','Apertar para falar (voz)','KeyV']]],
   ['Câmera',[['zoom_mais','Aproximar','Equal'],['zoom_menos','Afastar','Minus']]]
  ];

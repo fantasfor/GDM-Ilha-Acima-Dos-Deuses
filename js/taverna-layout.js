@@ -20,7 +20,7 @@
   barris:[[462,92],[462,112],[450,102],[26,300]].map(([x,y])=>({x:OX+x,y:OY+y})),
   // o desenho do pacote ficava 2 px mais alto que o dos elementos de mapa: +2 no y mantém o mesmo lugar
   decor:ELEM.map(([id,x,y])=>({type:'px:'+id,x:PX+x,y:PY+y+2})),
-  npcs:{lanceiro:{x:OX+232,y:OY+102},bardo:{x:OX+380,y:OY+262},tambor:{x:OX+428,y:OY+252},barman:{x:PX+360,y:PY+54}},
+  npcs:{lanceiro:{x:OX+232,y:OY+102},bardo:{x:OX+380,y:OY+262},tambor:{x:OX+428,y:OY+252},barman:{x:PX+360,y:PY+54},viajante:{x:PX+96,y:PY+100}},
   mestres:[[36,118],[36,170],[36,220],[292,100],[160,206],[300,240],[36,270],[150,300],[300,296]].map(([x,y])=>({x:OX+x,y:OY+y})),
   quadro:{x:OX+314,y:OY+40},lareira:{x:OX+414,y:OY+44},palco:{x0:OX+330,y0:OY+216,x1:OX+TW-12,y1:OY+290}};
  const clone=o=>JSON.parse(JSON.stringify(o));

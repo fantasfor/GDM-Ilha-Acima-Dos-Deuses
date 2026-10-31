@@ -13,6 +13,7 @@
  const mix=(a,b,k)=>{const x=hex(a),y=hex(b);return'#'+x.map((v,i)=>Math.round(v+(y[i]-v)*k).toString(16).padStart(2,'0')).join('')};
  const ACHATA=.8; // vista de cima em 3/4: círculos no chão ficam um pouco achatados
  /* espiral de tontura: dois braços girando, achatados como um halo em cima da cabeça */
+ const MEDO_ICONE=['..KKKKK..','.KLLLLLK.','KLKLLLKLK','KLKLLLKLK','KLLLLLLLK','KLLKLKLLK','KLKLKLKLK','.KLLLLLK.','..KKKKK..'],MEDO_COR={K:'#2a1438',L:'#ece2ff'};
  function espiral(g,x,y,rot){x=Math.round(x);y=Math.round(y);const feitos=new Set();
   for(const braco of [0])for(let i=0;i<=26;i++){const a=rot+braco+i*.38,r=.6+i*.24,X=Math.round(x+Math.cos(a)*r*1.3),Y=Math.round(y+Math.sin(a)*r*.55),k=X+','+Y;if(feitos.has(k))continue;feitos.add(k);
    px(g,X,Y,i<6?'#ffffff':i<14?'#ffe66b':'#f0a020',i>18?.6:1)}
@@ -146,6 +147,11 @@
    const altura=t=>t===p?(typeof heroImg=='function'?wh(heroImg('d')):26):typeof wh=='function'?wh(t.img):20;
    if(typeof p!=='undefined'&&tonto(p))espiral(g,p.x,p.y-altura(p)+5,rot);
    if(typeof en!=='undefined')for(const e of en)if(tonto(e))espiral(g,e.x,e.y-altura(e)+5,rot);
+   // medo (grito do Chefe Glooc): carinha assustada tremendo em cima da cabeça do herói, com a gota de suor
+   if(typeof p!=='undefined'&&p.hp>0&&window.comMedo&&comMedo(p)){const ag=performance.now()/1000,tx=Math.round(p.x)-4+(Math.floor(ag*14)%2?1:0),ty=Math.round(p.y-altura(p)-17+Math.sin(ag*6)); /* acima da barra de vida */
+    MEDO_ICONE.forEach((l,j)=>{for(let i=0;i<l.length;i++){const c=MEDO_COR[l[i]];if(c)px(g,tx+i,ty+j,c,1)}});
+    const gq=(ag*1.3)%1;px(g,tx+10,ty+1+Math.round(gq*4),'#6ab4ff',1-gq);px(g,tx+10,ty+Math.round(gq*4),'#cfe8ff',(1-gq)*.8);
+    if(Math.floor(ag*8)%2){px(g,tx-2,ty+3,'#c084fc',.8);px(g,tx-2,ty+5,'#c084fc',.8);px(g,tx+10,ty+6,'#c084fc',.8)}}
    // área do canal no mouse (Chuva de meteoros): círculo contínuo pulsando no chão enquanto dura
    if(typeof p!=='undefined'&&p.canal&&p.canal.area){const a=p.canal.area,pul=.5+.5*Math.sin(performance.now()/1000*5),n=Math.max(32,Math.round(a.r*4));
     // linha contínua e brilho por dentro (mais forte na borda)

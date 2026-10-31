@@ -59,7 +59,9 @@
  /* ---- arte: fundo (piso, paredes, tapete, balcão, palco) desenhado uma vez ---- */
  const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
  const hsh=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296};
- function desenharFundo(soParedes){
+  /* fundo da cena na paleta do jogo (2026-10-30) */
+ function desenharFundo(...a){const c=desenharFundoBruto(...a);return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c}
+ function desenharFundoBruto(soParedes){
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const g=c.getContext('2d');
   // piso de tábuas corridas: fileiras de 6 px com tábuas compridas de tamanhos variados
   for(let y=0,row=0;y<TH;y+=6,row++){let x=-((hsh(row,7)*40)|0);while(x<TW){
@@ -254,6 +256,7 @@
    const barW=28,t=1/S,bx=Math.round(p.x-barW/2),by=Math.round(p.y-25-ACIMA_HEROI()),hr=Math.max(0,Math.min(1,p.hp/mhp())),mr=Math.max(0,Math.min(1,p.mp/mmp()));
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
   if(window.BAR)BAR.objetos(L);
+  if(window.VIAJANTE)VIAJANTE.objetos(L); // o Viajante (js/viajante.js)
   if(window.onlineDrawables)onlineDrawables(L);
   L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
   notasMusicais();
@@ -325,6 +328,7 @@
     if(tipo==='tambor')return pintar(48,60,-24,-50,()=>musico({x:0,y:0,fx:0,fy:1},'tambor'));
     if(tipo==='lanceiro')return boneco(spriteLanceiro('d'));
     if(tipo==='barman')return boneco((HS.sty||HS.war).d);
+    if(tipo==='viajante')return pintar(64,90,-32,-78,()=>window.VIAJANTE&&VIAJANTE.desenhar(0,0,1.2));
     if(tipo==='mestre'){const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n),c=CL[ids[o|0]];return boneco(c?c.sprite||(HS[c.base||ids[o|0]]||HS.war).d:(HS.war).d)}
     return null},
    // nome da classe de cada lugar de mestre (na ordem do jogo)
@@ -368,6 +372,7 @@
  window.tavernaClick=(w,mode)=>{
   if(window.BAR&&BAR.click(w,mode))return true;
   mestreAlvo=null;lanceiroAlvo=false;quadroAlvo=false;
+  if(window.VIAJANTE&&VIAJANTE.click(w,mode))return true;
   if(Math.hypot(w.x-DOOR.x,w.y-(DOOR.y-4))<16){if(dist(p,DOOR)<34)sair();else setDest(DOOR.x,DOOR.y-12);return true}
   if(taverneiraEm(w)&&mode!=2){chamarTaverneira();return true}
   if(quadroEm(w)&&mode!=2){if(pertoDoQuadro())abrirQuadro();else{quadroAlvo=true;setDest(QUADRO.x,QUADRO.y+24)}return true}
@@ -536,6 +541,7 @@
  // a porta também funciona ao chegar nela andando
  const upd0=upd;upd=function(dt){upd0(dt);
   if(quadroAberto()&&(!window.inTaverna||Math.hypot(p.x-QUADRO.x,p.y-(QUADRO.y+22))>90))fecharQuadro(); // afastou-se ou saiu
+  if(window.VIAJANTE)VIAJANTE.atualizar(dt);
   if(!window.inTaverna)return;
   andarTaverneira(dt);if(window.BAR)BAR.atualizar(dt);
   for(const m of MESTRES){if(dist(p,m)<70){m.fx=p.x-m.x;m.fy=p.y-m.y}else{m.fx=0;m.fy=1}}

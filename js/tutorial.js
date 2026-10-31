@@ -80,7 +80,9 @@
   if(k<.35&&x%7===0&&hsh(x,1)<.35&&y%2===0)return'#4a7a32'; // raízes e trepadeiras penduradas
   const band=(((y+((hsh((x/9)|0,2)*4)|0))/5)|0)%3,esc=k>.55;
   return esc?['#564a3e','#4d4237','#433a30'][band]:['#7d6d5c','#6f604f','#625445'][band]}
- function desenharFundo(){
+  /* fundo da cena na paleta do jogo (2026-10-30) */
+ function desenharFundo(...a){const c=desenharFundoBruto(...a);return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c}
+ function desenharFundoBruto(){
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const g=c.getContext('2d'),im=g.createImageData(TW,TH),d=im.data;
   const put=(x,y,h)=>{const q=rgb(h),i=(y*TW+x)*4;d[i]=q[0];d[i+1]=q[1];d[i+2]=q[2];d[i+3]=255};
   for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const wx=x+OX,wy=y+OY,e=elip(wx,wy);

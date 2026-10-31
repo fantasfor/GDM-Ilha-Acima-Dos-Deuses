@@ -19,6 +19,9 @@
   const sx=Math.max(0,ox),sy=Math.max(0,oy),ex=Math.min(W,p.x+R),ey=Math.min(W,p.y+R);
   if(ex>sx&&ey>sy)mm.drawImage(map,sx,sy,ex-sx,ey-sy,(sx-ox)*k,(sy-oy)*k,(ex-sx)*k,(ey-sy)*k);
   const at=(x,y)=>[(x-ox)*k,(y-oy)*k],inside=([x,y])=>x>=0&&y>=0&&x<SZ&&y<SZ;
+  // árvores (verde-escuro) e decorações do mapa (pedras, arbustos, troncos... em bege) com cor própria, para saber onde estão
+  if(typeof trees!='undefined')for(const tr of trees){if(Math.abs(tr.x-p.x)>R||Math.abs(tr.y-p.y)>R)continue;const x=Math.round((tr.x-ox)*k),y=Math.round((tr.y-oy)*k);mm.fillStyle='#0f2e16';mm.fillRect(x-2,y-2,4,4);mm.fillStyle='#2f8a3e';mm.fillRect(x-1,y-2,2,3)}
+  if(typeof mapElements!='undefined')for(const el of mapElements){if(Math.abs(el.x-p.x)>R||Math.abs(el.y-p.y)>R)continue;const x=Math.round((el.x-ox)*k),y=Math.round((el.y-oy)*k);mm.fillStyle='#2a2018';mm.fillRect(x-1,y-1,3,3);mm.fillStyle='#d8c39a';mm.fillRect(x,y,1,1)}
   if(wallBuilt){mm.strokeStyle='#0a0806';mm.lineWidth=3;const path=()=>{mm.beginPath();for(let i=0;i<=campWallPosts.length;i++){const q=campWallPosts[i%campWallPosts.length],[x,y]=at(q.x,q.y);if(!i||dist(q,campWallPosts[i-1])>20)mm.moveTo(x,y);else mm.lineTo(x,y)}mm.stroke()};path();mm.strokeStyle='#c99a5e';mm.lineWidth=1.5;path();
    const [gx,gy]=at(campGate.x,campGate.y);px(mm,gx-3,gy-2,6,4,CAMP_WALL.gateOpen?'#87dd71':'#e8b654')}
   // acampamento (tenda) e portal

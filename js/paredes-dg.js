@@ -152,7 +152,13 @@
   const quadros=[0,1,2,3].map(f=>({...data,palette:data.palette.map((c,i)=>{const v=P.cores[nomes[i]];return v?v[f]:c})}));
   return {...data,anim:{idle:quadros,durations:{idle:P.ciclo}}};
  }
- function face(estilo){
+ // na paleta do jogo (2026-10-30, pedido do usuário): o desenho convertido uma vez e guardado
+ const naPaleta=d=>root.PALETA_JOGO?root.PALETA_JOGO.dadosNaPaleta(d):d,memoPal=new Map(),guardado=(k,fn)=>{if(!memoPal.has(k))memoPal.set(k,naPaleta(fn()));return memoPal.get(k)};
+ function face(estilo){return guardado('face:'+estilo,()=>faceBruta(estilo))}
+ function borda(estilo){return guardado('borda:'+estilo,()=>bordaBruta(estilo))}
+ function escada(){return guardado('escada',escadaBruta)}
+ function assoalho(){return guardado('assoalho',assoalhoBruto)}
+ function faceBruta(estilo){
   if(!ESTILOS[estilo])estilo='floresta';
   const k='f'+estilo;if(cache[k])return cache[k];
   const E=ESTILOS[estilo],c=E.face,g=grade(64,32,c);
@@ -198,7 +204,7 @@
   if(!E.semViga)viga(g);
   return cache[k]=animar(g.data(),estilo);
  }
- function borda(estilo){
+ function bordaBruta(estilo){
   if(!ESTILOS[estilo])estilo='floresta';
   const k='b'+estilo;if(cache[k])return cache[k];
   const c=ESTILOS[estilo].borda,g=grade(16,16,c);
@@ -208,7 +214,7 @@
   return cache[k]=g.data();
  }
  // escada de madeira subindo para dentro da parede: degraus mais escuros lá em cima
- function escada(){
+ function escadaBruta(){
   if(cache.escada)return cache.escada;
   const W=28,H=44,c={vazio:'',fundo:'#140d07',poste:'#3a2414',posteL:'#5e3c20'};
   const tons=[['#c48c52','#9c6a3a','#7a5030'],['#ae7a46','#8a5c32','#6a4428'],['#966840','#764e2c','#5a3a22'],['#7a5434','#5e4026','#4a301c'],['#5c3e26','#48301c','#3a2616']];
@@ -225,7 +231,7 @@
   return cache.escada=g.data();
  }
  // assoalho de tábuas corridas (como o chão da imagem), claro, 32×32 com emendas desencontradas e pregos
- function assoalho(){
+ function assoalhoBruto(){
   if(cache.assoalho)return cache.assoalho;
   const g=grade(32,32,{tabua:'#a8764a',luz:'#bd8a58',veio:'#93643c',fresta:'#5a381e',sombra:'#7e5432',prego:'#3e2614'});
   g.r(0,0,32,32,'tabua');

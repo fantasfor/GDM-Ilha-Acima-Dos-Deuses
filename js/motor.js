@@ -115,7 +115,11 @@
     const pega=o.pega!=null&&o.pega!==''?Math.max(0,Math.min(1,+o.pega/100)):base&&base.pega!=null?base.pega:.7;
     // o.engate {x,y}: pixel de engate em pixels do desenho (js/sprites.js engateArma); sem ele, a pega
     const k=art.width/(data.w||art.width),engate=o.engate&&Number.isFinite(+o.engate.x)?{x:+o.engate.x*k,y:+o.engate.y*k}:null;
-    E.sw={...(base||{v:{c:['#9aa7b8','#7a4a25'],st:0}}),equippedSprite:art,equippedSprites:null,equippedAnim:null,escalaMao:2,pega,ataque,engate}}
+    // o.dir: desenho de uma posição (d frente, u costas, s lados) na mão; sem ele, o desenho principal (ícone/empunhada) e as
+    // posições próprias que o item já tem (ex.: de costas o escudo mostra o desenho de costas)
+    const prop={...(base&&base.equippedSprites||{})};
+    E.sw={...(base||{v:{c:['#9aa7b8','#7a4a25'],st:0}}),equippedAnim:null,escalaMao:2,pega,ataque,engate:engate||(o.dir&&base?base.engate:null),
+     ...(o.dir?{equippedSprites:{...prop,[o.dir]:art}}:{equippedSprite:art,equippedSprites:prop})}}
    else{const slot=o.slot||'ch';E[slot]={...(base||{v:{c:['#9aa7b8','#9aa7b8'],st:0}}),equippedAnim:null,equippedSprites:{...(base&&base.equippedSprites||{}),[o.dir||'d']:art}}}
    return human('war',dir||'d',0,E)},
   aparenciaPadrao:()=>({estilos:APARENCIA.ESTILOS,cores:APARENCIA.CORES,ref:APARENCIA.REF}),
@@ -135,7 +139,7 @@
    const arts=[],add=(group,id,c,name,extra={})=>{if(c)arts.push({path:group+'/'+safe(id),name:name||id,canvas:c,...extra})};
    for(const [id,it] of Object.entries(ITEMS)){
     const name=it.n.split(' (')[0];
-    add('itens',id,it.c,name);add('itens-chao',id,it.itemSprite||it.c,name+' — no chão');
+    add('itens',id,it.c,name);/* no chão = o próprio ícone (o desenho "no chão" saiu, 2026-10-30) */
     for(const [dir,c] of Object.entries(it.equippedSprites||{}))add('equipados',id+'-'+dir,c,name+' — '+({d:'frente',u:'costas',s:'lados'}[dir]||dir));
     if(gearType[id]=='sw'){const d=GAMEDATA.items.find(d=>d.id==id);if(d)add('armas-equipadas',id,it.equippedSprite||defaultEquippedWeapon(d),d.name)}
    }

@@ -108,10 +108,23 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .eqslot.q0,.eqslot.q1,.eqslot.q2,.eqslot.q3,.eqslot.q4,.eqslot.q5,.islot.q0,.islot.q1,.islot.q2,.islot.q3,.islot.q4,.islot.q5{border-color:#0d0d0d!important;outline-width:2px}
 .eqslot.q0,.islot.q0{outline-color:#595959}.eqslot.q1,.islot.q1{outline-color:#d9d0c7}.eqslot.q2,.islot.q2{outline-color:#3fbf4f}.eqslot.q3,.islot.q3{outline-color:#3f8ae8}.eqslot.q4,.islot.q4{outline-color:#b04fe8}.eqslot.q5,.islot.q5{outline-color:#a69c94}
 #invToolbar{margin:0}
-#invCategories{display:grid;grid-template-columns:repeat(11,1fr);gap:3px;overflow:visible!important}
-.invCategory{width:auto!important;height:32px!important;border:2px solid #0d0d0d!important;outline:1px solid var(--line2);outline-offset:-3px}
-.invCategory img{width:20px!important;height:20px!important}
-.invCategory.active{outline-color:#d9d0c7;background:#262626!important}
+/* filtros da mochila e do baú (2026-10-31): ícone 16×16 a 2× exatos (32 px) no meio de um botão de 36 px, todos numa
+   fileira. Fora da categoria escolhida o ícone fica cinza; passando o mouse ou escolhido, colorido. No canto, quantos
+   itens há; categoria sem item fica apagada */
+#invCategories,.biFiltros{display:grid;grid-template-columns:repeat(11,36px);justify-content:space-between;gap:2px;overflow:visible}
+.invCategory{position:relative;display:grid;place-items:center;width:36px;height:36px;padding:0;margin:0;background:#0d0d0d;border:2px solid #0d0d0d;outline:1px solid #3a3a3a;outline-offset:-3px;box-shadow:none;cursor:pointer}
+.invCategory img{display:block;width:32px;height:32px;image-rendering:pixelated;filter:saturate(.3) brightness(.8);transition:filter .12s,transform .12s}
+.invCategory:hover{outline-color:#a69c94}
+.invCategory:hover img,.invCategory.active img{filter:none}
+.invCategory:hover img{transform:translateY(-1px)}
+.invCategory.active{background:#262626;outline:1px solid #e7cb88}
+.invCategory.vazia img{opacity:.35}
+.invCategory:focus-visible{outline:2px solid #d9d0c7;outline-offset:-2px}
+.invCategory .invCatN{position:absolute;right:0;bottom:0;padding:1px 1px 0 2px;background:#0d0d0d;font:bold 8px/1 monospace;color:#a69c94!important;pointer-events:none}
+.invCategory .invCatN:empty{display:none}
+.invCategory.active .invCatN,.invCategory:hover .invCatN{color:#e7cb88!important}
+.biFiltros{justify-content:start;gap:4px;margin:0 0 10px}
+#bauIlha .biSlot.fora{opacity:.25;filter:grayscale(1)}
 #inv{display:grid!important;grid-template-columns:repeat(8,1fr);gap:4px;flex:1 1 auto;min-height:140px;max-height:none;overflow:auto;align-content:start;padding:6px;background:#0d0d0d;border:2px solid #0d0d0d;outline:1px solid var(--line2);outline-offset:-3px;scrollbar-color:#595959 #0d0d0d}
 .islot{position:relative;aspect-ratio:1;min-width:0;padding:0;background:#0d0d0d;border:2px solid #0d0d0d;outline:1px solid #262626;outline-offset:-3px;box-shadow:none;cursor:pointer}
 .islot img{position:absolute;inset:5px;width:calc(100% - 10px);height:calc(100% - 10px);object-fit:contain;image-rendering:pixelated}
@@ -139,7 +152,13 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 #invMenu button.danger{color:#f0b5a8}
 #invMenu button.danger[data-ok]{background:#52201a;color:#d9d0c7}
 #invMenu .imNote{font:10px monospace;color:var(--muted);padding:2px}
-@media(max-width:520px){#inv{grid-template-columns:repeat(6,1fr)}#invCategories{grid-template-columns:repeat(6,1fr)}.eqslot{width:38px;height:38px}.eqslot img{width:28px;height:28px}.dmid{width:84px}}
+/* "Pôr no acesso rápido": os 6 espaços lado a lado; o ocupado mostra o item que já está lá */
+#invMenu .imRapido{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
+#invMenu .imRapido button{position:relative;display:grid;place-items:center;height:28px;padding:0;text-align:center}
+#invMenu .imRapido img{width:16px;height:16px;image-rendering:pixelated;opacity:.55}
+#invMenu .imRapido kbd{position:absolute;left:2px;top:1px;font:bold 9px monospace;color:#e7cb88}
+#invMenu .imRapido button:hover{outline-color:#e7cb88}
+@media(max-width:520px){#inv{grid-template-columns:repeat(6,1fr)}#invCategories,.biFiltros{grid-template-columns:repeat(6,36px);row-gap:4px}.eqslot{width:38px;height:38px}.eqslot img{width:28px;height:28px}.dmid{width:84px}}
 
 /* ----- Menu do portal (DGs) ----- */
 #dialogue.dgModal{width:min(820px,calc(100vw - 20px));max-height:min(88vh,640px);padding:14px!important;overflow:hidden;display:none;border:2px solid #0d0d0d;outline:2px solid var(--line);outline-offset:-6px;background:#0d0d0dfa;box-shadow:none}
@@ -237,8 +256,7 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .qslot img{margin:0}
 .islot img{inset:auto!important;left:50%!important;top:50%!important;width:32px!important;height:32px!important;transform:translate(-50%,-50%)}
 .cx-head img{width:32px!important;height:32px!important;padding:0!important;box-sizing:content-box}
-.cx-drop img,.tavItem img,.invCategory img,#invMenu .imHead img,.dgm-drop img{width:32px!important;height:32px!important;image-rendering:pixelated;flex:none}
-.invCategory{height:40px!important;min-width:40px}
+.cx-drop img,.tavItem img,#invMenu .imHead img,.dgm-drop img{width:32px!important;height:32px!important;image-rendering:pixelated;flex:none}
 .dgm-drop{width:40px!important;height:40px!important}
 .fxi{width:36px;height:36px}.fxi img{margin:0}
 .sk{background-size:48px 48px!important;background-position:center!important;background-repeat:no-repeat!important}.sk.bs{background-size:28px 28px!important}

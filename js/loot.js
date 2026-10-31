@@ -13,13 +13,16 @@
  const corDe=q=>q==null?COR_SEM:QCOL[qi(q)];
  // lugar atual: se o jogador mudar de mapa antes do item chegar, ele vai direto para os encontrados
  const lugar=()=>(window.inTutorial?'u':window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
- // no chão: o desenho próprio do item (Engine › Item no chão) ou o ícone reduzido a 8×8, sempre em tamanho real (1 pixel = 1 pixel do mundo)
- function imagem(id){
-  const it=ITEMS[id];if(!it)return null;
-  if(it.itemSprite)return it.itemSprite;
-  if(!imgs.has(id))imgs.set(id,it.c&&it.c.getContext?reduzirArte(it.c,8,8):null);
-  return imgs.get(id);
+ /* no chão (2026-10-30, pedido do usuário): o próprio ícone do item em tamanho real (1 pixel = 1 pixel do mundo), sem quadro de
+    fundo; a raridade é um contorno de 1 px na cor dela em volta do desenho. Também usado nos itens que saltam dos baús (dungeon.js) */
+ function iconeNoChao(id,cor){
+  const it=ITEMS[id],c=it&&it.c;if(!c||!c.getContext)return null;const k=id+'|'+cor;if(imgs.has(k))return imgs.get(k);
+  const q=c.q||1,w=Math.round(c.width/q),h=Math.round(c.height/q),src=mkCanvas(w,h),sg=src.getContext('2d');sg.imageSmoothingEnabled=false;sg.drawImage(c,0,0,w,h);
+  const out=mkCanvas(w+2,h+2),g=out.getContext('2d'),d=sg.getImageData(0,0,w,h).data,cheio=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&d[(y*w+x)*4+3]>40;
+  g.fillStyle=cor;for(let y=-1;y<=h;y++)for(let x=-1;x<=w;x++)if(!cheio(x,y)&&(cheio(x-1,y)||cheio(x+1,y)||cheio(x,y-1)||cheio(x,y+1)))g.fillRect(x+1,y+1,1,1);
+  g.drawImage(src,1,1);imgs.set(k,out);return out;
  }
+ window.iconeNoChao=iconeNoChao;
  window.soltarItem=(id,x,y,{questReward=false,q}={})=>{
   if(!ITEMS[id])return;
   if(q===undefined)q=gearType[id]?rollQ():null;
@@ -71,16 +74,14 @@
    const cor=window.ehMissao&&ehMissao(o.id,o.questReward)?'#ffd84a':corDe(o.q),r=raridade(o.q),x=Math.round(o.x),flut=o.fase==='chao'?Math.round(Math.sin(tt*3+o.bob)*1.5):0,y=Math.round(o.y)+flut;
    // feixe de luz e sombra no chão
    if(o.fase!=='voo'){
-    ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x,Math.round(o.y)+7,5,2,0,0,7);ctx.fill();ctx.restore();
+    ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x,Math.round(o.y)+9,6,2,0,0,7);ctx.fill();ctx.restore();
     if(o.fase==='chao'&&r>=2){const h=10+r*8,pul=.5+.5*Math.sin(tt*4+o.bob),g=ctx.createLinearGradient(0,y-h,0,y+4);g.addColorStop(0,cor+'00');g.addColorStop(1,cor);ctx.save();ctx.globalAlpha=.22+.18*pul+(r-2)*.06;ctx.fillStyle=g;ctx.fillRect(x-2-(r>=4?1:0),y-h,4+(r>=4?2:0),h+4);ctx.restore()}
    }
-   ctx.save();ctx.shadowColor=cor;ctx.shadowBlur=r>=3?6:3;
-   ctx.fillStyle='#0f0d0a';ctx.fillRect(x-6,y-6,12,12);ctx.strokeStyle=cor;ctx.lineWidth=1;ctx.strokeRect(x-5.5,y-5.5,11,11);ctx.restore();
-   const im=imagem(o.id);if(im)ctx.drawImage(im,x-Math.floor(im.width/2),y-Math.floor(im.height/2));
+   const im=iconeNoChao(o.id,cor);if(im)ctx.drawImage(im,x-Math.floor(im.width/2),y-Math.floor(im.height/2));
    // item de missão: "!" dourado pulando em cima
-   if(window.ehMissao&&ehMissao(o.id,o.questReward)&&o.fase!=='voo'){const yy=y-10-Math.round(Math.abs(Math.sin(tt*5+o.bob))*3);ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('!',x+1,yy+1);ctx.fillStyle='#ffd84a';ctx.fillText('!',x,yy)}
+   if(window.ehMissao&&ehMissao(o.id,o.questReward)&&o.fase!=='voo'){const yy=y-13-Math.round(Math.abs(Math.sin(tt*5+o.bob))*3);ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText('!',x+1,yy+1);ctx.fillStyle='#ffd84a';ctx.fillText('!',x,yy)}
    // brilhos girando nas raridades épica e lendária
-   if(r>=4&&o.fase!=='voo')for(let k=0;k<(r>=5?4:2);k++){const a=tt*2+k*Math.PI*2/(r>=5?4:2);ctx.fillStyle=k%2?'#fff':cor;ctx.fillRect(Math.round(x+Math.cos(a)*9),Math.round(y+Math.sin(a)*6),1,1)}
+   if(r>=4&&o.fase!=='voo')for(let k=0;k<(r>=5?4:2);k++){const a=tt*2+k*Math.PI*2/(r>=5?4:2);ctx.fillStyle=k%2?'#fff':cor;ctx.fillRect(Math.round(x+Math.cos(a)*12),Math.round(y+Math.sin(a)*8),1,1)}
   }
  };
  window.lootNoChao=()=>itens.length; // para testes

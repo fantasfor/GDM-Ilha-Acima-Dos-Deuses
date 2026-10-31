@@ -242,18 +242,22 @@
   return DUNGEON_DOORS.some(door => !dungeonDoorOpen(door) && Math.abs(x - door.x) <= Math.max(8, Number(door.w) || 12) / 2 && Math.abs(y - door.y) <= Math.max(8, Number(door.h) || 56) / 2);
  };
 
- /* selo da arena: fecha quando o herói entra (com o chefe vivo), abre quando o chefe morre; morreu e voltou de fora: reabre */
+ /* selo da arena (2026-10-30, pedido do usuário): fica aberto (quem está fora entra à vontade) e só fecha quando o chefe começa
+    a lutar dentro da arena (golpe, mecânica ou levou dano); abre de vez quando o chefe morre e reabre se ele sair da luta
+    (vida cheia e sem perseguir ninguém). A arena pode ser redonda (r) ou quadrada (forma 'quadrado', w × h). */
+ const naArena = (S, x, y, pad = 0) => S.forma === 'quadrado' ? Math.abs(x - S.x) <= (+S.w || S.r * 2) / 2 + pad && Math.abs(y - S.y) <= (+S.h || S.r * 2) / 2 + pad : Math.hypot(x - S.x, y - S.y) < S.r + pad;
+ window.naArenaDoChefe = (x, y, pad) => !!SELO_CHEFE && naArena(SELO_CHEFE, x, y, pad);
  function updateSeloChefe(){
   const S = SELO_CHEFE; if(!S || S.aberto) return;
-  const dentro = Math.hypot(p.x - S.x, p.y - S.y) < S.r;
-  if(!S.fechado && dentro && p.dead <= 0 && !dungeonBossesDefeated()){
-   S.fechado = true; ring(S.porta.x, S.porta.y, 40, '#b07ad8', .8); ft(p.x, p.y - 34, 'A passagem se fechou!', '#c084fc');
+  const chefes = [dungeonBoss, ...dungeonBosses].filter((b, i, l) => b && b.hp > 0 && l.indexOf(b) === i && naArena(S, b.x, b.y, 30));
+  const lutando = chefes.some(b => b.aw > 0 || b.hp < monsterMaxHp(b) || (b.mec && (b.mec.salto || b.mec.rodando)) || (b.chasing && b.cd > 0));
+  if(!S.fechado && lutando && !dungeonBossesDefeated()){
+   S.fechado = true; ring(S.porta.x, S.porta.y, 40, '#b07ad8', .8); ft(S.porta.x, S.porta.y - 30, 'A arena se fechou!', '#c084fc');
    if(window.tremerDG) tremerDG(.4); if(window.playGameSound) playGameSound('portalFecha');
   } else if(S.fechado && dungeonBossesDefeated()){
    S.fechado = false; S.aberto = true; ring(S.porta.x, S.porta.y, 40, '#4ade80', .8); ft(S.porta.x, S.porta.y - 30, 'A passagem se abriu', '#4ade80');
-  } else if(S.fechado && (p.dead > 0 || Math.hypot(p.x - S.x, p.y - S.y) > S.r + 40)) S.fechado = false;
- }
- // a barreira: energia roxa correndo entre duas colunas de pedra (pixel art, animada)
+  } else if(S.fechado && (p.dead > 0 || !chefes.some(b => b.chasing || b.hp < monsterMaxHp(b)))) S.fechado = false; // o chefe largou a luta: reabre
+ } // a barreira: energia roxa correndo entre duas colunas de pedra (pixel art, animada)
  function desenharSeloChefe(){
   const S = SELO_CHEFE; if(!S || !S.fechado) return;
   const P = S.porta, vert = P.h > P.w, L = vert ? P.h : P.w, cor = ['#311339', '#4f2052', '#7a3ca8', '#b07ad8', '#d9b8ff'];
@@ -455,8 +459,8 @@
   // Itens saltando para fora com raio de luz
   items.forEach((id, idx) => {
    const it = ITEMS[id];
-   // mesmo desenho dos itens no chão (js/loot.js): próprio do item ou o ícone reduzido a 8×8, em tamanho real
-   const img = it && (it.itemSprite || (it.c && it.c.getContext ? reduzirArte(it.c, 8, 8) : null)) || null;
+   // o desenho vem na hora de desenhar: o ícone em tamanho real com o contorno da raridade (js/loot.js iconeNoChao)
+   const img = null;
    const q = gearType[id] ? Math.floor(rnd(qualityRange[0], qualityRange[1] + 1)) : null;
    const itemRarityColors = ['#9a9a9a', '#f0f0f0', '#4fd860', '#4f9af0', '#c060f0', '#ffb830'];
    const qualityIndex = q == null ? -1 : q < 20 ? 0 : q < 45 ? 1 : q < 70 ? 2 : q < 90 ? 3 : q < 100 ? 4 : 5;
@@ -673,7 +677,7 @@
 
   /* sala do chefe: a área (ou sala) em que ele foi colocado; sem área (chão pintado), um quadrado de 120 px em volta dele.
      O chefe não sai dela e só luta com quem está dentro (update.js naSalaDoChefe) */
-  const salaDoChefe = (room, mon) => room ? { x: room.x, y: room.y, w: room.w, h: room.h } : { x: mon.x - 120, y: mon.y - 120, w: 240, h: 240 };
+  const salaDoChefe = (room, mon) => { /* com arena do chefe, a sala dele é a arena inteira: dentro dela ele não larga a luta nem reseta (antes era a área da DG ou 240 px em volta) */ const S = SELO_CHEFE; if(S && naArena(S, mon.x, mon.y, 30)){ const w = S.forma === 'quadrado' ? (+S.w || S.r * 2) : S.r * 2, hh = S.forma === 'quadrado' ? (+S.h || S.r * 2) : S.r * 2; return { x: S.x - w / 2, y: S.y - hh / 2, w, h: hh }; } return room ? { x: room.x, y: room.y, w: room.w, h: room.h } : { x: mon.x - 120, y: mon.y - 120, w: 240, h: 240 }; };
   // Spawna monstros fixos configurados no editor (100% fixos sem respawn)
   const mobsList = cfg.mobs || [];
   dungeonBosses = [];
@@ -798,6 +802,7 @@
  const ANIM_DECOR = {}, TOPO_ARTE = new WeakMap();
  function tipoAnimDecor(dec){
   if(!dec.el) return null; if(dec.el in ANIM_DECOR) return ANIM_DECOR[dec.el];
+  if(window.PIXLIB && PIXLIB[dec.el] && Array.isArray(PIXLIB[dec.el].luzes)) return ANIM_DECOR[dec.el] = 'luzes'; // fogo já desenhado nos quadros: só o brilho no chão
   const nome = (dec.el + ' ' + ((window.PIXLIB && PIXLIB[dec.el] && PIXLIB[dec.el].name) || (window.PACOTE_MAPA && PACOTE_MAPA.elementos[dec.el] && PACOTE_MAPA.elementos[dec.el].name) || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return ANIM_DECOR[dec.el] = /caldeir/.test(nome) ? 'caldeirao' : /braseir|fogueir|churrasq|tocha/.test(nome) ? 'fogo' : /lampiao/.test(nome) ? 'lampiao' : /bandeir/.test(nome) ? 'bandeira' : /obsidiana/.test(nome) ? 'obsidiana' : /estalagmite/.test(nome) ? 'gota' : null;
  }
@@ -808,7 +813,7 @@
    achou: for(let y = 0; y < H; y++) for(let x = c - 2; x <= c + 2; x++) if(d[(y * W + x) * 4 + 3] > 200){ topo = y; break achou; } }catch(e){}
   TOPO_ARTE.set(arte, topo); return topo;
  }
- function animarDecoracao(g, tipo, arte, x, y, w, h){
+ function animarDecoracao(g, tipo, arte, x, y, w, h, dec){
   const q = arte.q || 1, x0 = Math.round(x), topo = Math.round(y - h + 3 + topoArte(arte) / q), fase = x * .37 + y * .11;
   const P = (px, py, cor, a = 1) => { g.globalAlpha = a; g.fillStyle = cor; g.fillRect(Math.round(px), Math.round(py), 1, 1); };
   if(tipo === 'fogo' || tipo === 'caldeirao'){
@@ -823,6 +828,7 @@
    for(let k = 0; k < 3; k++){ const f = (time * 1.4 + k * .37 + fase) % 1, bx = x0 - 3 + ((k * 5 + Math.floor(time * 1.4 + k * .37 + fase) * 3) % 7); if(f < .7){ P(bx, topo + 1, '#9ab84a', .9); if(f > .45) P(bx, topo, '#c8e070', .9); } } // bolhas
    for(let k = 0; k < 4; k++){ const f = (time * .45 + k / 4 + fase) % 1; P(x0 - 2 + Math.sin(f * 6 + k) * 3 + k, topo - 2 - f * 14, '#c8c4cc', (1 - f) * .55); } // vapor
   }
+  if(tipo === 'luzes'){ for(const [lx, ly, r = 28] of PIXLIB[dec.el].luzes){ const gx = Math.round(x - w / 2 + lx), gy = Math.round(y - h + 3 + ly), k = .17 + .05 * Math.sin(time * 9 + fase + lx) + .03 * Math.sin(time * 23 + lx), gr = g.createRadialGradient(gx, gy, 1, gx, gy, r); gr.addColorStop(0, 'rgba(255,170,70,' + k.toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,120,40,0)'); g.fillStyle = gr; g.fillRect(gx - r, gy - r, r * 2, r * 2); } }
   if(tipo === 'lampiao'){ const gr = g.createRadialGradient(x0, topo + 4, 1, x0, topo + 4, 20); gr.addColorStop(0, 'rgba(255,214,120,' + (.2 + .08 * Math.sin(time * 6 + fase)) + ')'); gr.addColorStop(1, 'rgba(255,190,90,0)'); g.fillStyle = gr; g.fillRect(x0 - 20, topo - 16, 40, 40); }
   if(tipo === 'obsidiana'){ const f = (time * .5 + fase) % 3; if(f < .35){ const py = topo + 6 + Math.floor(fase * 7) % 10, k = f < .18 ? 1 : .5; P(x0 - 1, py, '#ffffff', k); P(x0 - 2, py, '#d9b8ff', k * .7); P(x0, py, '#d9b8ff', k * .7); P(x0 - 1, py - 1, '#d9b8ff', k * .7); P(x0 - 1, py + 1, '#d9b8ff', k * .7); } }
   if(tipo === 'gota'){ const f = (time * .35 + fase) % 2.5; if(f < 1){ const py = topo + 2 + f * (h * .8); P(x0 - 1 + (f > .5 ? 1 : 0), py, '#6e9cc4', .9); P(x0 - 1 + (f > .5 ? 1 : 0), py - 1, '#3d5a8c', .6); } }
@@ -839,7 +845,7 @@
    const anim = !target && tipoAnimDecor(dec);
    if((dec.balanca || anim === 'bandeira') && !target){ const sk = anim === 'bandeira' ? Math.sin(time * 2.2 + x * .05) * .035 : Math.sin(time * 1.3 + x * .07) * .05; ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.transform(1, 0, sk, 1, 0, 0); ctx.drawImage(arte, Math.round(-w / 2), Math.round(-h + 3), w, h); ctx.restore(); }
    else ctx.drawImage(arte, Math.round(x - w / 2), Math.round(y - h + 3), w, h);
-   if(anim) animarDecoracao(ctx, anim, arte, x, y, w, h);
+   if(anim) animarDecoracao(ctx, anim, arte, x, y, w, h, dec);
    return;
   }
   // decorações desenhadas por código (barril, caixote, ossos, estalagmite, poça, cristal, teia, estandarte, árvore, arbusto e flor)
@@ -1043,7 +1049,8 @@
     monte de pedras, copo de ferro e a chama em 3 quadros (tremula para os lados e solta faísca); contorno preto, cores da
     paleta do jogo (js/paleta.js). 11×20, o pé (centro do monte) é o ponto da tocha. */
  const TOCHA_QUADROS=[];
- function tochaQuadro(f){
+ function tochaQuadro(f){const novo=!TOCHA_QUADROS[f],c=tochaQuadroBruto(f);return novo&&window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c} // na paleta do jogo
+ function tochaQuadroBruto(f){
   if(TOCHA_QUADROS[f])return TOCHA_QUADROS[f];
   const W=11,H=20,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),cel=new Array(W*H).fill(null);
   const P=(x,y,cor)=>{if(x>=0&&y>=0&&x<W&&y<H)cel[y*W+x]=cor};
@@ -1447,15 +1454,9 @@
     // Ícone do item saltando com halo
     const it = ITEMS[fl.id];
     if(it && it.ic){
-     ctx.save();
-     ctx.shadowColor = fl.rarityColor || ((window.BAUS && BAUS.COR[BAUS.tipo(fl.tier)]) || '#38bdf8');
-     ctx.shadowBlur = 4;
-     ctx.fillStyle = '#0f172a';
-     ctx.fillRect(Math.round(fl.x - 6), Math.round(fl.y - 6), 12, 12);
-     ctx.strokeStyle = ctx.shadowColor;
-     ctx.strokeRect(Math.round(fl.x - 6), Math.round(fl.y - 6), 12, 12);
-     if(fl.img) ctx.drawImage(fl.img, Math.round(fl.x - fl.img.width / 2), Math.round(fl.y - fl.img.height / 2));
-     ctx.restore();
+     // sem quadro de fundo: o ícone em tamanho real com o contorno na cor da raridade (o mesmo dos drops de monstro)
+     const im = window.iconeNoChao && iconeNoChao(fl.id, fl.rarityColor || ((window.BAUS && BAUS.COR[BAUS.tipo(fl.tier)]) || '#38bdf8'));
+     if(im) ctx.drawImage(im, Math.round(fl.x - im.width / 2), Math.round(fl.y - im.height / 2));
     }
    }
   });
@@ -1678,6 +1679,9 @@
    });
   }
   mm.restore();
+
+  // decorações à vista: árvores em verde, o resto (pedras, estalagmites, ossos, móveis...) em bege-claro, para saber onde estão
+  for(const dec of (window.DUNGEON_DECORATIONS || [])){ if(!near(dec.x, dec.y)) continue; const x = Math.round(toMmX(dec.x)), y = Math.round(toMmY(dec.y)); if(dec.arvore != null){ mm.fillStyle = '#0f2e16'; mm.fillRect(x - 2, y - 2, 4, 4); mm.fillStyle = '#2f8a3e'; mm.fillRect(x - 1, y - 2, 2, 3); } else { mm.fillStyle = dec.solido ? '#e8dcc0' : '#6e5e4c'; mm.fillRect(x - 1, y - 1, 2, 2); } }
 
   // Baús no minimapa
   dungeonChests.forEach(ch => {

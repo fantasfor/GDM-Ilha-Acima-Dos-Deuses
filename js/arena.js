@@ -27,7 +27,9 @@
  const faceH=s=>WH*Math.sqrt(Math.max(0,-s));
  const anel=(a,o)=>({x:CXa+Math.cos(a)*(RX+o),y:CYa+Math.sin(a)*(RY+o)});
  const inicioDegraus=s=>faceH(s)+5;
- function desenharFundo(){
+  /* fundo da cena na paleta do jogo (2026-10-30) */
+ function desenharFundo(...a){const c=desenharFundoBruto(...a);return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c}
+ function desenharFundoBruto(){
   const W=AW+2*MG,H=AH+2*MG,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   const img=g.createImageData(W,H),D=img.data,hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
   const C={face:hex('#6e655d'),faceL:hex('#857b72'),rejunte:hex('#4a423c'),sombra:hex('#3a332e'),topo:hex('#b1a89d'),topoE:hex('#7a7068'),

@@ -36,7 +36,7 @@ class B{constructor(w,h){this.w=w;this.h=h;this.d=new Uint8ClampedArray(w*h*4)}
  set(x,y,c,a=255){x|=0;y|=0;if(x<0||y<0||x>=this.w||y>=this.h)return;const i=(y*this.w+x)*4;this.d[i]=c[0];this.d[i+1]=c[1];this.d[i+2]=c[2];this.d[i+3]=a}
  solid(x,y){return x>=0&&y>=0&&x<this.w&&y<this.h&&this.d[(y*this.w+x)*4+3]>200}}
 function cvs(b,glow){const c=document.createElement('canvas');c.width=b.w;c.height=b.h;const x=c.getContext('2d');x.putImageData(new ImageData(b.d,b.w,b.h),0,0);
- if(glow){x.globalCompositeOperation='destination-over';const g=x.createRadialGradient(b.w/2,b.h*.6,2,b.w/2,b.h*.6,b.w*.62);g.addColorStop(0,'rgba('+glow+',.38)');g.addColorStop(1,'rgba('+glow+',0)');x.fillStyle=g;x.fillRect(0,0,b.w,b.h)}return c}
+ if(glow){x.globalCompositeOperation='destination-over';const g=x.createRadialGradient(b.w/2,b.h*.6,2,b.w/2,b.h*.6,b.w*.62);g.addColorStop(0,'rgba('+glow+',.38)');g.addColorStop(1,'rgba('+glow+',0)');x.fillStyle=g;x.fillRect(0,0,b.w,b.h)}return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c} /* na paleta do jogo (2026-10-30) */
 const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]].map(r=>r.map(v=>(v+.5)/16));
 function shape(b,hf,ramp,o={}){
  const w=b.w,h=b.h,n=ramp.length-1,K=o.k||1.1,Z=new Float32Array(w*h).fill(-1),Lx=-.49,Ly=-.6,Lz=.63;

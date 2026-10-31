@@ -249,7 +249,9 @@ L('items').forEach(it=>{
  /* arma (2026-10-28, pedido do usuário): "Na mão, usar o desenho do ícone" (o ícone já na diagonal vira o desenho da mão,
     em todas as direções) e o pixel de engate, marcado na Engine em pixels do desenho e levado ao tamanho do desenho na mão */
  if(it.kind=='weapon'){
-  if(it.maoIcone&&it.sprite){const c=pixelArt(it.sprite);if(c){o.equippedSprite=c;o.equippedSprites={};delete o.equippedAnim}}
+  /* as posições desenhadas à parte (Frente/Costas/Lados, ex.: as costas do Escudo de Osso, 2026-10-30) continuam valendo;
+     só saem as que são cópia do ícone (antes todas saíam e de costas aparecia o ícone) */
+  if(it.maoIcone&&it.sprite){const c=pixelArt(it.sprite);if(c){o.equippedSprite=c;o.equippedSprites=Object.fromEntries(Object.entries(posicoesProprias(it)).map(([k,a])=>[k,pixelArt(a)]).filter(([,a])=>a));delete o.equippedAnim}}
   const dEng=it.maoIcone?it.sprite:it.equippedSprite,e=it.engate;
   if(e&&Number.isFinite(+e.x)&&Number.isFinite(+e.y)&&o.equippedSprite&&dEng&&dEng.w){const k=o.equippedSprite.width/dEng.w;o.engate={x:+e.x*k,y:+e.y*k}}}
  o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL()});
@@ -307,7 +309,58 @@ const CM={};
 /* projeto ainda não convertido pela Engine (padrão de proporção, js/proporcao.js): desenho com "Tamanho" menor que 100%,
    em 2× ou em resolução dobrada é reduzido na hora, para os pixels ficarem do tamanho dos do herói */
 const fatorMonstro=m=>{const s=m.sprite;if(!s||!s.w||m.pacote||(PROJETO.mundo&&PROJETO.mundo.proporcaoV>=1))return 1;const chefe=['boss','grandboss'].includes(m.bossType);return +m.size>0&&+m.size<100?+m.size/100:s.q===2?.5:!chefe&&(s.w>48||s.h>40)?.5:1};
-const reduzido=(d,k)=>{const c=pixelArt(d);if(!c||k>=1||typeof reduzirArte!=='function')return c;const r=reduzirArte(c,c.width*k,c.height*k);if(c.pad)r.pad=Math.round(c.pad*k);return r};
+const reduzCanvas=(c,k)=>{if(!c||k>=1||typeof reduzirArte!=='function')return c;const r=reduzirArte(c,c.width*k,c.height*k);if(c.pad)r.pad=Math.round(c.pad*k);return r};
+const reduzido=(d,k)=>reduzCanvas(pixelArt(d),k);
+/* Arma na mão do monstro (2026-10-30, pedido do usuário): o monstro equipa a arma como o herói, em vez de ela vir pintada.
+   Cada quadro marca a mão (mao1 = arma da frente, mao2 = arma de trás: {x, y, giro?, espelho?}; o quadro sem marca herda a
+   do anterior). As camadas do desenho "Mão 2", "Corpo" e "Mão 1", de trás para a frente, por posição (ORDEM_MAOS, corrigida
+   pelo usuário): frente e costas Corpo → Mão 2 → Mão 1; lado Mão 2 → Corpo → Mão 1. Cada "mão" é a arma dela e, por cima, a
+   camada da mão (os dedos ficam por cima do cabo). A arma é o desenho do item (o ícone com "Na mão, usar o ícone", senão
+   o "Empunhada"), 1 pixel = 1 pixel do mundo, presa pelo pixel de engate. Parado/andando fica como foi desenhada; no golpe
+   gira pelo giro do quadro ou, sem ele, pelo golpe padrão. Vale só para armas (inclui o escudo, na mão 2). */
+// desenhos por posição (d frente, u costas, s lados) que não são cópia do ícone
+function posicoesProprias(it){const ic=it.sprite,igual=a=>ic&&a.w===ic.w&&a.h===ic.h&&a.pixels===ic.pixels&&JSON.stringify(a.palette)===JSON.stringify(ic.palette);
+ return Object.fromEntries(Object.entries(it.equippedSprites||{}).filter(([,a])=>a&&a.pixels&&!igual(a)))}
+const normCamada=n=>String(n||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+// vista: 'frente' usa o desenho de frente (d), 'costas' o de costas (u), 'lado'/'esquerda' o de lado (s), se o item tiver
+function armaDesenho(it,vista){if(!it)return null;const pos=posicoesProprias(it),dir=vista==='costas'?'u':vista==='frente'?'d':'s';
+ const d=pos[dir]||(it.maoIcone?it.sprite:(it.equippedSprite||it.sprite)),c=pixelArt(d);if(!c)return null;
+ const e=it.engate&&Number.isFinite(+it.engate.x)&&Number.isFinite(+it.engate.y)?{x:+it.engate.x,y:+it.engate.y}:{x:Math.floor(d.w/2),y:Math.floor(d.h*.85)};
+ return{c,e}}
+// golpe padrão (quadro sem giro): preparo para trás, golpe para a frente e volta, pelo andamento da animação de ataque
+const GOLPE_MONSTRO=[[0,0],[.3,-40],[.55,90],[.8,45],[1,0]];
+function giroGolpe(t){for(let i=1;i<GOLPE_MONSTRO.length;i++){const[a,ga]=GOLPE_MONSTRO[i-1],[b,gb]=GOLPE_MONSTRO[i];if(t<=b)return ga+(gb-ga)*(t-a)/(b-a||1)}return 0}
+const ORDEM_MAOS={frente:['corpo','mao2','mao1'],costas:['corpo','mao2','mao1'],lado:['mao2','corpo','mao1'],esquerda:['mao2','corpo','mao1']};
+function quadroComArma(d,maos,armas,vista){
+ if(!d||!d.pixels)return null;
+ // grupos de camadas; sem as camadas Mão 1/Mão 2, o desenho todo é o corpo
+ const cam=Array.isArray(d.camadas)&&d.camadas.length>1?d.camadas.filter(c=>c&&c.visivel!==false):null,grupo={mao2:[],corpo:[],mao1:[]};
+ if(cam&&cam.some(c=>/^mao [12]$/.test(normCamada(c.nome))))for(const c of cam){const n=normCamada(c.nome);grupo[n==='mao 2'?'mao2':n==='mao 1'?'mao1':'corpo'].push(pixelArt({w:d.w,h:d.h,palette:c.palette,pixels:c.pixels}))}
+ else grupo.corpo.push(pixelArt(d));
+ // folga para a arma não sair do quadro: dos lados igual (o centro não muda) e em cima o quanto precisar
+ const pecas=[];let fx=0,fy=0;
+ for(const[k,a]of[['mao2',armas[1]],['mao1',armas[0]]]){const m=maos[k];if(!m||!a)continue;
+  const g=(+m.giro||0)*Math.PI/180,s=m.espelho?-1:1,cs=Math.cos(g),sn=Math.sin(g);
+  for(const[px,py]of[[0,0],[a.c.width,0],[0,a.c.height],[a.c.width,a.c.height]]){const ax=px-a.e.x-.5,ay=py-a.e.y-.5,X=s*(ax*cs-ay*sn)+m.x+.5,Y=ax*sn+ay*cs+m.y+.5;fx=Math.max(fx,Math.ceil(-X),Math.ceil(X-d.w));fy=Math.max(fy,Math.ceil(-Y))}
+  pecas.push([k,m,a,g,s])}
+ const c=mkCanvas(d.w+2*fx,d.h+fy),g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ const poe=l=>l.forEach(x=>x&&g.drawImage(x,fx,fy));
+ const poeArma=k=>{for(const[kk,m,a,giro,s]of pecas)if(kk===k){g.save();g.translate(fx+m.x+.5,fy+m.y+.5);g.scale(s,1);g.rotate(giro);g.drawImage(a.c,-a.e.x-.5,-a.e.y-.5);g.restore()}};
+ for(const parte of ORDEM_MAOS[vista]||ORDEM_MAOS.lado){if(parte!=='corpo')poeArma(parte);poe(grupo[parte])}
+ c.pad=(+d.pad||0)+fx;c.pixelData=d;return c}
+const temMao=d=>!!(d&&(d.mao1||d.mao2));
+const animTemMao=A=>!!A&&Object.values(A).some(l=>Array.isArray(l)&&l.some(temMao));
+function primeiraMao(A,k){if(!A)return null;for(const l of[A.idle,...Object.values(A)])if(Array.isArray(l))for(const d of l)if(d&&d[k])return d[k];return null}
+// animação {idle, walk, attack, ...} de dados → quadros prontos (canvas) com as armas; base = mãos do primeiro quadro
+function animComArma(A,armas,base,espelhoPadrao,k,vista){
+ if(!A)return A;const o={...A};
+ for(const nome of Object.keys(A)){const l=A[nome];if(!Array.isArray(l))continue;let m1=base.mao1,m2=base.mao2;const n=l.length;
+  o[nome]=l.map((d,i)=>{if(!d||!d.pixels)return d;if(d.mao1)m1=d.mao1;if(d.mao2)m2=d.mao2;
+   const auto=nome==='attack'&&n>1?giroGolpe(i/(n-1)):0;
+   // o golpe padrão é só da mão 1 (o escudo/arma da mão 2 fica firme, a não ser que o quadro diga o giro)
+   const mk=(m,own,giroPadrao)=>m&&{x:+m.x,y:+m.y,espelho:own&&own.espelho!=null?!!own.espelho:m.espelho!=null?!!m.espelho:espelhoPadrao,giro:own&&Number.isFinite(+own.giro)?+own.giro:giroPadrao};
+   return reduzCanvas(quadroComArma(d,{mao1:mk(m1,d.mao1,auto),mao2:mk(m2,d.mao2,0)},armas,vista),k)||d})}
+ return o}
 L('monsters').forEach(m=>{
  if(!m.id)return;
  const s=m.stats||{},base=SP[m.base]?m.base:'sl',atk=n(m.attackSpeed)||(CL[m.classId]&&CL[m.classId].attackSpeed)||1; /* sem classe base: intervalo de ataque do próprio monstro (projetos antigos: o da classe que ele tinha) */
@@ -321,9 +374,18 @@ L('monsters').forEach(m=>{
   id:k.id,name:k.name||'Habilidade',cost:n(k.mana),cd:Math.max(.3,n(k.cd,3)),range:n(k.monRange)||(k.effect=='nova'?n(k.radius,30):weapon&&weapon.basic?n(weapon.basic.rng,30):30),damageModel:k.damageModel||'legacy',physicalFlat:n(k.physicalFlat),physicalPercent:n(k.physicalPercent),magicFlat:n(k.magicFlat),magicPercent:n(k.magicPercent),
   actionStats:k.actionStats,bonuses:k.bonuses,bonusDuration:n(k.bonusDuration,5),effect:k.effect,windup:conj(k)>0?conj(k):.5,damage:n(k.base),per:n(k.per),charPercent:n(k.charPercent),effects:Array.isArray(k.effects)?k.effects:[],magic:k.damageType=='magic'||k.damageType!='physical'&&!!(weapon&&weapon.damageType=='magic'),radius:n(k.radius),flatDamage:true,scaleStat:k.scaleStat||'none',scalePercent:n(k.scalePercent,k.scaleStat&&k.scaleStat!='none'?100:0),vfx:k.vfx||'arcane',vfxColor:k.color||k.c2||'#9bd4ff'
  }));
- const k=fatorMonstro(m),sprite=reduzido(m.sprite,k),sp=sprite?{d:sprite,u:sprite,s:sprite,ds:sprite,us:sprite,w:null}:null;
- const reduzirAnim=A=>k<1&&A?{...A,...Object.fromEntries(['idle','walk','attack'].map(a=>[a,(A[a]||[]).map(f=>reduzido(f,k)).filter(Boolean)]))}:A;
- const animation=reduzirAnim(m.animation),direcoes=m.direcoes&&typeof m.direcoes=='object'?{frente:reduzirAnim(m.direcoes.frente),costas:reduzirAnim(m.direcoes.costas),esquerda:reduzirAnim(m.direcoes.esquerda)}:null;
+ const k=fatorMonstro(m);
+ // arma na mão (quadros com mão marcada): mão 1 = a primeira arma que não é escudo; mão 2 = o escudo ou a segunda arma
+ const armasEq=equipment.filter(it=>it.kind==='weapon'),a1=armasEq.find(it=>it.wtype!=='escudo')||armasEq[0]||null,a2=armasEq.find(it=>it!==a1&&it.wtype==='escudo')||armasEq.find(it=>it!==a1)||null;
+ const armasV=v=>[armaDesenho(a1,v),armaDesenho(a2,v)],armas=armasV('lado'),dirs=m.direcoes&&typeof m.direcoes=='object'?m.direcoes:{};
+ const comMao=(armas[0]||armas[1])&&(temMao(m.sprite)||animTemMao(m.animation)||Object.values(dirs).some(animTemMao));
+ const baseMao=A=>({mao1:primeiraMao(A,'mao1')||m.sprite&&m.sprite.mao1,mao2:primeiraMao(A,'mao2')||m.sprite&&m.sprite.mao2});
+ const parado=x=>x&&{espelho:false,...x,giro:0},b0=comMao?baseMao(m.animation):{},s0=m.sprite||{};
+ const sprite=(comMao&&reduzCanvas(quadroComArma(m.sprite,{mao1:parado(s0.mao1||b0.mao1),mao2:parado(s0.mao2||b0.mao2)},armas,'lado'),k))||reduzido(m.sprite,k),sp=sprite?{d:sprite,u:sprite,s:sprite,ds:sprite,us:sprite,w:null}:null;
+ const reduzirAnim=A=>k<1&&A?{...A,...Object.fromEntries(Object.keys(A).filter(a=>Array.isArray(A[a])).map(a=>[a,(A[a]||[]).map(f=>reduzido(f,k)).filter(Boolean)]))}:A;
+ // de costas e do lado esquerdo a arma vem espelhada (como o serrote), a não ser que o quadro diga outra coisa
+ const vista=(A,esp,v)=>comMao?animComArma(A,armasV(v),baseMao(A),esp,k,v):reduzirAnim(A);
+ const animation=vista(m.animation,false,'lado'),direcoes=m.direcoes&&typeof m.direcoes=='object'?{frente:vista(m.direcoes.frente,false,'frente'),costas:vista(m.direcoes.costas,true,'costas'),esquerda:vista(m.direcoes.esquerda,true,'esquerda')}:null;
  /* semArma: os mesmos quadros sem a arma na mão (Chefe Glooc depois de arremessar o machado) */
  const semArma=m.semArma&&m.semArma.animation?{animation:reduzirAnim(m.semArma.animation),direcoes:m.semArma.direcoes?{frente:reduzirAnim(m.semArma.direcoes.frente),costas:reduzirAnim(m.semArma.direcoes.costas),esquerda:reduzirAnim(m.semArma.direcoes.esquerda)}:null}:null;
  MONSTER_TYPES[m.id]={name:m.name||m.id,stats:{F:n(s.F,5),A:n(s.A,3),I:n(s.I,3)},attributeStats:s,perLevel:m.per&&typeof m.per=='object'?m.per:null,tags:lc(m.tags),custom:true,ataqueDoNivel:!!m.ataqueDoNivel,sprite,sp,animation,direcoes,semArma,size:n(m.size,100),attackSpeed:atk,moveSpeed:n(m.moveSpeed),hpMult:n(m.hpMult)||1,dmgMult:n(m.dmgMult)||1,

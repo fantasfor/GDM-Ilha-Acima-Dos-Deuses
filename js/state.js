@@ -14,9 +14,11 @@ window.limparItensDeMissao=()=>{let n=0;
   if(typeof drops!=='undefined')for(let i=drops.length-1;i>=0;i--)if(drops[i]&&drops[i].id===id){n+=drops[i].n||1;drops.splice(i,1)}}
  return n};
 /* bestiário (enciclopédia): quantos de cada monstro o jogador matou e quais itens cada um já deixou cair */
-const BESTIARIO={k:{},d:{}};window.BESTIARIO=BESTIARIO;
+// v = itens que o jogador já teve (caiu, comprou, ganhou, equipou): a enciclopédia só mostra esses (2026-10-31)
+const BESTIARIO={k:{},d:{},v:{}};window.BESTIARIO=BESTIARIO;
 window.anotarMorte=ty=>{if(ty)BESTIARIO.k[ty]=(BESTIARIO.k[ty]||0)+1};
-window.anotarDrop=(ty,id)=>{if(ty&&id)(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1};
+window.anotarDrop=(ty,id)=>{if(ty&&id){(BESTIARIO.d[ty]=BESTIARIO.d[ty]||{})[id]=1;BESTIARIO.v[id]=1}};
+const anotarItem=id=>{if(id)BESTIARIO.v[id]=1};window.anotarItem=anotarItem;
 const SLOTS=['he','ch','le','bo','ca','ne','r1','r2','sw','sh'];
 const EQ=Object.fromEntries(SLOTS.map(s=>[s,null]));
 const fits=(slot,id)=>!!gearType[id]&&(gearType[id]==slot||(gearType[id]=='ri'&&(slot=='r1'||slot=='r2'))||(slot=='sh'&&gearType[id]=='sw'&&!ITEMS[id].th));
@@ -52,13 +54,29 @@ function withWeaponDamageRoll(action){
 const heroC={};
 function heroImg(dir,an){if(CL[p.cls]&&CL[p.cls].sprite)return CL[p.cls].sprite;const mana=window.HEROI_MANA&&HEROI_MANA.jogador(dir,an);if(mana)return mana; /* personagem Mana Seed (js/heroi-mana.js) */const ph=an&&an.ph||0,E={nude:1,sex:p.sex,swing:an&&an.sw||0,shWeapon:!!(EQ.sh&&gearType[EQ.sh.id]=='sw')};if(window.APARENCIA)E.look=APARENCIA.normalizar(p.look,p.sex);/* olhando para a esquerda: camadas próprias (js/sprites.js ORDEM_CAMADAS) */if(dir==='s'&&typeof face=='function'&&face(p).fl<0)E.esquerda=1;let key=p.cls+p.sex+dir+(E.esquerda?'E':'')+ph+'w'+E.swing+(E.look?APARENCIA.codificar(E.look):'');for(const s of ['he','ch','le','bo','ca','ne','r1','r2','sw','sh'])if(EQ[s]){E[s]=ITEMS[EQ[s].id];key+=s+EQ[s].id}
  key+=chaveEquipAnim(Object.values(E),dir,E.swing?'attack':an&&an.mv?'walk':'idle');if(Object.keys(heroC).length>600)for(const k in heroC)delete heroC[k];return heroC[key]||(heroC[key]=human(CL[p.cls].base||p.cls,dir,ph,E))}
-/* Os 6 primeiros espaços são a barra de atalhos (teclas 1–6) e só aceitam consumíveis.
-   A bolsa não tem limite: sem espaço livre, ela cresce. */
-const QUICK_N=6,ehConsumivel=id=>!!(ITEMS[id]&&ITEMS[id].use);
-function livre(id){const de=ehConsumivel(id)?0:QUICK_N;let i=I.indexOf(null,de);if(i<0){i=Math.max(I.length,de);const old=I.length;I.length=i+8;I.fill(null,old)}return i}
-// tira dos atalhos o que não é consumível (saves antigos)
-function arrumarAtalhos(){for(let i=0;i<QUICK_N&&i<I.length;i++){const s=I[i];if(s&&!ehConsumivel(s.id)){I[i]=null;I[livre(s.id)]=s;dirtyInv=true}}}
-window.ehConsumivel=ehConsumivel;
+/* Acesso rápido (2026-10-31, pedido do usuário): 6 espaços próprios (teclas 1–6), separados da mochila — antes eram os 6
+   primeiros espaços da bolsa. O consumível vai para lá arrastando da mochila ou pelo botão direito ("Pôr no acesso
+   rápido"); quando a pilha acaba, o espaço puxa outra igual da mochila. Origem de um item: número = espaço da mochila,
+   'q0'…'q5' = acesso rápido. A bolsa não tem limite: sem espaço livre, ela cresce. */
+const QUICK_N=6,RAPIDO=new Array(QUICK_N).fill(null),ehConsumivel=id=>!!(ITEMS[id]&&ITEMS[id].use);
+function livre(id){let i=I.indexOf(null);if(i<0){i=I.length;I.length=i+8;I.fill(null,i)}return i}
+const ehRapido=src=>typeof src=='string'&&/^q[0-5]$/.test(src);
+function pilhaDe(src){return ehRapido(src)?RAPIDO[+src[1]]:I[src]}
+// a pilha acabou: some do lugar; no acesso rápido, puxa outra igual da mochila
+function esvaziar(src){if(!ehRapido(src)){I[src]=null;return}const k=+src[1],id=RAPIDO[k]&&RAPIDO[k].id;RAPIDO[k]=null;const j=id?I.findIndex(s=>s&&s.id===id):-1;if(j>=0){RAPIDO[k]=I[j];I[j]=null}}
+// espaço i da mochila → acesso rápido k (mesmo item soma; o que estava lá volta para o lugar dele na mochila)
+function paraRapido(i,k){const s=I[i];if(!s||!(k>=0&&k<QUICK_N))return false;
+ if(!ehConsumivel(s.id)){ft(p.x,p.y-24,'Acesso rápido: só itens consumíveis','#ccc');return false}
+ const r=RAPIDO[k];if(r&&r.id===s.id){r.n+=s.n;I[i]=null}else{RAPIDO[k]=s;I[i]=r||null}
+ dirtyInv=true;saveGame();return true}
+// acesso rápido k → mochila (no espaço dest, se estiver livre; senão soma à pilha igual ou vai para o primeiro livre)
+function tirarRapido(k,dest){const r=RAPIDO[k];if(!r)return;RAPIDO[k]=null;
+ if(dest!=null&&!I[dest])I[dest]=r;else{const j=I.findIndex(s=>s&&s.id===r.id);if(j>=0)I[j].n+=r.n;else I[livre(r.id)]=r}
+ dirtyInv=true;saveGame()}
+// kit inicial: o consumível já vai para um espaço livre do acesso rápido (senão, mochila)
+function kitItem(id,n){if(ehConsumivel(id)&&!RAPIDO.some(s=>s&&s.id===id)){const k=RAPIDO.indexOf(null);if(k>=0){RAPIDO[k]={id,n};dirtyInv=true;return}}addItem(id,undefined,n)}
+function trocarRapido(a,b){if(a===b)return;[RAPIDO[a],RAPIDO[b]]=[RAPIDO[b],RAPIDO[a]];dirtyInv=true;saveGame()}
+Object.assign(window,{ehConsumivel,RAPIDO,paraRapido,tirarRapido,trocarRapido});
 /* preço de venda (taverna): o configurado no item ou um calculado pelos atributos.
    Equipamento vale de 50% a 150% conforme a qualidade (0 a 100). Itens de missão não são vendidos. */
 function precoBase(id){
@@ -70,7 +88,7 @@ function precoBase(id){
 }
 function precoVenda(id,q){const b=precoBase(id);return gearType[id]?Math.max(1,Math.round(b*(.5+(q==null?50:q)/100))):b}
 window.precoVenda=precoVenda;
-function addItem(id,q,count=1){if(!ITEMS[id]||!Number.isInteger(count)||count<1)return false;const pilha=ITEMS[id].use||ITEMS[id].stackable;if(pilha){const s=I.find(s=>s&&s.id==id);if(s){s.n+=count;dirtyInv=true;return true}}for(let n=0;n<count;n++){const i=livre(id);I[i]={id,n:pilha?count:1};if(gearType[id])I[i].q=q==null?rollQ():q;if(pilha)break}dirtyInv=true;return true}
+function addItem(id,q,count=1){if(!ITEMS[id]||!Number.isInteger(count)||count<1)return false;anotarItem(id);const pilha=ITEMS[id].use||ITEMS[id].stackable;if(pilha){const s=RAPIDO.find(s=>s&&s.id==id)/* já está no acesso rápido: soma lá */||I.find(s=>s&&s.id==id);if(s){s.n+=count;dirtyInv=true;return true}}for(let n=0;n<count;n++){const i=livre(id);I[i]={id,n:pilha?count:1};if(gearType[id])I[i].q=q==null?rollQ():q;if(pilha)break}dirtyInv=true;return true}
 const itemCount=id=>I.reduce((n,s)=>n+(s&&s.id==id?s.n:0),0);
 function consumeItems(id,count){
  if(itemCount(id)<count)return false;
@@ -95,18 +113,18 @@ function equipSlot(i,preferredSlot){const s=I[i];if(!s||!gearType[s.id])return;c
  if(t=='sh')sl='sh';
  const old=EQ[sl];
  if(sl=='sh'&&EQ.sw&&ITEMS[EQ.sw.id].th){ft(p.x,p.y-24,'Arma de duas mãos','#ccc');return}
- EQ[sl]=s;I[i]=null;if(old)I[i<QUICK_N?livre(old.id):i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){I[livre(EQ.sh.id)]=EQ.sh;EQ.sh=null}
+ EQ[sl]=s;I[i]=null;if(old)I[i]=old;if(sl=='sw'&&ITEMS[s.id].th&&EQ.sh){I[livre(EQ.sh.id)]=EQ.sh;EQ.sh=null}
  dirtyInv=true;setPortrait();saveGame();if(window.playEntitySound)playEntitySound('items',s.id,'use')}
 function unequip(sl){if(!EQ[sl])return;if(armaTravada())return;I[livre(EQ[sl].id)]=EQ[sl];EQ[sl]=null;dirtyInv=true;setPortrait();saveGame()}
 /* consumível: o herói bebe por castTime s (padrão 0,5; barra e som de gole) e só então faz efeito; atordoado cancela sem gastar */
-function useSlot(i,preferredSlot){const s=I[i];if(!s||p.dead>0)return;if(gearType[s.id]){equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
+function useSlot(i,preferredSlot){const s=pilhaDe(i);if(!s||p.dead>0)return;if(gearType[s.id]){if(!ehRapido(i))equipSlot(i,preferredSlot);return}const d=ITEMS[s.id];if(!d.use)return;
  if(p.beber)return;if(p.canal||p.conj||p.dash){ft(p.x,p.y-24,'Ocupado: termine a habilidade','#ccc');return} // nada de beber girando ou conjurando (pedido do usuário)
  const ct=+d.castTime||0;if(ct>0){p.beber={i,id:s.id,r:ct,total:ct};if(window.playGameSound)playGameSound('beber');return}
  usarConsumivel(i)}
-function usarConsumivel(i){const s=I[i];if(!s)return;const d=ITEMS[s.id];if(!d||!d.use)return;
+function usarConsumivel(i){const s=pilhaDe(i);if(!s)return;const d=ITEMS[s.id];if(!d||!d.use)return;
  const h=d.heal||{},vh=Math.round((h.hp||0)+mhp()*(h.hpPct||0)/100),vm=Math.round((h.mp||0)+mmp()*(h.mpPct||0)/100);if(vh){p.hp=Math.min(mhp(),p.hp+vh);ft(p.x,p.y-12,'+'+vh,'#6f6')}if(vm){p.mp=Math.min(mmp(),p.mp+vm);ft(p.x,p.y-12,'+'+vm,'#6cf')}
  grantAttributeBuff(p,'item:'+s.id,d.bonuses,d.bonusDuration||5);
- if(--s.n<=0)I[i]=null;dirtyInv=true;saveGame();if(!(window.playEntitySound&&playEntitySound('items',s.id,'use'))&&window.playGameSound)playGameSound('item')}
+ if(--s.n<=0)esvaziar(i);dirtyInv=true;saveGame();if(!(window.playEntitySound&&playEntitySound('items',s.id,'use'))&&window.playGameSound)playGameSound('item')}
 const p={x:CX,y:CY+34,hp:140,mp:35,lvl:1,xp:0,gold:0,dest:null,tgt:null,acd:0,dead:0,hit:0,fl:1,aw:0,wt:null,attackBasic:null,basicMode:'sw',basicNext:'sw',cls:'war',sex:'m',bf:0,npcT:null,fx:0,fy:1};
 window.p = p;
 Object.assign(p,{path:[],pathI:0,pathKey:'',joy:{x:0,y:0}});

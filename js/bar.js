@@ -31,7 +31,9 @@
  /* ---- chão: calçamento, grama nas beiradas, deck das mesas, caminho de terra da porta, cerca ---- */
  let fundo=null;
  function textura(id){const t=window.PACOTE_MAPA&&PACOTE_MAPA.texturas[id];return t?pixelArt(t.data):null}
- function desenharFundo(){
+  /* fundo da cena na paleta do jogo (2026-10-30) */
+ function desenharFundo(...a){const c=desenharFundoBruto(...a);return window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c}
+ function desenharFundoBruto(){
   const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const pat=id=>{const t=textura(id);return t?g.createPattern(t,'repeat'):'#555'};
   g.fillStyle=pat('pk_bar_calcada');g.fillRect(0,0,BW,BH);

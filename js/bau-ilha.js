@@ -19,6 +19,10 @@
  const pilha=id=>!!(ITEMS[id]&&(ITEMS[id].use||ITEMS[id].stackable));
  let arteF=null,arteA=null,aberto=false,alvo=false,el=null,aba=0;
  let arrasto=null; // {de:'bau'|'mochila', i} enquanto um item do painel é arrastado
+ /* filtro (2026-10-31, os mesmos da Mochila: js/ui.js barraFiltros): na coluna da mochila mostra só o que combina; no baú
+    os outros itens ficam apagados no lugar (continuam arrastáveis, e os espaços não mudam) */
+ let filtro='all';
+ const combina=s=>!!s&&(filtro==='all'||typeof itemNaCategoria!='function'||itemNaCategoria(s,filtro));
  const arte=a=>!window.BAUS||typeof pixelArt!='function'?null:a?arteA||(arteA=pixelArt(BAUS.arte('madeira',true))):arteF||(arteF=pixelArt(BAUS.arte('madeira',false)));
  // aparece em toda ilha, inclusive na de outro jogador (2026-10-28): quem abre vê sempre o PRÓPRIO baú
  const visivel=()=>!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.inTutorial;
@@ -29,8 +33,8 @@
  const usadosNaAba=a=>BAU.slice(a*POR_ABA,(a+1)*POR_ABA).filter(Boolean).length;
  const copia=s=>({id:s.id,n:s.n,...(s.q!=null?{q:s.q}:{})});
  const missao=id=>!!(window.ehMissao&&ehMissao(id));
- // atalhos 1–6 da mochila (espaços 0..QUICK_N-1) só aceitam consumíveis, como na Mochila do jogo
- const cabeNaMochila=(i,s)=>!s||typeof QUICK_N=='undefined'||i>=QUICK_N||(typeof ehConsumivel=='function'&&ehConsumivel(s.id));
+ // todo espaço da mochila aceita qualquer item (o acesso rápido 1–6 agora é separado: js/state.js RAPIDO)
+ const cabeNaMochila=()=>true;
  /* mochila → baú. dest (opcional): espaço do baú; vazio = põe ali; mesma pilha = soma; outro item (não travado) = troca */
  function guardar(i,dest){
   const s=I[i];if(!s)return;
@@ -124,16 +128,20 @@
   for(let a=0;a<ABAS;a++){const b=E('button','biAba'+(a===aba?' on':''),String(a+1));b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(a===aba));
    const n=usadosNaAba(a);b.title='Aba '+(a+1)+': '+n+'/'+POR_ABA;if(n)b.append(E('small','',String(n)));b.onclick=()=>{aba=a;desenhar()};
    alvoDeSoltar(b,o=>{if(o.de==='bau')moverParaAba(o.i,a);else{aba=a;guardar(o.i);desenhar()}});abas.append(b)}
-  const grade=E('div','biGrade biGradeBau');for(let k=aba*POR_ABA;k<(aba+1)*POR_ABA;k++)grade.append(vaga(BAU[k],{clique:()=>retirar(k),k}));
+  const grade=E('div','biGrade biGradeBau');for(let k=aba*POR_ABA;k<(aba+1)*POR_ABA;k++){const d=vaga(BAU[k],{clique:()=>retirar(k),k});if(BAU[k]&&!combina(BAU[k]))d.classList.add('fora');grade.append(d)}
   const org=E('button','biOrg','Organizar aba');org.type='button';org.title='Junta pilhas e ordena a aba aberta por tipo e qualidade. Itens travados (cadeado) ficam no lugar.';org.onclick=organizar;
   const gm=E('div','biGrade');let temItem=false;
-  I.forEach((s,i)=>{if(s){temItem=true;gm.append(vaga(s,{clique:()=>guardar(i),i}))}});
-  if(!temItem)gm.append(E('p','biVazio','Mochila vazia.'));
+  I.forEach((s,i)=>{if(s&&combina(s)){temItem=true;gm.append(vaga(s,{clique:()=>guardar(i),i}))}});
+  if(!temItem)gm.append(E('p','biVazio',filtro==='all'?'Mochila vazia.':'Nada desta categoria na mochila.'));
+  // filtros: a contagem soma a mochila e a aba aberta do baú
+  const fil=E('div','biFiltros');fil.setAttribute('role','group');fil.setAttribute('aria-label','Filtrar itens por categoria');
+  if(typeof barraFiltros=='function'){const k0=aba*POR_ABA;barraFiltros(fil,{ativo:()=>filtro,escolher:id=>{filtro=id;desenhar()},
+   contar:id=>I.filter(s=>s&&itemNaCategoria(s,id)).length+BAU.slice(k0,k0+POR_ABA).filter(s=>s&&itemNaCategoria(s,id)).length})}
   // soltar um item do baú no fundo da mochila: vai para o primeiro espaço livre
   alvoDeSoltar(gm,o=>{if(o.de==='bau')retirar(o.i)});
   const cab=E('div','biCabBau');cab.append(abas,org);
   const cols=E('div','biCols');cols.append(col('Mochila',gm),col('Baú · aba '+(aba+1)+' ('+usadosNaAba(aba)+'/'+POR_ABA+') · total '+usados+'/'+VAGAS,cab,grade));
-  box.append(topo,E('p','biDica','Clique ou arraste para guardar e retirar. Arraste itens do baú para trocar de lugar ou para outra aba. Botão direito trava o item (o cadeado o mantém no lugar ao organizar). O baú é só seu.'),cols,E('p','biMsg'));
+  box.append(topo,E('p','biDica','Clique ou arraste para guardar e retirar. Arraste itens do baú para trocar de lugar ou para outra aba. Botão direito trava o item (o cadeado o mantém no lugar ao organizar). O baú é só seu.'),fil,cols,E('p','biMsg'));
   el.append(box);
  }
  function abrir(){aberto=true;alvo=false;desenhar()}

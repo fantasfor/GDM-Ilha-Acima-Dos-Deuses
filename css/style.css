@@ -28,7 +28,7 @@ canvas#g{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixela
 .bar div{height:100%;transition:width .12s linear}.hp div{background:#3f9930}.mp div{background:#306ac0}
 .bar span{position:absolute;inset:0;text-align:center;font-size:14px;font-weight:bold;line-height:26px;text-shadow:none}
 .bar span.rg{inset:auto 4px 0 auto;font-size:10px;font-weight:normal;color:#9f9;line-height:26px}.mp span.rg{color:#8cf}
-#tip{position:fixed;display:none;z-index:40;pointer-events:none;max-width:260px;background:#0d0d0df2;border:2px solid #595959;padding:6px 8px;font-size:12px;line-height:1.4;color:#d9d0c7;box-shadow:none}
+#tip{position:fixed;display:none;z-index:150;pointer-events:none;/* acima de lojas, baú e quadro (z 60): a comparação de item fica na frente */max-width:260px;background:#0d0d0df2;border:2px solid #595959;padding:6px 8px;font-size:12px;line-height:1.4;color:#d9d0c7;box-shadow:none}
 #tip b{color:#d9d0c7}#tip .tw{color:#a69c94;font-size:11px}#tip .tm{color:#a69c94;font-size:11px;margin-top:3px}#tip .tk{color:#a69c94}
 #bagw{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
 #bag{width:60px;height:60px;border:2px solid #595959;background:#0d0d0d center/70% no-repeat;image-rendering:pixelated;cursor:pointer}

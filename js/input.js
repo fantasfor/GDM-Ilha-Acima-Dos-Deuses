@@ -35,15 +35,18 @@ const held=new Set();
 addEventListener('keydown',e=>{const a=TECLAS.acao(e);if(!a)return;
  if(a.startsWith('mover_')){held.add(a);e.preventDefault();return}
  if(a.startsWith('hab')){const s=SK[+a.slice(3)-1];if(s)window.teclaHabilidade?teclaHabilidade(s,e):cast(s);return}
- if(a.startsWith('item')){useSlot(+a.slice(4)-1);return}
+ if(a.startsWith('item')){useSlot('q'+(+a.slice(4)-1));return} // teclas 1–6: acesso rápido
  if(a=='mochila')togInv()});
 addEventListener('keyup',e=>{for(const id of [...held])if(TECLAS.tecla(id)===e.code)held.delete(id)});
 function clearMovementInput(){
  held.clear();rdown=false;padId=null;p.joy={x:0,y:0};stick.style.transform='';
  p.dest=null;p.npcT=null;p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;p.gateT=false;
 }
-addEventListener('blur',clearMovementInput);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)clearMovementInput()});
+/* Alt+Tab ou trocar de aba/tela: solta só as teclas e o botão seguros (o navegador não avisa quando são soltos fora do
+   jogo); o alvo e o ataque continuam (pedido do usuário) */
+function soltarTeclas(){held.clear();rdown=false;padId=null;p.joy={x:0,y:0};stick.style.transform=''}
+addEventListener('blur',soltarTeclas);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)soltarTeclas()});
 const pad=$('touchpad'),stick=$('stick');
 let padId=null;
 pad.addEventListener('pointerdown',e=>{e.preventDefault();padId=e.pointerId;pad.setPointerCapture(padId);joyFrom(e)});

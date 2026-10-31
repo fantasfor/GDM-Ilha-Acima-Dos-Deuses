@@ -130,7 +130,10 @@
  // estilo da porta: o dela (door.estilo) ou o padrão do tema
  const estiloDe=(tema,estilo)=>ESTILOS[estilo]?estilo:PADRAO[M[tema]?tema:'cave'];
  // desenho da porta: canvas e onde ele fica em relação ao centro da porta (dx, dy = canto de cima à esquerda)
- function arte(tema,vertical,aberta,w,h,estilo){
+ // na paleta do jogo (2026-10-30): o desenho da porta convertido uma vez e guardado
+ const memoPal=new Map();
+ function arte(...a){const k=a.join('|');if(!memoPal.has(k)){const c=arteBruta(...a);if(root.PALETA_JOGO&&c&&c.c&&c.c.getContext)root.PALETA_JOGO.canvasNaPaleta(c.c);memoPal.set(k,c)}return memoPal.get(k)}
+ function arteBruta(tema,vertical,aberta,w,h,estilo){
   const id=estiloDe(tema,estilo),E=ESTILOS[id];w=Math.max(8,Math.round(w));h=Math.max(8,Math.round(h));
   const k=id+vertical+aberta+w+'x'+h;let a=cache.get(k);
   if(!a){a=vertical?{c:lamina(E,w,h+16,aberta),dx:-w/2,dy:-h/2-16}:{c:portao(E,w,h+ALTO,aberta),dx:-w/2,dy:h/2-(h+ALTO)};cache.set(k,a)}

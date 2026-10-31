@@ -80,6 +80,8 @@ window.playEntitySound=(category,id,event,vol=1)=>{
 /* ---------- cena atual: ilha, masmorra ou taverna ---------- */
 const cenaAtual=()=>window.inTaverna?'tavern':window.inDungeon?'dungeon':'world';
 const musicaDG={ultimaLuta:0};
+/* trilhas próprias das DGs (config.trilha): exploração, batalha, chefe e o ambiente de fundo */
+const TRILHAS_DG={glooc:{exp:'gloocCaverna',luta:'gloocLuta',chefe:'gloocChefe',amb:'cavernaGlooc'},floresta:{exp:'florestaNegra',luta:'florestaLuta',chefe:'florestaChefe',amb:'florestaNegraAmb'}};
 function refreshLoops(){
  const scene=cenaAtual(),config=settings();
  for(const kind of ['music','ambient']){
@@ -96,20 +98,21 @@ function refreshLoops(){
   const luta=quer&&scene!=='tavern'&&p.dead<=0&&window.emCombate&&emCombate();
   // DG com trilha própria (config.trilha, ex.: Caverna dos Glooc): explorando, batalha e chefe
   const cfgDG=scene==='dungeon'&&window.lerDungeonConfig?lerDungeonConfig():null,trilha=cfgDG&&cfgDG.trilha;
-  const chefeLuta=trilha&&p.dead<=0&&(window.SELO_CHEFE&&SELO_CHEFE.fechado||en.some(e=>e.isBoss&&e.hp>0&&e.mec&&Math.hypot(e.x-p.x,e.y-p.y)<380));
+  const chefeLuta=trilha&&p.dead<=0&&(window.SELO_CHEFE&&SELO_CHEFE.fechado||en.some(e=>(e.isBoss||e.boss)&&e.hp>0&&(e.mec||e.chasing)&&Math.hypot(e.x-p.x,e.y-p.y)<380)); // chefe lutando perto (com ou sem mecânicas)
   const semArquivo=!(config[scene+'.music']&&config[scene+'.music'].src);
-  if(trilha==='glooc'&&semArquivo&&quer){
+  const TR=TRILHAS_DG[trilha];
+  if(TR&&semArquivo&&quer){
    // com folga: a batalha só volta para a exploração depois de 5 s sem luta, e o chefe fica até a arena abrir (antes a música
    // trocava a cada pausa curta da luta e recomeçava, salpicando)
-   const quer2=chefeLuta?'gloocChefe':luta?'gloocLuta':'gloocCaverna',atual=ativos.musica&&ativos.musica.cena,ag=performance.now();
-   if(quer2!=='gloocCaverna')musicaDG.ultimaLuta=ag;
-   const segura=atual&&atual!=='gloocCaverna'&&quer2==='gloocCaverna'&&ag-(musicaDG.ultimaLuta||0)<5000;
-   const desceChefe=atual==='gloocChefe'&&quer2==='gloocLuta'&&ag-(musicaDG.ultimaLuta||0)<5000&&window.SELO_CHEFE&&SELO_CHEFE.fechado;
+   const quer2=chefeLuta?TR.chefe:luta?TR.luta:TR.exp,atual=ativos.musica&&ativos.musica.cena,ag=performance.now();
+   if(quer2!==TR.exp)musicaDG.ultimaLuta=ag;
+   const segura=atual&&atual!==TR.exp&&quer2===TR.exp&&ag-(musicaDG.ultimaLuta||0)<5000;
+   const desceChefe=atual===TR.chefe&&quer2===TR.luta&&ag-(musicaDG.ultimaLuta||0)<5000&&window.SELO_CHEFE&&SELO_CHEFE.fechado;
    if(!segura&&!desceChefe)trocar('musica',quer2)}
   else trocar('musica',luta?'combate':quer&&semArquivo?quer:null);
   // ilha: ambiente de dia (mar, vento, pássaros) ou de noite (grilos, coruja), pelo relógio do jogo (js/tempo.js)
   // na taverna não há ambiente de fundo (conversa): só a música da banda e os sons dos objetos (lareira, fogueira, chafariz...)
-  const amb=quer==='tavern'?null:quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':trilha==='glooc'?'cavernaGlooc':quer;
+  const amb=quer==='tavern'?null:quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':TRILHAS_DG[trilha]?TRILHAS_DG[trilha].amb:quer;
   trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?amb:null);
  }
  lastScene=scene
@@ -184,6 +187,10 @@ function arpejo(notas,passo,{tipo='triangle',vol=.035,dur=.18,brilho=0,inicio=0}
  if(brilho)for(let i=0;i<brilho;i++)nota(bus.efeitos,mtof(notas[notas.length-1]+24+[0,4,7,12][i%4]),t0+notas.length*passo+i*.045,.05,{tipo:'sine',vol:vol*.4*escala,solta:.3});
 }
 const sounds={
+ // forja do Ferreiro (js/forja.js): martelo na bigorna, os dois itens girando e o resultado que saiu pior
+ bigorna:()=>{tone(1870,1830,.55,'square',.006);tone(2790,2740,.45,'sine',.012);tone(3720,3650,.3,'sine',.006);tone(150,80,.12,'sine',.04);noise(.07,.035,5200,0,'bandpass',2600,2.2)},
+ forjaGira:()=>{tone(220,880,.95,'sine',.014);tone(330,1320,.95,'triangle',.006);noise(1,.016,500,0,'bandpass',3200,1.4)},
+ forjaPior:()=>{tone(392,262,.35,'triangle',.022);tone(311,196,.45,'sine',.016,.12)},
  skill:()=>{tone(420,570,.12,'sine',.018);tone(590,760,.18,'sine',.014,.08)},
  magic:()=>{tone(145,235,.32,'sine',.025);tone(292,470,.3,'sine',.014,.035);tone(580,390,.28,'triangle',.009,.1);noise(.3,.012,1500,.015,'bandpass',800,.8)},
  magicHit:()=>{tone(300,115,.22,'sine',.035);tone(510,210,.18,'triangle',.02,.018);noise(.13,.026,2100,0,'bandpass',650,1.1)},
@@ -289,7 +296,25 @@ function bumboGlooc(d,t,v,q=1){const o=audio.createOscillator(),g=audio.createGa
 function tomGlooc(d,t,v,f0){const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='triangle';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*.55,t+.22);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.34);f.type='lowpass';f.frequency.value=900;o.connect(g);g.connect(f);f.connect(d);o.start(t);o.stop(t+.36)}
 function chiadoGlooc(d,t,v,fq,dur,tipo,n){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();f.type=tipo;f.frequency.value=fq;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f);f.connect(g);g.connect(d);src.start(t,((n||0)*.173)%1.5,dur+.02)}
 function riserGlooc(d,t,dur,v){const g=audio.createGain(),src=audio.createBufferSource(),f=audio.createBiquadFilter();src.buffer=ruido();src.loop=true;f.type='bandpass';f.Q.value=2.5;f.frequency.setValueAtTime(350,t);f.frequency.exponentialRampToValueAtTime(9000,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+dur);g.gain.setValueAtTime(.0001,t+dur+.01);src.connect(f);f.connect(g);g.connect(d);src.start(t);src.stop(t+dur+.02)}/* ---------- música gerada: uma trilha por lugar, com troca suave ---------- */
-// cada trilha recebe (destino, tempo, passo) e agenda as notas daquele passo
+/* orquestra da Floresta Negra (2026-10-30): coro de ópera (vogal por formantes), cordas, metais, soprano, tímpano, prato,
+   caixa, sino e o xilofone de ossos */
+function coroOpera(d,t,dur,midis,vol,{ataque=.6,solta=1,vib=.006,vogal='a'}={}){
+ const F=vogal==='o'?[500,850]:[760,1180],fim=t+dur;
+ for(const m of midis){const f=mtof(m),g=audio.createGain(),b1=audio.createBiquadFilter(),b2=audio.createBiquadFilter(),lfo=audio.createOscillator(),lg=audio.createGain();
+  b1.type=b2.type='bandpass';b1.frequency.value=F[0];b2.frequency.value=F[1];b1.Q.value=b2.Q.value=4;lfo.frequency.value=4.8+Math.random()*.8;lg.gain.value=f*vib;lfo.connect(lg);
+  const oscs=[-9,0,8].map(dt=>{const o=audio.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=dt;lg.connect(o.frequency);o.connect(b1);o.connect(b2);return o});
+  b1.connect(g);b2.connect(g);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+ataque);g.gain.setValueAtTime(vol,Math.max(t+ataque,fim));g.gain.exponentialRampToValueAtTime(.0001,fim+solta);
+  g.connect(d);lfo.start(t);lfo.stop(fim+solta+.05);oscs.forEach(o=>{o.start(t);o.stop(fim+solta+.05)})}}
+function metais(d,t,dur,m,vol){for(const dt of [-6,6]){const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o.frequency.value=mtof(m);o.detune.value=dt;
+ f.type='lowpass';f.Q.value=1.5;f.frequency.setValueAtTime(350,t);f.frequency.exponentialRampToValueAtTime(2600,t+.09);f.frequency.exponentialRampToValueAtTime(1300,t+Math.max(.12,dur));
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+.04);g.gain.setValueAtTime(vol,t+Math.max(.05,dur-.02));g.gain.exponentialRampToValueAtTime(.0001,t+dur+.18);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+dur+.22)}}
+function soprano(d,t,dur,m,vol){nota(d,mtof(m),t,dur,{tipo:'triangle',vol,ataque:.14,solta:.5,vibrato:.012,filtro:3200});nota(d,mtof(m),t,dur,{tipo:'sine',vol:vol*.6,ataque:.18,solta:.5,vibrato:.012})}
+function timpano(d,t,v,m){const f=mtof(m),o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f*1.03,t);o.frequency.exponentialRampToValueAtTime(f,t+.08);
+ g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.3);o.connect(g);g.connect(d);o.start(t);o.stop(t+1.35);chiadoGlooc(d,t,v*.35,320,.12,'lowpass',0)}
+function prato(d,t,v,dur){chiadoGlooc(d,t,v,6500,dur,'highpass',0);chiadoGlooc(d,t,v*.5,3200,dur*.6,'bandpass',0)}
+function caixa(d,t,v){chiadoGlooc(d,t,v,1900,.13,'bandpass',0);nota(d,195,t,.03,{tipo:'triangle',vol:v*.6,solta:.06})}
+function sino(d,t,m,v){const f=mtof(m);[[1,1,3.5],[2.76,.4,2],[5.4,.2,1]].forEach(([k,a,dd])=>nota(d,f*k,t,.02,{tipo:'sine',vol:v*a,ataque:.003,solta:dd}))}
+function ossos(d,t,m,v){nota(d,mtof(m),t,.02,{tipo:'triangle',vol:v,ataque:.002,solta:.13,filtro:5200});chiadoGlooc(d,t,v*.3,7000,.02,'highpass',0)}// cada trilha recebe (destino, tempo, passo) e agenda as notas daquele passo
 const TRILHAS={
  // ilha: calma, dó maior, I-vi-IV-V, pad + arpejo dedilhado + melodia pentatônica
  world:{passo:60/84/2,toca(d,t,n,est){
@@ -341,7 +366,74 @@ const TRILHAS={
   if(s%2===0||ciclo>=8){const m=ac[RIFF[s]]+24+(ciclo>=8&&s%8===7?2:0);nota(d,mtof(m),t,P*.9,{tipo:'square',vol:.009,ataque:.004,solta:.08,filtro:3200})}
   if(ciclo>=8&&s===0)ac.forEach(m=>nota(d,mtof(m+12),t,P*15,{tipo:'sawtooth',vol:.005,ataque:.02,solta:.3,filtro:2400,detune:7}));
  }},
- /* ---- Caverna dos Glooc (DG nível 5, 2026-10-29, pedido do usuário) ----
+ /* Floresta Negra (DG nível 10, 2026-10-30, pedido do usuário):
+    florestaNegra: explorando — canção de ninar sombria em ré menor (caixinha de música; na 2ª metade, sinos) sobre cordas
+      graves, sino distante, vento e coruja; 16 compassos (~58 s) que voltam sem emenda.
+    florestaLuta: batalha — 128 bpm; ~4 s devagar (trêmulo, tímpano, ruído subindo) e o drop: cordas em ostinato, metais e
+      bateria; depois coro e o xilofone de ossos, pausa com o coro e a subida; ciclo de 18 compassos (~34 s).
+    florestaChefe: o Rei Esqueleto — ópera e orquestra, 112 bpm; abertura solene (~11 s: coro grave, sino, coração no tímpano,
+      soprano ao longe) e o épico: coro de ópera, tema nos metais, soprano solo e o clímax com o "Dies irae" em uníssono;
+      ciclo de 16 compassos (~34 s). */
+ florestaNegra:{passo:60/66/2,continua:true,ganho:.55,toca(d,t,n,est){
+  const P=60/66/2,s=n%8,bar=Math.floor(n/8)%16,i=bar%8,segunda=bar>=8;
+  const AC=[[50,53,57],[46,50,53],[43,46,50],[45,49,52],[50,53,57],[51,55,58],[43,46,50],[45,49,52]][i];
+  if(s===0){AC.forEach((m,k)=>nota(d,mtof(m-12),t,P*8,{tipo:'sawtooth',vol:.006,ataque:1.4,solta:1.6,filtro:520,detune:k*5-5}));nota(d,mtof(AC[0]-24),t,P*8,{tipo:'sine',vol:.03,ataque:1,solta:1.5})} // cordas graves e o baixo
+  const FR=[[[0,74,2],[2,73,1],[3,74,1],[4,69,3],[8,70,2],[10,69,1],[11,67,1],[12,65,4]],[[0,65,2],[2,67,1],[3,69,1],[4,70,3],[8,69,2],[10,67,2],[12,64,4]],[[0,74,2],[2,77,2],[4,75,3],[8,74,2],[10,72,1],[11,70,1],[12,69,4]],[[0,70,2],[2,69,1],[3,67,1],[4,65,2],[6,64,2],[8,61,4],[12,62,4]]][Math.floor(i/2)],k0=(i%2)*8+s;
+  for(const [k,m,len] of FR)if(k===k0){if(!segunda){nota(d,mtof(m+12),t,.05,{tipo:'sine',vol:.02,solta:P*len*1.4});nota(d,mtof(m+24),t,.03,{tipo:'sine',vol:.005,solta:P*len})}else{sino(d,t,m,.016);nota(d,mtof(m-3),t,P*len,{tipo:'triangle',vol:.006,ataque:.2,solta:.6})}}
+  if(bar%4===0&&s===0)sino(d,t,38,.02); // sino distante
+  if(bar%2===1&&s===4)chiadoGlooc(d,t,.006,500,P*6,'bandpass',n); // vento passando
+  if(Math.random()<.02){const f=380+Math.random()*60;nota(d,f,t,.18,{tipo:'sine',vol:.012,solta:.15});nota(d,f*.84,t+.3,.25,{tipo:'sine',vol:.01,solta:.2})} // coruja
+ }},
+ florestaLuta:{passo:60/128/4,ganho:.65,toca(d,t,n,est){
+  const P=60/128/4,s=n%16,b=Math.floor(n/16);
+  if(b<2){ // começa devagar (~4 s)
+   if(s===0)[50,57].forEach(m=>nota(d,mtof(m-12),t,P*16,{tipo:'sawtooth',vol:.008,ataque:.8,solta:.3,filtro:900+b*800}));
+   if(s%2===0)nota(d,mtof(b?62:50),t,P*.9,{tipo:'sawtooth',vol:.006+s*.0004,solta:.04,filtro:1800}); // trêmulo
+   if(s===0||s===8)timpano(d,t,.08,38);
+   if(b===0&&s===0)riserGlooc(d,t,P*32,.025);
+   if(b===1&&s>=8&&s%2===0)caixa(d,t,.012+(s-8)*.003);
+   return}
+  const c=(b-2)%18,RA=[38,38,34,34,31,31,33,33],RB=[34,36,38,31,39,33],CA={38:[62,65,69],34:[58,62,65],31:[55,58,62],33:[57,61,64],36:[60,64,67],39:[63,67,70]};
+  const raiz=c<8?RA[c]:c<14?RB[c-8]:38,ac=CA[raiz];
+  if(c===14||c===15){if(s===0)coroOpera(d,t,P*16,ac.map(m=>m-12),.035,{ataque:.4,solta:.6});if(s===0||s===8)timpano(d,t,.05,raiz+12);return} /* pausa com o coro */
+  if(c>=16){if(c===16&&s===0)riserGlooc(d,t,P*32,.03);if(s%4===0)timpano(d,t,.05+(c-16)*.02,38);const k=c===16?4:s<8?2:1;if(s%k===0)caixa(d,t,.01+(c-16)*.01+s*.001);if(s%2===0)nota(d,mtof(50+(c-16)*12),t,P*.8,{tipo:'sawtooth',vol:.007,solta:.04,filtro:2200});return} /* subida */
+  if((c===0||c===8)&&s===0){prato(d,t,.05,1.6);timpano(d,t,.12,38);bumboGlooc(d,t,.13,.8)} // impacto do drop
+  if(s===0||s===8||s===10)bumboGlooc(d,t,.11);
+  if(s===4||s===12)caixa(d,t,.03);
+  if(s%2===1)chiadoGlooc(d,t,.005,9000,.03,'highpass',n);
+  if(s===14&&c%2===1)timpano(d,t,.06,raiz+12);
+  const OST=[0,0,12,0,7,0,12,0,0,0,12,0,7,0,12,7];nota(d,mtof(raiz+12+OST[s]),t,P*.6,{tipo:'sawtooth',vol:.011,ataque:.004,solta:.05,filtro:2400,detune:s%2?5:-5}); // cordas em ostinato
+  if(s%4===0)nota(d,mtof(raiz),t,P*2,{tipo:'sine',vol:.05,solta:.08}); // baixo
+  if(c<8){if(s===0||s===6||s===10)ac.forEach(m=>metais(d,t,P*(s===10?5:2),m-12,.012))} // metais em golpes
+  else{if(s===0)coroOpera(d,t,P*16,ac.map(m=>m-12),.03,{ataque:.3,solta:.4});const RIFF=[74,77,79,81,79,77,74,72,74,77,79,84,81,79,77,79];if(s%2===0||c>=12)ossos(d,t,RIFF[(s+(c-8)*3)%16],.025)} // coro e xilofone de ossos
+ }},
+ florestaChefe:{passo:60/112/4,ganho:.8,toca(d,t,n,est){
+  const P=60/112/4,s=n%16,b=Math.floor(n/16);
+  const AC={D:[62,65,69],Bb:[58,62,65],Gm:[55,58,62],A:[57,61,64],Eb:[58,63,67]},RZ={D:38,Bb:34,Gm:31,A:33,Eb:39};
+  if(b<5){ // abertura solene (~11 s)
+   const k=['D','Bb','Gm','A','A'][b],ac=AC[k];
+   if(s===0){coroOpera(d,t,P*16,ac.map(m=>m-12),.03,{ataque:1.2,solta:.8,vogal:'o'});nota(d,mtof(RZ[k]-12),t,P*16,{tipo:'sawtooth',vol:.012,ataque:1,solta:.8,filtro:260})}
+   if(b===0&&s===0)sino(d,t,50,.03);
+   if(s===0||s===3)timpano(d,t,s?.04:.07,38); // batida de coração
+   if(b===2&&s===0)soprano(d,t,P*24,81,.02);
+   if(b===4){if(s===0)riserGlooc(d,t,P*16,.04);const q=s<8?2:1;if(s%q===0)caixa(d,t,.01+s*.003)}
+   return}
+  const c=(b-5)%16,PROG=['D','Bb','Gm','A','D','Bb','Eb','A','Gm','D','Bb','A','D','Eb','Bb','A'],k=PROG[c],ac=AC[k],raiz=RZ[k];
+  if((c===0||c===8||c===12)&&s===0){prato(d,t,.06,2.2);timpano(d,t,.14,38);nota(d,46,t,1,{tipo:'sine',vol:.08,solta:.6})} // impacto
+  if(s===0)coroOpera(d,t,P*16,[...ac.map(m=>m-12),ac[0]],c>=12?.045:.035,{ataque:.15,solta:.4}); // coro de ópera
+  if(s===8&&c<8)coroOpera(d,t,P*8,[ac[2]],.03,{ataque:.05,solta:.3});
+  if(s===0||s===8)timpano(d,t,.1,raiz+12);
+  if(c!==8&&c!==9&&(s===4||s===12))caixa(d,t,.028);
+  if(c>=12&&s%2===0)bumboGlooc(d,t,.08,.7);
+  if(c%4===3&&s>=12)timpano(d,t,.05+(s-12)*.015,raiz+12+(s-12)); // rufo para o próximo
+  if(c<8||c>=12){const O=[0,12,7,12,0,12,7,12,0,12,8,12,0,12,7,5];nota(d,mtof(raiz+12+O[s]),t,P*.6,{tipo:'sawtooth',vol:.01,ataque:.004,solta:.05,filtro:2600,detune:s%2?6:-6})} // cordas em ostinato
+  else if(s%2===0)nota(d,mtof(ac[0]),t,P*.95,{tipo:'sawtooth',vol:.006,ataque:.01,solta:.03,filtro:1800}); // trêmulo
+  if(s%4===0)nota(d,mtof(raiz),t,P*3,{tipo:'sawtooth',vol:.016,solta:.1,filtro:600}); // contrabaixos
+  if(c<8){const TEMA=[[[0,74,4],[4,74,2],[6,69,2],[8,74,8]],[[0,77,4],[4,76,4],[8,74,4],[12,73,4]],[[0,70,6],[6,69,2],[8,67,8]],[[0,69,8],[8,73,8]]][c%4];for(const [k2,m,l] of TEMA)if(k2===s)metais(d,t,P*l,m-12+(c>=4?12:0),.016)} // tema do Rei Esqueleto
+  if(c>=8&&c<12){const SOP=[[[0,81,16]],[[0,82,8],[8,81,8]],[[0,77,16]],[[0,76,8],[8,73,8]]][c-8];for(const [k2,m,l] of SOP)if(k2===s)soprano(d,t,P*l,m,.024)} // soprano solo
+  if(c>=12&&s%4===0){const DIES=[65,64,65,62,64,60,62,62],m=DIES[((c-12)%2)*4+s/4]+(c>=14?12:0);metais(d,t,P*4,m,.018);coroOpera(d,t,P*4,[m],.03,{ataque:.03,solta:.15})} // Dies irae
+  if(c===15&&s===8)riserGlooc(d,t,P*8,.04);
+ }}, /* ---- Caverna dos Glooc (DG nível 5, 2026-10-29, pedido do usuário) ----
     gloocCaverna: explorando — ré menor lenta: drone grave, tambor tribal distante com eco, kalimba pentatônica e gotas.
     gloocLuta: batalha — 140 bpm; uns 3 s devagar (bumbo espaçado, ruído subindo, caixa acelerando) e cai no drop: bumbo,
     palma, tambores tribais, baixo pulsando, metais e o riff agudo; a cada 8 compassos uma pausa curta e outro drop.
@@ -436,7 +528,12 @@ const AMBIENTES={
   eventos:[[1.2,4,(d,t)=>{const f=900+Math.random()*700;for(const [k,v] of [[0,.03],[.27,.01],[.5,.004]]){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+k);o.frequency.exponentialRampToValueAtTime(f*.45,t+k+.07);g.gain.setValueAtTime(v,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.1);o.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.12)}}],
    [8,18,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(40,t+1.4);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.03,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+1.5);o.connect(g);g.connect(d);o.start(t);o.stop(t+1.6)}]]},
  // Caverna dos Glooc: o ronco grave da caverna, gotas com eco e, de vez em quando, Glooc tagarelando lá longe
- cavernaGlooc:{montar(d){return [fundo(d,'lowpass',100,.7,.06),fundo(d,'bandpass',260,3,.004)]},
+ // Floresta Negra: vento entre as árvores, folhas, coruja, galho rangendo e corvo ao longe
+ florestaNegraAmb:{montar(d){const vento=fundo(d,'bandpass',620,.6,.012),grave=fundo(d,'lowpass',130,.7,.03),lfo=audio.createOscillator(),lg=audio.createGain();lfo.frequency.value=.08;lg.gain.value=.008;lfo.connect(lg);lg.connect(vento.gain);lfo.start();return [vento,grave,{parar:()=>lfo.stop()}]},
+  eventos:[[2,5,(d,t)=>chiadoGlooc(d,t,.006,3200,.5,'bandpass',0)],
+   [7,16,(d,t)=>{const f=360+Math.random()*50;for(const [k,v,q] of [[0,.022,1],[.32,.016,.86],[.55,.012,.86]]){nota(d,f*q,t+k,.16,{tipo:'sine',vol:v,ataque:.03,solta:.14})}}],
+   [6,14,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(55+Math.random()*20,t);o.frequency.linearRampToValueAtTime(90+Math.random()*30,t+.7);f.type='bandpass';f.frequency.value=600;f.Q.value=6;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.02,t+.1);g.gain.exponentialRampToValueAtTime(.0001,t+.8);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+.85)}],
+   [12,26,(d,t)=>{for(const k of [0,.35]){const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(700,t+k);o.frequency.exponentialRampToValueAtTime(480,t+k+.25);f.type='bandpass';f.frequency.value=1300;f.Q.value=3;g.gain.setValueAtTime(.008,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.28);o.connect(f);f.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.3)}}]]}, cavernaGlooc:{montar(d){return [fundo(d,'lowpass',100,.7,.06),fundo(d,'bandpass',260,3,.004)]},
   eventos:[[1,3.5,(d,t)=>{const f=900+Math.random()*900;for(const [k,v] of [[0,.028],[.3,.009],[.55,.004]]){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+k);o.frequency.exponentialRampToValueAtTime(f*.45,t+k+.07);g.gain.setValueAtTime(v,t+k);g.gain.exponentialRampToValueAtTime(.0001,t+k+.1);o.connect(g);g.connect(d);o.start(t+k);o.stop(t+k+.12)}}],
    [7,16,(d,t)=>{const n=3+Math.floor(Math.random()*4);for(let i=0;i<n;i++){const ti=t+i*(.09+Math.random()*.07),o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter(),f0=420+Math.random()*380;o.type='sawtooth';o.frequency.setValueAtTime(f0,ti);o.frequency.exponentialRampToValueAtTime(f0*(Math.random()<.5?1.4:.7),ti+.07);f.type='bandpass';f.frequency.value=1100;f.Q.value=4;g.gain.setValueAtTime(.0001,ti);g.gain.linearRampToValueAtTime(.006,ti+.01);g.gain.exponentialRampToValueAtTime(.0001,ti+.08);o.connect(f);f.connect(g);g.connect(d);o.start(ti);o.stop(ti+.1)}}],
    [9,20,(d,t)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(64,t);o.frequency.exponentialRampToValueAtTime(38,t+1.5);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.028,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(g);g.connect(d);o.start(t);o.stop(t+1.7)}]]}, tavern:{montar(d){
@@ -453,6 +550,11 @@ function fundo(d,tipo,freq,q,vol){
  return {gain:g.gain,parar:()=>{try{src.stop()}catch(e){}}};
 }
 const ativos={musica:null,ambiente:null}; // {cena, saida(gain), ...}
+/* para testes: toca a trilha num contexto offline (sem som) e mede pico e volume a cada 5 s */
+SOM.medirTrilha=async(nome,seg=40,sr=22050)=>{const tr=TRILHAS[nome];if(!tr||!tr.toca)return null;const real=audio,off=new OfflineAudioContext(1,Math.round(sr*seg),sr);audio=off;let n=0,erro='';
+ try{const d=off.createGain();d.connect(off.destination);const est={};for(let t=.05;t<seg-1;t+=tr.passo){tr.toca(d,t,n,est);n++}}catch(e){erro=e.message}finally{audio=real}
+ const x=(await off.startRendering()).getChannelData(0);let pk=0;const blocos=[];for(let k=0;k*sr*5<x.length;k++){let q=0;const a=k*sr*5,b=Math.min(x.length,a+sr*5);for(let i=a;i<b;i++){q+=x[i]*x[i];pk=Math.max(pk,Math.abs(x[i]))}blocos.push(+Math.sqrt(q/(b-a)).toFixed(3))}
+ return{passos:n,pico:+pk.toFixed(2),rms5s:blocos,erro}};
 SOM.estado=()=>({contexto:audio?audio.state:'nenhum',musica:ativos.musica&&ativos.musica.cena,ambiente:ativos.ambiente&&ativos.ambiente.cena,notas:ativos.musica?ativos.musica.n:0});
 const posMusica={};
 function trocar(canal,cena){
@@ -460,7 +562,7 @@ function trocar(canal,cena){
  if(a&&canal==='musica')posMusica[a.cena]={n:a.n,quando:performance.now()};
  if(a){const t=agora();a.saida.gain.cancelScheduledValues(t);a.saida.gain.setValueAtTime(a.saida.gain.value,t);a.saida.gain.linearRampToValueAtTime(0,t+1.4);a.parado=true;setTimeout(()=>{(a.nos||[]).forEach(n=>n.parar());try{a.saida.disconnect()}catch(e){}},1600);ativos[canal]=null}
  if(!cena)return;
- const saida=audio.createGain(),t=agora();saida.gain.setValueAtTime(0,t);saida.gain.linearRampToValueAtTime(1,t+2);saida.connect(bus[canal]);
+ const saida=audio.createGain(),t=agora();saida.gain.setValueAtTime(0,t);saida.gain.linearRampToValueAtTime(canal==='musica'&&TRILHAS[cena]&&TRILHAS[cena].ganho||1,t+2); /* ganho: nivela trilhas mais cheias (orquestra) com as outras */saida.connect(bus[canal]);
  const volta=canal==='musica'&&TRILHAS[cena]&&TRILHAS[cena].continua&&posMusica[cena]&&performance.now()-posMusica[cena].quando<120000?posMusica[cena].n:0; /* música de exploração continua de onde parou ao voltar da luta */
  const novo={cena,saida,prox:t+.15,n:volta,est:{}};
  if(canal==='ambiente'){const amb=AMBIENTES[cena];novo.nos=amb.montar(saida);novo.timers=amb.eventos.map(([a,b])=>t+a+Math.random()*(b-a))}

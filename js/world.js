@@ -232,6 +232,7 @@ window.biomaIlha=biomaIlha;window.floridoIlha=floridoIlha;
    if(n%3==0){dot(x-1,y-2,2,1,n%2?'#ffffff':'#ff9ac0');dot(x,y-3,1,1,'#ffe07a')}}});
 })();/* onde o rio cai no vazio (render.js desenha a água caindo e a névoa) */
 const RIO_FIM=(()=>{for(let y=W-1;y>RIO_Y0;y--){const x=Math.round(riverX(y));if(islandTerrainMask[y*W+x]===4)return {x,y,w:riverW(y)}}return null})();
+if(window.PALETA_JOGO)PALETA_JOGO.canvasNaPaleta(map); /* terreno da ilha na paleta do jogo (2026-10-30) */
 const islandTerrainOriginal=map.getContext('2d').getImageData(0,0,W,W);
 RBR.forEach(b=>{
  const left=Math.round(riverX(b)-riverW(b)-14),right=Math.round(riverX(b)+riverW(b)+14);
@@ -268,7 +269,7 @@ window.applyIslandTerrainArt=()=>{
   const from=((y%tile.h)*tile.w+x%tile.w)*4,to=(y*W+x)*4,alpha=tile.data[from+3]/255;
   for(let channel=0;channel<3;channel++)image.data[to+channel]=tile.data[from+channel]*alpha+image.data[to+channel]*(1-alpha);
  }
- g.putImageData(image,0,0);
+ g.putImageData(image,0,0);if(window.PALETA_JOGO)PALETA_JOGO.canvasNaPaleta(map);
  paintChao();
 };
 /* tipos de elemento do mapa: só os dos pacotes (js/pacote-mapa.js) e da biblioteca do projeto (2026-10-24, pedido do usuário:
