@@ -534,7 +534,7 @@ button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
 .ajudaBtn{flex:none;width:20px;height:20px;padding:0;margin:0 8px 0 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;background:#262626;border:2px solid #a69c94;color:#efc56a;font:bold 12px monospace;line-height:1;cursor:pointer;border-radius:0;text-transform:none;letter-spacing:0}
 .ajudaBtn:hover{background:#3a2418;border-color:#efc56a}
 .ajudaBtn.solto{position:absolute;left:8px;top:8px;z-index:2;margin:0}
-.ttl>.ajudaBtn+*,.skillHead>.ajudaBtn+*,.qmTopo>.ajudaBtn+*,.mpTopo>.ajudaBtn+*{margin-right:auto}
+.ttl>.ajudaBtn+*,.skillHead>.ajudaBtn+*,.qmTopo>.ajudaBtn+*,.biTopo>.ajudaBtn+*,.mpTopo>.ajudaBtn+*{margin-right:auto}
 #menu .mbox{position:relative}
 .ajudaCaixa{position:fixed;z-index:210;width:min(380px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;box-sizing:border-box;padding:10px 12px;background:#0d0d0dfa;border:2px solid #a69c94;outline:1px solid #262626;outline-offset:-5px;color:#d9d0c7;font:12px monospace;line-height:1.45;text-align:left;animation:mpop .2s ease-out}
 .ajudaTopo{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.ajudaTopo b{color:#efc56a;font-size:13px}
