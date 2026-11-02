@@ -221,6 +221,8 @@
   verificarMissoes()}
  // a relíquia é item de missão enquanto a entrega estiver pendente (js/state.js ITENS_MISSAO)
  if(typeof ITENS_MISSAO!=='undefined')ITENS_MISSAO.reliquia_roubada=()=>h().cacada==='pegou';
+ // segurança: além do aoCarregar (ui.js), o verificador roda de novo logo depois de o jogo abrir (é idempotente)
+ addEventListener('load',()=>setTimeout(()=>{try{verificarMissoes()}catch(e){}},1500));
  if(window.FORJA&&FORJA.atualizarMundo)FORJA.atualizarMundo(); // o ferreiro do acampamento fica sem martelo até as ferramentas voltarem
  addEventListener('ilha-dg-entrou',aoEntrar);addEventListener('ilha-dg-saiu',aoSair);
  window.HISTORIA={h,forjaPronta,dialogoFerreiro,ferreiroResgatado,ajustarDG,spritePreso,jaula,objetosDG,cliqueDG,retrato,objetivo,aoCarregar,tipoDG,conjunto,missaoDG,verificarMissoes,
