@@ -15,7 +15,7 @@
       roubou algo dele; não diz o quê; quem ajudar aprende a usar arco ou facas de caça ('procurar');
     - depois disso, o Ladino (capuz preto) aparece na Floresta Negra (teste: 100%; depois volta a 50%) numa sala no meio da DG, como
       inimigo. Com 20% da vida ele se rende e conversa: o Arqueiro Caçador é perigoso e o item é extremamente perigoso na mão dele.
-      Pegar o item → o Ladino não entrega mais nada: leve a relíquia ao Arqueiro Caçador ('pegou'); deixar com o Ladino → aprende a classe Ladino e ganha as duas Facas de Caça ('deixou');
+      Pegar o item → o Ladino não entrega mais nada: leve a relíquia ao Arqueiro Caçador ('pegou'); deixar com o Ladino → ele ensina a classe Explorador (e a futura classe Ladino) e dá as duas Facas de Caça ('deixou');
     - com o item, o Arqueiro Caçador aparece 100% na Caverna dos Glooc: recebe a relíquia, ensina a classe Explorador e dá o
       Arco e a Aljava ('entregue'). Fim da missão: nenhum dos dois aparece de novo.
    Classe ainda não criada no jogo fica guardada em p.historia.classes e vira aprendida quando a classe existir. */
@@ -167,8 +167,8 @@
   else if(a==='aceitar-cacada'){H.cacada='procurar';const o=atual;box.innerHTML='<b>Arqueiro Caçador</b><p>Ótimo. Se encontrar o Ladino, faça ele devolver o que é meu.</p><p>Eu estarei por aí. Boa caçada.</p><button type="button" data-close-dialog>Até mais</button>';if(o)setTimeout(()=>some(o,'#79a35a'),300);ft(p.x,p.y-30,'Missão: a caçada ao Ladino','#ffd84a');som('quest');salvar()}
   else if(a==='pegar-item'){H.cacada='pegou';const o=atual;dar('reliquia_roubada'); // pegou o item: o Ladino não entrega nada além da relíquia (facas só ao deixar; a classe vem do Arqueiro Caçador na entrega)
    box.innerHTML='<b>Ladino</b><p>Que seja. Pegue logo essa coisa e suma daqui.</p><p>Só não diga que eu não avisei.</p><button type="button" data-close-dialog>Fechar</button>';if(o)setTimeout(()=>some(o,'#1f1a1a'),300);som('item');salvar()}
-  else if(a==='deixar-item'){H.cacada='deixou';const o=atual;dar('faca_de_caca',60,2);aprenderClasse('ladino'); // deixar o item: aprende a classe Ladino e ganha as facas (2026-11-02, pedido do usuário)
-   box.innerHTML='<b>Ladino</b><p>Sábia escolha. Você não vai se arrepender... eu acho.</p><p>Fique com estas facas de caça — e deixe eu te mostrar uns truques meus. Agora você é um de nós.</p><p>Adeus, aventureiro.</p><button type="button" data-close-dialog>Fechar</button>';if(o)setTimeout(()=>some(o,'#1f1a1a'),300);som('item');salvar()}
+  else if(a==='deixar-item'){H.cacada='deixou';const o=atual;dar('faca_de_caca',60,2);aprenderClasse('explorador');setTimeout(()=>aprenderClasse('ladino'),900); // deixar o item: o Ladino ensina a classe Explorador agora e a Ladino (futura) fica guardada
+   box.innerHTML='<b>Ladino</b><p>Sábia escolha. Você não vai se arrepender... eu acho.</p><p>Fique com estas facas de caça — e deixe eu te mostrar uns truques meus: os passos de explorador e os caminhos das sombras. Agora você é um de nós.</p><p>Adeus, aventureiro.</p><button type="button" data-close-dialog>Fechar</button>';if(o)setTimeout(()=>some(o,'#1f1a1a'),300);som('item');salvar()}
   else if(a==='entregar'){if(!contar('reliquia_roubada'))return;tirar('reliquia_roubada');H.cacada='entregue';const o=atual;aprenderClasse('explorador');dar('arco_explorador',60);dar('aljava_explorador',60);
    box.innerHTML='<b>Arqueiro Caçador</b><p>Finalmente... Obrigado, de verdade.</p><p>Que o arco te guie. Daqui em diante, cada um segue o seu caminho.</p><button type="button" data-close-dialog>Adeus</button>';if(o)setTimeout(()=>some(o,'#79a35a'),300);som('quest');salvar()}
   ev.stopPropagation()},true);
@@ -189,14 +189,40 @@
   if(t==='ossos'){if(H.ferreiro==='buscar')return 'Recuperar a forja do Ferreiro';
    if(H.cacada==='procurar')return 'Encontrar o Ladino'}
   return null}
+ /* ---------- verificador das missões da história (roda em todo carregamento; idempotente) ----------
+    Conserta saves de versões antigas ou estados quebrados, para todos que já fizeram as missões e não ganharam:
+    - caçada 'deixou' ou 'entregue': garante a classe Explorador (e, no 'deixou', a futura classe Ladino e as facas);
+    - caçada 'pegou' sem a Relíquia Roubada na mochila: devolve a relíquia (senão a entrega trava);
+    - etapa do ferreiro sem o ferreiro resgatado, ou valores inválidos: limpa.
+    Itens são repostos uma vez só (H.retroFacas). Devolve a lista do que consertou. */
+ function verificarMissoes(){
+  const H=h(),fx=[];
+  const darClasse=id=>{
+   if(typeof CL!=='undefined'&&CL[id]){p.classProgress=p.classProgress||{};if(!p.classProgress[id]){p.classProgress[id]={rank:1,xp:0};fx.push('classe '+(CL[id].n||id))}}
+   else{H.classes=H.classes||[];if(!H.classes.includes(id)){H.classes.push(id);fx.push('classe futura '+id)}}};
+  // valores válidos de cada etapa
+  if(H.ferreiro&&!['resgatado','buscar','recuperado','pronto'].includes(H.ferreiro)){delete H.ferreiro;fx.push('etapa do ferreiro inválida')}
+  if(H.cacada&&!['procurar','pegou','deixou','entregue'].includes(H.cacada)){delete H.cacada;fx.push('etapa da caçada inválida')}
+  // ferreiro: save de antes desta história continua com a forja; etapa sem o resgate não existe
+  if(typeof blacksmithSaved!=='undefined'){
+   if(blacksmithSaved&&!H.ferreiro)H.ferreiro='pronto';
+   if(!blacksmithSaved&&H.ferreiro){delete H.ferreiro;fx.push('etapa do ferreiro sem resgate')}}
+  // caçada: quem terminou e não ganhou a classe (saves de antes das correções)
+  if(H.cacada==='deixou'||H.cacada==='entregue')darClasse('explorador');
+  if(H.cacada==='deixou'){darClasse('ladino');
+   if(!H.retroFacas){H.retroFacas=1;if(typeof ITEMS!=='undefined'&&ITEMS.faca_de_caca&&typeof itemCount=='function'&&itemCount('faca_de_caca')<1){dar('faca_de_caca',60,2);fx.push('facas de caça repostas')}}}
+  // pegou e perdeu a relíquia: devolve, senão não dá para entregar ao Arqueiro Caçador
+  if(H.cacada==='pegou'&&typeof ITEMS!=='undefined'&&ITEMS.reliquia_roubada&&typeof itemCount=='function'&&itemCount('reliquia_roubada')<1){dar('reliquia_roubada');fx.push('relíquia devolvida')}
+  if(fx.length){console.log('Verificador de missões da história:',fx.join(' · '));salvar();
+   setTimeout(()=>ft(p.x,p.y-40,'Missões verificadas: '+fx.length+' correç'+(fx.length>1?'ões':'ão')+'!','#79a35a'),800)}
+  return fx}
  function aoCarregar(){const H=h();
-  // save de antes desta história: quem já tinha salvado o ferreiro continua com a forja
-  if(typeof blacksmithSaved!=='undefined'&&blacksmithSaved&&!H.ferreiro)H.ferreiro='pronto';
-  if(Array.isArray(H.classes)&&typeof CL!=='undefined')H.classes=H.classes.filter(id=>{if(!CL[id])return true;p.classProgress=p.classProgress||{};if(!p.classProgress[id])p.classProgress[id]={rank:1,xp:0};return false})}
+  if(Array.isArray(H.classes)&&typeof CL!=='undefined')H.classes=H.classes.filter(id=>{if(!CL[id])return true;p.classProgress=p.classProgress||{};if(!p.classProgress[id])p.classProgress[id]={rank:1,xp:0};return false})
+  verificarMissoes()}
  // a relíquia é item de missão enquanto a entrega estiver pendente (js/state.js ITENS_MISSAO)
  if(typeof ITENS_MISSAO!=='undefined')ITENS_MISSAO.reliquia_roubada=()=>h().cacada==='pegou';
  if(window.FORJA&&FORJA.atualizarMundo)FORJA.atualizarMundo(); // o ferreiro do acampamento fica sem martelo até as ferramentas voltarem
  addEventListener('ilha-dg-entrou',aoEntrar);addEventListener('ilha-dg-saiu',aoSair);
- window.HISTORIA={h,forjaPronta,dialogoFerreiro,ferreiroResgatado,ajustarDG,spritePreso,jaula,objetosDG,cliqueDG,retrato,objetivo,aoCarregar,tipoDG,conjunto,missaoDG,
+ window.HISTORIA={h,forjaPronta,dialogoFerreiro,ferreiroResgatado,ajustarDG,spritePreso,jaula,objetosDG,cliqueDG,retrato,objetivo,aoCarregar,tipoDG,conjunto,missaoDG,verificarMissoes,
   classePendente:id=>!!(h().classes||[]).includes(id),get objetos(){return objetos},get ladino(){return ladino}};
 })();
