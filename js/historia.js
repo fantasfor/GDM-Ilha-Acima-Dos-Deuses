@@ -191,10 +191,10 @@
   return null}
  /* ---------- verificador das missões da história (roda em todo carregamento; idempotente) ----------
     Conserta saves de versões antigas ou estados quebrados, para todos que já fizeram as missões e não ganharam:
-    - caçada 'deixou' ou 'entregue': garante a classe Explorador (e, no 'deixou', a futura classe Ladino e as facas);
+    - caçada 'deixou' ou 'entregue' sem a classe: garante a mesma classe que o diálogo dá;
     - caçada 'pegou' sem a Relíquia Roubada na mochila: devolve a relíquia (senão a entrega trava);
     - etapa do ferreiro sem o ferreiro resgatado, ou valores inválidos: limpa.
-    Itens são repostos uma vez só (H.retroFacas). Devolve a lista do que consertou. */
+    Devolve a lista do que consertou. */
  function verificarMissoes(){
   const H=h(),fx=[];
   const darClasse=id=>{
@@ -207,22 +207,46 @@
   if(typeof blacksmithSaved!=='undefined'){
    if(blacksmithSaved&&!H.ferreiro)H.ferreiro='pronto';
    if(!blacksmithSaved&&H.ferreiro){delete H.ferreiro;fx.push('etapa do ferreiro sem resgate')}}
-  // caçada: quem terminou e não ganhou a classe (saves de antes das correções)
+  // caçada: quem terminou e ficou sem a classe (consistência; a classe é a mesma que o diálogo dá)
   if(H.cacada==='deixou'||H.cacada==='entregue')darClasse('explorador');
-  if(H.cacada==='deixou'){darClasse('ladino');
-   if(!H.retroFacas){H.retroFacas=1;if(typeof ITEMS!=='undefined'&&ITEMS.faca_de_caca&&typeof itemCount=='function'&&itemCount('faca_de_caca')<1){dar('faca_de_caca',60,2);fx.push('facas de caça repostas')}}}
-  // pegou e perdeu a relíquia: devolve, senão não dá para entregar ao Arqueiro Caçador
+  if(H.cacada==='deixou')darClasse('ladino');
+  // pegou e perdeu a relíquia: devolve, senão não dá para entregar ao Arqueiro Caçador (item essencial da missão)
   if(H.cacada==='pegou'&&typeof ITEMS!=='undefined'&&ITEMS.reliquia_roubada&&typeof itemCount=='function'&&itemCount('reliquia_roubada')<1){dar('reliquia_roubada');fx.push('relíquia devolvida')}
   if(fx.length){console.log('Verificador de missões da história:',fx.join(' · '));salvar();
    setTimeout(()=>ft(p.x,p.y-40,'Missões verificadas: '+fx.length+' correç'+(fx.length>1?'ões':'ão')+'!','#79a35a'),800)}
   return fx}
+ /* ---------- reset único da caçada (2026-11-02, pedido do usuário) ----------
+    As primeiras versões da missão entregavam recompensas erradas. Em vez de comandos de ajuste (não há como
+    "burlar" o jogo), a caçada RECOMEÇA para todo mundo, uma vez só por save (H.cacadaV = 2):
+    sai a escolha feita, saem os itens dela (relíquia, facas, arco e aljava) e saem as classes aprendidas nela
+    (Explorador e a futura Ladino). Todo mundo refaz a missão pelo caminho normal e ganha tudo de novo. */
+ const RESET_CACADA_V=2,ITENS_CACADA=['reliquia_roubada','faca_de_caca','arco_explorador','aljava_explorador'];
+ function resetarCacada(){
+  const H=h();if((H.cacadaV||0)>=RESET_CACADA_V)return false;H.cacadaV=RESET_CACADA_V;
+  const tinha=!!H.cacada||!!(p.classProgress&&(p.classProgress.explorador||p.classProgress.ladino))||!!(H.classes||[]).some(id=>id==='explorador'||id==='ladino');
+  delete H.cacada;delete H.retroFacas;
+  if(!tinha){salvar();return false} // save que nunca mexeu na caçada: só grava a versão
+  // saem os itens da missão (mochila e equipados): eles voltam ao refazer
+  for(const id of ITENS_CACADA){if(typeof ITEMS==='undefined'||!ITEMS[id])continue;
+   const n=typeof itemCount=='function'?itemCount(id):0;if(n&&typeof consumeItems=='function')consumeItems(id,n);
+   for(const k in EQ)if(EQ[k]&&EQ[k].id===id)EQ[k]=null}
+  dirtyInv=true;
+  // saem as classes da caçada; quem estava jogando de Explorador volta para a primeira classe aprendida
+  if(p.classProgress){delete p.classProgress.explorador;delete p.classProgress.ladino}
+  if(Array.isArray(H.classes))H.classes=H.classes.filter(id=>id!=='explorador'&&id!=='ladino');
+  if(p.cls==='explorador'){p.classProgress=p.classProgress||{};const volta=Object.keys(p.classProgress)[0]||'war';p.classProgress[volta]=p.classProgress[volta]||{rank:1,xp:0};p.cls=volta;
+   p.hp=Math.min(p.hp,mhp());p.mp=Math.min(p.mp,mmp());if(window.applySkills)applySkills();if(window.setPortrait)setPortrait()}
+  console.log('História: a caçada do Arqueiro Caçador foi reiniciada para este save.');
+  setTimeout(()=>ft(p.x,p.y-40,'A caçada ao Ladino recomeçou! Procure o Arqueiro Caçador na Caverna dos Glooc.','#79a35a'),800);
+  salvar();return true}
  function aoCarregar(){const H=h();
+  resetarCacada();
   if(Array.isArray(H.classes)&&typeof CL!=='undefined')H.classes=H.classes.filter(id=>{if(!CL[id])return true;p.classProgress=p.classProgress||{};if(!p.classProgress[id])p.classProgress[id]={rank:1,xp:0};return false})
   verificarMissoes()}
  // a relíquia é item de missão enquanto a entrega estiver pendente (js/state.js ITENS_MISSAO)
  if(typeof ITENS_MISSAO!=='undefined')ITENS_MISSAO.reliquia_roubada=()=>h().cacada==='pegou';
- // segurança: além do aoCarregar (ui.js), o verificador roda de novo logo depois de o jogo abrir (é idempotente)
- addEventListener('load',()=>setTimeout(()=>{try{verificarMissoes()}catch(e){}},1500));
+ // segurança: além do aoCarregar (ui.js), o reset e o verificador rodam de novo logo depois de o jogo abrir (são idempotentes)
+ addEventListener('load',()=>setTimeout(()=>{try{resetarCacada();verificarMissoes()}catch(e){}},1500));
  if(window.FORJA&&FORJA.atualizarMundo)FORJA.atualizarMundo(); // o ferreiro do acampamento fica sem martelo até as ferramentas voltarem
  addEventListener('ilha-dg-entrou',aoEntrar);addEventListener('ilha-dg-saiu',aoSair);
  window.HISTORIA={h,forjaPronta,dialogoFerreiro,ferreiroResgatado,ajustarDG,spritePreso,jaula,objetosDG,cliqueDG,retrato,objetivo,aoCarregar,tipoDG,conjunto,missaoDG,verificarMissoes,
