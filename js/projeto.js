@@ -1490,10 +1490,9 @@ window.PROJETO={
      }
     },
     "pega": 70,
-    "maoIcone": true,
     "engate": {
-     "x": 4,
-     "y": 11
+     "x": 2,
+     "y": 18
     }
    },
    {

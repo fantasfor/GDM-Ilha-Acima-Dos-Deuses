@@ -5,9 +5,9 @@
    Habilidades (1 por rank):
     1 Armadilha de Caça — arma uma armadilha no chão (até 3, duram 20 s): prende por 2 s o primeiro inimigo que
       pisar nela, com dano leve e 3 acúmulos de sangramento;
-    2 Gancho — exige um alvo (não dá para errar): lança um projétil-gancho com corda até o inimigo, rápido;
-      num inimigo comum vocês se puxam um para o outro (encontro no meio, dano leve); em chefe ou elite você
-      se puxa até ele. O gancho e a corda são desenhados durante o voo e o puxão;
+    2 Gancho — lança um projétil-gancho com corda na direção do mouse: fisga o que vier primeiro — um inimigo
+      (comum: vocês se puxam até o meio, dano leve; chefe/elite: você se puxa até ele) ou um OBSTÁCULO com
+      colisão (árvore, muro, parede de DG: você se puxa até ele). Sem nada para fisgar, devolve mana e recarga;
     3 Grito de Estratégia — brado verde (mesmo estilo do Grito de Guerra): +25% de velocidade de ataque e de
       movimento por 10 s (efeito 'estrategia': kind haste = movimento; atkBuff = ataque, js/combat.js statusAtk);
     4 Instinto de Caça — marca o alvo como presa: -30% de defesa física por 8 s (efeito 'presa', kind armorPct).
@@ -22,23 +22,43 @@
   estrategia:{n:'Grito de Estratégia',c:VERDE,kind:'haste',good:true,aura:true,atkBuff:true}, // +movimento (haste) e +velocidade de ataque (atkBuff)
   presa:{n:'Presa Marcada',c:VERDE,kind:'armorPct'}}); // -% de defesa física do alvo (js/combat.js reducaoPct)
 
- /* ---- Gancho: projétil-gancho com corda até o alvo (rápido no voo e no puxão) ---- */
- const VEL_GANCHO=560; // px/s
- let gancho=null; // {e, x, y, fase:'ida'|'puxa', d:{x,y} destino do inimigo puxado}
- function lancarGancho(w,t){gancho={e:t,x:p.x,y:p.y-8,fase:'ida',lugar:lugar()}}
+ /* ---- Gancho: projétil-gancho com corda (rápido no voo e no puxão) ----
+    Fisga o que vier primeiro na direção do mouse: um inimigo (vocês se puxam; chefe/elite puxa só você) ou um
+    OBSTÁCULO com colisão — árvore, muro do acampamento, parede de DG (2026-11-02, pedido do usuário) — e você
+    se puxa até ele. Sem nada para fisgar em 140 px, a habilidade não gasta mana nem recarga. */
+ const VEL_GANCHO=560,ALCANCE_GANCHO=140; // px/s e alcance
+ let gancho=null; // {e (inimigo) OU o {x,y,gx,gy} (obstáculo), x, y, fase:'ida'|'puxa', d:{x,y} destino do inimigo puxado}
+ function lancarGancho(w){
+  // 1) inimigo embaixo do mouse ou o alvo selecionado, dentro do alcance e à vista
+  let t=typeof pick=='function'?pick(w):null;
+  if(!(t&&t.hp>0))t=p.tgt&&p.tgt.hp>0?p.tgt:null;
+  if(t&&(t.pvp||Math.hypot(t.x-p.x,t.y-p.y)>ALCANCE_GANCHO||!linhaLivre(p,t)))t=null;
+  let obst=null;
+  if(!t){ // 2) raio na direção do mouse: o primeiro inimigo perto da linha ou a primeira colisão (árvore, muro, parede)
+   const a=Math.atan2(w.y-p.y,w.x-p.x),co=Math.cos(a),si=Math.sin(a);
+   for(let d=10;d<=ALCANCE_GANCHO;d+=4){const X=p.x+co*d,Y=p.y+si*d;
+    t=en.find(e=>e.hp>0&&!e.pvp&&Math.hypot(e.x-X,e.y-Y)<10);if(t)break;
+    if(!walk(X,Y)||!campWallSegmentClear(p,{x:X,y:Y})){let r=Math.max(0,d-10);while(r>0&&!walk(p.x+co*r,p.y+si*r))r-=4;obst={x:p.x+co*r,y:p.y+si*r,gx:X,gy:Y};break}}}
+  if(!t&&!obst){ // nada fisgável: devolve a mana e zera a recarga (não tem como "errar" e perder a habilidade)
+   const sk=SK.find(k=>k.n==='Gancho');if(sk){p.mp=Math.min(mmp(),p.mp+(+sk.mana||0));sk.t=0}
+   ft(p.x,p.y-24,'Nada para fisgar por perto','#ccc');return}
+  gancho={e:t||null,o:t?null:obst,x:p.x,y:p.y-8,fase:'ida',lugar:lugar()}}
  function tickGancho(dt){
   const g=gancho;if(!g)return;
   if(g.lugar!==lugar()||p.dead>0){gancho=null;return}
   const e=g.e;
   if(g.fase==='ida'){
-   if(!e||e.hp<=0||!en.includes(e)){gancho=null;return}
-   const tx=e.x,ty=e.y-6,dx=tx-g.x,dy=ty-g.y,d=Math.hypot(dx,dy),passo=VEL_GANCHO*dt;
-   if(d>passo+8){g.x+=dx/d*passo;g.y+=dy/d*passo;return} // ainda voando (persegue o alvo)
+   if(e&&(e.hp<=0||!en.includes(e))){gancho=null;return}
+   const tx=e?e.x:g.o.gx,ty=e?e.y-6:g.o.gy,dx=tx-g.x,dy=ty-g.y,d=Math.hypot(dx,dy),passo=VEL_GANCHO*dt;
+   if(d>passo+8){g.x+=dx/d*passo;g.y+=dy/d*passo;return} // ainda voando (num inimigo, persegue)
    // fisgou!
+   const ax=e?e.x:g.o.x,ay=e?e.y:g.o.y,dd=Math.hypot(ax-p.x,ay-p.y)||1,co=(ax-p.x)/dd,si=(ay-p.y)/dd;
+   const puxar=(x1,y1)=>{p.dash={x0:p.x,y0:p.y,x1,y1,t:0,dur:Math.max(.06,Math.hypot(x1-p.x,y1-p.y)/VEL_GANCHO),dir:{x:co,y:si},rastro:true,fim:()=>{}};p.dest=null;p.path=[]};
+   if(!e){ // obstáculo (árvore, muro, parede de DG): você se puxa até o último ponto livre antes dele
+    ring(g.o.gx,g.o.gy,10,VERDE,.5);if(window.playGameSound)playGameSound('investida');
+    g.d=null;puxar(g.o.x,g.o.y);g.fase='puxa';return}
    hurtE(e,12+p.lvl*2,false);ring(e.x,e.y,14,VERDE,.5);if(window.playGameSound)playGameSound('sword');
    if(e.hp<=0){gancho=null;return}
-   const dd=Math.hypot(e.x-p.x,e.y-p.y)||1,co=(e.x-p.x)/dd,si=(e.y-p.y)/dd;
-   const puxar=(x1,y1)=>{p.dash={x0:p.x,y0:p.y,x1,y1,t:0,dur:Math.max(.06,Math.hypot(x1-p.x,y1-p.y)/VEL_GANCHO),dir:{x:co,y:si},rastro:true,fim:()=>{}};p.dest=null;p.path=[]};
    const grande=e.boss||e.elite||['boss','grandboss'].includes(e.bossType);
    if(grande){g.d=null;puxar(e.x-co*16,e.y-si*16)} // chefe ou elite não sai do lugar: você vai até ele
    else{const mx=(p.x+e.x)/2,my=(p.y+e.y)/2;g.d={x:mx+co*10,y:my+si*10};puxar(mx-co*6,my-si*6)} // os dois se puxam até o meio
@@ -52,7 +72,7 @@
  function desenharGancho(){
   const g=gancho;if(!g||g.lugar!==lugar())return;
   const e=g.e,x0=Math.round(p.x),y0=Math.round(p.y-8);
-  const x1=Math.round(g.fase==='ida'?g.x:e?e.x:x0),y1=Math.round(g.fase==='ida'?g.y:e?e.y-6:y0);
+  const x1=Math.round(g.fase==='ida'?g.x:e?e.x:g.o?g.o.gx:x0),y1=Math.round(g.fase==='ida'?g.y:e?e.y-6:g.o?g.o.gy:y0);
   // a corda (com uma sombra fina por baixo para aparecer em qualquer chão)
   ctx.save();ctx.lineWidth=1;
   ctx.strokeStyle='#00000088';ctx.beginPath();ctx.moveTo(x0+.5,y0+1.5);ctx.lineTo(x1+.5,y1+1.5);ctx.stroke();
@@ -94,8 +114,8 @@
  SKS.explorador=[
   {n:'Armadilha de Caça',mana:15,cd:8,vfx:'none',ic:SKI('burst',VERDE_E,VERDE_C),f:Object.assign(w=>armar(w),{mira:1}),
    d:()=>'Arma uma armadilha no chão do mouse (até 3, duram 20 s): prende por 2 s o primeiro inimigo que pisar nela, causa '+(10+p.lvl*2)+' de dano e 3 acúmulos de sangramento.'},
-  {n:'Gancho',mana:20,cd:9,vfx:'investida',alcance:()=>140,ic:SKI('dash',VERDE_E,VERDE_C),f:Object.assign((w,t)=>lancarGancho(w,t),{tg:1}), // exige alvo: sem alvo não lança (não tem como errar)
-   d:()=>'Lança um projétil-gancho com corda num inimigo (alcance 140, precisa de alvo) e causa '+(12+p.lvl*2)+' de dano. Inimigo comum: vocês se puxam um para o outro. Chefe ou elite: você se puxa até ele.'},
+  {n:'Gancho',mana:20,cd:9,vfx:'investida',ic:SKI('dash',VERDE_E,VERDE_C),f:w=>lancarGancho(w), // fisga inimigo OU obstáculo; sem nada para fisgar, devolve a mana e a recarga
+   d:()=>'Lança um projétil-gancho com corda na direção do mouse (alcance 140). Num inimigo: vocês se puxam um para o outro ('+(12+p.lvl*2)+' de dano); chefe ou elite: você se puxa até ele. Em árvore, muro ou parede: você se puxa até o obstáculo. Sem nada para fisgar, não gasta mana.'},
   {n:'Grito de Estratégia',mana:30,cd:20,vfx:'aura',effect:'aura',ic:SKI('burst',VERDE_E,'#e8f5d0'),
    f:()=>{applyFx(p,[{caster:p,self:true,type:'estrategia',chance:100,dur:10,pw:25}]);ring(p.x,p.y,40,VERDE,.5);ft(p.x,p.y-24,'Grito de Estratégia!',VERDE)},
    d:()=>'Solta um brado verde: por 10 s, +25% de velocidade de ataque e de movimento.'},
