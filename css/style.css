@@ -50,9 +50,13 @@ canvas#g{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixela
 #monic{width:40px;height:40px;background:#0d0d0d;border:1px solid #595959;image-rendering:pixelated}
 #monbars{width:150px;display:flex;flex-direction:column;gap:3px}
 #monname{font-size:11px;text-align:center;color:#d9d0c7}
-#quest{position:absolute;right:10px;top:50px;padding:8px 10px;background:#262626ef;border:1px solid #595959;border-left:3px solid #d9d0c7;font-size:11px;line-height:1.45;width:min(230px,calc(100vw - 24px));box-sizing:border-box;white-space:normal;box-shadow:none}
-#quest b{display:block;margin-bottom:3px;color:#d9d0c7;font-size:10px;letter-spacing:1px}
-#quest.done{border-left-color:#63c76a}
+#quest{position:absolute;right:10px;top:50px;padding:8px 10px;background:#262626ef;border:1px solid #595959;border-left:3px solid #79a35a;font-size:11px;line-height:1.45;width:min(230px,calc(100vw - 24px));box-sizing:border-box;white-space:normal;box-shadow:none}
+/* missão da história em verde da paleta (rampa Folhagem); quadro da taverna e outras em amarelo (rampa Ouro) */
+#quest b{display:block;margin-bottom:3px;color:#79a35a;font-size:10px;letter-spacing:1px}
+#quest.done{border-left-color:#79a35a}
+/* indicador de etapa/missão completa na caixa de missão */
+#quest .qok{color:#79a35a;font-style:normal;float:right;letter-spacing:0}
+#quest.pronta{border-left-color:#9aab5c}
 #dialogue{display:none;position:fixed;z-index:50;left:50%;top:50%;transform:translate(-50%,-50%);width:min(390px,calc(100vw - 28px));box-sizing:border-box;padding:16px;background:#262626f5;border:2px solid #a69c94;box-shadow:none;color:#d9d0c7;font-size:13px;line-height:1.55}
 #dialogue.open{display:block}
 #dialogue{padding-top:42px}
@@ -67,7 +71,7 @@ canvas#g{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixela
 .tavItem{display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #262626;font:12px monospace}
 /* quadro de missões da taverna (js/taverna.js) */
 .qmLista{margin:0 0 10px;border:1px solid #595959;background:#0d0d0d}.qmOferta{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #262626;font:12px monospace}.qmOferta>div{flex:1;display:flex;flex-direction:column;gap:2px}.qmOferta small{color:#a69c94}.qmPremio{color:#d9a441;text-align:right;font-size:11px;line-height:1.3}.qmOferta button{margin:0}.qmAtual{border:1px solid #a69c94;background:#262626;padding:6px 10px;margin:0 0 10px}.qmAtual.ok{border-color:#d9a441}.qmAtual p{margin:4px 0}
-#quest .qmq{margin-top:8px;padding-top:6px;border-top:1px solid #595959}#quest .qmq b{display:block}#quest .qmq span{color:#a69c94}#quest .qmq.ok b{color:#d9a441}
+#quest .qmq{margin-top:8px;padding-top:6px;border-top:1px solid #595959}#quest .qmq b{display:block;color:#efc56a}#quest .qmq span{color:#a69c94}#quest .qmq.ok b{color:#efc56a}
 .tavItem img{width:22px;height:22px;flex:none;image-rendering:pixelated}
 .tavItem span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tavItem small{color:#a69c94}
 #dialogue .tavItem b{display:inline;margin:0;font:bold 11px monospace;color:#d9d0c7;white-space:nowrap}

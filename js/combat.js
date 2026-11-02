@@ -132,7 +132,7 @@ function tickStatus(t,dt){
  }
 }
 /* velocidade de ataque com gelo (efeito com atk): −pw% por acúmulo, no máximo 50% */
-const statusAtk=t=>{const s=t&&t.st;if(!s)return 1;let r=0;for(const k in s)if(FX_INFO[k]&&FX_INFO[k].atk)r+=s[k].pw*(s[k].n||1);return Math.max(.5,1-r/100)};
+const statusAtk=t=>{const s=t&&t.st;if(!s)return 1;let r=0;for(const k in s){const f=FX_INFO[k];if(!f)continue;if(f.atk)r+=s[k].pw*(s[k].n||1);else if(f.atkBuff)r-=s[k].pw*(s[k].n||1)}return Math.max(.5,1-r/100)}; // atk: deixa o ataque mais lento (gelo); atkBuff: mais rápido (Grito de Estratégia, js/classe-explorador.js)
 const statusSpeed=t=>{if(t===p&&(p.dash||p.canal&&p.canal.parado))return 0; /* investida ou canal parado: o herói não anda */if(t===p&&p.dash)return 0; /* correndo na investida: o movimento é da habilidade */const s=t.st;if(!s)return 1;let v=1;for(const k in s){const q=fxKind(k);if(q=='stun')return 0;if(q=='slow')v=Math.min(v,Math.max(.5,1-s[k].pw*(s[k].n||1)/100))} /* lentidão no máximo 50% */v*=1+stSum(t,'haste')/100;return v};
 /* separa o dano em físico e mágico (número = do tipo do golpe) */
 /* cor do número de dano: físico laranja, mágico azul, crítico amarelo, efeito na cor dele; recebido em vermelho/roxo */
@@ -184,20 +184,20 @@ function killMonster(e){
   if(parte<=0){if(p.tgt==e)p.tgt=null;return}
   if(window.anotarMorte)anotarMorte(e.ty);
   const noite=window.TEMPO?TEMPO.premio(e):1; /* noite na ilha: +5% de XP, ouro e chance de drop */
-  const xp=Math.max(1,Math.round(e.xp*parte*noite)),gold=Math.round(e.g*parte*noite);
-  gainPlayerXp(xp);p.gold+=gold;gainClassXp(Math.round((+CALC.rankXpPorAbate||25)*parte*(e.boss||e.bossType=='boss'?5:e.bossType=='grandboss'?15:1))); /* rank: XP fixo por abate (~1 h até o rank 10) */ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound&&!window.soltarMoedas)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
+  const xp=e.tutorial?0:Math.max(1,Math.round(e.xp*parte*noite)),gold=Math.round(e.g*parte*noite); /* tutorial: monstro não dá XP (o nível 3 vem do fim das etapas) */
+  if(xp)gainPlayerXp(xp);p.gold+=gold;if(!e.tutorial)gainClassXp(Math.round((+CALC.rankXpPorAbate||25)*parte*(e.boss||e.bossType=='boss'?5:e.bossType=='grandboss'?15:1))); /* rank: XP fixo por abate (~1 h até o rank 10) */ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound&&!window.soltarMoedas)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
   if(typeof cacaFeita!=='undefined'&&!cacaFeita&&!e.tutorial&&!e.pvp&&!e.duelo&&!e.boss&&!window.inTutorial&&!window.inArena&&!(window.MP&&MP.visitando)){cacaMortes++; /* missão inicial: 10 monstros quaisquer */
    if(cacaMortes>=CACA_ALVO){cacaFeita=true;p.gold+=30;gainPlayerXp(30);ft(e.x,e.y-45,'MISSÃO CONCLUÍDA: 10 MONSTROS!','#ffd84a');if(window.playGameSound)playGameSound('quest')}saveGame()}
   if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GLOOC SAQUEADOR DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
   // os itens caem no chão onde o monstro morreu e depois voam até o jogador (js/loot.js)
   const largar=(id,quest=false)=>{if(window.anotarDrop)anotarDrop(e.ty,id);return window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest}):offerDrop(id,quest)};
   if(gold>0&&window.soltarMoedas)soltarMoedas(e.x,e.y,gold);
-  if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar('saw',true)}
+  if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar(ITEMS.saw?'saw':'Serrote',true)} // o item de missão é o 'saw'; sem ele no projeto, cai a arma Serrote
   // cada item da lista do monstro tem a sua chance (%) e é sorteado sozinho; sem lista, não cai nada
   // elite (tipo Elite ou monstro que nasceu elite): chance de drop × Fórmulas › Drops › Elite (1,5); chefe: só a lista dele, sem bônus
   const eliteDrop=(e.bossType==='boss'||e.elite)&&e.bossType!=='grandboss'?Math.max(0,+(CALC.eliteDrop??1.5)):1;
   // quantidade: sorteada entre min e max do drop (Engine › Monstro › Drops), só depois de a chance passar
-  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&d.id=='saw')&&podeCairDeMissao(d.id)&&Math.random()*100<d.chance*noite*eliteDrop){const mn=d.min||1,n=mn+Math.floor(Math.random()*((d.max||mn)-mn+1));for(let i=0;i<n;i++)largar(d.id)}
+  for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&(d.id=='saw'||d.id=='Serrote'))&&podeCairDeMissao(d.id)&&Math.random()*100<d.chance*noite*eliteDrop){const mn=d.min||1,n=mn+Math.floor(Math.random()*((d.max||mn)-mn+1));for(let i=0;i<n;i++)largar(d.id)}
   // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível
 
  }}
@@ -420,38 +420,80 @@ function placeBlacksmith(){const saved=(typeof blacksmithSaved!=='undefined'&&bl
 placeCarpenter();placeBlacksmith();
 window.placeBlacksmith=placeBlacksmith;
 function showBlacksmithDialogue(){
+ if(window.HISTORIA&&HISTORIA.dialogoFerreiro())return; // história do ferreiro: sem forja até recuperar as ferramentas (js/historia.js)
  const box=$('dialogue');
  box.classList.remove('dgModal');
- box.innerHTML='<b>Ferreiro</b><p>Saudações, herói! Graças ao seu resgate na DG dos Goblins, estou são e salvo aqui no acampamento. Minha forja e bigorna estão prontas: traga dois equipamentos iguais e eu fundo os dois num só. Pode sair melhor ou pior, e quanto mais eu forjar, melhor fico'+(window.FORJA?' (estou no nível '+FORJA.nivel+', com '+FORJA.forjados+' itens forjados)':'')+'.</p><button type="button" data-open-forja>Abrir a forja</button> <button type="button" data-close-dialog>Fechar</button>';
+ box.innerHTML='<b>Ferreiro</b><p>Saudações, herói! Graças a você estou são e salvo, e com a minha forja de volta. A bigorna está pronta: traga dois equipamentos iguais e eu fundo os dois num só. Pode sair melhor ou pior, e quanto mais eu forjar, melhor fico'+(window.FORJA?' (estou no nível '+FORJA.nivel+', com '+FORJA.forjados+' itens forjados)':'')+'.</p><button type="button" data-open-forja>Abrir a forja</button> <button type="button" data-close-dialog>Fechar</button>';
  box.classList.add('open')
 }
 window.showBlacksmithDialogue=showBlacksmithDialogue;
+// serrote com o jogador (mochila ou equipado): o carpinteiro aceita qualquer serrote — o item de missão ('saw')
+// ou a arma Serrote que cai dos Esqueletos do Serrote — e fica com o que for entregue
+const ehSerrote=s=>!!s&&(s.id=='saw'||s.id=='Serrote')&&!!ITEMS[s.id];
+const serrotesDoJogador=()=>{const l=[];I.forEach((s,i)=>{if(ehSerrote(s))l.push({s,inv:i})});for(const k of Object.keys(EQ))if(ehSerrote(EQ[k]))l.push({s:EQ[k],eq:k});return l};
+const temSerrote=()=>serrotesDoJogador().length>0;
+window.temSerrote=temSerrote;
+const serrotePendente=()=>drops.find(d=>d.id=='saw'||d.id=='Serrote');
+window.serrotePendente=serrotePendente;
 function showCarpenterDialogue(){
  const box=$('dialogue');
  box.classList.remove('dgModal');
  box.innerHTML=!carpenterHelped
-  ?'<b>Carpinteiro</b><p>Obrigado por me salvar do Glooc Saqueador! Vou até seu acampamento e ficarei com os outros moradores.</p><button type="button" data-join-camp>Venha para o acampamento</button>'
+  ?'<b>Carpinteiro</b><p>Obrigado por me salvar do Glooc Saqueador! Eu estava escondido atrás desta tora desde que eles atacaram.</p><p>Vou para o seu acampamento. Lá eu te conto o que os Glooc fizeram com o meu amigo.</p><button type="button" data-join-camp>Venha para o acampamento</button>'
   :campPortalBuilt&&blacksmithSaved
-  ?'<b>Carpinteiro</b><p>Você salvou meu irmão ferreiro! Ele já está trabalhando na forja do acampamento. Nunca poderei agradecer o suficiente, herói! O portal continua ativo caso você queira explorar o covil dos goblins novamente para saquear baús raros e lendários!</p><button type="button" data-open-dungeon-menu>Abrir Masmorras no Portal</button> <button type="button" data-close-dialog>Fechar</button>'
+  ?'<b>Carpinteiro</b><p>Você trouxe meu amigo ferreiro de volta! Nunca vou poder agradecer o suficiente, herói.</p><p>'+(window.HISTORIA&&!HISTORIA.forjaPronta()?'Ele ainda está sem as ferramentas dele. Fale com ele: parece que os esqueletos têm a ver com isso.':'Ele já está trabalhando na forja do acampamento.')+'</p><p>O portal continua ativo, caso queira voltar às masmorras atrás de baús raros e lendários. É só clicar nele.</p><button type="button" data-close-dialog>Fechar</button>'
   :campPortalBuilt
-  ?'<b>Carpinteiro</b><p>O portal para a DG dos Goblins está ativo! Meu irmão ferreiro está preso lá dentro nas mãos do terrível Rei Esqueleto. Cuidado com as áreas de ataque telegrafadas no chão do rei: elas causam dano quase letal! Traga meu irmão de volta são e salvo!</p><button type="button" data-open-dungeon-menu>Abrir Masmorras no Portal</button> <button type="button" data-close-dialog>Fechar</button>'
+  ?'<b>Carpinteiro</b><p>O portal está aberto! Ele leva à Caverna dos Glooc. É só clicar nele para escolher a masmorra.</p><p>Meu amigo ferreiro está preso numa jaula lá dentro, na sala do chefe, guardado pelo Glooc Chefe da Tribo. Derrote o chefe e a jaula vai abrir.</p><p>Cuidado com os golpes do chefe e traga ele de volta são e salvo!</p><button type="button" data-close-dialog>Fechar</button>'
   :wallBuilt&&!magicWoodQuestActive
-  ?'<b>Carpinteiro</b><p>A paliçada está pronta, mas precisamos construir um portal logo! Os goblins jogaram meu irmão ferreiro em um portal, e precisamos salvá-lo. Ele poderá nos ajudar com equipamentos. Preciso de 10 madeiras mágicas: elas são deixadas pelas árvores vivas, os Tocos Vivos da ilha.</p><button type="button" data-start-magic-wood-quest>Vou buscar as madeiras mágicas</button>'
+  ?'<b>Carpinteiro</b><p>A muralha está de pé. Agora o acampamento aguenta um ataque.</p><p>Hora de ir atrás do meu amigo! Para chegar à caverna dos Glooc precisamos de um portal, e um portal só se faz com madeira mágica.</p><p>Preciso de 10 madeiras mágicas. Os Tocos Vivos deixam cair: é madeira de missão, só aparece enquanto eu precisar dela.</p><button type="button" data-start-magic-wood-quest>Vou buscar as madeiras mágicas</button>'
   :wallBuilt
-  ?'<b>Carpinteiro</b><p>Madeira mágica coletada: '+itemCount('magicWood')+'/'+PORTAL_WOOD_REQUIRED+'. '+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'Já podemos construir o portal para procurar meu irmão ferreiro!':'Derrote as árvores vivas (Tocos Vivos) e aceite as madeiras mágicas nos itens encontrados. Seu peso de spawn aumenta em 20% enquanto faltarem materiais.')+'</p>'+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'<button type="button" data-build-camp-portal>Entregar 10 madeiras mágicas e construir o portal</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira mágica</button>')
+  ?'<b>Carpinteiro</b><p>Madeira mágica coletada: '+itemCount('magicWood')+'/'+PORTAL_WOOD_REQUIRED+'. '+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'Já podemos construir o portal até a caverna dos Glooc!':'Derrote as árvores vivas (Tocos Vivos) e aceite as madeiras mágicas nos itens encontrados. Seu peso de spawn aumenta em 20% enquanto faltarem materiais.')+'</p>'+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'<button type="button" data-build-camp-portal>Entregar 10 madeiras mágicas e construir o portal</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira mágica</button>')
   :!sawQuestActive
-  ?'<b>Carpinteiro</b><p>Quero construir um muro para proteger o acampamento, mas preciso de um serrote. Um Esqueleto do Serrote aparece naturalmente junto aos outros monstros pela ilha. Quando ele surgir, um ponto de exclamação vai indicar onde está.</p><button type="button" data-start-saw-quest>Vou buscar o serrote</button>'
+  ?'<b>Carpinteiro</b><p>Preciso te contar uma coisa. Os Glooc levaram um amigo meu, um ferreiro, para a caverna deles.</p><p>Só dá para chegar lá por um portal. Com ele de volta, o acampamento ganha alguém que forja e melhora equipamentos.</p><p>Mas antes é melhor levantar uma muralha: os monstros podem atacar o acampamento enquanto estivermos longe.</p><p>Para cortar as toras eu preciso de um serrote. Um Esqueleto do Serrote anda pela ilha; quando ele aparecer, um ponto de exclamação mostra onde ele está.</p><button type="button" data-start-saw-quest>Vou buscar o serrote</button>'
   :sawObtained&&!woodQuestActive
-  ?'<b>Carpinteiro</b><p>Você encontrou o serrote! Agora preciso de 20 madeiras. Derrote os Tocos Vivos, tocos de árvore que andam pela ilha, e recolha a madeira que eles deixam. Enquanto a missão precisar deles, seu peso de spawn aumenta em 20%.</p><button type="button" data-start-wood-quest>Vou coletar as madeiras</button>'
+  ?'<b>Carpinteiro</b><p>Obrigado pelo serrote! Agora preciso de 20 madeiras para a muralha. Derrote os Tocos Vivos, tocos de árvore que andam pela ilha, e recolha a madeira (de missão) que eles deixam. Enquanto a missão precisar deles, seu peso de spawn aumenta em 20%.</p><button type="button" data-start-wood-quest>Vou coletar as madeiras</button>'
   :woodQuestActive
   ?'<b>Carpinteiro</b><p>Madeira coletada: '+itemCount('wood')+'/'+WALL_WOOD_REQUIRED+'. '+(itemCount('wood')>=WALL_WOOD_REQUIRED?'Já temos o material para construir a paliçada de toras e o portão ao sul.':'Derrote Tocos Vivos e aceite as madeiras nos itens encontrados.')+'</p>'+(itemCount('wood')>=WALL_WOOD_REQUIRED?'<button type="button" data-build-wall>Entregar 20 madeiras e construir</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira</button>')
+  :temSerrote()||serrotePendente()
+  ?'<b>Carpinteiro</b><p>Você está com um serrote! Entregue-o para mim e eu começo a preparar as toras da muralha.</p><button type="button" data-deliver-saw>Entregar o serrote</button>'
   :'<b>Carpinteiro</b><p>Procure o Esqueleto do Serrote entre os monstros que aparecem naturalmente pela ilha. Quando ele surgir, você verá um ponto de exclamação indicando a posição.</p><button type="button" data-close-dialog>Fechar</button>';
+ box.classList.add('open')
+}
+/* entrega do serrote: o carpinteiro fica com o item entregue; com mais de um serrote, o jogador escolhe qual dar */
+function entregarSerrote(ref){
+ const s=ref.eq!=null?EQ[ref.eq]:I[ref.inv];
+ if(!ehSerrote(s))return;
+ if(s.n>1)s.n--;else if(ref.eq!=null)EQ[ref.eq]=null;else I[ref.inv]=null;
+ dirtyInv=true;p.hp=Math.min(mhp(),p.hp);p.mp=Math.min(mmp(),p.mp);
+ sawObtained=true;sawGoblin=null;
+ ft(p.x,p.y-28,'SERROTE ENTREGUE!','#ffd84a');if(window.playGameSound)playGameSound('quest');
+ showCarpenterDialogue();saveGame()
+}
+function showSawChoiceDialogue(){
+ const box=$('dialogue');box.classList.remove('dgModal');
+ const esc=t=>String(t).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch]));
+ box.innerHTML='<b>Carpinteiro</b><p>Você tem mais de um serrote! Qual deles você me entrega?</p>'+
+  serrotesDoJogador().map(o=>'<button type="button" data-give-saw="'+(o.eq!=null?'e:'+o.eq:'i:'+o.inv)+'">'+esc(ITEMS[o.s.id].n.split(' (')[0])+(o.s.q!=null?' · '+qName(o.s.q)+' '+o.s.q+'%':'')+(o.s.n>1?' ×'+o.s.n:'')+(o.eq!=null?' (equipado)':'')+'</button>').join(' ')+
+  ' <button type="button" data-close-dialog>Agora não</button>';
  box.classList.add('open')
 }
 document.addEventListener('click',e=>{
  const button=e.target.closest('#dialogue button');if(!button)return;
  if(button.hasAttribute('data-join-camp')){carpenterHelped=true;placeCarpenter();$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'O carpinteiro foi para o acampamento!','#ffd84a');saveGame()}
  else if(button.hasAttribute('data-start-saw-quest')){if(window.startSawQuest)startSawQuest();$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal')}
+ else if(button.hasAttribute('data-deliver-saw')){
+  if(!sawQuestActive||sawObtained||wallBuilt)return;
+  const pendente=serrotePendente();if(pendente)acceptDrop(pendente); // serrote ainda nos itens encontrados: aceita antes de entregar
+  const lista=serrotesDoJogador();
+  if(!lista.length)return; // bolsa cheia ou sem o serrote: a entrega não acontece
+  if(lista.length>1){showSawChoiceDialogue();return} // mais de um serrote: o jogador escolhe qual entregar
+  entregarSerrote(lista[0])
+ }
+ else if(button.hasAttribute('data-give-saw')){
+  if(!sawQuestActive||sawObtained||wallBuilt)return;
+  const v=button.getAttribute('data-give-saw')||'';
+  entregarSerrote(v[0]=='e'?{eq:v.slice(2)}:{inv:+v.slice(2)})
+ }
  else if(button.hasAttribute('data-start-wood-quest')){
   if(!sawObtained||wallBuilt)return;
   woodQuestActive=true;$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'Colete 20 madeiras dos Tocos Vivos!','#ffd84a');saveGame()

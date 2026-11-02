@@ -256,6 +256,20 @@ L('items').forEach(it=>{
   if(e&&Number.isFinite(+e.x)&&Number.isFinite(+e.y)&&o.equippedSprite&&dEng&&dEng.w){const k=o.equippedSprite.width/dEng.w;o.engate={x:+e.x*k,y:+e.y*k}}}
  o.tags=it.kind=='weapon'?weaponTags({...it,wt:o.wt}):lc(it.tags);ITEMS[it.id]=o;o.ic=o.c.toDataURL()});
 if(ITEMS.saw){ITEMS.saw.c=sawToolIcon();ITEMS.saw.ic=ITEMS.saw.c.toDataURL();ITEMS.saw.equippedSprite=typeof reduzirArte==='function'?reduzirArte(sawToolSprite(),14,6):sawToolSprite();ITEMS.saw.escalaMao=2} // na mão no padrão: 1 pixel = 1 pixel do herói
+/* Arco do Explorador na mão (2026-11-02, pedido do usuário): o desenho da mão era o ícone na diagonal com engate e
+   ficava torto. Agora a mão usa um arco desenhado EM PÉ (ponta para cima, corda à esquerda), sem engate: a pose
+   'arco' (js/sprites.js POSES_ARMA, -90°) segura ele direito em todas as direções, com a mão no meio (pega .5). */
+if(ITEMS.arco_explorador){
+ const arcoEmPe=()=>{const c=mkCanvas(9,18),g=c.getContext('2d'),R=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h)};
+  R(1,1,1,16,'#e8d39c'); // a corda
+  const bx=y=>2+Math.round(Math.sin(Math.PI*y/17)*4); // o corpo curvado para a direita
+  for(let y=0;y<18;y++)R(bx(y)-1,y,3,1,'#000');
+  for(let y=1;y<17;y++)R(bx(y),y,1,1,y<6||y>11?'#a8653f':'#7d3f34');
+  R(6,7,1,4,'#4e2430'); // a empunhadura no meio
+  return c};
+ ITEMS.arco_explorador.equippedSprite=arcoEmPe();
+ ITEMS.arco_explorador.equippedSprites={};delete ITEMS.arco_explorador.engate; // sem o ícone diagonal por direção e sem engate
+ ITEMS.arco_explorador.escalaMao=2;ITEMS.arco_explorador.pega=.5;delete ITEMS.arco_explorador.escalaReduz}
 for(const key of Object.keys(heroC))delete heroC[key];
 
 /* ---------- passivas ---------- */

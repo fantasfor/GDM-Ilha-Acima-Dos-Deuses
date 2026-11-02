@@ -349,7 +349,7 @@
    const lp=el('div','criarPreviaBox');lp.append(prev,nomeCls);f.append(lp);
    // classe
    const lc=el('div','criarCampo');lc.append(el('span','','Classe'));const gc=el('div','criarOpcoes');lc.append(gc);f.append(lc);
-   const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n);
+   const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n&&!CL[id].historia); // classe da história não aparece na criação de personagem
    const bc={};for(const id of ids){const b=botao(CL[id].n,()=>{cls=id;atualizar()},'criarOpcao');bc[id]=b;gc.append(b)}
    // sexo
    const ls2=el('div','criarCampo');ls2.append(el('span','','Sexo'));const gs=el('div','criarOpcoes');ls2.append(gs);f.append(ls2);

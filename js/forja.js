@@ -49,7 +49,7 @@
  const som=(n,v)=>{if(window.playGameSound)playGameSound(n,v)};
  // equipamentos da mochila que têm par (dois ou mais iguais), agrupados por item
  function grupos(){const c={};I.forEach((s,i)=>{if(s&&ITEMS[s.id]&&gearType[s.id]&&s.q!=null)(c[s.id]=c[s.id]||[]).push(i)});return Object.entries(c).filter(([,l])=>l.length>1)}
- function abrir(){esc=[];ultimo=null;if($('dialogue'))$('dialogue').classList.remove('open');montar();desenhar();iniciarCena();
+ function abrir(){if(window.HISTORIA&&!HISTORIA.forjaPronta())return;esc=[];ultimo=null;if($('dialogue'))$('dialogue').classList.remove('open');montar();desenhar();iniciarCena();
   clearInterval(vigia);vigia=setInterval(()=>{const f=typeof blacksmith=='object'?blacksmith:null;if(!aberto()||!f||Math.hypot(p.x-f.x,p.y-f.y)>90||window.inTaverna||(typeof inDungeon!='undefined'&&inDungeon))fechar()},400)}
  function fechar(){if(el)el.hidden=true;clearInterval(vigia);pararCena();if(anim)terminarAnim();if(typeof tipEl!='undefined')tipEl.style.display='none'}
  // a escolha ainda vale? (o item pode ter saído da mochila por outra tela)
@@ -71,7 +71,9 @@
  let feitoMundo=null;
  function atualizarFerreiroMundo(){try{if(!window.SPRITE_BLACKSMITH||typeof human!='function'||typeof ITEMS=='undefined')return;
   const atual=SPRITE_BLACKSMITH.idle;if(atual&&atual!==feitoMundo&&!(typeof HS!='undefined'&&HS.ferreiro&&atual===HS.ferreiro.d))return;
-  feitoMundo=human('ferreiro','d',0,{sw:ITEMS[marretaAtual()]||{}});SPRITE_BLACKSMITH.idle=feitoMundo}catch(e){}}
+  // sem as ferramentas (história, js/historia.js) ele fica de mãos vazias
+  const comMartelo=!window.HISTORIA||HISTORIA.forjaPronta();
+  feitoMundo=human('ferreiro','d',0,{sw:comMartelo&&ITEMS[marretaAtual()]||{}});SPRITE_BLACKSMITH.idle=feitoMundo}catch(e){}}
  const marretasNaMochila=()=>I.map((s,i)=>[s,i]).filter(([s])=>s&&MARRETAS[s.id]);
  let batidaMartelo=-9;
  // o item forjado cai da bigorna e vai para a mochila (ele já está lá; aqui é só a cena)
@@ -318,7 +320,7 @@
    f2.append(fila);c.append(f2)}
   return c}
 
- window.FORJA={abrir,fechar,sortear,media,semMelhora,nivelDe,proximo,chances,bonusTxt,MARRETAS,TABELA,NIVEIS,get martelo(){return martelo},get nivel(){return nivelDe(forjados)},get forjados(){return forjados},get aberto(){return aberto()},
+ window.FORJA={abrir,fechar,atualizarMundo:()=>atualizarFerreiroMundo(),sortear,media,semMelhora,nivelDe,proximo,chances,bonusTxt,MARRETAS,TABELA,NIVEIS,get martelo(){return martelo},get nivel(){return nivelDe(forjados)},get forjados(){return forjados},get aberto(){return aberto()},
   dados:()=>({forjados,recorde,martelo}),
   carregar(d){const f=d&&(Number.isInteger(d.forjados)?d.forjados:Number.isInteger(d.xp)?d.xp:0);forjados=f>0?f:0;recorde=d&&Number.isInteger(d.recorde)&&d.recorde>=0&&d.recorde<=100?d.recorde:null;
    // a marreta dada ao ferreiro (se o item ainda existir no jogo)

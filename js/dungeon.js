@@ -59,6 +59,7 @@
   DUNGEON_ENTRANCE_PORTAL={x:125,y:210,name:'Retorno',...cfg.entrancePortal};
   DUNGEON_EXIT_PORTAL={x:920,y:480,name:'Saída',...cfg.exitPortal};
   DUNGEON_BLACKSMITH_POS={x:890,y:560,name:'Ferreiro',...cfg.blacksmithPos};
+  if(window.HISTORIA) HISTORIA.ajustarDG(cfg, DUNGEON_BLACKSMITH_POS); // ferreiro preso só na Caverna dos Glooc, na hora da missão (js/historia.js)
   window.DUNGEON_BLACKSMITH_POS = DUNGEON_BLACKSMITH_POS;
   dungeonTorches = (cfg.torches || []).map(t => ({ ...t }));
   window.dungeonTorches = dungeonTorches;
@@ -136,6 +137,7 @@
  function dungeonBossesDefeated(){
   return dungeonBosses.length > 0 && dungeonBosses.every(enemy => enemy.hp <= 0);
  }
+ window.dungeonBossesDefeated = dungeonBossesDefeated; // js/historia.js
 
  /* ---------- Baús (js/baus.js): madeira, verde, azul, roxo e dourado ----------
     arte própria do projeto em Artes do jogo › baus/<categoria>-fechado|aberto; senão a arte de js/baus.js */
@@ -308,6 +310,7 @@
 
  function handleDungeonClick(w, mode){
   if(!window.inDungeon) return false;
+  if(window.HISTORIA && HISTORIA.cliqueDG(w)) return true; // Explorador, Ladino e a forja roubada (js/historia.js)
 
   // Clique em baú
   const chest = pickDungeonChest(w);
@@ -368,15 +371,17 @@
 
  function interactBlacksmithPrisoner(){
   if(!dungeonBossesDefeated()){
-   ft(DUNGEON_BLACKSMITH_POS.x, DUNGEON_BLACKSMITH_POS.y - 26, 'Derrote o chefe da masmorra para quebrar as correntes!', '#f87171');
+   ft(DUNGEON_BLACKSMITH_POS.x, DUNGEON_BLACKSMITH_POS.y - 26, 'Derrote o chefe da masmorra para abrir a jaula!', '#f87171');
    return;
   }
   const box = $('dialogue');
   box.classList.remove('dgModal');
   box.innerHTML = `
-   <b>Ferreiro Resgatado</b>
-   <p>Pelos deuses, você derrotou o chefe! Achei que seria o meu fim nestas masmorras sombrias... Vou imediatamente para o acampamento montar minha bigorna e forja para ajudar com equipamentos lendários!</p>
-   <button type="button" data-rescue-blacksmith>Resgatar o Ferreiro e enviar ao Acampamento</button>
+   <b>Ferreiro</b>
+   <p>Pelos deuses, você derrotou o chefe e abriu a jaula! Achei que seria o meu fim nesta caverna.</p>
+   <p>Obrigado, de coração. Mas olhe para mim: sem os meus equipamentos eu não posso fazer nada ainda.</p>
+   <p>É melhor conversarmos no acampamento. Vou para lá agora mesmo.</p>
+   <button type="button" data-rescue-blacksmith>Vamos para o acampamento</button>
   `;
   box.classList.add('open');
  }
@@ -386,6 +391,7 @@
   if(typeof blacksmithSaved !== 'undefined') blacksmithSaved = true;
   ring(DUNGEON_BLACKSMITH_POS.x, DUNGEON_BLACKSMITH_POS.y, 40, '#ffd84a', 0.8);
   ft(DUNGEON_BLACKSMITH_POS.x, DUNGEON_BLACKSMITH_POS.y - 30, 'FERREIRO RESGATADO!', '#ffd84a');
+  if(window.HISTORIA) HISTORIA.ferreiroResgatado();
   if(window.placeBlacksmith) placeBlacksmith();
   saveGame();
  }
@@ -1361,8 +1367,9 @@
    const bsPos = DUNGEON_BLACKSMITH_POS;
    renderList.push([bsPos.y, () => {
     const isBossDead = dungeonBossesDefeated();
-    const spr = cachedDungeonArt(bsPos.sprite)||makeBlacksmithSprite(!isBossDead);
+    const spr = cachedDungeonArt(bsPos.sprite)||(window.HISTORIA&&HISTORIA.spritePreso())||makeBlacksmithSprite(!isBossDead);
     ctx.drawImage(spr, Math.round(bsPos.x - spr.width / 2), Math.round(bsPos.y - spr.height + 2));
+    if(bsPos.jaula && window.HISTORIA) HISTORIA.jaula(bsPos.x, bsPos.y, isBossDead); // a jaula dos Glooc (abre quando o chefe cai)
 
     ctx.font = '5px monospace'; ctx.textAlign = 'center';
     ctx.fillStyle = '#fbbf24';
@@ -1378,6 +1385,8 @@
     }
    }]);
   }
+
+  if(window.HISTORIA) HISTORIA.objetosDG(renderList); // Explorador, Ladino rendido e a forja roubada (js/historia.js)
 
   // Inimigos da DG
   en.forEach(e => {

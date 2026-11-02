@@ -74,6 +74,7 @@
   const lado=s=>s&&(s.s||s.d||s);
   if(/^Carpinteiro/.test(nome))return()=>lado(HS.carpinteiro);
   if(/^Ferreiro/.test(nome))return()=>lado(HS.ferreiro);
+  if(window.HISTORIA){const r=HISTORIA.retrato(nome);if(r)return r} // Explorador e Ladino (js/historia.js)
   const m=/^Mestre (.+)/.exec(nome);if(m){const k=Object.keys(CL).find(c=>CL[c].n===m[1]);if(k)return()=>CL[k].sprite||lado(HS[k]||HS.war)}
   if(/Taverneira/.test(nome))return()=>lado(HS.sty||HS.war);
   if(/Lanceiro|Bardo|Curandeir|Anjo/.test(nome))return()=>lado(HS[/Curandeir/.test(nome)?'hea':'war']);

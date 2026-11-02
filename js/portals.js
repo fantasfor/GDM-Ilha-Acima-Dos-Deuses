@@ -52,7 +52,7 @@ function resumeSawQuest(){
 }
 window.startSawQuest=startSawQuest;
 window.resumeSawQuest=resumeSawQuest;
-const eligibleMonsters=def=>def.monsters.filter(m=>m.chance>0&&m.max>0&&MONSTER_TYPES[m.id]&&!(SPAWN[m.id]&&p.lvl<SPAWN[m.id].min)&&/* criatura de nível alto só aparece quando o jogador chega ao nível mínimo dela */!(m.id=='gob'&&(!sawQuestActive||sawObtained||wallBuilt||drops.some(d=>d.questReward))));
+const eligibleMonsters=def=>def.monsters.filter(m=>m.chance>0&&m.max>0&&MONSTER_TYPES[m.id]&&!(SPAWN[m.id]&&p.lvl<SPAWN[m.id].min)&&/* criatura de nível alto só aparece quando o jogador chega ao nível mínimo dela */!(m.id=='gob'&&(!sawQuestActive||sawObtained||wallBuilt||drops.some(d=>d.questReward)||window.temSerrote&&temSerrote()/* já está com um serrote: é só entregar ao carpinteiro */)));
 const qtd=m=>m.min+Math.floor(Math.random()*(m.max-m.min+1));
 // menor matilha possível: o monstro garantido com a menor quantidade mínima
 const minPack=def=>Math.max(1,Math.min(...eligibleMonsters(def).map(m=>m.min)));

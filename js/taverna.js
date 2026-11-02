@@ -36,7 +36,7 @@
  const LUGARES_MESTRE=LL.mestres;
  let MESTRES=[];
  function montarMestres(){
-  const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n);
+  const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n&&!CL[id].historia); // classe da história (Explorador) não tem Mestre: aprende na caçada do Arqueiro Caçador
   MESTRES=ids.slice(0,LUGARES_MESTRE.length).map((cls,i)=>({cls,x:LUGARES_MESTRE[i].x,y:LUGARES_MESTRE[i].y,fx:0,fy:1,nm:'Mestre '+CL[cls].n}));
  }
  let ilhaPos=null,enGuardado=null,fundo=null;
@@ -329,10 +329,10 @@
     if(tipo==='lanceiro')return boneco(spriteLanceiro('d'));
     if(tipo==='barman')return boneco((HS.sty||HS.war).d);
     if(tipo==='viajante')return pintar(64,90,-32,-78,()=>window.VIAJANTE&&VIAJANTE.desenhar(0,0,1.2));
-    if(tipo==='mestre'){const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n),c=CL[ids[o|0]];return boneco(c?c.sprite||(HS[c.base||ids[o|0]]||HS.war).d:(HS.war).d)}
+    if(tipo==='mestre'){const ids=Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n&&!CL[id].historia),c=CL[ids[o|0]];return boneco(c?c.sprite||(HS[c.base||ids[o|0]]||HS.war).d:(HS.war).d)}
     return null},
    // nome da classe de cada lugar de mestre (na ordem do jogo)
-   mestres:()=>Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n).map(id=>CL[id].n)
+   mestres:()=>Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n&&!CL[id].historia).map(id=>CL[id].n)
   };
   return}
  /* ---- entrar e sair ---- */
@@ -470,7 +470,7 @@
   if(!p.quadro||p.quadro.dia!==dia||!Array.isArray(p.quadro.ofertas)){p.quadro={dia,ofertas:[oferta(),oferta(),oferta()].filter(Boolean)}}
   return p.quadro.ofertas}
  window.textoMissaoQuadro=()=>{const m=p.missao;if(!m)return'';const ok=m.feitos>=m.qtd;
-  return'<div class="qmq'+(ok?' ok':'')+'"><b>QUADRO DA TAVERNA</b>'+(ok?'Missão cumprida! Volte ao quadro da taverna para receber.':'Derrote '+m.nome+': '+m.feitos+'/'+m.qtd)+'<br><span>Recompensa: '+m.xp+' XP · '+moeda(m.ouro)+'</span></div>'};
+  return'<div class="qmq'+(ok?' ok':'')+'"><b>QUADRO DA TAVERNA'+(ok?'<i class="qok">✓ COMPLETA</i>':'')+'</b>'+(ok?'Missão cumprida! Volte ao quadro da taverna para receber.':'Derrote '+m.nome+': '+m.feitos+'/'+m.qtd)+'<br><span>Recompensa: '+m.xp+' XP · '+moeda(m.ouro)+'</span></div>'};
  /* janela do quadro (não é conversa): um cartaz por trabalho com o desenho do monstro, quantos derrotar, o nível e a
     recompensa (XP e ouro); em cima, a missão aceita com o progresso. Fecha no ×, no Esc ou ao se afastar do quadro. */
  const imgsMonstro=new Map();

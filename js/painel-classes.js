@@ -136,14 +136,15 @@
   mapa.append(svg);
   for(const o of ARVORE){const P=pos(o),ex=existe(o.k),pr=ex&&prog(o.k),atual=o.k===p.cls,pais=PAIS(o.k);
    const est=atual?'atual':pr?'livre':ex?'bloq':'futura';
-   const sub=atual?'Atual · rank '+pr.rank:pr?'Rank '+pr.rank+' · ver ficha':ex?'Não aprendida':pais.length>1?pais.map(x=>x.n).join(' + '):'Em breve';
+   const pend=!ex&&window.HISTORIA&&HISTORIA.classePendente(o.k); // aprendida na história, mas a classe ainda não existe (js/historia.js)
+    const sub=atual?'Atual · rank '+pr.rank:pr?'Rank '+pr.rank+' · ver ficha':ex?'Não aprendida':pend?'Aprendida · em breve':pais.length>1?pais.map(x=>x.n).join(' + '):'Em breve';
    const b=E('button','pcNo '+est+(pais.length>1?' duplo':''));b.type='button';b.style.left=P.x+'px';b.style.top=P.y+'px';
    b.append(E('span','pcIco','<img src="'+icone(o.k)+'" alt="">'),E('span','pcTxt','<b>'+esc(o.n)+'</b><small>'+esc(sub)+'</small>'));
    if(est==='bloq')b.querySelector('.pcIco').append(E('i','pcCadeado'));
    b.onclick=e=>{e.stopPropagation();if(arrasto&&arrasto.moveu)return;
     if(pr){ficha=o.k;desenhar();return}
-    if(ex){aviso('Para aprender '+o.n+', vença o Mestre de '+o.n+' num duelo na taverna.');return}
-    aviso(o.n+(pais.length?' vem de '+pais.map(x=>x.n).join(pais.length>1?' e de ':' ')+(pais.length>1?' (precisa das duas)':''):'')+'. Esta classe ainda vai ser criada — em breve!')};
+    if(ex){aviso(CL[o.k]&&CL[o.k].historia?'Para aprender '+o.n+', ajude o Arqueiro Caçador (ou o Ladino) na caçada das masmorras — é uma classe da história.':'Para aprender '+o.n+', vença o Mestre de '+o.n+' num duelo na taverna.');return}
+    aviso(pend?o.n+': você já aprendeu esta classe na história! Ela fica disponível quando for criada — em breve.':o.n+(pais.length?' vem de '+pais.map(x=>x.n).join(pais.length>1?' e de ':' ')+(pais.length>1?' (precisa das duas)':''):'')+'. Esta classe ainda vai ser criada — em breve!')};
    mapa.append(b)}
   view.append(mapa);
   // tela menor que a árvore: reduz para caber na largura (até 70%; abaixo disso, arraste para ver o resto)

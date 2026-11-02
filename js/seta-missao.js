@@ -28,7 +28,11 @@
  window.alvoMissao=()=>{
   if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial||window.cameraMenu&&cameraMenu.ativo)return null;
   if(window.DIALOGO&&DIALOGO.aberto())return null;
-  if(typeof cacaFeita!=='undefined'&&cacaFeita&&!carpenterHelped&&carpenter.x>-1000)return {x:carpenter.x,y:carpenter.y,alto:24};
+  if(typeof cacaFeita!=='undefined'&&cacaFeita&&!carpenterHelped&&carpenter.x>-1000)return {x:carpenter.x,y:carpenter.y,alto:24,cor:'#79a35a'};
+  // item/materiais da missão completos: a seta (verde, missão da história) leva ao carpinteiro para a entrega
+  if(typeof sawQuestActive!=='undefined'&&sawQuestActive&&!sawObtained&&window.temSerrote&&temSerrote()&&carpenter.x>-1000)return {x:carpenter.x,y:carpenter.y,alto:24,cor:'#79a35a'};
+  if(typeof woodQuestActive!=='undefined'&&woodQuestActive&&!wallBuilt&&itemCount('wood')>=WALL_WOOD_REQUIRED&&carpenter.x>-1000)return {x:carpenter.x,y:carpenter.y,alto:24,cor:'#79a35a'};
+  if(typeof magicWoodQuestActive!=='undefined'&&magicWoodQuestActive&&!campPortalBuilt&&itemCount('magicWood')>=PORTAL_WOOD_REQUIRED&&carpenter.x>-1000)return {x:carpenter.x,y:carpenter.y,alto:24,cor:'#79a35a'};
   if(typeof questMonsterRequested=='function')for(const ty of ['gob','toco_vivo'])if(questMonsterRequested(ty)){const t=questMonsterTarget(ty);if(t)return {x:t.x,y:t.y,alto:24,cor:'#ff6a5a'}}
   return null};
 })();

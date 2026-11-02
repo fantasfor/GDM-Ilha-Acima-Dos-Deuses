@@ -168,7 +168,6 @@
   {id:'andar',texto:'Clique no chão para andar até o círculo dourado.'},
   {id:'atacar',texto:'Derrote os 3 monstros: clique em um deles para atacar.'},
   {id:'habilidade',texto:'Use a sua habilidade: aperte Q perto de um monstro (ou clique no ícone Q).'},
-  {id:'elite',texto:'Cuidado! Um Elite apareceu: mais forte e brilhando em dourado. Derrote-o!'},
   {id:'portal',texto:'O portal do altar se abriu. Entre nele para descer à ilha.'}];
  let mestre=null,alvos=[],habUsada=false,enGuardado=null,anjoSob=false;
  const q=new URLSearchParams(location.search);
@@ -180,9 +179,9 @@
  const tipoFraco=()=>['sl','rato','lobo_pardo','lobo'].find(id=>MONSTER_TYPES[id])||Object.keys(MONSTER_TYPES).find(id=>(MONSTER_TYPES[id].bossType||'normal')==='normal');
  function criarMonstro(x,y,elite){
   const e=spawnAt(x,y,tipoFraco(),1);
-  // fraco de propósito: pouca vida e pouco dano; dá XP de tutorial
-  e.max=elite?90:26;e.hp=e.max;e.dmg=elite?4:2;e.weaponDamageMultiplier=(e.weaponDamageMultiplier||1)*.25;e.xp=elite?60:20;e.g=elite?15:3;e.tutorial=true;e.roamRadius=18;
-  if(elite&&window.makeElite){makeElite(e);e.max=90;e.hp=90;e.xp=60}
+  // fraco de propósito: pouca vida e pouco dano. Não dá XP (2026-11-02, pedido do usuário): o nível 3 vem só do fim das 3 etapas
+  e.max=elite?90:26;e.hp=e.max;e.dmg=elite?4:2;e.weaponDamageMultiplier=(e.weaponDamageMultiplier||1)*.25;e.xp=0;e.g=elite?15:3;e.tutorial=true;e.roamRadius=18;
+  if(elite&&window.makeElite){makeElite(e);e.max=90;e.hp=90;e.xp=0}
   en.push(e);if(window.VFX)VFX.tocar('grito',{x:e.x,y:e.y-4,raio:14,cor:'#ffd84a'});return e}
  function soltar(n,elite){for(const e of alvos)if(e.hp>0)e.gone=1;alvos=[];for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2-Math.PI/2,r=n>1?22:0;alvos.push(criarMonstro(AC.x+Math.cos(a)*r,AC.y+Math.sin(a)*r*.7,elite))}}
  const etapa=()=>p.tutorial?ETAPAS[p.tutorial.etapa]:null;
@@ -203,7 +202,6 @@
   if(id==='andar'&&!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Muito bem, recruta! Primeiro, ande até o círculo dourado: clique no chão.'}],retratoMestre);
   if(id==='atacar'){soltar(3,false);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Monstros! Clique em um deles para atacar com a sua arma. Derrote os três.'}],retratoMestre)}
   if(id==='habilidade'){soltar(2,false);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Agora a sua habilidade: chegue perto de um monstro e aperte Q (ou clique no ícone Q da barra).'}],retratoMestre)}
-  if(id==='elite'){soltar(1,true);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Cuidado! Um Elite: mais forte, brilha em dourado e deixa mais tesouros. Derrote-o!'}],retratoMestre)}
   if(id==='portal'){
    if(!p.tutorial.premio){p.tutorial.premio=true; // garante o nível 3
     while(p.lvl<3&&p.lvl<(+CALC.maxLevel||10)){const falta=Math.max(1,CALC.xpPerLevel*p.lvl-p.xp);gainPlayerXp(falta)}
@@ -211,7 +209,7 @@
    const abrir=()=>{portalAberto=true;if(window.playGameSound)playGameSound('anjo');ring(ALTAR.x,ALTAR.y-20,40,'#ffd84a',.8)};
    if(retomando)abrir();
    else falas([
-    {lado:'direita',nome:nomeMestre(),texto:'Excelente! Você está pronto para a ilha. Me procure na taverna quando quiser aprender mais.'},
+    {lado:'direita',nome:nomeMestre(),texto:'Excelente! Você andou, lutou e usou a sua habilidade. Isso vale o nível 3: está pronto para a ilha. Me procure na taverna quando quiser aprender mais.'},
     {lado:'direita',nome:'Anjo '+ANJO_NOME,texto:'Abri o portal do altar. Desça, guardião, e mantenha a ilha em equilíbrio.',retrato:retratoAnjo}
    ],retratoMestre,abrir)}
   if(window.saveGame)saveGame()}
@@ -235,7 +233,8 @@
   p.x=ENTRADA.x;p.y=ENTRADA.y;p.fx=0;p.fy=-1;p.dest=null;p.path=[];p.tgt=null;proj.length=0;
   mestre={x:MESTRE_POS.x,y:MESTRE_POS.y,fx:1,fy:0,nm:nomeMestre()};
   ring(p.x,p.y,30,'#ffd84a',.6);kitDoTutorial();
-  ir(p.tutorial.etapa||0,(p.tutorial.etapa||0)>0)}
+  p.tutorial.etapa=Math.min(p.tutorial.etapa||0,ETAPAS.length-1); // save do tutorial antigo (tinha a etapa do Elite): o portal agora é a última
+  ir(p.tutorial.etapa,p.tutorial.etapa>0)}
  function sair(){
   if(!window.inTutorial)return;
   window.inTutorial=false;document.body.classList.remove('emTutorial');if(window.clearMovementInput)clearMovementInput();
@@ -271,8 +270,8 @@
   const et=etapa();if(!et)return;
   const mortos=()=>alvos.length&&alvos.every(e=>e.hp<=0||!en.includes(e));
   if(et.id==='andar'&&Math.hypot(p.x-PONTO.x,p.y-PONTO.y)<14)ir(2);
-  else if((et.id==='atacar'||et.id==='elite')&&mortos())ir(p.tutorial.etapa+1);
-  else if(et.id==='habilidade'&&mortos()){if(habUsada)ir(4);else soltar(1,false)} // ainda não usou: vem outro
+  else if(et.id==='atacar'&&mortos())ir(p.tutorial.etapa+1);
+  else if(et.id==='habilidade'&&mortos()){if(habUsada)ir(ETAPAS.findIndex(e=>e.id==='portal'));else soltar(1,false)} // ainda não usou: vem outro
   else if(et.id==='portal'&&portalAberto&&Math.hypot(p.x-PORTAL.x,p.y-PORTAL.y)<16)concluir()};
  // passar o mouse no Anjo
  addEventListener('mousemove',e=>{if(!window.inTutorial)return;const r=cv.getBoundingClientRect(),w={x:p.x+(e.clientX-r.left-cv.width/2)/S,y:p.y+(e.clientY-r.top-cv.height/2)/S};anjoSob=anjoEm(w)});
@@ -309,7 +308,7 @@
   if(!DIALOGO_ABERTO()&&window.SETA_MISSAO){const et=etapa();let a=null;
    if(et&&et.id==='intro')a={x:ANJO.x,y:ANJO.y,alto:52};
    else if(et&&et.id==='andar')a={x:PONTO.x,y:PONTO.y,alto:4};
-   else if(et&&['atacar','habilidade','elite'].includes(et.id)){const v=alvos.filter(e=>e.hp>0&&en.includes(e)).sort((x,y)=>dist(x,p)-dist(y,p))[0];if(v)a={x:v.x,y:v.y,alto:22,cor:'#ff6a5a'}}
+   else if(et&&['atacar','habilidade'].includes(et.id)){const v=alvos.filter(e=>e.hp>0&&en.includes(e)).sort((x,y)=>dist(x,p)-dist(y,p))[0];if(v)a={x:v.x,y:v.y,alto:22,cor:'#ff6a5a'}}
    else if(et&&et.id==='portal'&&portalAberto)a={x:PORTAL.x,y:PORTAL.y,alto:30};
    if(a)SETA_MISSAO.desenhar(a)}
   ctx.setTransform(1,0,0,1,0,0);
@@ -328,7 +327,7 @@
  const hud0=hud;hud=function(){hud0();
   if(!window.inTutorial||!TUTORIAL.ativo())return;const et=etapa();if(!et)return;
   const qd=$('quest'),passos=ETAPAS.length-1,n=Math.max(1,Math.min(passos,p.tutorial.etapa));
-  const vivos=alvos.filter(e=>e.hp>0&&en.includes(e)).length,extra=et.id==='atacar'||et.id==='elite'||et.id==='habilidade'?' ('+(alvos.length-vivos)+'/'+alvos.length+')':'';
+  const vivos=alvos.filter(e=>e.hp>0&&en.includes(e)).length,extra=et.id==='atacar'||et.id==='habilidade'?' ('+(alvos.length-vivos)+'/'+alvos.length+')':'';
   const html='<b>TUTORIAL · '+n+'/'+passos+'</b>'+et.texto+extra+'<button type="button" class="tutPular">Pular tutorial</button>';
   if(qd.dataset.tut!==html){qd.dataset.tut=html;qd.classList.remove('done');qd.innerHTML=html;const b=qd.querySelector('.tutPular');if(b)b.onclick=e=>{e.stopPropagation();pularTutorial()}}};
  /* missão inicial depois do tutorial (state.js cacaFeita): o Glooc Saqueador, que persegue o carpinteiro, só aparece na ilha

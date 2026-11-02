@@ -143,7 +143,10 @@ const CLASSE_VISUAL={
  hea:{robe:['#f2f2e8','#3fb86a'],tiara:1,cabelo:'curto',arma:'cajado'},
  sty:{robe:['#d94f9a','#ffd84a'],cabelo:'longo',corCabelo:'#3a1f10'},
  carpinteiro:{ch:['#a8743a','#5a3a1e',2],le:['#56606e','#3a2a1a'],cabelo:'curto',corCabelo:'#5a3218',arma:'machadinha'},
- ferreiro:{ch:['#4a3428','#8a6a4a',2],le:['#3a3436','#2a2020'],bo:['#2a1e16','#4a3626'],cabelo:'careca',arma:'martelo'}
+ ferreiro:{ch:['#4a3428','#8a6a4a',2],le:['#3a3436','#2a2020'],bo:['#2a1e16','#4a3626'],cabelo:'careca',arma:'martelo'},
+ // NPCs da história (2026-11-02, js/historia.js): o Explorador, arqueiro de verde, e o Ladino, todo de preto e de capuz
+ explorador:{he:['#3f6b45','#79a35a',2],ch:['#56703a','#2b3324',0],le:['#7d3f34','#4e2430'],bo:['#4e2430','#7d3f34'],cabelo:'curto',corCabelo:'#7a5a3e',arma:'arco'},
+ ladino:{he:['#1f1a1a','#3a2a2a',2],ch:['#262626','#1f1a1a',0],le:['#1f1a1a','#3a2a2a'],bo:['#1f1a1a','#3a2a2a'],cabelo:'curto',corCabelo:'#1f1a1a',arma:'adaga'}
 };
 // botas de couro de quem não calça nada (herói sem botas e NPCs)
 const BOTA_PADRAO=['#4a2e1a','#6b4528'];

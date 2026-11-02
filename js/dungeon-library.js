@@ -122,6 +122,8 @@
     const img=E('img');img.src=monsterImg(i.boss);img.alt='';
     const txt=E('span','dgm-itemTxt');txt.append(E('b','',entry.config.name||'Masmorra'));
     const meta=E('small');meta.append(E('span','','Nv '+i.rec+' · '));const d=E('span','',dn);d.style.color=dc;meta.append(d);if(rec)meta.append(E('span','dgm-done',' · ✓ '+rec.clears+'×'));txt.append(meta);
+    const ms=window.HISTORIA&&HISTORIA.missaoDG&&HISTORIA.missaoDG(entry.config); // DG com missão da história pendente (js/historia.js)
+    if(ms)txt.append(E('span','dgm-missao','! Missão'));
     b.append(img,txt);if(locked)b.append(E('span','dgm-lock','Nv '+i.minLevel));
     b.onclick=()=>{selected=entry.id;try{localStorage.setItem('ilha-rpg-dg-escolhida',selected)}catch(e){}renderList();renderDetail()};
     b.ondblclick=()=>enter(entry);
@@ -134,6 +136,7 @@
    const top=E('div','dgm-top'),frame=E('div','dgm-boss'),img=E('img');img.src=monsterImg(i.boss);img.alt=i.bossName;frame.append(img,E('span','dgm-bossTag','CHEFE'));
    const ttl=E('div','dgm-ttl');ttl.append(E('h3','',c.name||'Masmorra'));
    const tags=E('div','dgm-tags');tags.append(E('span','dgm-tag',THEME[c.theme]||'Masmorra'),E('span','dgm-tag','Nv recomendado '+i.rec));const dt=E('span','dgm-tag',dn);dt.style.color=dc;dt.style.borderColor=dc;tags.append(dt);
+   const msd=window.HISTORIA&&HISTORIA.missaoDG&&HISTORIA.missaoDG(c);if(msd)tags.append(E('span','dgm-tag dgm-missao','! Missão: '+msd)); // missão da história nesta DG
    ttl.append(tags,E('p','dgm-desc',c.desc||'Uma masmorra dimensional aberta pelo portal do acampamento. Derrote o chefe para liberar a saída.'));
    top.append(frame,ttl);detail.append(top);
    const stats=E('div','dgm-stats');

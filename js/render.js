@@ -696,7 +696,7 @@ function draw(){
   if(naTela(campGate.x,campGate.y))L.push([campGate.y+1,drawCampGate])
  }
  if(campPortalBuilt)L.push([campPortal.y,drawCampPortal]);
- if(window.blacksmithSaved){
+ if(window.blacksmithSaved&&(!window.HISTORIA||HISTORIA.forjaPronta())){ // a forja só aparece depois que as ferramentas voltam (js/historia.js)
   L.push([CY-35,()=>{
    const fx=CX+52,fy=CY-34;
    ctx.fillStyle='#2b2d30';ctx.fillRect(fx-7,fy-10,14,12);
@@ -720,7 +720,7 @@ function draw(){
    const escondido=n.carpenter&&!carpenterHelped;if(escondido)ctx.save(); // escondido atrás da tora: só a cabeça e os ombros aparecem (a tora é desenhada na frente)
    if(hovN==n)dr.borda='#ffd84a';dr(spr,n.x,n.y,f.fl,1,anim(n,0));if(escondido)ctx.restore();
    ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(n.nm,n.x+.5,n.y-topo+.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(n.nm,n.x,n.y-topo-ACIMA_HEROI());
-   ctx.fillStyle='#ffd84a';ctx.fillText(n.carpenter&&!questDone?'…':n.carpenter&&campPortalBuilt?'':n.carpenter&&sawQuestActive&&!sawObtained?'':n.carpenter?'!':n.blacksmith?'!':'!',n.x,n.y-topo-6+Math.round(Math.sin(time*4)*1.5))}]);
+   ctx.fillStyle='#ffd84a';ctx.fillText(n.carpenter&&!questDone?'…':n.carpenter&&campPortalBuilt?'':n.carpenter&&sawQuestActive&&!sawObtained?(window.temSerrote&&temSerrote()||window.serrotePendente&&serrotePendente()?'!':''):n.carpenter?'!':n.blacksmith?'!':'!',n.x,n.y-topo-6+Math.round(Math.sin(time*4)*1.5))}]);
  });
  if(!carpenterHelped&&Math.abs(carpenter.x-p.x)<260&&Math.abs(carpenter.y-p.y)<170)L.push([carpenter.y+3,()=>drawCarpenterDebris(carpenter)]);
  // fogueira do acampamento: anel de pedras, lenha cruzada com brasas e chama em pixel art (js/fogo.js)
