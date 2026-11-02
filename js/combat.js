@@ -411,9 +411,9 @@ L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime
 /* o que ainda está ativo de uma habilidade que saiu da barra para: aura, áreas, pulsos e canal (Girar, Chuva) */
 const naBarra=new Set(SK.filter(s=>s.n&&s.id).map(s=>s.id));if(window.CURANDEIRO)CURANDEIRO.sincronizar(naBarra);if(p.canal&&p.canal.id&&!naBarra.has(p.canal.id))p.canal=null;if(p.conj&&p.conj.s&&!naBarra.has(p.conj.s.id))p.conj=null;
 if(window.renderSkillMenu)renderSkillMenu()}
-applySkills();const carpenter={cls:'carpinteiro',nm:'Carpinteiro',x:CX+224,y:CY-150,carpenter:true},blacksmith={cls:'ferreiro',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
-/* na missão o carpinteiro fica escondido num canto da ilha (nordeste, perto da beira), atrás de uma tora */
-const ESCONDERIJO={x:CX+224,y:CY-150}; /* beira da estrada a nordeste (2026-10-29: o lugar antigo, CX+260,CY-360, ficou no meio da mata nova e não dava para chegar) */
+applySkills();const carpenter={cls:'carpinteiro',nm:'Carpinteiro',x:CX-8,y:CY-585,carpenter:true},blacksmith={cls:'ferreiro',nm:'Ferreiro',x:-9999,y:-9999,blacksmith:true},NPCS=[carpenter,blacksmith];// classe e sexo são escolhidos na criação do personagem (js/conta.js)
+/* na missão o carpinteiro fica escondido no norte da ilha, perto da beira, atrás de uma tora */
+const ESCONDERIJO={x:CX-8,y:CY-585}; /* 2026-11-02 (imagem do usuário, círculo azul): clareira ao norte, logo abaixo da linha de árvores, à esquerda da clareira de terra com o toco grande. Antes: CX+224,CY-150 (beira da estrada a nordeste) */
 // o carpinteiro só aparece escondido atrás da tora quando chega a missão de ajudá-lo (depois dos 10 monstros, state.js cacaFeita)
 function placeCarpenter(){if(!carpenterHelped&&typeof cacaFeita!=='undefined'&&!cacaFeita){carpenter.x=carpenter.y=-9999;return}carpenter.x=carpenterHelped?CX+34:ESCONDERIJO.x;carpenter.y=carpenterHelped?CY-48:ESCONDERIJO.y}
 function placeBlacksmith(){const saved=(typeof blacksmithSaved!=='undefined'&&blacksmithSaved)||window.blacksmithSaved;blacksmith.x=saved?CX+64:-9999;blacksmith.y=saved?CY-36:-9999}

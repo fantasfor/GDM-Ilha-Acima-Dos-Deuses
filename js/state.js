@@ -234,6 +234,6 @@ function toggleCampGate(){
 }
 const boss={boss:true,img:SP.glooc.d,sp:SP.glooc,max:420,dmg:20,spd:25,xp:180,g:80,aggro:110,wu:.6,ac:1.8};
 configureMonster(boss,'boss',monsterLevel());
-{const E=typeof ESCONDERIJO!=='undefined'?ESCONDERIJO:{x:CX+224,y:CY-150};boss.x=boss.hx=E.x-28;boss.y=boss.hy=E.y+14}boss.roamRadius=14; /* colado no esconderijo do carpinteiro (combat.js ESCONDERIJO): ronda a tora */boss.hp=boss.max;boss.fx=0;boss.fy=1;boss.aw=0;boss.cd=0;boss.hit=0;boss.rt=0;en.push(boss);
+{const E=typeof ESCONDERIJO!=='undefined'?ESCONDERIJO:{x:CX-8,y:CY-585};boss.x=boss.hx=E.x-28;boss.y=boss.hy=E.y+14}boss.roamRadius=14; /* colado no esconderijo do carpinteiro (combat.js ESCONDERIJO): ronda a tora */boss.hp=boss.max;boss.fx=0;boss.fy=1;boss.aw=0;boss.cd=0;boss.hit=0;boss.rt=0;en.push(boss);
 const ft=(x,y,t,c)=>{for(let i=fts.length-1;i>=0&&i>=fts.length-8;i--){const o=fts[i];if(o.a>.8&&Math.abs(o.x-x)<34&&Math.abs(o.y-y)<9)y=o.y-10}fts.push({x,y,t,c,a:1})}; /* dois textos no mesmo ponto (nome da mecânica e o grito, por ex.) empilham em vez de sobrepor */
 const ring=(x,y,r,c,d=.4)=>fxs.push({x,y,r,c,t:0,d});

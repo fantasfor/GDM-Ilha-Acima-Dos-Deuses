@@ -37,8 +37,8 @@
  const P=painel(),B=botao('e','c','p'),BH=botao('c','d','e'),BA=botao('e','p','c'),BO=botao('c','l','e');
  // janelas pequenas (dica, escolha de habilidade, menu do botão direito): moldura fina de 2 px de arte
  const PQ=arte(['.pppp.','pdcccp','pc..ep','pc..ep','pceeep','.pppp.']),PEQUENOS=['#tip','#skillPicker','#invMenu','.menuAliado'];
- const PAINEIS=['.mbox','#dialogue:not(.dgModal):not(.arenaModal)','#invp','#skillPanel','#codex','.biBox','.qmBox','.sdgBox','.mesaPainel','.mpPainel','.selPainel','.vozPainel','#vn .vnCaixa','#telaMorte','#falhaSave>div','.panel'];
- const BOTOES=['#menu button','.mb','#dialogue:not(.dgModal) button:not(.lobCard):not(.dialogueClose)','.ib','.qmBtn','.biOrg','.biFechar','.biAba','.mesaBtn','.mesaFechar','.mesaTab','.invSort','.invTabs button','#invMenu button','#telaMorte button','#vn .vnEscolhas button','.menuAliado button','.dgm-enter','.dgp-voltar','#falhaSave button'];
+ const PAINEIS=['.mbox','#dialogue:not(.dgModal):not(.arenaModal)','#invp','#skillPanel','#codex','.biBox','.qmBox','.sdgBox','.mesaPainel','.mpPainel','.selPainel','.vozPainel','#vn .vnCaixa','#telaMorte','#falhaSave>div','.panel','.fjCena','.fjLado','.fjPlacaCorpo'];
+ const BOTOES=['#menu button','.mb','#dialogue:not(.dgModal) button:not(.lobCard):not(.dialogueClose)','.ib','.qmBtn','.biOrg','.biFechar','.biAba','.mesaBtn','.mesaFechar','.mesaTab','.invSort','.invTabs button','#invMenu button','#telaMorte button','#vn .vnEscolhas button','.menuAliado button','.dgm-enter','.dgp-voltar','#falhaSave button','.fjBtn'];
  const sel=(l,s='')=>l.map(x=>x+s).join(',');
  const css=sel(PEQUENOS)+'{border-style:solid!important;border-width:'+2*K+'px!important;border-color:transparent!important;border-image:url('+PQ+') '+2*K+' repeat!important;border-radius:0!important;outline:0!important}'+
   sel(PAINEIS)+'{border-style:solid!important;border-width:'+BP*K+'px!important;border-color:transparent!important;border-image:url('+P+') '+BP*K+' repeat!important;border-radius:0!important;outline:0!important;background-clip:padding-box!important}'+

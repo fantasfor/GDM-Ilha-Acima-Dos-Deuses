@@ -30,10 +30,16 @@ function move(e,d,sp,dt){const dx=d.x-e.x,dy=d.y-e.y,L=Math.hypot(dx,dy);if(L<.0
  if(e!==p&&e.x===oldX&&e.y===oldY){const bx=dx/L,by=dy/L;for(const a of [1.57,-1.57,.8,-.8,2.3,-2.3]){const c=Math.cos(a),s=Math.sin(a),qx=(bx*c-by*s)*st,qy=(bx*s+by*c)*st;if(free(e.x+qx,e.y+qy)){e.x+=qx;e.y+=qy;break}}}
  e.fx=dx;e.fy=dy;return e.x===oldX&&e.y===oldY}
 function snapWalk(x,y,avoid,agent){const room=agent&&agent.dungeonRoomBounds,ok=(a,b)=>walk(a,b)&&(!avoid||!insideCamp(a,b))&&(!window.inDungeon||!agent||!agent.boss||!room||(a>=room.x+6&&a<=room.x+room.w-6&&b>=room.y+6&&b<=room.y+room.h-6));if(ok(x,y))return{x,y};for(let r=4;r<=56;r+=4)for(let k=0;k<12;k++){const a=k*Math.PI/6,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(ok(px,py))return{x:px,y:py}}return{x,y}}
+/* ponto de passeio livre: longe de outro monstro e do destino que outro já escolheu (senão os dois disputam o lugar) */
+function pontoDePasseioLivre(e,x,y){const re=raioCorpo(e);
+ for(const q of en){if(q===e||q.hp<=0)continue;const R=re+raioCorpo(q)+10;
+  if(Math.abs(q.x-x)<R&&Math.abs(q.y-y)<R&&Math.hypot(q.x-x,q.y-y)<R)return false;
+  if(q.dest&&!q.chasing&&Math.hypot(q.dest.x-x,q.dest.y-y)<R+6)return false}
+ return true}
 function navigate(agent,x,y){const room=window.inDungeon&&agent.boss&&agent.dungeonRoomBounds;if(room){const pad=14;x=Math.max(room.x+pad,Math.min(room.x+room.w-pad,x));y=Math.max(room.y+pad,Math.min(room.y+room.h-pad,y))}
  const sp=snapWalk(x,y,agent!==p,agent);x=sp.x;y=sp.y;
  const key=Math.floor(x/T)+','+Math.floor(y/T);
- if(key!==agent.pathKey){agent.dest={x,y};agent.pathKey=key;agent.path=buildPath(agent,{x,y},agent!==p);agent.pathI=0}
+ if(key!==agent.pathKey){agent.dest={x,y};agent.pathKey=key;agent.melhorD=null;agent.semAvanco=0;agent.passeio=false;agent.path=buildPath(agent,{x,y},agent!==p);agent.pathI=0}
  else agent.dest={x,y}
 }
 function flank(e,range,t=p){const base=e.fa!==undefined?e.fa:Math.atan2(e.y-t.y,e.x-t.x);let pick=null;
@@ -57,7 +63,14 @@ function moveAlong(agent,speed,dt){
  const before=agent.x,oldY=agent.y;
  move(agent,{x:agent.x+dx/d*Math.min(speed*dt,d),y:agent.y+dy/d*Math.min(speed*dt,d)},speed,dt);
  if(agent.x===before&&agent.y===oldY){agent.blk=(agent.blk||0)+dt;if(agent===p||agent.blk>.6){agent.dest=null;agent.path=[];agent.pathKey='';agent.blk=0;if(agent===p){p.tgt=null;p.npcT=null;p.gateT=false}return false}if(agent===p||!(agent.repathEm>time)){agent.repathEm=time+.25;agent.path=buildPath(agent,agent.dest,agent!==p);agent.pathI=0} /* monstro preso: recalcula o caminho no máximo 4× por segundo (era a cada quadro) */}else agent.blk=0
- if(dist(agent,agent.dest)<Math.max(3,speed*dt)){agent.dest=null;agent.path=[];agent.pathKey='';if(agent!==p&&!agent.boss&&!agent.chasing)agent.roamT=5}
+ if(dist(agent,agent.dest)<Math.max(3,speed*dt)){agent.dest=null;agent.path=[];agent.pathKey='';agent.melhorD=null;if(agent!==p&&!agent.boss&&!agent.chasing)agent.roamT=5}
+ /* passeio sem avanço (2026-11-01, bug do usuário): dois monstros indo para o mesmo canto ficavam se contornando sem
+    parar (cada desvio mexe um pouco, então o "travado" acima nunca disparava). Se em 1,2 s não chegou mais perto do
+    destino, desiste, espera um pouco e escolhe outro ponto (vale para todo monstro fora de combate: passeio, volta para casa,
+    caminho de saída do portal) */
+ else if(agent!==p&&!agent.chasing&&!agent.boss){const dd=dist(agent,agent.dest);
+  if(agent.melhorD==null||dd<agent.melhorD-1.5){agent.melhorD=dd;agent.semAvanco=0}
+  else if((agent.semAvanco=(agent.semAvanco||0)+dt)>1.2){agent.dest=null;agent.path=[];agent.pathKey='';agent.melhorD=null;agent.semAvanco=0;agent.roamT=rnd(.8,2.2);return false}}
  return agent.x!==before||agent.y!==oldY
 }
 /* desencalhar (2026-10-29): quem ficar num ponto onde não dá para andar (dentro de uma decoração sólida ou da parede, depois
@@ -216,8 +229,16 @@ function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);d
   else{
    if(e.chasing){e.dest=null;e.path=[];e.pathKey='';e.chasing=false;e.fa=undefined;e.alert=0;e.noAtk=0;if(e.boss&&window.inDungeon)e.foraCombate=CALC.monsterReset||10/* chefe da DG: saiu da sala, reseta na hora */}
    if(e.boss){if(dist(e,home)>3)navigate(e,home.x,home.y);else{e.dest=null;e.path=[];e.pathKey=''}}
-   else if(Math.hypot(e.x-home.x,e.y-home.y)>Math.max(e.roamRadius,e.rumo||0))navigate(e,home.x,home.y);
+   else if(Math.hypot(e.x-home.x,e.y-home.y)>Math.max(e.roamRadius,e.rumo||0)){
+    /* voltando para casa sem conseguir chegar (alguém parado no caminho ou no lugar): espera um pouco em vez de ficar
+       empurrando (2026-11-01, bug do usuário dos monstros se esbarrando) */
+    const dh=Math.hypot(e.x-home.x,e.y-home.y);
+    if(e.esperaCasa>0){e.esperaCasa-=dt;if(e.dest){e.dest=null;e.path=[];e.pathKey=''}}
+    else{navigate(e,home.x,home.y);
+     if(e.casaD==null||dh<e.casaD-1.5){e.casaD=dh;e.casaSem=0}else if((e.casaSem=(e.casaSem||0)+dt)>1){e.casaD=null;e.casaSem=0;e.esperaCasa=rnd(.8,1.6)}}}
+   else if(e.seguidor){e.casaD=null;if(e.dest&&!e.passeio){e.dest=null;e.path=[];e.pathKey=''}} // no grupo, o líder passeia e os outros só acompanham
    else{
+   e.casaD=null;
    if(!e.dest)e.roamT-=dt;
    if(!e.dest&&e.roamT<=0){
     /* na ilha os monstros andam à toa, mas costumam seguir a terra (trilhas das clareiras e estradas, js/world.js terraDist):
@@ -225,10 +246,10 @@ function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);d
     e.rumo=0;
     if(!window.inDungeon&&!window.inArena&&!window.inTutorial&&window.terraDist&&!e.seguidor&&Math.random()<.6){const R=Math.max(120,e.roamRadius*2.2);
      for(let attempt=0;attempt<16;attempt++){const angle=rnd(0,Math.PI*2),radius=rnd(24,R),x=home.x+Math.cos(angle)*radius,y=home.y+Math.sin(angle)*radius;
-      if(terraDist(x,y)<4&&walk(x,y)&&!insideCamp(x,y,8)){e.rumo=radius+16;navigate(e,x,y);break}}}
+      if(terraDist(x,y)<4&&walk(x,y)&&!insideCamp(x,y,8)&&pontoDePasseioLivre(e,x,y)){e.rumo=radius+16;navigate(e,x,y);e.passeio=true;break}}}
     if(!e.dest)for(let attempt=0;attempt<12;attempt++){
      const angle=rnd(0,Math.PI*2),radius=rnd(18,e.roamRadius),x=home.x+Math.cos(angle)*radius,y=home.y+Math.sin(angle)*radius;
-     if(walk(x,y)&&!insideCamp(x,y,8)&&longeDeArvores(x,y)){navigate(e,x,y);break}
+     if(walk(x,y)&&!insideCamp(x,y,8)&&longeDeArvores(x,y)&&pontoDePasseioLivre(e,x,y)){navigate(e,x,y);e.passeio=true;break}
     }
     if(!e.dest)e.roamT=.5
    }

@@ -101,11 +101,21 @@ function emit(q){let ox=q.x,oy=q.y;for(let t=0;t<14;t++){const a=q.ang+rnd(-1.1,
  }
  ring(q.x,q.y-8,14,q.cor||'#b98cff',.3);en.push(e);q.left--}
 const grupos=new Map();
-/* grupo (portais da ilha e da DG): o seguidor tem a casa colada no líder; se o líder morrer, o primeiro seguidor vivo assume */
+/* grupo (portais da ilha e da DG): o seguidor tem a casa colada no líder; se o líder morrer, o primeiro seguidor vivo assume.
+   Os lugares em volta do líder são repartidos (2026-11-01, bug do usuário): antes cada seguidor sorteava um ponto a 9–17 px,
+   menos que a soma dos corpos, e às vezes o mesmo de outro seguidor; ficavam se esbarrando sem nunca chegar. Agora cada um
+   tem a sua fatia do círculo, longe o bastante do líder e dos vizinhos. */
 function seguirLider(){
+ const porGrupo=new Map();
  for(const e of en){if(e.hp<=0||e.mpProxy||!e.seguidor)continue;const g=e.seguidor,L=g.lider;
   if(!L||L.hp<=0||!en.includes(L)){g.lider=e;e.seguidor=null;e.roamRadius=rnd(38,70);continue}
-  if(!e.chasing){e.hx=L.x+e.offx;e.hy=L.y+e.offy;e.roamRadius=10}}
+  if(!porGrupo.has(g))porGrupo.set(g,[]);porGrupo.get(g).push(e)}
+ for(const [g,fs] of porGrupo){const L=g.lider,rL=entityRadius(L),n=fs.length;if(g.fase==null)g.fase=rnd(0,6.283);
+  const maior=Math.max(...fs.map(entityRadius)),
+   // raio do círculo: afasta do líder e deixa cada seguidor sem encostar no vizinho (corda entre vizinhos ≥ 2 corpos + folga)
+   r=Math.max(rL+maior+6,n>1?(maior*2+6)/(2*Math.sin(Math.PI/n)):0);
+  fs.forEach((e,k)=>{const a=g.fase+k*6.283/n;e.offx=Math.cos(a)*r;e.offy=Math.sin(a)*r;
+   if(!e.chasing){e.hx=L.x+e.offx;e.hy=L.y+e.offy;e.roamRadius=6}})}
 }
 /* um alerta: só ajudam os da mesma família, ou seja, o mesmo monstro ou alguma tag em comum (Engine › Monstro › Tags / família),
    e que estejam perto (RAIO_AJUDA px) */

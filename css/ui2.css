@@ -490,45 +490,64 @@ button.carta{cursor:pointer}button.carta:hover{transform:translateY(-3px)}
 .vjBtn{background:#262626;border:2px solid #595959;color:var(--c-linho);font:bold 11px monospace;padding:4px 9px;cursor:pointer}
 .vjBtn:hover:not(:disabled){border-color:#e7cb88}.vjBtn:disabled{opacity:.4;cursor:default}
 /* forja do Ferreiro (js/forja.js): tela cheia — cena animada (canvas) à esquerda, escolha dos itens à direita */
-#forjaPainel{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;box-sizing:border-box;padding:14px 18px;gap:10px;background:radial-gradient(ellipse at 30% 60%,#2a1a12 0%,#0d0d0d 65%) #0d0d0d;color:#d9d0c7;font:12px monospace}
+#forjaPainel{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;box-sizing:border-box;padding:14px 18px;gap:10px;background:radial-gradient(ellipse at 50% 0%,#1a1612 0%,#0d0d0d 60%) #0d0d0d;color:#d9d0c7;font:12px monospace}
 #forjaPainel[hidden]{display:none}
 .fjTopo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.fjTopo h3{margin:0;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#efc56a}
+.fjTopo h3{margin:0 auto 0 0;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#d9d0c7}
 .fjTopoInfo{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-right:auto}
-.fjTopoInfo small{color:#a69c94;font-size:11px}.fjNv{color:#efc56a}.fjRec{font-weight:bold}
-.fjXp{width:140px;height:8px;background:#0d0d0d;border:1px solid #595959;position:relative}.fjXp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#d08a3a,#efc56a)}
+.fjTopoInfo small{color:#a69c94;font-size:11px}.fjNv{color:#d9d0c7}.fjRec{font-weight:bold}
+.fjXp{width:140px;height:8px;background:#0d0d0d;border:1px solid #595959;position:relative}.fjXp i{position:absolute;left:0;top:0;bottom:0;background:#a69c94}
 .fjCorpo{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:14px}
-.fjCena{position:relative;min-height:0;border:2px solid #262626;outline:1px solid #595959;outline-offset:-5px;background:#0d0d0d;cursor:pointer;overflow:hidden}
+.fjCena{position:relative;min-height:0;background:#0d0d0d;cursor:pointer;overflow:hidden}
 .fjCena canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
-.fjLado{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:10px;background:#0d0d0de6;border:2px solid #262626;scrollbar-color:#595959 #0d0d0d}
+.fjLado{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:10px;background:#0d0d0df8;scrollbar-color:#595959 #0d0d0d}
 .fjLado h4{margin:4px 0 0;font-size:11px;color:#a69c94;font-weight:normal;text-transform:uppercase;letter-spacing:1px}
-.fjBigorna{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#1a1a1a;border:2px solid #262626}
-.fjBigorna em{font-style:normal;color:#7d756e;font-size:18px}
-.fjEspaco{width:68px;height:68px;background:#0d0d0d;border:2px solid #595959;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font:bold 12px monospace;color:#d9d0c7;padding:0}
-.fjEspaco.vazio{border-style:dashed;color:#595959;cursor:default}.fjEspaco img{width:40px;height:40px;image-rendering:pixelated}
-.fjEspaco:not(.vazio):hover{filter:brightness(1.25)}
-.fjRes{width:92px;display:flex;flex-direction:column;align-items:center;text-align:center;font-size:10px;color:#a69c94}.fjRes b{font-size:24px}
-.fjInfo{font-size:12px;display:flex;flex-direction:column;gap:5px}
 .fjTag{display:inline-block;min-width:36px;text-align:center;font-weight:bold;padding:0 3px;border:1px solid}
-.fjTag.pior{color:#a69c94;border-color:#595959}.fjTag.melhor{color:#efc56a;border-color:#d08a3a}
-.fjFaixa{position:relative;height:12px;background:#1a1a1a;border:1px solid #595959;margin-top:3px}
-.fjFaixa i{position:absolute;top:0;bottom:0}.fjPior{background:#595959}.fjMelhor{background:linear-gradient(90deg,#d08a3a,#efc56a)}
-.fjMedia{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:#fff}
+.fjTag.pior{color:#a69c94;border-color:#595959}.fjTag.melhor{color:#d9d0c7;border-color:#a69c94}
+.fjFaixa{position:relative;height:10px;background:#0d0d0d;border:1px solid #595959;margin-top:3px}
+.fjFaixa i{position:absolute;top:0;bottom:0}.fjPior{background:#262626}.fjMelhor{background:#a69c94}
+.fjMedia{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#d9d0c7}
 .fjAcoes{display:flex;gap:6px}
-.fjForjar{flex:1;padding:10px;font-size:15px;letter-spacing:2px;text-transform:uppercase;border-color:#d08a3a!important;background:linear-gradient(#3a2418,#262626)!important;color:#efc56a!important}
-.fjForjar:not(:disabled){animation:fjPulsa 1.6s ease-in-out infinite}
-@keyframes fjPulsa{50%{box-shadow:0 0 14px #d08a3a88}}
-.fjPar{padding:10px}
-.fjSaiu{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;background:#1a1a1a;border:2px solid #595959;font-size:12px;animation:fjBrilho .8s}
-.fjSaiu img{width:32px;height:32px;image-rendering:pixelated}.fjSubiu{flex-basis:100%;color:#efc56a}
-@keyframes fjBrilho{from{box-shadow:0 0 22px #efc56a;transform:scale(1.03)}to{box-shadow:none;transform:none}}
+.fjBtn{color:#d9d0c7;font:bold 11px monospace;padding:6px 10px;cursor:pointer}
+.fjForjar{flex:1;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+.fjForjar.confirma{color:#f87171}
+.fjAviso{padding:4px 8px;background:#262626;border:1px solid #595959;color:#a69c94;font-size:11px;text-align:center}.fjAviso b{color:#f87171}
 .fjHistFila{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
-.fjChip{display:flex;align-items:center;gap:2px;padding:1px 4px 1px 1px;background:#1a1a1a;border:1px solid #595959;font-size:10px}.fjChip.pior{opacity:.65}
+.fjChip{display:flex;align-items:center;gap:2px;padding:1px 4px 1px 1px;background:#262626;border:1px solid #595959;font-size:10px}.fjChip.pior{opacity:.65}
 .fjChip img{width:16px;height:16px;image-rendering:pixelated}
 .fjLista{display:flex;flex-direction:column;gap:6px}
 .fjGrupo small{color:#a69c94;font-size:10px}.fjGrupoFila{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
-.fjItem{width:50px;height:54px;background:#1a1a1a;border:2px solid #262626;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;font:bold 10px monospace}
-.fjItem img{width:32px;height:32px;image-rendering:pixelated}.fjItem:hover{border-color:#595959}.fjItem.on{border-color:#efc56a;background:#3a2418}.fjItem.fora{opacity:.3}
+.fjItem{width:50px;height:54px;background:#0d0d0d;border:2px solid #262626;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;font:bold 10px monospace}
+.fjItem img{width:32px;height:32px;image-rendering:pixelated}.fjItem:hover{border-color:#595959}.fjItem.on{border-color:#d9d0c7;background:#262626}.fjItem.fora{opacity:.3}
+/* placa pendurada sobre a bigorna (js/forja.js posicionarPlaca): chances, barra, aviso e o botão Forjar */
+.fjCena .fjPlaca{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);width:min(360px,calc(100% - 16px));z-index:2;transition:opacity .25s,margin-top .25s;font:12px monospace;color:#d9d0c7}
+.fjPlaca.fora{opacity:0;pointer-events:none;margin-top:-14px}
+.fjPlacaCorpo{position:relative;display:flex;flex-direction:column;gap:5px;padding:6px 8px;cursor:default;background:#0d0d0df8}
+.fjPlaca.pop .fjPlacaCorpo{animation:fjEntra .3s ease-out}
+@keyframes fjEntra{from{transform:translateY(8px);opacity:0}}
+.fjPlacaCab{display:flex;align-items:center;gap:6px;padding-bottom:5px;border-bottom:1px solid #595959}
+.fjPlacaCab img{width:24px;height:24px;image-rendering:pixelated}
+.fjNomeP{color:#d9d0c7;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fjConta{margin-left:auto;color:#a69c94;white-space:nowrap;font-size:11px}
+.fjMediaP{font-size:20px}
+.fjPlacaTit{color:#d9d0c7;font-weight:bold;font-size:13px;text-align:center;letter-spacing:1px;text-transform:uppercase}
+.fjPlacaSub{color:#a69c94;font-size:11px;text-align:center}
+.fjPlaca .fjAcoes{justify-content:center}
+/* cartão do ferreiro no painel da direita: marreta, nível, barra e as chances */
+.fjFerreiro{display:flex;flex-direction:column;gap:8px;padding:8px;background:#262626;border:1px solid #595959}
+.fjFerTopo{display:flex;gap:10px;align-items:center}
+.fjMarreta{flex:none;width:52px;height:52px;padding:0;display:flex;align-items:center;justify-content:center;background:#0d0d0d;border:2px solid #a69c94;cursor:pointer}
+.fjMarreta.padrao{border-color:#595959;cursor:default}.fjMarreta:not(.padrao):hover{border-color:#d9d0c7}
+.fjMarreta img{width:40px;height:40px;image-rendering:pixelated}
+.fjMarreta.bate img{animation:fjBate .45s ease-out}
+@keyframes fjBate{30%{transform:rotate(-25deg) scale(1.15)}}
+.fjFerInfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.fjFerNv{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.fjFerNv b{font-size:15px;letter-spacing:1px;text-transform:uppercase}.fjFerNv small{color:#a69c94;font-size:10px}
+.fjFerreiro .fjXp{width:auto;height:8px}
+.fjFerMarreta{color:#a69c94;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fjFerDados{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.fjDado{display:flex;flex-direction:column;padding:3px 6px;background:#0d0d0d;border:1px solid #595959}.fjDado small{color:#7d756e;font-size:9px;text-transform:uppercase;letter-spacing:1px}.fjDado b{font-size:12px;color:#a69c94}.fjDado.bom b{color:#d9d0c7}
+.fjMarretas small{color:#a69c94;font-size:10px}
 @media(max-width:820px){.fjCorpo{grid-template-columns:1fr;grid-template-rows:42vh auto}.fjLado{overflow:visible}#forjaPainel{overflow:auto}}
 /* "?" de ajuda de cada janela (js/ajuda.js) e a caixa com a explicação */
 .ajudaBtn{flex:none;width:20px;height:20px;padding:0;margin:0 8px 0 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;background:#262626;border:2px solid #a69c94;color:#efc56a;font:bold 12px monospace;line-height:1;cursor:pointer;border-radius:0;text-transform:none;letter-spacing:0}

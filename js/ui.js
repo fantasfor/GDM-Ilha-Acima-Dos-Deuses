@@ -230,6 +230,7 @@ function itemTip(id,q,preferredSlot){const it=ITEMS[id],t=gearType[id],m=it.n.ma
   else if(t&&Array.isArray(it.fx)&&it.fx.length)h+=tl('Ao ser atingido',efeitoFrase(it.fx,true),'tefeito');
   else if(Array.isArray(it.fx)&&it.fx.length&&window.efeitoTexto)h+=tl('Efeito',efeitoTexto(it.fx),'tefeito')}
  if(t=='sw'){const hs=(WSK[id]||[]).filter(Boolean).map(s=>s.n);if(hs.length)h+=tl('Habilidades',hs.join(', '),'thab')}
+ if(window.FORJA&&FORJA.MARRETAS[id])h+=tl('No ferreiro',FORJA.bonusTxt(id),'tefeito'); // marreta do ferreiro (js/forja.js)
  if(it.tags&&it.tags.length)h+='<div class=tm>Tags: '+it.tags.join(', ')+'</div>';
  if(t&&!(preferredSlot&&EQ[preferredSlot]&&EQ[preferredSlot].id==id&&EQ[preferredSlot].q===q))h+=compareEquipment(id,q,preferredSlot);
  return h}
