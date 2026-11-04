@@ -12,7 +12,7 @@
 
  /* ---------- barra inferior ---------- */
  const badge=E('div','lvBadge');badge.id='lvBadge';port.append(badge);
- port._tip=()=>'<b>'+CL[p.cls].n+' · Nível '+p.lvl+'</b>'+$('st').innerHTML.replace(/<div class="gl">.*$/,'')+'<div class=tm>Atributos completos: Mochila › Atributos</div>';
+ port._tip=()=>'<b>'+CL[p.cls].n+' · Nível '+p.lvl+'</b>'+$('st').innerHTML.replace(/<div class="gl">.*$/,'');
  // botões laterais com atalho
  [['codexBtn','J'],['bag','I'],['skillBtn','K']].forEach(([id,k])=>{const b=$(id);if(b)b.dataset.key=k});
  // acesso rápido (teclas 1–6): espaços próprios, fora da mochila (js/state.js RAPIDO)
@@ -55,7 +55,7 @@
  const toolbar=$('invToolbar');toolbar.textContent='';toolbar.append($('invCategories'));
  const grid=$('inv');invp.append(grid);$('invLayout').remove();
  const foot=E('div');foot.id='invFoot';
- const cap=E('span','invCap'),hint=E('span','invHint','Arraste para trocar · botão direito: opções'),sortBtn=E('button','invSort','Organizar');sortBtn.type='button';
+ const cap=E('span','invCap'),hint=E('span','invHint',''),sortBtn=E('button','invSort','Organizar');sortBtn.type='button';
  sortBtn.onclick=e=>{e.stopPropagation();sortBag()};foot.append(cap,hint,sortBtn);invp.append(foot);
  const SLOT_ORDER=['sw','sh','he','ch','le','bo','ca','ne','ri'];
  const catOf=s=>{const t=gearType[s.id],d=ITEMS[s.id];return d.use?0:d.material?1:t?2+SLOT_ORDER.indexOf(t==='sh'?'sh':t):20};
@@ -121,10 +121,11 @@
    col.append(d)}
   barraMochila.atualizar(); // categoria escolhida e quantos itens há em cada uma (js/ui.js)
   // na aba "Todos" mostra a bolsa inteira (com espaços vazios); nas outras, só o que combina
-  if(invCategory=='all')I.forEach((s,i)=>grid.append(slotEl(i,s)));
-  else{const hits=I.map((s,i)=>[s,i]).filter(([s])=>s&&catMatch(s,invCategory));hits.forEach(([s,i])=>grid.append(slotEl(i,s)));if(!hits.length)grid.append(E('div','invEmpty','Nada nesta categoria.'))}
+  const termo=window.invBusca||''; // busca por nome (campo "Buscar" da barra de filtros, js/ui.js)
+  if(invCategory=='all'&&!termo)I.forEach((s,i)=>grid.append(slotEl(i,s)));
+  else{const hits=I.map((s,i)=>[s,i]).filter(([s])=>s&&catMatch(s,invCategory)&&nomeBate(s.id,termo));hits.forEach(([s,i])=>grid.append(slotEl(i,s)));if(!hits.length)grid.append(E('div','invEmpty',termo?'Nenhum item com esse nome.':'Nada nesta categoria.'))}
   const used=I.filter(Boolean).length;cap.textContent=used+(used==1?' item':' itens');
-  hint.textContent=invEquipSlot?'Escolha o item para '+SLOT_LABEL[invEquipSlot]+' (clique no espaço de novo para cancelar)':'Arraste para trocar · botão direito: opções';
+  hint.textContent=invEquipSlot?'Escolha o item para '+SLOT_LABEL[invEquipSlot]+' (clique no espaço de novo para cancelar)':'';
   dirtyInv=false;
  };
  dirtyInv=true; // o primeiro quadro do jogo roda antes deste arquivo: desenha a mochila de novo com esta versão
@@ -141,11 +142,11 @@
   // em combate as armas ficam travadas (js/state.js): marca os espaços de arma e avisa na mochila
   const cmb=window.emCombate&&emCombate();document.body.classList.toggle('emCombate',!!cmb);
   if(cmb&&!invEquipSlot)hint.textContent='Em combate: armas travadas até '+SAIR_COMBATE_S+'s depois de sair do combate ('+Math.ceil(combateRestante())+'s)';
-  else if(!cmb&&/^Em combate/.test(hint.textContent))hint.textContent='Arraste para trocar · botão direito: opções';
+  else if(!cmb&&/^Em combate/.test(hint.textContent))hint.textContent='';
   // aura ligada (Presença Curativa): borda dourada girando em volta do ícone
   const auraOn=!!(window.CURANDEIRO&&CURANDEIRO.ligada());SK.forEach(s=>{if(s.el)s.el.classList.toggle('auraAtiva',auraOn&&s.effect==='auraContinua')});
   SK.forEach(s=>{const was=ready.get(s);if(was>0&&!(s.t>0)&&s.el){s.el.classList.remove('readyFlash');void s.el.offsetWidth;s.el.classList.add('readyFlash')}ready.set(s,s.t)});
-  const loc=window.inTutorial?'Santuário Celeste':window.inArena?'Arena':window.inTaverna?'Taverna do Javali Dourado':window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.lerDungeonConfig&&lerDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
+  const loc=window.inTutorial?'Santuário Celeste':window.inArena?'Arena':window.inTaverna?(window.CONSTRUCOES&&CONSTRUCOES.dentro('taverna')?'Taverna do Javali Dourado':window.CASSINO&&CASSINO.dentro()?'Cassino Arcano':window.LOJA_VIAJANTE&&LOJA_VIAJANTE.dentro()?'Loja do Viajante':'Cidade'):window.MP&&MP.visitando?'Ilha de '+MP.nomeDe(MP.visitando):window.inDungeon?((window.lerDungeonConfig&&lerDungeonConfig().name)||'Masmorra'):insideCamp(p.x,p.y)?'Acampamento':'Ilha';
   // relógio do jogo (js/tempo.js): igual para todos, dia e noite de 30 min reais
   const rel=window.TEMPO?(TEMPO.ehNoite()?'Noite ':'Dia ')+TEMPO.hora():'',txt=loc+'|'+rel;
   if(txt!==lastLoc){lastLoc=txt;tRotulo=0;mmLabel.innerHTML='';mmLabel.append(loc);if(rel){const s=E('span');s.className='mmHora'+(TEMPO.ehNoite()?' noite':'');s.textContent=rel;s.title=(TEMPO.ehNoite()?'Amanhece':'Anoitece')+' em '+TEMPO.minutosAte()+' min';mmLabel.append(s)}}

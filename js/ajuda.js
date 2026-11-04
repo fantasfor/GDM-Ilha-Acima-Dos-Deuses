@@ -25,6 +25,7 @@
   {sel:'#viajanteLoja',cab:'.qmTopo',t:'O Viajante',h:
    H('Vender',['Você recebe <b>75%</b> do valor do item na hora, e o item vai para o estoque do Viajante.','"Todos" vende a pilha inteira. Itens equipados e de missão não aparecem.'])+
    H('Comprar',['O estoque é de todos os jogadores: o que alguém vende, qualquer um compra por <b>100%</b> do valor (até você mesmo, para recuperar).','Itens iguais da mesma qualidade se juntam numa pilha e ficam para sempre.','Se outro jogador comprar antes, você leva só o que sobrou.'])+
+   H('A loja',['O Viajante fica na loja dele, na Cidade, à esquerda da taverna. A vitrine na parede atrás dele mostra os <b>5 itens mais caros</b> do estoque, com o preço.'])+
    H('Dica',['Passe o mouse num item para ver os detalhes e comparar com o seu.']),},
   {sel:'#quadroMissoes',cab:'.qmTopo',t:'Quadro de Missões',h:
    H('Como funciona',['Cada papel pede para derrotar uma quantidade de um monstro, com recompensa em XP e ouro.','Uma missão por vez: aceite, cumpra e volte aqui para <b>Receber a recompensa</b>.','Conta cada monstro do tipo pedido que você ajudar a derrotar, na ilha ou na masmorra.','Novos papéis chegam a cada hora. Abandonar libera para aceitar outra.']),},
@@ -34,12 +35,24 @@
    H('Nível do ferreiro',['Ele melhora forjando: nível 2 com 10 itens forjados, depois 50, 100, 200, 350, 550, 800, 1000 e 1500 (nível 10). 2000 = Mestre.','Cada nível aumenta a chance de sair melhor e o quanto pode melhorar, e diminui o quanto pode piorar.'])+
    H('Na bigorna',['Escolha os itens na lista da direita: eles descem e flutuam sobre a bigorna. Clique num deles para tirá-lo.','A placa pendurada mostra a média, as chances, a barra e o botão <b>Forjar</b>.','O item forjado fica brilhando na bigorna: clique nele (ou Espaço) para recolher; ele cai e vai para a mochila. Escolher outros itens também recolhe.'])+
    H('Dicas',['<b>Próximo par</b> escolhe sozinho dois itens iguais. Clique na cena ou aperte Espaço para pular a animação.','Itens equipados e do baú não entram.']),},
+  {sel:'.mesaPainel',cab:'.mesaTopo',t:'Mesa de jogo',h:
+   H('Começar',['Sente numa cadeira e escolha <b>Truco</b>, <b>Uno</b> ou <b>Dominó</b>: quem está sentado na mesa recebe o convite.','Quem convidou define a aposta (ouro por jogador) e clica em Iniciar. Mudou a aposta, todos aceitam de novo.','Truco: 2 ou 4 jogadores. Uno e Dominó: de 2 a 4.'])+
+   H('Jogando',['Na sua vez aparece <b>SUA VEZ!</b> com 30 s. Passou o tempo, perde a vez; 3 vezes seguidas, sai da partida.','Uno: cartas de mesmo número podem ir juntas (clique na primeira e marque as outras). Aperte UNO! ao ficar com 1 carta.','Dominó: com duas pontas possíveis, escolha em qual jogar.','Desistir deixa a aposta no pote. Quem só assiste pode pedir para jogar a próxima.']),},
+  {sel:'#cassinoPainel.cs-slot .csBox',cab:'.csTopo',t:'Caça-níquel',h:
+   H('Como jogar',['Escolha a ficha (a aposta) e puxe a alavanca (ou aperte Espaço). Os 3 rolos giram e param um de cada vez.','Paga quando a linha do meio tem <b>3 símbolos iguais</b> ou <b>2 iguais</b> (veja a tabela: o número multiplica a aposta).','O <b>Javali Dourado</b> é o maior prêmio: 3 deles pagam 500× a aposta.'])+
+   H('Dicas',['A aposta sai do seu ouro na hora; o prêmio entra assim que os rolos param, mesmo se você fechar a janela.','Cada máquina é só sua: os outros jogadores usam as outras.']),},
+  {sel:'#cassinoPainel.cs-roleta .csBox',cab:'.csTopo',t:'Roleta',h:
+   H('Rodadas',['A roleta é de todos na mesa: 20 s de apostas, depois a bola gira e para num número de 0 a 36.','Escolha a ficha e clique nas casas. Clique de novo para pôr mais. <b>Limpar</b> devolve as suas fichas enquanto as apostas estão abertas.','As fichas azuis no canto das casas são dos outros jogadores; as douradas, as suas.'])+
+   H('Quanto paga',['<b>Número</b>: 36× (a aposta volta junto). <b>Dúzia</b> e <b>coluna</b> (2:1): 3×.','<b>Vermelho/preto</b>, <b>par/ímpar</b>, <b>1–18/19–36</b>: 2×. O <b>0</b> (verde) faz essas perderem.','Limite de 10.000 ouro por rodada.']),},
+  {sel:'#cassinoPainel.cs-bj .csBox',cab:'.csTopo',t:'Blackjack',h:
+   H('Como jogar',['Sente-se num dos 4 lugares e aposte. Quando a primeira aposta entra, a mesa espera 12 s pelos outros e distribui.','Some até 21 sem passar: figuras valem 10, o Ás vale 11 ou 1.','Na sua vez (20 s): <b>Pedir</b> mais uma carta, <b>Parar</b>, ou <b>Dobrar</b> a aposta e receber só mais uma carta.'])+
+   H('A banca',['A banca compra até ter 17 ou mais. Quem passa de 21 perde na hora.','<b>Blackjack</b> (Ás + figura nas 2 primeiras): paga 2,5×. Vitória paga 2×, empate devolve a aposta.','Fechar a janela levanta você da mesa; uma mão já começada continua (se o tempo acabar, você para sozinho).']),},
   {sel:'.mpSocial',cab:'.mpTopo',t:'Social',h:
    H('Amigos',['Lista dos seus amigos, online primeiro, com nível e ping.','Daqui você convida para o grupo, visita a ilha ou chama para a sua.','Para adicionar alguém: abra <b>Jogadores</b> e use "Adicionar amigo"; o pedido chega no Correio da pessoa.']),},
   {sel:'.mpCorreio',cab:'.mpTopo',t:'Correio',h:
    H('Pedidos e convites',['Pedidos de amizade e convites de ilha e de grupo que chegaram para você.','Aceite ou recuse cada um. O número na cartinha é quantos estão esperando.']),},
   {sel:'.mpPainel:not(.mpSocial):not(.mpCorreio)',cab:'.mpTopo',t:'Jogadores',h:
-   H('Online',['Quem está jogando agora e onde está (na ilha, na taverna, numa masmorra), com o ping.','Convide para o grupo, peça amizade ou visite a ilha de alguém.','Grupo: até 5 jogadores entram juntos nas masmorras e dividem a caçada.']),},
+   H('Online',['Quem está jogando agora e onde está (na ilha, na cidade, numa masmorra), com o ping.','Convide para o grupo, peça amizade ou visite a ilha de alguém.','Grupo: até 5 jogadores entram juntos nas masmorras e dividem a caçada.']),},
   {sel:'#menu .mbox',t:'Menu',h:
    H('Opções do menu',['<b>Voltar ao jogo</b> (ou Esc) despausa.','<b>Personagens</b>: troca de personagem na sua conta.','<b>Opções</b>: zoom da câmera, alcance do minimapa, atacar o próximo inimigo sozinho e outros ajustes.','<b>Controles</b>: todas as teclas, e você pode trocá-las.','O jogo salva sozinho o tempo todo; não existe voltar a um ponto antigo.']),},
   {sel:'#statsDG .sdgBox',cab:'h3',t:'Estatísticas da masmorra',h:

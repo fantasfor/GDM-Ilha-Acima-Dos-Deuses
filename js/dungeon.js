@@ -1231,8 +1231,10 @@
     // piso e parede animados (lava, pântano, sangue, rachaduras, paredes de chamas e cripta): só o que está à vista
     const mw = cv.width / S / 2 + 48, mh = cv.height / S / 2 + 64;
     CHAO.dgAnimar(ctx, dungeonCamada, time, { x0: p.x - mw, y0: p.y - mh, x1: p.x + mw, y1: p.y + mh });
+    if(window.ILHA_VIVA && ILHA_VIVA.tufosDG) ILHA_VIVA.tufosDG(DUNGEON_CHAO, DUNGEON_THEME); // grama da DG com os tufos da ilha (ao vento)
    }
   }
+  if(window.CAMADA_CHAO) CAMADA_CHAO.desenhar(); // coisas no chão, atrás dos personagens (armadilhas...)
 
   // Base escura de todas as salas e corredores
   ctx.fillStyle = palette.outer;

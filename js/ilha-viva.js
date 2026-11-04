@@ -145,7 +145,23 @@
   ctx.globalAlpha=1}
  let ultimo=null;
  const passo=()=>{const dt=ultimo==null?0:Math.min(.1,Math.max(0,time-ultimo));return dt};
- window.ILHA_VIVA={
+ /* tufos fora da ilha (2026-11-04, pedido do usuário: a grama da cidade igual à da ilha, e nas DGs também, num tom mais
+    claro do ambiente): o mesmo tufo e o mesmo vento, onde ok(x,y) diz que há grama; os pontos ficam guardados por bloco */
+ const tufosCor=new Map(),blocosFora=new Map();let chaveFora='';
+ function tufosEm(chave,ok,cores){
+  if(chave!==chaveFora){blocosFora.clear();chaveFora=chave}
+  const k0=cores.join();let tf=tufosCor.get(k0);if(!tf){tf=[0,1,2].map(v=>[-2,-1,0,1,2].map(i=>tufo(cores,3+v%2,i,4+v)));tufosCor.set(k0,tf)}
+  const t=time,x0=p.x-cv.width/S/2-14,x1=p.x+cv.width/S/2+14,y0=p.y-cv.height/S/2-14,y1=p.y+cv.height/S/2+20,vw=cv.width/S/2+20,vh=cv.height/S/2+20;
+  for(let by=Math.floor((p.y-vh)/BLOCO);by<=Math.floor((p.y+vh)/BLOCO);by++)for(let bx=Math.floor((p.x-vw)/BLOCO);bx<=Math.floor((p.x+vw)/BLOCO);bx++){
+   const k=bx+','+by;let l=blocosFora.get(k);
+   if(!l){l=[];const X=bx*BLOCO,Y=by*BLOCO;for(let y=Y;y<Y+BLOCO;y+=10)for(let x=X;x<X+BLOCO;x+=10){const r=h(x*7+3,y*13+5);if(r<.8)continue;const px=x+R(h(x,y+1)*9),py=y+R(h(x+1,y)*9);if(ok(px,py))l.push([px,py,R(r*97)%3])}
+    if(blocosFora.size>300)blocosFora.clear();blocosFora.set(k,l)}
+   for(const [px,py,v] of l){if(px<x0||px>x1||py<y0||py>y1)continue;ctx.drawImage(tf[v][quadroVento(px,py,t)],px-4,py-7)}}}
+ // DG: ladrilhos de grama (o piso da DG de floresta e as texturas de grama); só onde o ladrilho de cima também é chão
+ const TUFO_DG={forest:['#3f6b45','#56703a','#9aab5c'],outro:['#3f6b45','#79a35a','#9aab5c']};
+ function tufosDG(tiles,tema){if(!tiles)return;const grama=id=>!!id&&(id==='@dg'?tema==='forest':/grama|musgo/i.test(id));
+  tufosEm('dg'+(window.dungeonId||'')+tema+Object.keys(tiles).length,(x,y)=>{const i=Math.floor(x/16),j=Math.floor(y/16);return grama(tiles[i+','+j])&&!!tiles[i+','+(j-1)]&&((y%16)+16)%16>4},TUFO_DG[tema==='forest'?'forest':'outro'])}
+ window.ILHA_VIVA={tufosEm,tufosDG,
   chao(){if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return;const t=time,dt=passo();agua(t,dt);plantas(t)},
   ar(){if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return;const t=time,dt=passo();ar(t,dt)},
   luzes(){if(window.inDungeon||window.inTaverna||window.inArena||window.inTutorial)return;const t=time,dt=passo();luzes(t,dt);ultimo=time},

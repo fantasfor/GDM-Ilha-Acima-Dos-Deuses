@@ -675,6 +675,7 @@ function draw(){
  {/* só o pedaço visível do mapa (desenhar o mapa inteiro escalado a cada quadro custava caro) */const vw=cv.width/S,vh=cv.height/S,sx=Math.max(0,Math.floor(p.x-vw/2)-2),sy=Math.max(0,Math.floor(p.y-vh/2)-2),sw=Math.min(map.width-sx,Math.ceil(vw)+4),sh=Math.min(map.height-sy,Math.ceil(vh)+4);if(sw>0&&sh>0)ctx.drawImage(map,sx,sy,sw,sh,sx,sy,sw,sh);if(window.ILHA_CHAO_ANIM)CHAO.dgAnimar(ctx,ILHA_CHAO_ANIM,time,{x0:sx,y0:sy,x1:sx+sw,y1:sy+sh})}
  drawCachoeira();
  if(window.ILHA_VIVA)ILHA_VIVA.chao(); // grama e juncos ao vento, brilhos, ondinhas e peixes (js/ilha-viva.js)
+ CAMADA_CHAO.desenhar(); // coisas deitadas no chão, atrás dos personagens (armadilhas do Explorador...)
  {const r=CAMP_SAFE_HALF_SIZE;ctx.fillStyle='#72bf7410';ctx.fillRect(CX-r,CY-r,r*2,r*2);ctx.strokeStyle='#9ad78460';ctx.lineWidth=1;ctx.strokeRect(CX-r,CY-r,r*2,r*2)}
 
  // correnteza do rio
@@ -757,6 +758,7 @@ window.desenharMonstro=e=>{const o=[0,0],scale=ESCALA_MUNDO,spriteH=wh(e.img)*sc
   ctx.fillStyle='#10203a';ctx.fillRect(barX,barY+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(barX,barY+2+t,barW*mpRatio,1);
  }]);
  if(p.dead>0&&!cameraMenu.ativo)L.push([p.y,desenharHeroiMorto]);
+ if(window.CONSTRUCOES){CONSTRUCOES.atualizar(1/60,'ilha');CONSTRUCOES.objetos(L,'ilha')} // casas da ilha: telhado some ao entrar (js/construcoes.js)
  if(window.onlineDrawables)onlineDrawables(L);
  L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
  if(window.desenharLoot)desenharLoot(); // itens e moedas caídos dos monstros (js/loot.js)
@@ -795,6 +797,8 @@ window.cameraMenu={ativo:false,t:0,real:null,
  ligar(){if(this.ativo)return;this.ativo=true;this.real={x:p.x,y:p.y};this.t=Math.random()*60},
  desligar(){if(!this.ativo)return;this.ativo=false;if(this.real){p.x=this.real.x;p.y=this.real.y}this.real=null},
  passo(dt){this.t+=dt;const k=this.t*.03;p.x=CX+Math.cos(k)*W*.24+Math.cos(k*2.7)*W*.05;p.y=CY+Math.sin(k*1.4)*W*.2+Math.sin(k*.6)*W*.04}};
+/* camada do chão (2026-11-04): o que fica deitado no chão, atrás dos personagens (ilha, DG e cidade chamam depois do piso) */
+window.CAMADA_CHAO={lista:[],desenhar(){for(const f of this.lista)try{f()}catch(e){console.error('Camada do chão:',e)}}};
 let ultimoRaf=performance.now();
 /* em segundo plano (Alt+Tab com a janela coberta, outra aba, tela trocada) o navegador para o requestAnimationFrame: o jogo
    segue rodando por aqui (em passos de 0,05 s, até 2 s de atraso por vez), então o ataque e a luta continuam */

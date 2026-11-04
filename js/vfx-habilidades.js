@@ -118,6 +118,8 @@
   total:0,recentes,
   // lâmina do giro em volta de alguém (aliado online): ponta no ângulo ang, rastro de 250° atrás
   lamina(g,x,y,raio,ang,cor){g.save();g.imageSmoothingEnabled=false;const span=Math.PI*1.4;lamina(g,x,y,raio,ang,-span,0,off=>1+off/span,cor,1);g.restore()},
+  // efeitos de outras classes (ex.: js/classe-explorador.js): registrar(tipo, (g, e) => {...}) e as mesmas ferramentas daqui
+  registrar(tipo,fn){TIPOS[tipo]=fn},util:{px,Q,mix,hash,easeOut,ACHATA},
   tocar(tipo,o={}){if(!TIPOS[tipo])return;const e={tipo,t:0,dur:o.dur||(tipo=='corte'?.4:tipo=='grito'?.55:tipo=='meteoro'?.5:.32),...o};ativos.push(e);this.total++;recentes.push(e);if(recentes.length>6)recentes.shift();if(ativos.length>40)ativos.shift()},
   /* projétil desenhado (q.vfx 'fogo' | 'gelo'): bola virada para onde vai, rastro e brasas/flocos. Devolve true se desenhou */
   projetil(g,q){if(q.vfx!=='fogo'&&q.vfx!=='gelo')return false;const sp=Math.hypot(q.vx,q.vy)||1,ux=q.vx/sp,uy=q.vy/sp,f=Math.floor(performance.now()/50),fogo=q.vfx==='fogo';

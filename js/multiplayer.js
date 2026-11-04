@@ -590,7 +590,7 @@
  addEventListener('keydown',e=>{if(window.TECLAS&&TECLAS.acao(e)==='jogadores'){painel.hidden=!painel.hidden;atualizarPainel()}});
  function onde(o){
   if(!o||!o.sala)return '';
-  if(o.sala==='taverna')return 'na taverna';
+  if(o.sala==='taverna')return 'na cidade';
   if(o.sala.startsWith('dg:'))return 'numa masmorra';
   const dono=hostDe(o.sala);return dono===o.id||dono===o.uid?'na própria ilha':'na ilha de '+MP.nomeDe(dono);
  }
@@ -605,7 +605,7 @@
   const h=el('div','mpTopo');h.append(el('b','','Jogadores'),btn('Fechar',()=>{painel.hidden=true}));box.push(h);
   // situação atual
   const aqui=el('div','mpAqui');
-  aqui.append(el('span','',window.inTaverna?'Você está na taverna.':MP.visitando?'Você está na ilha de '+MP.nomeDe(MP.visitando)+'.':window.inDungeon?'Você está numa masmorra.':'Você está na sua ilha.'));
+  aqui.append(el('span','',window.inTaverna?'Você está na cidade.':MP.visitando?'Você está na ilha de '+MP.nomeDe(MP.visitando)+'.':window.inDungeon?'Você está numa masmorra.':'Você está na sua ilha.'));
   if(MP.visitando)aqui.append(btn('Voltar para minha ilha',()=>voltarParaCasa()));
   box.push(aqui);
   // grupo
@@ -661,7 +661,7 @@
    li.append(nm,el('small','',on?onde(Object.assign({id},o)):'offline'));
    const acoes=el('div','mpAcoes');
    if(on&&o.sala==='ilha:'+id&&MP.visitando!==id)acoes.append(btn('Visitar',()=>visitar(id),'mpBtn ok'));
-   if(on&&o.sala==='taverna'&&!window.inTaverna&&window.entrarTaverna)acoes.append(btn('Ir à taverna',()=>entrarTaverna(),'mpBtn ok'));
+   if(on&&o.sala==='taverna'&&!window.inTaverna&&window.entrarTaverna)acoes.append(btn('Ir à cidade',()=>entrarTaverna(),'mpBtn ok'));
    if(on&&!(g&&g.membros&&g.membros[id])&&!(MP.grupoLider&&MP.grupoLider!==uid))acoes.append(btn('Convidar p/ grupo',()=>convidar(id,'grupo')));
    if(on&&o.sala!=='ilha:'+uid)acoes.append(btn('Convidar p/ ilha',()=>convidar(id,'ilha')));
    acoes.append(btn('Sussurrar',()=>abrirSussurro(id)));

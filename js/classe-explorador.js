@@ -17,6 +17,68 @@
  if(typeof MODO!=='undefined'&&MODO.motor)return;
  const VERDE='#79a35a',VERDE_E='#3f6b45',VERDE_C='#c4dc5a'; // rampa Folhagem/Veneno da paleta do jogo
 
+ /* ---- ícones próprios (2026-11-04, pedido do usuário: ícones únicos) ----
+    16×16 no mesmo padrão dos outros (fundo em degradê da cor da classe e moldura; js/combat.js SKI), cor da classe
+    verde-musgo (paleta Musgo) e o símbolo desenhado à mão com a paleta do jogo e contorno escuro. */
+ const COR_CLASSE='#9aab5c'; // musgo claro: o fundo fica oliva (o do Curandeiro é verde)
+ const PI={k:'#0d0d0d',s:'#3e3a52',m:'#7c8098',l:'#c4c8d6',w:'#ffffff',t:'#4e2430',r:'#7d3f34',o:'#a8653f',
+  g:'#3f6b45',n:'#79a35a',y:'#c4dc5a',a:'#9a5a2a',b:'#d08a3a',c:'#efc56a',d:'#a22b4b',e:'#cf4554',u:'#7a6650',v:'#b8a47c',i:'#ddd0a6'};
+ function icone(desenha){const o=mkCanvas(16,16),g=o.getContext('2d');
+  for(let y=0;y<16;y++){g.fillStyle=shade(COR_CLASSE,.16+.14*(1-y/16));g.fillRect(0,y,16,1)}
+  g.fillStyle=shade(COR_CLASSE,.55);g.fillRect(0,0,16,1);g.fillStyle=shade(COR_CLASSE,.45);g.fillRect(0,0,1,16);g.fillStyle='#05070a';g.fillRect(0,15,16,1);g.fillRect(15,0,1,16);
+  const S=[...Array(16)].map(()=>Array(16).fill(null)),P=(x,y,c)=>{x=Math.round(x);y=Math.round(y);if(x>=1&&y>=1&&x<15&&y<15)S[y][x]=PI[c]||c};
+  desenha(P);
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){const c=S[y][x];if(c){g.fillStyle=c;g.fillRect(x,y,1,1)}else if([[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>S[y+b]&&S[y+b][x+a]&&S[y+b][x+a]!==PI.k)&&x>=1&&y>=1&&x<15&&y<15){g.fillStyle=PI.k;g.fillRect(x,y,1,1)}}
+  return o.toDataURL()}
+ const ICONE={
+  // armadilha de urso aberta: argola de aço com dentes para dentro, prato de ouro no meio e a corrente com a estaca
+  armadilha:icone(P=>{for(let y=1;y<15;y++)for(let x=1;x<15;x++){const dx=(x+.5-7.5)/5.6,dy=(y+.5-7.2)/3.9,d=Math.hypot(dx,dy);if(d<=1&&d>.66)P(x,y,dy<-.3?'l':dy>.45?'s':'m')}
+   for(const x of [4,6,8,10])P(x,5,'w');for(const x of [5,7,9,11])P(x,9,'l');
+   for(let x=6;x<=9;x++)P(x,7,x<8?'c':'b');P(7,8,'a');P(8,8,'a');
+   P(12,11,'s');P(13,11,'m');P(13,12,'s');P(13,13,'m');P(14,13,'s');P(12,13,'r');P(12,14,'t')}),
+  // gancho de três pontas com a corda saindo da argola
+  gancho:icone(P=>{for(let y=4;y<=10;y++){P(7,y,'l');P(8,y,'m')}P(7,2,'m');P(8,2,'l');P(6,3,'m');P(9,3,'m');P(6,4,'s');P(9,4,'s');
+   for(const [x,y,c] of [[6,11,'m'],[5,11,'m'],[4,10,'l'],[3,9,'l'],[3,8,'w'],[9,11,'m'],[10,11,'m'],[11,10,'l'],[12,9,'l'],[12,8,'w'],[7,11,'m'],[8,11,'m'],[7,12,'l'],[8,12,'s'],[7,13,'w']])P(x,y,c);
+   for(const [x,y,c] of [[10,2,'o'],[11,2,'r'],[12,3,'o'],[13,4,'r'],[13,5,'o'],[12,6,'r'],[11,6,'o'],[10,5,'r']])P(x,y,c);
+   P(2,4,'n');P(3,4,'y');P(1,6,'g');P(2,6,'n')}),
+  // corneta de caça de marfim com aros de ouro, soltando ondas verdes
+  corneta:icone(P=>{for(let k=0;k<=40;k++){const t=k/40,cx=2.5+6.5*t,cy=12.2-5.2*Math.pow(t,1.3),r=.6+2.7*Math.pow(t,2.4);
+    for(let y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++)for(let x=Math.floor(cx-r);x<=Math.ceil(cx+r);x++)if(Math.hypot(x+.5-cx,y+.5-cy)<=r){const banda=Math.abs(t-.38)<.04||Math.abs(t-.7)<.035;P(x,y,banda?(y<cy?'c':'b'):y<cy-r*.3?'i':y>cy+r*.4?'u':'v')}}
+   P(9,6,'t');P(10,7,'t');P(9,7,'k');P(10,6,'r');P(2,12,'b');P(1,13,'a'); // boca da corneta (escura por dentro)
+   for(let a=-1.25;a<=.75;a+=.14){P(9.5+Math.cos(a)*4.3,7+Math.sin(a)*4.3,'y');P(9.5+Math.cos(a)*6.1,7+Math.sin(a)*6.1,a>-.4&&a<.4?'n':'g')}}),
+  // mira vermelha travada sobre o olho do caçador
+  instinto:icone(P=>{for(let y=1;y<15;y++)for(let x=1;x<15;x++){const dx=x+.5-7.5,dy=y+.5-7.5,d=Math.hypot(dx,dy);
+    if(d<=6&&d>4.9&&!(Math.abs(dx)<1.2||Math.abs(dy)<1.2))P(x,y,dy>2?'d':'e')
+    const ol=Math.abs(dx)<=3.3&&Math.abs(dy)<=1.75*(1-(dx/3.3)**2);if(ol)P(x,y,'i')}
+   P(7,7,'n');P(8,7,'g');P(7,8,'g');P(8,8,'n');P(7,7,'w');P(8,7,'k');P(8,8,'k');
+   for(const [x,y] of [[7,1],[8,1],[7,2],[8,2],[7,13],[8,13],[7,14],[8,14],[1,7],[1,8],[2,7],[2,8],[13,7],[13,8],[14,7],[14,8]])P(x,y,(x==7||y==7)?'w':'e')})};
+ window.ICONE_EXPLORADOR=ICONE;
+
+ /* ---- animações próprias (2026-11-04): desenhadas pixel a pixel como as outras (js/vfx-habilidades.js) ---- */
+ const U=window.VFX&&VFX.util;
+ if(window.VFX&&VFX.registrar&&U){const {px,Q,easeOut,ACHATA}=U;
+  // a armadilha abre como uma mola: as mandíbulas saltam para fora, balançam e assentam; poeira dos lados
+  VFX.registrar('armadilhaArma',(g,e)=>{const k=e.t/e.dur,s=k<.35?easeOut(k/.35)*1.25:1.25-.25*Math.min(1,(k-.35)/.3),a=Q(1-Math.max(0,k-.6)/.4);
+   for(let i=0;i<36;i++){const t=i/36*Math.PI*2;px(g,Math.round(e.x+Math.cos(t)*6.5*s),Math.round(e.y+Math.sin(t)*3.5*s),Math.sin(t)<0?'#c4c8d6':'#7c8098',a)}
+   for(let i=0;i<6;i++){const lado=i%2?1:-1,r=4+k*10;px(g,Math.round(e.x+lado*r+(i>>1)),Math.round(e.y+1-k*4-(i>>1)),'#a69c94',Q(1-k)*.8)}g.globalAlpha=1});
+  // a armadilha fecha: as duas mandíbulas batem no meio, estrela branca, faíscas e gotas de sangue
+  VFX.registrar('armadilhaFecha',(g,e)=>{const k=e.t/e.dur,f=Math.min(1,k/.22),ry=3.6*(1-f)+.6,a=Q(1-Math.max(0,k-.5)/.5);
+   for(let i=0;i<32;i++){const t=i/32*Math.PI*2;px(g,Math.round(e.x+Math.cos(t)*6.5),Math.round(e.y+Math.sin(t)*ry),Math.sin(t)<0?'#c4c8d6':'#7c8098',a)}
+   if(k>.18&&k<.5){const r=Math.round(2+(k-.18)*20);for(let i=0;i<8;i++){const t=i/8*Math.PI*2;for(let j=0;j<r;j++)px(g,Math.round(e.x+Math.cos(t)*j),Math.round(e.y-3+Math.sin(t)*j*ACHATA),j>r-2?'#ffffff':'#efc56a',Q(1-(k-.18)/.32))}}
+   if(k>.2)for(let i=0;i<7;i++){const t=-.4-i*.33,v=10+i*3,q=k-.2;px(g,Math.round(e.x+Math.cos(t)*v*q*2),Math.round(e.y-4+Math.sin(t)*v*q*2+q*q*60),i%2?'#cf4554':'#a22b4b',a)}g.globalAlpha=1});
+  // Grito de Estratégia: três ondas de chevrons verdes abrindo em volta do herói, com folhas subindo
+  VFX.registrar('brado',(g,e)=>{const k=e.t/e.dur;for(let w=0;w<3;w++){const kk=k*1.4-w*.2;if(kk<0||kk>1)continue;const r=6+easeOut(kk)*40,a=Q(1-kk);
+    // cada onda: frente branca e dois tons de verde atrás (aparece em cima da grama), em chevrons tracejados
+    for(let i=0;i<64;i++){if(i%8>5)continue;const t=i/64*Math.PI*2;
+     for(const [dr,c] of [[0,'#ffffff'],[-1,'#c4dc5a'],[-2,'#3f6b45']])px(g,Math.round(e.x+Math.cos(t)*(r+dr)),Math.round(e.y-6+Math.sin(t)*(r+dr)*ACHATA),c,a)}}
+   if(k<.7&&Math.random()<.5&&window.VFX)VFX.faisca(e.x+(Math.random()-.5)*30,e.y-4-Math.random()*16,Math.random()<.5?'#79a35a':'#c4dc5a');g.globalAlpha=1});
+  // Instinto de Caça: a mira grande fecha sobre o alvo e trava num clarão
+  VFX.registrar('mira',(g,e)=>{const k=e.t/e.dur,r=Math.round(26-easeOut(Math.min(1,k/.6))*17),a=Q(k<.6?1:1-(k-.6)/.4),rot=k*2.5;
+   for(let i=0;i<40;i++){const t=i/40*Math.PI*2+rot;if(Math.abs(Math.sin(2*(t-rot)))<.25)continue;px(g,Math.round(e.x+Math.cos(t)*r),Math.round(e.y+Math.sin(t)*r*ACHATA),'#cf4554',a)}
+   for(let q=0;q<4;q++){const t=rot+q*Math.PI/2;for(let j=r-3;j<=r+3;j++)px(g,Math.round(e.x+Math.cos(t)*j),Math.round(e.y+Math.sin(t)*j*ACHATA),j==r+3?'#ffffff':'#cf4554',a)}
+   if(k>.6){const f=Q(1-(k-.6)/.4);for(let i=-3;i<=3;i++){px(g,Math.round(e.x+i),Math.round(e.y),'#ffffff',f);px(g,Math.round(e.x),Math.round(e.y+i),'#ffffff',f)}}g.globalAlpha=1})}
+ const vfx=(t,o)=>{if(window.VFX)VFX.tocar(t,o)};
+
  /* ---- efeitos próprios da classe ---- */
  Object.assign(FX_INFO,{
   estrategia:{n:'Grito de Estratégia',c:VERDE,kind:'haste',good:true,aura:true,atkBuff:true}, // +movimento (haste) e +velocidade de ataque (atkBuff)
@@ -26,7 +88,7 @@
     Fisga o que vier primeiro na direção do mouse: um inimigo (vocês se puxam; chefe/elite puxa só você) ou um
     OBSTÁCULO com colisão — árvore, muro do acampamento, parede de DG (2026-11-02, pedido do usuário) — e você
     se puxa até ele. Sem nada para fisgar em 140 px, a habilidade não gasta mana nem recarga. */
- const VEL_GANCHO=560,ALCANCE_GANCHO=140; // px/s e alcance
+ const VEL_GANCHO=280,ALCANCE_GANCHO=140; // px/s (voo e puxão; metade da de antes, 2026-11-04) e alcance
  let gancho=null; // {e (inimigo) OU o {x,y,gx,gy} (obstáculo), x, y, fase:'ida'|'puxa', d:{x,y} destino do inimigo puxado}
  function lancarGancho(w){
   // 1) inimigo embaixo do mouse ou o alvo selecionado, dentro do alcance e à vista
@@ -42,7 +104,7 @@
   if(!t&&!obst){ // nada fisgável: devolve a mana e zera a recarga (não tem como "errar" e perder a habilidade)
    const sk=SK.find(k=>k.n==='Gancho');if(sk){p.mp=Math.min(mmp(),p.mp+(+sk.mana||0));sk.t=0}
    ft(p.x,p.y-24,'Nada para fisgar por perto','#ccc');return}
-  gancho={e:t||null,o:t?null:obst,x:p.x,y:p.y-8,fase:'ida',lugar:lugar()}}
+  gancho={e:t||null,o:t?null:obst,x:p.x,y:p.y-8,fase:'ida',lugar:lugar()};if(window.playGameSound)playGameSound('gancho')}
  function tickGancho(dt){
   const g=gancho;if(!g)return;
   if(g.lugar!==lugar()||p.dead>0){gancho=null;return}
@@ -55,9 +117,9 @@
    const ax=e?e.x:g.o.x,ay=e?e.y:g.o.y,dd=Math.hypot(ax-p.x,ay-p.y)||1,co=(ax-p.x)/dd,si=(ay-p.y)/dd;
    const puxar=(x1,y1)=>{p.dash={x0:p.x,y0:p.y,x1,y1,t:0,dur:Math.max(.06,Math.hypot(x1-p.x,y1-p.y)/VEL_GANCHO),dir:{x:co,y:si},rastro:true,fim:()=>{}};p.dest=null;p.path=[]};
    if(!e){ // obstáculo (árvore, muro, parede de DG): você se puxa até o último ponto livre antes dele
-    ring(g.o.gx,g.o.gy,10,VERDE,.5);if(window.playGameSound)playGameSound('investida');
+    vfx('impacto',{x:g.o.gx,y:g.o.gy,cor:'#c4c8d6'});if(window.playGameSound)playGameSound('gancho');
     g.d=null;puxar(g.o.x,g.o.y);g.fase='puxa';return}
-   hurtE(e,12+p.lvl*2,false);ring(e.x,e.y,14,VERDE,.5);if(window.playGameSound)playGameSound('sword');
+   hurtE(e,12+p.lvl*2,false);vfx('impacto',{x:e.x,y:e.y-6,cor:VERDE_C});if(window.playGameSound)playGameSound('gancho');
    if(e.hp<=0){gancho=null;return}
    const grande=e.boss||e.elite||['boss','grandboss'].includes(e.bossType);
    if(grande){g.d=null;puxar(e.x-co*16,e.y-si*16)} // chefe ou elite não sai do lugar: você vai até ele
@@ -73,15 +135,15 @@
   const g=gancho;if(!g||g.lugar!==lugar())return;
   const e=g.e,x0=Math.round(p.x),y0=Math.round(p.y-8);
   const x1=Math.round(g.fase==='ida'?g.x:e?e.x:g.o?g.o.gx:x0),y1=Math.round(g.fase==='ida'?g.y:e?e.y-6:g.o?g.o.gy:y0);
-  // a corda (com uma sombra fina por baixo para aparecer em qualquer chão)
-  ctx.save();ctx.lineWidth=1;
-  ctx.strokeStyle='#00000088';ctx.beginPath();ctx.moveTo(x0+.5,y0+1.5);ctx.lineTo(x1+.5,y1+1.5);ctx.stroke();
-  ctx.strokeStyle='#a8653f';ctx.beginPath();ctx.moveTo(x0+.5,y0+.5);ctx.lineTo(x1+.5,y1+.5);ctx.stroke();
-  // o gancho: ponta de metal em L virada para o alvo
-  const a=Math.atan2(y1-y0,x1-x0);ctx.translate(x1,y1);ctx.rotate(a);
-  ctx.fillStyle='#000';ctx.fillRect(-1,-2,6,4);
-  ctx.fillStyle='#7c8098';ctx.fillRect(0,-1,4,2);ctx.fillStyle='#c4c8d6';ctx.fillRect(0,-1,4,1);
-  ctx.fillStyle='#7c8098';ctx.fillRect(2,-3,2,2);ctx.fillRect(2,1,2,2); // as duas farpas
+  // a corda: arqueada enquanto voa (sobra corda), reta e esticada no puxão; dois tons alternados e sombra no chão
+  const L=Math.hypot(x1-x0,y1-y0),sag=g.fase==='ida'?Math.min(10,L*.12):0,n=Math.max(2,Math.round(L/2));
+  ctx.save();
+  for(let i=0;i<=n;i++){const k=i/n,X=Math.round(x0+(x1-x0)*k),Y=Math.round(y0+(y1-y0)*k+Math.sin(Math.PI*k)*sag);R1(X,Y+1,1,1,'#00000066');R1(X,Y,1,1,Math.floor(i/2)%2?'#7d3f34':'#a8653f')}
+  // o gancho de três pontas, girando no voo e apontado para o alvo no puxão
+  const a=g.fase==='ida'?performance.now()/1000*18:Math.atan2(y1-y0,x1-x0);ctx.translate(x1,y1);ctx.rotate(a);
+  ctx.fillStyle='#000';ctx.fillRect(-2,-1,7,3);ctx.fillRect(2,-4,3,9);
+  ctx.fillStyle='#7c8098';ctx.fillRect(-1,0,5,1);ctx.fillStyle='#c4c8d6';ctx.fillRect(3,-3,1,7);
+  ctx.fillStyle='#ffffff';ctx.fillRect(4,-3,1,1);ctx.fillRect(4,3,1,1);ctx.fillRect(5,0,1,1);
   ctx.restore()}
 
  /* ---- Armadilha de Caça: armadilhas no chão ---- */
@@ -89,37 +151,59 @@
  const lugar=()=>(window.inTutorial?'u':window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
  function armar(w){
   if(armadilhas.length>=3)armadilhas.shift(); // no máximo 3 ao mesmo tempo: a mais antiga some
-  armadilhas.push({x:w.x,y:w.y,t:20,lugar:lugar()});ring(w.x,w.y,12,VERDE,.5)}
+  armadilhas.push({x:w.x,y:w.y,t:20,lugar:lugar(),nasceu:performance.now()/1000});vfx('armadilhaArma',{x:w.x,y:w.y,dur:.45});if(window.playGameSound)playGameSound('armadilhaArma')}
+ const presos=[]; // inimigos com a armadilha fechada no pé (só o desenho; o atordoamento é o efeito stun)
  function tickArmadilhas(dt){
   if(!armadilhas.length)return;const aqui=lugar();
   for(let i=armadilhas.length;i--;){const a=armadilhas[i];a.t-=dt;
    if(a.t<=0||a.lugar!==aqui){armadilhas.splice(i,1);continue}
    const e=en.find(e=>e.hp>0&&!e.pvp&&!e.duelo&&Math.hypot(e.x-a.x,e.y-a.y)<12);
-   if(e){armadilhas.splice(i,1);ring(a.x,a.y,16,VERDE,.6);ft(a.x,a.y-24,'Armadilha!',VERDE);if(window.playGameSound)playGameSound('sword');
+   if(e){armadilhas.splice(i,1);vfx('armadilhaFecha',{x:e.x,y:e.y,dur:.5});ft(a.x,a.y-24,'Armadilha!',VERDE);if(window.playGameSound)playGameSound('armadilhaFecha');presos.push({e,ate:performance.now()/1000+2,lugar:aqui});
     hurtE(e,10+p.lvl*2,false,resolveFx([{type:'stun',dur:2,chance:100},{type:'bleed',chance:100,acumulos:3}]))}}}
  // desenho: junto dos itens no chão (desenharLoot é chamado pela ilha e pela DG com a câmera do mundo)
  function desenharArmadilhas(){
   if(!armadilhas.length)return;const aqui=lugar(),t=performance.now()/1000;
-  for(const a of armadilhas){if(a.lugar!==aqui)continue;const x=Math.round(a.x),y=Math.round(a.y);
-   ctx.fillStyle='#000';ctx.fillRect(x-6,y-2,13,3);
-   ctx.fillStyle='#5e5668';ctx.fillRect(x-5,y-1,11,1);
-   ctx.fillStyle='#8e8898';for(let k=-4;k<=4;k+=2)ctx.fillRect(x+k,y-3,1,2); // os dentes
-   if(Math.sin(t*4+a.x)>0){ctx.fillStyle=VERDE_C;ctx.fillRect(x,y-1,1,1)}}} // piscada para o dono ver onde armou
- addEventListener('load',()=>{const des0=window.desenharLoot;if(des0)window.desenharLoot=()=>{des0();desenharArmadilhas();desenharGancho()};
+  for(const a of armadilhas){if(a.lugar!==aqui)continue;if(t-(a.nasceu||0)<.4)continue; // nos primeiros instantes quem desenha é a animação de armar
+   desenharArmadilha(Math.round(a.x),Math.round(a.y),t,a.x)}}
+ const R1=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+ function desenharArmadilha(x,y,t,sem){
+  // estaca e corrente
+  R1(x+7,y+1,1,3,'#000');R1(x+7,y+1,1,2,'#7d3f34');R1(x+5,y+1,1,1,'#7c8098');R1(x+6,y+2,1,1,'#3e3a52');
+  // argola de aço achatada com os dentes para dentro
+  for(let i=0;i<28;i++){const a=i/28*Math.PI*2,X=Math.round(x+Math.cos(a)*6),Y=Math.round(y+Math.sin(a)*2.6);R1(X,Y,1,1,Math.sin(a)<0?'#c4c8d6':'#7c8098')}
+  for(let i=-4;i<=4;i+=2){R1(x+i,y-1,1,1,'#ffffff');R1(x+i+1,y+1,1,1,'#c4c8d6')}
+  R1(x-1,y,3,1,'#d08a3a');R1(x-1,y,1,1,'#efc56a');
+  // brilho correndo no aço (só o dono vê onde armou)
+  const b=Math.floor((t*3+sem)%4*4)-6;if(b>=-6&&b<=6)R1(x+b,y-Math.round(Math.sqrt(Math.max(0,36-b*b))*2.6/6),1,1,'#ffffff')}
+ function desenharPresos(){const agora=performance.now()/1000,aqui=lugar();
+  for(let i=presos.length;i--;){const q=presos[i];if(agora>q.ate||q.lugar!==aqui||!q.e||q.e.hp<=0){presos.splice(i,1);continue}
+   const x=Math.round(q.e.x),y=Math.round(q.e.y);
+   // fechada no pé: as duas mandíbulas encostadas e a corrente esticada
+   R1(x-6,y-1,13,3,'#000');R1(x-5,y,11,1,'#7c8098');R1(x-5,y-1,11,1,'#c4c8d6');for(let k=-4;k<=4;k+=2)R1(x+k,y+1,1,1,'#ffffff');
+   R1(x+6,y+1,3,1,'#3e3a52');R1(x+9,y+2,1,1,'#7d3f34')}}
+ // mira girando sobre quem está marcado como presa (Instinto de Caça)
+ function desenharPresas(){if(typeof en==='undefined')return;const t=performance.now()/1000;
+  for(const e of en){if(e.hp<=0||!e.st||!e.st.presa||!(e.st.presa.t>0))continue;const h=typeof wh=='function'?wh(e.img):20,cx=e.x,cy=e.y-h/2,r=9+Math.sin(t*6)*1,rot=t*1.6;
+   for(let i=0;i<32;i++){const a=i/32*Math.PI*2+rot;if(Math.abs(Math.sin(2*(a-rot)))<.3)continue;R1(Math.round(cx+Math.cos(a)*r),Math.round(cy+Math.sin(a)*r*.8),1,1,'#cf4554')}
+   for(let q=0;q<4;q++){const a=rot+q*Math.PI/2;for(let j=0;j<3;j++)R1(Math.round(cx+Math.cos(a)*(r+1+j)),Math.round(cy+Math.sin(a)*(r+1+j)*.8),1,1,j==2?'#ffffff':'#cf4554')}}} // piscada para o dono ver onde armou
+ // a armadilha fica no chão, atrás dos personagens (camada do chão: render.js e dungeon.js); a corda e o gancho voam por cima
+ addEventListener('load',()=>{if(window.CAMADA_CHAO)CAMADA_CHAO.lista.push(desenharArmadilhas);
+  const des0=window.desenharLoot;if(des0)window.desenharLoot=()=>{des0();if(!window.CAMADA_CHAO)desenharArmadilhas();desenharGancho()};
+  if(window.desenharLoot){const d1=window.desenharLoot;window.desenharLoot=()=>{d1();desenharPresos();desenharPresas()}}
   const upd0=upd;upd=function(dt){upd0(dt);try{tickArmadilhas(dt);tickGancho(dt)}catch(e){console.error('Explorador:',e)}}});
 
  /* ---- a classe e as habilidades ---- */
  CL.explorador={n:'Explorador',base:'explorador',historia:true,F:6,A:14,I:4,perLevel:{F:3,A:4,I:2},attackSpeed:1,pSpd:.2,
   passive:{n:'Passos de Caçador',d:'+20% de velocidade de movimento.'}};
  SKS.explorador=[
-  {n:'Armadilha de Caça',mana:15,cd:8,vfx:'none',ic:SKI('burst',VERDE_E,VERDE_C),f:Object.assign(w=>armar(w),{mira:1}),
-   d:()=>'Arma uma armadilha no chão do mouse (até 3, duram 20 s): prende por 2 s o primeiro inimigo que pisar nela, causa '+(10+p.lvl*2)+' de dano e 3 acúmulos de sangramento.'},
-  {n:'Gancho',mana:20,cd:9,vfx:'investida',ic:SKI('dash',VERDE_E,VERDE_C),f:w=>lancarGancho(w), // fisga inimigo OU obstáculo; sem nada para fisgar, devolve a mana e a recarga
+  {n:'Armadilha de Caça',mana:15,cd:8,vfx:'none',ic:ICONE.armadilha,f:Object.assign(w=>armar(w),{mira:1}),
+   d:()=>'Arma uma armadilha de aço no chão, onde está o mouse (até 3 de uma vez, cada uma dura 20 s). O primeiro inimigo que pisar nela fica preso por 2 s, leva '+(10+p.lvl*2)+' de dano e 3 acúmulos de sangramento.'},
+  {n:'Gancho',mana:20,cd:9,vfx:'investida',ic:ICONE.gancho,f:w=>lancarGancho(w), // fisga inimigo OU obstáculo; sem nada para fisgar, devolve a mana e a recarga
    d:()=>'Lança um projétil-gancho com corda na direção do mouse (alcance 140). Num inimigo: vocês se puxam um para o outro ('+(12+p.lvl*2)+' de dano); chefe ou elite: você se puxa até ele. Em árvore, muro ou parede: você se puxa até o obstáculo. Sem nada para fisgar, não gasta mana.'},
-  {n:'Grito de Estratégia',mana:30,cd:20,vfx:'aura',effect:'aura',ic:SKI('burst',VERDE_E,'#e8f5d0'),
-   f:()=>{applyFx(p,[{caster:p,self:true,type:'estrategia',chance:100,dur:10,pw:25}]);ring(p.x,p.y,40,VERDE,.5);ft(p.x,p.y-24,'Grito de Estratégia!',VERDE)},
-   d:()=>'Solta um brado verde: por 10 s, +25% de velocidade de ataque e de movimento.'},
-  {n:'Instinto de Caça',mana:20,cd:12,vfx:'none',ic:SKI('orb',VERDE_E,VERDE_C),
-   f:Object.assign((w,t)=>{applyFx(t,[{caster:p,type:'presa',chance:100,dur:8,pw:30}]);ring(t.x,t.y,18,VERDE,.5)},{tg:1}),
-   d:()=>'Marca o alvo como presa, revelando os pontos vulneráveis: -30% de defesa física por 8 s.'}];
+  {n:'Grito de Estratégia',mana:30,cd:20,vfx:'aura',effect:'aura',ic:ICONE.corneta,
+   f:()=>{applyFx(p,[{caster:p,self:true,type:'estrategia',chance:100,dur:10,pw:25}]);vfx('brado',{x:p.x,y:p.y,dur:.9});if(window.playGameSound)playGameSound('corneta')},
+   d:()=>'Sopra a corneta de caça: três ondas verdes saem de você e, por 10 s, você ganha +25% de velocidade de ataque e de movimento.'},
+  {n:'Instinto de Caça',mana:20,cd:12,vfx:'none',ic:ICONE.instinto,
+   f:Object.assign((w,t)=>{applyFx(t,[{caster:p,type:'presa',chance:100,dur:8,pw:30}]);vfx('mira',{x:t.x,y:t.y-(typeof wh=='function'?wh(t.img)/2:10),dur:.55});if(window.playGameSound)playGameSound('mira')},{tg:1}),
+   d:()=>'Trava a mira no alvo e o marca como presa: por 8 s, uma mira vermelha gira sobre ele e ele fica com -30% de defesa física.'}];
 })();

@@ -28,7 +28,7 @@
  const bar=el('div','onlineBar');bar.append(badge);
  let canal='l';const tabs={};
  if(nuvem){
-  for(const [id,rotulo,dica] of [['l','Local','Só quem está no mesmo lugar (ilha, DG ou taverna)'],['g','Global','Todos os jogadores online']]){
+  for(const [id,rotulo,dica] of [['l','Local','Só quem está no mesmo lugar (ilha, DG ou cidade)'],['g','Global','Todos os jogadores online']]){
    const b=el('button','onlineTab',rotulo);b.type='button';b.title=dica;b.onclick=()=>{canal=id;refreshTabs();openChat()};tabs[id]=b;bar.append(b);
   }
   if(window.MP&&MP.botaoPainel)bar.append(MP.botaoPainel); }
@@ -54,7 +54,7 @@
 const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)&&!(window.inArena&&window.ARENA&&ARENA.ve&&o.x!=null&&!ARENA.aliado(o.id)&&!ARENA.ve(o.x,o.y));
  function refreshBadge(){
   const count=[...others.values()].filter(visivel).length;
-  const lugar=window.inTaverna?'na taverna':window.inDungeon?'na masmorra':'aqui';
+  const lugar=window.inTaverna?'na cidade':window.inDungeon?'na masmorra':'aqui';
   badge.textContent=state==='online'?(nuvem?'● '+(count+1)+' '+lugar+' · '+(others.size+1)+' online':'● Online · '+(count+1)+' na ilha'):state==='offline'?'○ Offline — tentando reconectar':'○ Conectando…';
   badge.classList.toggle('on',state==='online');
  }

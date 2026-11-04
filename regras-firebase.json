@@ -196,7 +196,74 @@
     "mesas": {
       "$mesa": {
         ".read": "auth != null",
-        ".write": "auth != null && $mesa.matches(/^(bar|tav)[0-9]{1,2}$/)"
+        ".validate": "$mesa.matches(/^(bar|tav|cas)[0-9]{1,2}$/)",
+        "assentos": {
+          "$i": {
+            ".write": "auth != null && ((newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid)) || (!newData.exists() && data.val() === auth.uid))"
+          }
+        },
+        "jogo": {
+          ".write": "auth != null && ((!data.exists() && newData.child('dono').val() === auth.uid) || data.child('dono').val() === auth.uid || data.child('conv').hasChild(auth.uid) || data.child('jog/0').val() === auth.uid || data.child('jog/1').val() === auth.uid || data.child('jog/2').val() === auth.uid || data.child('jog/3').val() === auth.uid || (data.child('t').val() < now - 600000 && (!newData.exists() || newData.child('dono').val() === auth.uid)))",
+          "espect": {
+            "$u": {
+              ".write": "auth != null && auth.uid === $u"
+            }
+          },
+          "fila": {
+            "$u": {
+              ".write": "auth != null && auth.uid === $u"
+            }
+          },
+          "nomes": {
+            "$u": {
+              ".write": "auth != null && auth.uid === $u",
+              ".validate": "newData.isString() && newData.val().length <= 24"
+            }
+          },
+          "pago": {
+            "$u": {
+              ".write": "auth != null && auth.uid === $u"
+            }
+          },
+          "premio": {
+            "$u": {
+              ".write": "auth != null && auth.uid === $u"
+            }
+          },
+          "aposta": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+          }
+        }
+      }
+    },
+    "cassino": {
+      "$mesa": {
+        ".read": "auth != null",
+        ".validate": "$mesa.matches(/^(rol|bj)[0-9]{1,2}$/)",
+        "estado": {
+          ".write": "auth != null"
+        },
+        "assentos": {
+          "$i": {
+            ".write": "auth != null && ((newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid)) || (!newData.exists() && data.val() === auth.uid))"
+          }
+        },
+        "apostas": {
+          "$n": {
+            ".write": "auth != null && !newData.exists()",
+            "$u": {
+              ".write": "auth != null && auth.uid === $u"
+            }
+          }
+        }
+      }
+    },
+    "cassinoFeed": {
+      ".read": "auth != null",
+      ".indexOn": ["t"],
+      "$id": {
+        ".write": "auth != null && ((!data.exists() && newData.child('u').val() === auth.uid) || (!newData.exists() && data.child('t').val() < now - 3600000))",
+        ".validate": "!newData.exists() || (newData.hasChildren(['u', 'm', 'v', 't']) && newData.child('v').isNumber() && newData.child('v').val() > 0 && newData.child('v').val() <= 500000 && newData.child('t').val() <= now + 60000)"
       }
     },
     "arenas": {
@@ -319,7 +386,7 @@
         ".write": "auth != null && auth.uid === $uid",
         ".validate": "newData.hasChildren(['t', 'dados'])",
         "t": {
-          ".validate": "newData.isNumber()"
+          ".validate": "newData.isNumber() && newData.val() <= now + 120000"
         },
         "dados": {
           ".validate": "newData.isString() && newData.val().length <= 300000"
@@ -395,7 +462,16 @@
         ".read": "auth != null",
         "$uid": {
           ".write": "auth != null && auth.uid === $uid",
-          ".validate": "newData.hasChildren(['nome', 'pontos']) && newData.child('pontos').isNumber()"
+          ".validate": "newData.hasChildren(['nome', 'pontos']) && newData.child('pontos').isNumber() && newData.child('pontos').val() >= 0 && newData.child('pontos').val() <= 100000 && (!data.exists() || (newData.child('pontos').val() - data.child('pontos').val() <= 50 && data.child('pontos').val() - newData.child('pontos').val() <= 50)) && newData.child('nome').isString() && newData.child('nome').val().length <= 24"
+        }
+      }
+    },
+    "suspeitas": {
+      "$uid": {
+        ".read": false,
+        "$id": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists()",
+          ".validate": "newData.hasChildren(['t', 'm']) && newData.child('m').isString() && newData.child('m').val().length <= 80 && newData.child('t').isNumber() && newData.child('t').val() <= now"
         }
       }
     }

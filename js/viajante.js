@@ -109,13 +109,14 @@
  const nomeJogador=()=>String(window.NUVEM&&NUVEM.nome?NUVEM.nome():p.nome||'Viajante').slice(0,18);
 
  /* ---------- painel ---------- */
- let el=null,aba='comprar',filtro='all',msg='';
+ let el=null,aba='comprar',filtro='all',msg='',painelOn=false,busca=''; // busca por nome (campo "Buscar")
  const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
  const aberto=()=>!!el&&!el.hidden;
  function aviso(t){msg=t;desenharPainel();setTimeout(()=>{if(msg===t){msg='';desenharPainel()}},4000)}
- function abrir(){alvo=false;aba='comprar';msg='';if($('dialogue'))$('dialogue').classList.remove('open');ouvir();desenharPainel()}
- function fechar(){if(el)el.hidden=true;parar();if(typeof tipEl!='undefined')tipEl.style.display='none'}
- const combina=id=>filtro==='all'||typeof itemNaCategoria!='function'||itemNaCategoria({id},filtro);
+ function abrir(){alvo=false;aba='comprar';msg='';painelOn=true;if($('dialogue'))$('dialogue').classList.remove('open');ouvir();desenharPainel()}
+ // fechar a janela não para de acompanhar o estoque (a vitrine da loja usa); sair da cidade para
+ function fechar(){painelOn=false;if(el)el.hidden=true;if(typeof tipEl!='undefined')tipEl.style.display='none'}
+ const combina=id=>(filtro==='all'||typeof itemNaCategoria!='function'||itemNaCategoria({id},filtro))&&(!busca||!window.nomeBate||nomeBate(id,busca));
  const botao=(txt,titulo,fn,off)=>{const b=E('button','vjBtn',txt);b.type='button';b.title=titulo;b.disabled=!!off;b.onclick=()=>{b.disabled=true;fn()};return b};
  function linha(id,q,n,precoTxt,extra,botoes){
   const d=E('div','vjLinha'),im=E('img');im.src=ITEMS[id].ic;im.alt='';
@@ -124,7 +125,7 @@
   const info=E('div','vjInfo');info.append(nm);if(extra)info.append(E('small','vjDe',extra));
   d.append(im,info,E('b','vjPreco',precoTxt),...botoes);d._tip=()=>itemTip(id,q);return d}
  function desenharPainel(){
-  if(!ouvindo)return; // fechado: o estoque não está sendo acompanhado
+  if(!ouvindo||!painelOn)return; // fechado: só a vitrine da loja acompanha o estoque
   if(!el){el=E('div');el.id='viajanteLoja';el.setAttribute('role','dialog');el.setAttribute('aria-label','Loja do Viajante');document.body.append(el)}
   el.hidden=false;el.replaceChildren();
   const box=E('div','qmBox vjBox'),topo=E('div','qmTopo'),x=E('button','biFechar','×');x.type='button';x.setAttribute('aria-label','Fechar');x.onclick=fechar;
@@ -133,7 +134,7 @@
   abas.append(E('span','vjOuro',(p.gold|0)+' ouro'));
   const fil=E('div','biFiltros'),lista=E('div','vjLista');
   if(aba==='comprar'){
-   if(typeof barraFiltros=='function')barraFiltros(fil,{ativo:()=>filtro,escolher:id=>{filtro=id;desenharPainel()},contar:id=>estoque.filter(o=>id==='all'||itemNaCategoria({id:o.id},id)).reduce((a,o)=>a+o.n,0)});
+   if(typeof barraFiltros=='function')barraFiltros(fil,{ativo:()=>filtro,escolher:id=>{filtro=id;desenharPainel()},contar:id=>estoque.filter(o=>id==='all'||itemNaCategoria({id:o.id},id)).reduce((a,o)=>a+o.n,0),busca:{chave:'viajante',valor:()=>busca,mudar:t=>{busca=t;desenharPainel()}}});
    const itens=estoque.filter(o=>combina(o.id));
    for(const o of itens){const bts=[botao('Comprar','Comprar 1 por '+o.preco+' ouro',()=>comprar(o,1),p.gold<o.preco)];
     if(o.n>1){const tudo=Math.min(o.n,Math.floor(p.gold/o.preco));bts.push(botao(tudo>=o.n?'Todos':'×'+Math.max(1,tudo),tudo>=o.n?'Comprar os '+o.n+' por '+o.preco*o.n+' ouro':'Comprar '+tudo+' (o que o seu ouro paga) por '+o.preco*tudo+' ouro',()=>comprar(o,tudo),tudo<2))}
@@ -141,14 +142,14 @@
    if(!itens.length)lista.append(E('p','biVazio',estoque.length?'Nada desta categoria no estoque.':'O estoque está vazio. Venda algo e ele aparece aqui para todos.'))}
   else{
    const minhas=I.map((s,i)=>[s,i]).filter(([s])=>s&&ITEMS[s.id]&&!(window.ehMissao&&ehMissao(s.id)));
-   if(typeof barraFiltros=='function')barraFiltros(fil,{ativo:()=>filtro,escolher:id=>{filtro=id;desenharPainel()},contar:id=>minhas.filter(([s])=>itemNaCategoria(s,id)).length});
+   if(typeof barraFiltros=='function')barraFiltros(fil,{ativo:()=>filtro,escolher:id=>{filtro=id;desenharPainel()},contar:id=>minhas.filter(([s])=>itemNaCategoria(s,id)).length,busca:{chave:'viajante',valor:()=>busca,mudar:t=>{busca=t;desenharPainel()}}});
    const itens=minhas.filter(([s])=>combina(s.id));
    for(const [s,i] of itens){const pr=Math.max(1,precoVenda(s.id,s.q)),um=Math.max(1,Math.floor(pr*VENDE)),bts=[botao('Vender','Você recebe '+um+' ouro; ele revende por '+pr,()=>vender(i,1))];
     if(s.n>1)bts.push(botao('Todos','Vender os '+s.n+' por '+Math.max(1,Math.floor(pr*s.n*VENDE))+' ouro',()=>vender(i,s.n)));
     lista.append(linha(s.id,s.q,s.n,um+' ouro',s.n>1?'cada · revende por '+pr:'revende por '+pr,bts))}
    if(!itens.length)lista.append(E('p','biVazio',minhas.length?'Nada desta categoria na mochila.':'Nada para vender na mochila.'))}
-  const pe=E('p','biDica',(nuvem()?'Estoque compartilhado entre todos os jogadores':'Sem conexão: o estoque fica neste computador')+' · itens iguais se juntam numa pilha e ficam para sempre · equipados e itens de missão não aparecem.');
-  box.append(topo,abas,fil,lista,pe,E('p','biMsg',msg));el.append(box);
+  // regras só no "?"; aqui fica só o aviso de sem conexão
+  if(!nuvem())box.append(topo,abas,fil,lista,E('p','biDica','Sem conexão: o estoque fica neste computador'),E('p','biMsg',msg));else box.append(topo,abas,fil,lista,E('p','biMsg',msg));el.append(box);
  }
 
  /* ---------- no pátio: desenho, clique e chegada ---------- */
@@ -161,12 +162,16 @@
    ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
    ctx.fillStyle='#000';ctx.fillText(NPC.nm,NPC.x+.4,top+.4);ctx.fillStyle='#ffe28a';ctx.fillText(NPC.nm,NPC.x,top);
    ctx.fillStyle='#ffd84a';ctx.font='bold 6px monospace';ctx.fillText('$',NPC.x,top-6+Math.round(Math.sin(t*4)*1.5))}])},
-  click(w,mode){if(mode==2||!em(w)){alvo=false;return false}if(Math.hypot(p.x-NPC.x,p.y-NPC.y)<34)abrir();else{alvo=true;setDest(NPC.x,NPC.y+14)}return true},
-  atualizar(){if(!window.inTaverna){if(aberto())fechar();return}
+  // npc.vaga: onde o herói para para falar (na loja, na frente do balcão)
+  click(w,mode){if(mode==2||!em(w)){alvo=false;return false}if(Math.hypot(p.x-NPC.x,p.y-NPC.y)<34)abrir();else{alvo=true;const v=NPC.vaga||{x:NPC.x,y:NPC.y+14};setDest(v.x,v.y)}return true},
+  atualizar(){if(!window.inTaverna){if(aberto())fechar();if(ouvindo)parar();return}
+   if(!ouvindo)ouvir(); // na cidade: acompanha o estoque (vitrine da loja)
    sob=em(wpos());if(sob)cv.style.cursor='pointer';
    if(alvo&&Math.hypot(p.x-NPC.x,p.y-NPC.y)<34){alvo=false;p.dest=null;p.path=[];abrir()}
    if(aberto()&&Math.hypot(p.x-NPC.x,p.y-NPC.y)>90)fechar()},
-  abrir,fechar,get aberto(){return aberto()}};
+  abrir,fechar,get aberto(){return aberto()},
+  // vitrine da loja: os n itens mais caros do estoque (uma pilha = um item)
+  maisCaros:(n=5)=>estoque.slice().sort((a,b)=>b.preco-a.preco||(b.q||0)-(a.q||0)).slice(0,n)};
  addEventListener('keydown',e=>{if(aberto()&&e.key==='Escape'){fechar();e.stopImmediatePropagation()}},true);
  // a mochila mudou (outra tela vendeu, usou, pegou): atualiza a aba Vender
  addEventListener('mochila-mudou',()=>{if(aberto())desenharPainel()});

@@ -289,12 +289,12 @@
   for(const [id,ids] of gs){const gr=E('div','fjGrupo');gr.append(E('small','',nomeItem(id)+' ×'+ids.length));const fila=E('div','fjGrupoFila');
    for(const i of ids.slice().sort((a,b)=>I[b].q-I[a].q)){const s=I[i],d=E('button','fjItem'+(esc.includes(i)?' on':'')+(base&&id!==base&&esc.length<2?' fora':''));d.type='button';
     const im=E('img');im.src=ITEMS[s.id].ic;im.alt='';d.append(im,pinta(E('small','',s.q+'%'),s.q));d.onclick=()=>escolher(i);
-    d._tip=()=>itemTip(s.id,s.q)+'<div class=tm>Clique: '+(esc.includes(i)?'tirar da bigorna':'pôr na bigorna')+'</div>';fila.append(d)}
+    d._tip=()=>itemTip(s.id,s.q);fila.append(d)}
    gr.append(fila);lista.append(gr)}
   if(!gs.length)lista.append(E('p','biVazio','Você não tem dois equipamentos iguais na mochila. Traga pares de armas, armaduras ou acessórios.'));
   // a lista vem logo depois do título (as últimas forjas ficam embaixo dela)
   lado.querySelector(':scope>h4').after(lista);
-  lado.append(E('p','biDica','Os dois itens somem e volta um só · equipados e itens do baú não entram · clique num item sobre a bigorna para tirá-lo · clique na cena ou Espaço para pular a animação.'))}
+  } // explicações só no "?" (js/ajuda.js)
 
  /* cartão do ferreiro: a marreta na mão (clique para pegar de volta), o nível com a barra até o próximo, as chances
     já com o bônus, o recorde e o total forjado; embaixo, as marretas da mochila para dar a ele */
@@ -302,7 +302,7 @@
   const c=E('div','fjFerreiro'),topo=E('div','fjFerTopo'),id=marretaAtual();
   const slot=E('button','fjMarreta'+(martelo?'':' padrao'));slot.type='button';const im=E('img');im.src=ITEMS[id]?ITEMS[id].ic:'';im.alt='';slot.append(im);
   if(tempo-batidaMartelo<.5)slot.classList.add('bate');
-  slot._tip=()=>(ITEMS[id]?itemTip(id,martelo?martelo.q:null):'<b>Marreta Improvisada</b>')+'<div class=tm>'+(martelo?'Clique: pegar de volta para a mochila':'O ferreiro já usa esta por padrão. Dê a ele uma marreta melhor da mochila.')+'</div>';
+  slot._tip=()=>(ITEMS[id]?itemTip(id,martelo?martelo.q:null):'<b>Marreta Improvisada</b>');
   if(martelo)slot.onclick=tirarMartelo;
   const info=E('div','fjFerInfo'),linha=E('div','fjFerNv');
   linha.append(E('b','',n<TABELA.length||px?'Nível '+n:'Mestre'),E('small','',px?forjados+' / '+px.ate+' para o '+px.rotulo:forjados+' forjados'));
@@ -316,7 +316,7 @@
   const ms=marretasNaMochila();
   if(ms.length){const f2=E('div','fjMarretas');f2.append(E('small','','Marretas na mochila · clique para dar ao ferreiro'));const fila=E('div','fjGrupoFila');
    for(const [s,i] of ms){const b=E('button','fjItem');b.type='button';const im2=E('img');im2.src=ITEMS[s.id].ic;im2.alt='';b.append(im2,pinta(E('small','',s.q+'%'),s.q));b.onclick=()=>darMartelo(i);
-    b._tip=()=>itemTip(s.id,s.q)+'<div class=tm>Clique: dar ao ferreiro</div>';fila.append(b)}
+    b._tip=()=>itemTip(s.id,s.q);fila.append(b)}
    f2.append(fila);c.append(f2)}
   return c}
 

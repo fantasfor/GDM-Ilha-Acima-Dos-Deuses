@@ -127,11 +127,12 @@
   if(painel.mesa===id)fecharPainel(); // quem desiste sai do painel
  }
  async function assistir(id){
-  await transacao(id,'jogo',cur=>{if(!cur)return undefined;cur.espect=cur.espect||{};cur.espect[eu()]=1;cur.nomes=cur.nomes||{};cur.nomes[eu()]=meuNome();return cur});
+  // segurança (2026-11-04): quem só assiste grava só o próprio lugar (as regras do Firebase deixam o resto do jogo para quem joga)
+  if(!dados[id].jogo)return;await transacao(id,'jogo/nomes/'+eu(),()=>meuNome());await transacao(id,'jogo/espect/'+eu(),()=>1);
   abrirPainel(id);
  }
  async function pedirVaga(id){
-  await transacao(id,'jogo',cur=>{if(!cur)return undefined;cur.fila=cur.fila||{};cur.fila[eu()]=1;cur.nomes=cur.nomes||{};cur.nomes[eu()]=meuNome();return cur});
+  if(!dados[id].jogo)return;await transacao(id,'jogo/nomes/'+eu(),()=>meuNome());await transacao(id,'jogo/fila/'+eu(),()=>1);
   aviso('Você entra na próxima partida desta mesa.');
  }
  async function novaPartida(id){
@@ -198,7 +199,6 @@
    if(dono){const b=B('Iniciar ('+n+' jogador'+(n>1?'es':'')+')',()=>iniciar(id),'mesaBtn primario');b.disabled=!G.valido(n);acoes.append(b,B('Cancelar',async()=>{await transacao(id,'jogo',cur=>cur&&cur.dono===u&&cur.fase==='convite'?null:undefined);fecharPainel()}))}
    else if(j.conv&&j.conv[u]==='a')acoes.append(B('Sair',()=>{sairDoConvite(id);fecharPainel()}));
    else acoes.append(B('Aceitar',()=>aceitar(id),'mesaBtn primario'),B('Recusar',()=>{sairDoConvite(id);fecharPainel()}));
-   if(!G.valido(n))acoes.append(E('small','mesaDica',j.tipo==='truco'?'Truco: 2 ou 4 jogadores.':G.nome+': de '+G.min+' a '+G.max+' jogadores.'));
    el.append(acoes);return;
   }
   const st=estado(j),eu_i=meuIndice(j),jogador=eu_i>=0&&!st.fora[eu_i];
@@ -238,7 +238,7 @@
   if(eu_i>=0&&!st.fora[eu_i]){const mao=E('div','mesaMao');const jogaveis=new Set(acs.filter(a=>a.t==='jogar').map(a=>a.k));
    m.cartas[eu_i].forEach((c,k)=>mao.append(cartaTruco(c,{dest:jogaveis.has(k),onClick:jogaveis.has(k)?()=>agir(painel.mesa,{t:'jogar',k}):null})));box.append(mao);
    const bt=E('div','mesaAcoes');for(const a of acs){if(a.t==='jogar')continue;const rot={truco:'Pedir '+T.NOME_VALOR[[1,3,6,9,12][[1,3,6,9,12].indexOf(m.valor)+1]],aceitar:'Aceitar',correr:'Correr',aumentar:'Aumentar'}[a.t];bt.append(B(rot,()=>agir(painel.mesa,a),a.t==='correr'?'mesaBtn':'mesaBtn primario'))}
-   if(!st.fim&&vez(st,eu_i)&&!m.pedido)bt.append(E('small','mesaDica','Sua vez: escolha uma carta.'));box.append(bt)}
+   box.append(bt)}
  }
  function mesaUno(box,j,st,eu_i){
   const U=J().uno,acs=eu_i>=0?U.acoes(st,eu_i):[];
@@ -254,13 +254,12 @@
     mao.append(cartaUno(c,{apagada:!jog.has(k)&&vez(st,eu_i),onClick:jog.has(k)?()=>{if(c[0]==='W'){painel.escolha=k;desenharPainel()}else if(U.mesmoNumero(st,eu_i,k).length){painel.junto={mesa:painel.mesa,k,extras:[]};desenharPainel()}else agir(painel.mesa,{t:'jogar',k})}:null}))});
    box.append(mao);
    const bt=E('div','mesaAcoes');
-   if(junto){const n=1+junto.extras.length;bt.append(B('Jogar '+n+' carta'+(n>1?'s':''),()=>{painel.junto=null;agir(painel.mesa,{t:'jogar',k:junto.k,extras:junto.extras.slice()})},'mesaBtn primario'),B('Voltar',()=>{painel.junto=null;desenharPainel()}));
-    bt.append(E('small','mesaDica','Marque as outras cartas de mesmo número que quer jogar junto.'))}
+   if(junto){const n=1+junto.extras.length;bt.append(B('Jogar '+n+' carta'+(n>1?'s':''),()=>{painel.junto=null;agir(painel.mesa,{t:'jogar',k:junto.k,extras:junto.extras.slice()})},'mesaBtn primario'),B('Voltar',()=>{painel.junto=null;desenharPainel()}));}
    else for(const a of acs){if(a.t==='comprar')bt.append(B('Comprar',()=>agir(painel.mesa,a)));if(a.t==='passar')bt.append(B('Passar',()=>agir(painel.mesa,a)))}
    // botão UNO: declara o seu (antes ou logo depois de ficar com 1 carta) ou denuncia quem ficou com 1 sem declarar
    const unoA=acs.find(a=>a.t==='uno')||acs.find(a=>a.t==='denunciar');
    if(unoA){const b=B('UNO!',()=>{if(window.playGameSound)playGameSound('uno');agir(painel.mesa,unoA)},'mesaBtn uno');b.title=unoA.t==='uno'?'Declarar UNO (ficar com 1 carta)':'Denunciar: '+nomeDe(j,j.jog[st.exposto])+' não disse UNO (compra '+U.PENA_UNO+')';bt.append(b)}
-   if(!st.fim&&vez(st,eu_i)&&!junto)bt.append(E('small','mesaDica','Sua vez.'));box.append(bt)}
+   box.append(bt)}
  }
  function mesaDomino(box,j,st,eu_i){
   const D=J().domino,acs=eu_i>=0?D.acoes(st,eu_i):[];
@@ -273,7 +272,7 @@
    const mao=E('div','mesaMao');
    st.maos[eu_i].forEach((s,k)=>{const lados=acs.filter(a=>a.t==='jogar'&&a.k===k);mao.append(pedraDom(s,{onClick:lados.length?()=>{if(lados.length===1)agir(painel.mesa,lados[0]);else{painel.escolha=k;desenharPainel()}}:null}))});box.append(mao);
    const bt=E('div','mesaAcoes');for(const a of acs){if(a.t==='comprar')bt.append(B('Comprar do monte',()=>agir(painel.mesa,a)));if(a.t==='passar')bt.append(B('Passar',()=>agir(painel.mesa,a)))}
-   if(!st.fim&&vez(st,eu_i))bt.append(E('small','mesaDica','Sua vez.'));box.append(bt)}
+   box.append(bt)}
  }
 
  /* ---- vez: aviso, som e prazo ---- */
@@ -308,7 +307,7 @@
   const dentro=!!window.inTaverna;
   if(dentro&&!naTaverna){IDS.forEach(escutar)}
   // saiu da taverna no meio de uma partida: desiste dela (a aposta fica no pote) em vez de deixar a mesa presa
-  if(!dentro&&naTaverna){for(const id of IDS)if(emPartida(id)){desistir(id);aviso('Você saiu da taverna e desistiu da partida.','#f87171')}if(sentado)levantar(true);if(painel.mesa)fecharPainel();pararDeEscutar()}
+  if(!dentro&&naTaverna){for(const id of IDS)if(emPartida(id)){desistir(id);aviso('Você saiu da cidade e desistiu da partida.','#f87171')}if(sentado)levantar(true);if(painel.mesa)fecharPainel();pararDeEscutar()}
   naTaverna=dentro;
  },400);
 

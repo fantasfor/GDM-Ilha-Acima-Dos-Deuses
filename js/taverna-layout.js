@@ -14,7 +14,22 @@
   ['pk_bar_chafariz',338,214],['pk_bar_fogueira',350,306],['pk_bar_banco',350,286],['pk_bar_banco',350,334],['pk_bar_guarda_sol',140,120],['pk_bar_mesa',140,124],['pk_bar_guarda_sol',236,128],['pk_bar_mesa',236,132],
   ['pk_bar_lampiao',24,182],['pk_bar_lampiao',262,196],['pk_bar_lampiao',262,352],['pk_bar_lampiao',424,182],['pk_bar_lampiao',120,182],['pk_bar_placa',50,150],['pk_bar_vaso',14,214],['pk_bar_vaso',282,262],['pk_bar_vaso',282,300],['pk_bar_vaso',404,252],['pk_bar_vaso',300,160],
   ['pk_bar_bandeirinhas',30,30],['pk_bar_bandeirinhas',94,30],['pk_bar_bandeirinhas',158,30],['pk_bar_bandeirinhas',222,30],['pk_bar_bandeirinhas',44,196],['pk_bar_bandeirinhas',108,196],['pk_bar_bandeirinhas',172,196]];
- const PADRAO={v:1,
+ /* Cidade (2026-11-04, pedido do usuário: "toda a cena da cidade editável na Engine"): decorações da rua (elementos de
+    mapa), lampiões mágicos, peças do cassino (caça-níqueis, as 4 mesas com os crupiês, cristal, braseiros) e da loja do
+    Viajante (o Viajante, balcão, vitrine da parede, vitrines de pé e decorações). Lido por js/cassino.js e
+    js/loja-viajante.js. As construções (paredes, portas, telhados) e a mata em volta são fixas. */
+ const RUA=[['pk_bar_lampiao',110,370],['pk_bar_lampiao',470,370],['pk_bar_lampiao',640,368],['pk_bar_lampiao',860,368],['pk_bar_lampiao',-64,370],['pk_bar_lampiao',-226,370],
+  ['pk_bar_vaso',-176,352],['pk_bar_vaso',-80,352],['pk_bar_barril',196,356],['pk_bar_barril',208,350],['pk_bar_banco',330,356],['pk_bar_vaso',236,352],['pk_bar_vaso',292,352],['pk_bar_vaso',60,352]];
+ const CIDADE={
+  rua:RUA.map(([id,x,y])=>({type:'px:'+id,x,y})),
+  lampMagicos:[[300,430],[388,430],[150,432],[540,432]].map(([x,y])=>({x,y})),
+  maquinas:[60,100,140,180,220,260,428,468,508,548,588,628].map(x=>({x,y:502})),
+  mesasCassino:[['rol1',154,592],['rol2',154,692],['bj1',534,592],['bj2',534,692]].map(([id,x,y])=>({id,x,y})),
+  cristal:{x:344,y:640},
+  braseiros:[[46,752],[642,752],[46,520],[642,520]].map(([x,y])=>({x,y})),
+  loja:{npc:{x:-180,y:262},balcao:{x:-178,y:282},vitrine:{x:-108,y:204},vitrines:[{x:-198,y:316},{x:-42,y:316}],
+   decor:[['pk_bar_caixas',-98,300],['pk_bar_barril',-28,254],['pk_bar_barril',-40,258],['pk_bar_vaso',-142,336],['pk_bar_vaso',-98,336]].map(([id,x,y])=>({type:'px:'+id,x,y}))}};
+ const PADRAO={v:1,cidade:CIDADE,
   mesas:[...[[112,150],[232,180],[352,142],[100,244],[212,262]].map(([x,y],k)=>({id:'tav'+(k+1),estilo:'redonda',x:OX+x,y:OY+y,cadeiras:cadeiras(CAD_TAV)})),
    ...[[86,236],[196,236],[86,322],[196,322]].map(([x,y],k)=>({id:'bar'+(k+1),estilo:'jogo',x:PX+x,y:PY+y,cadeiras:cadeiras(CAD_BAR)}))],
   barris:[[462,92],[462,112],[450,102],[26,300]].map(([x,y])=>({x:OX+x,y:OY+y})),
@@ -43,6 +58,15 @@
   if(Array.isArray(src.mestres))L.mestres=src.mestres.filter(Boolean).map(m=>ponto(m,{x:OX+40,y:OY+120}));
   for(const k of ['quadro','lareira'])if(src[k])L[k]=ponto(src[k],L[k]);
   if(src.palco){const p=src.palco,x0=num(p.x0,L.palco.x0),y0=num(p.y0,L.palco.y0);L.palco={x0,y0,x1:Math.max(x0+40,num(p.x1,L.palco.x1)),y1:Math.max(y0+30,num(p.y1,L.palco.y1))}}
+  // cidade: listas trocam inteiras; as 4 mesas do cassino têm nome fixo (rodadas online) e só mudam de lugar
+  const c=src.cidade;if(c&&typeof c==='object'){const C=L.cidade,d={x:0,y:400};
+   const pontos=(a,max)=>a.filter(Boolean).slice(0,max).map(o=>ponto(o,d)),elems=a=>a.filter(e=>e&&typeof e.type==='string').slice(0,400).map(e=>({type:e.type,...ponto(e,d)}));
+   if(Array.isArray(c.rua))C.rua=elems(c.rua);if(Array.isArray(c.lampMagicos))C.lampMagicos=pontos(c.lampMagicos,30);
+   if(Array.isArray(c.maquinas))C.maquinas=pontos(c.maquinas,24);if(Array.isArray(c.braseiros))C.braseiros=pontos(c.braseiros,20);
+   if(Array.isArray(c.mesasCassino))for(const m of C.mesasCassino){const o=c.mesasCassino.find(q=>q&&q.id===m.id);if(o)Object.assign(m,ponto(o,m))}
+   if(c.cristal)C.cristal=ponto(c.cristal,C.cristal);
+   const l=c.loja;if(l&&typeof l==='object'){for(const k of ['npc','balcao','vitrine'])if(l[k])C.loja[k]=ponto(l[k],C.loja[k]);
+    if(Array.isArray(l.vitrines))C.loja.vitrines=pontos(l.vitrines,6);if(Array.isArray(l.decor))C.loja.decor=elems(l.decor)}}
   return L}
  /* ---- geometria das cadeiras (o mesmo desenho de js/taverna.js e js/bar.js) ---- */
  const cadeiraEm=(m,i)=>{const c=m.cadeiras[i];return{x:m.x+c.dx,y:m.y+c.dy}};
@@ -53,6 +77,7 @@
   return o===1||o===3?{x:c.x-5,y:c.y-14,w:10,h:17}:{x:c.x-5,y:c.y-12,w:10,h:15}}
  const LAYOUT=normalizar(typeof PROJETO!=='undefined'&&PROJETO.mundo?PROJETO.mundo.taverna:null);
  window.TAVERNA_LAYOUT={OX,OY,TW,TH,PX,PY,BW,BH,L:LAYOUT,padrao:()=>clone(PADRAO),normalizar,cadeiraEm,lugarEm,caixaCadeira,
+  cidadeLimites:{x0:-420,y0:-60,x1:1100,y1:800}, // área da cena Cidade na Engine
   // dentro da taverna ou no pátio (mesas e decorações só valem nessas áreas)
   dentro:(x,y)=>x>=OX&&x<OX+TW&&y>=OY&&y<OY+TH||x>=PX&&x<PX+BW&&y>=PY&&y<PY+BH,
   noPatio:(x,y)=>x>=PX&&x<PX+BW&&y>=PY&&y<PY+BH};

@@ -129,6 +129,9 @@ const p={x:CX,y:CY+34,hp:140,mp:35,lvl:1,xp:0,gold:0,dest:null,tgt:null,acd:0,de
 window.p = p;
 Object.assign(p,{path:[],pathI:0,pathKey:'',joy:{x:0,y:0}});
 function setDest(x,y){
+ // clicou num lugar sem passagem: primeiro procura em volta do clique (rápido, e vale também para a cidade, que tem
+ // coordenadas negativas); só se não achar varre a grade inteira da ilha
+ if(!walk(x,y)){let perto=null;for(let r=4;r<=96&&!perto;r+=4)for(let k=0;k<16;k++){const a=k*Math.PI/8,qx=x+Math.cos(a)*r,qy=y+Math.sin(a)*r;if(walk(qx,qy)){perto={x:qx,y:qy};break}}if(perto){x=perto.x;y=perto.y}}
  if(!walk(x,y)){
   let best=null,distBest=Infinity;
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const q={x:(i+.5)*T,y:(j+.5)*T};if(!walk(q.x,q.y))continue;const d=(q.x-x)**2+(q.y-y)**2;if(d<distBest){best=q;distBest=d}}

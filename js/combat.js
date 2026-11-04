@@ -449,7 +449,7 @@ function showCarpenterDialogue(){
   :wallBuilt
   ?'<b>Carpinteiro</b><p>Madeira mágica coletada: '+itemCount('magicWood')+'/'+PORTAL_WOOD_REQUIRED+'. '+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'Já podemos construir o portal até a caverna dos Glooc!':'Derrote as árvores vivas (Tocos Vivos) e aceite as madeiras mágicas nos itens encontrados. Seu peso de spawn aumenta em 20% enquanto faltarem materiais.')+'</p>'+(itemCount('magicWood')>=PORTAL_WOOD_REQUIRED?'<button type="button" data-build-camp-portal>Entregar 10 madeiras mágicas e construir o portal</button>':'<button type="button" data-close-dialog>Vou buscar mais madeira mágica</button>')
   :!sawQuestActive
-  ?'<b>Carpinteiro</b><p>Preciso te contar uma coisa. Os Glooc levaram um amigo meu, um ferreiro, para a caverna deles.</p><p>Só dá para chegar lá por um portal. Com ele de volta, o acampamento ganha alguém que forja e melhora equipamentos.</p><p>Mas antes é melhor levantar uma muralha: os monstros podem atacar o acampamento enquanto estivermos longe.</p><p>Para cortar as toras eu preciso de um serrote. Um Esqueleto do Serrote anda pela ilha; quando ele aparecer, um ponto de exclamação mostra onde ele está.</p><button type="button" data-start-saw-quest>Vou buscar o serrote</button>'
+  ?'<b>Carpinteiro</b><p>Preciso te contar uma coisa. Os Glooc levaram um amigo meu, um ferreiro, para a caverna deles.</p><p>Só dá para chegar lá por um portal. Com ele de volta, o acampamento ganha alguém que forja e melhora equipamentos.</p><p>Mas antes é melhor levantar uma muralha: os monstros podem atacar o acampamento enquanto estivermos longe.</p><p>Para cortar as toras eu preciso de um serrote. Um Esqueleto do Serrote anda pela ilha; quando ele aparecer, um ponto de exclamação mostra onde ele está.</p>'+(temSerrote()||serrotePendente()?'<button type="button" data-deliver-saw>Eu já tenho um serrote! Tome.</button>':'<button type="button" data-start-saw-quest>Vou buscar o serrote</button>')
   :sawObtained&&!woodQuestActive
   ?'<b>Carpinteiro</b><p>Obrigado pelo serrote! Agora preciso de 20 madeiras para a muralha. Derrote os Tocos Vivos, tocos de árvore que andam pela ilha, e recolha a madeira (de missão) que eles deixam. Enquanto a missão precisar deles, seu peso de spawn aumenta em 20%.</p><button type="button" data-start-wood-quest>Vou coletar as madeiras</button>'
   :woodQuestActive
@@ -482,7 +482,8 @@ document.addEventListener('click',e=>{
  if(button.hasAttribute('data-join-camp')){carpenterHelped=true;placeCarpenter();$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal');ft(p.x,p.y-28,'O carpinteiro foi para o acampamento!','#ffd84a');saveGame()}
  else if(button.hasAttribute('data-start-saw-quest')){if(window.startSawQuest)startSawQuest();$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal')}
  else if(button.hasAttribute('data-deliver-saw')){
-  if(!sawQuestActive||sawObtained||wallBuilt)return;
+  if(sawObtained||wallBuilt)return;
+  if(!sawQuestActive&&window.startSawQuest)startSawQuest(); // trouxe o serrote antes de aceitar a missão
   const pendente=serrotePendente();if(pendente)acceptDrop(pendente); // serrote ainda nos itens encontrados: aceita antes de entregar
   const lista=serrotesDoJogador();
   if(!lista.length)return; // bolsa cheia ou sem o serrote: a entrega não acontece

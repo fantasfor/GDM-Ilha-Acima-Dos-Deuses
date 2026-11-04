@@ -37,7 +37,8 @@
   const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const pat=id=>{const t=textura(id);return t?g.createPattern(t,'repeat'):'#555'};
   g.fillStyle=pat('pk_bar_calcada');g.fillRect(0,0,BW,BH);
-  g.fillStyle=pat('pk_bar_grama');g.fillRect(0,0,BW,18);g.fillRect(BW-18,0,18,BH);g.fillRect(0,BH-14,BW,14);g.fillRect(0,BH-60,24,60);g.fillRect(0,0,22,140);
+  // grama igual à da ilha (ladrilho de js/cassino.js); sem ele, a do pacote
+  g.fillStyle=window.RUA_TAVERNA?g.createPattern(RUA_TAVERNA.gramaLadrilho(),'repeat'):pat('pk_bar_grama');g.fillRect(0,0,BW,18);g.fillRect(BW-18,0,18,BH);g.fillRect(0,BH-14,BW,14);g.fillRect(0,BH-60,24,60);g.fillRect(0,0,22,140);
   g.fillStyle=pat('pk_bar_terra');for(let x=0;x<70;x+=2){const w=2+Math.round(Math.sin(x*.2)*2);g.fillRect(x,PORTA.y0+2-w,2,PORTA.y1-PORTA.y0-4+2*w)}
   // deck das mesas, com borda e degrau
   g.fillStyle='#24140a';g.fillRect(DECK.x0-3,DECK.y0-3,DECK.x1-DECK.x0+6,DECK.y1-DECK.y0+6);g.fillStyle=pat('pk_bar_deck');g.fillRect(DECK.x0,DECK.y0,DECK.x1-DECK.x0,DECK.y1-DECK.y0);
@@ -94,7 +95,9 @@
  function botao(x,y,txt,cor,fn){ctx.font='bold 5px monospace';const w=Math.ceil(ctx.measureText(txt).width)+8,h=9,bx=Math.round(x-w/2),by=Math.round(y),hv=sobre(mouseMundo(),{x:bx,y:by,w,h});
   R(ctx,bx-1,by-1,w+2,h+2,hv?'#d9d0c7':'#0d0d0d');R(ctx,bx,by,w,h,cor);R(ctx,bx,by,w,1,'#ffffff55');if(hv){ctx.globalAlpha=.25;R(ctx,bx,by,w,h,'#ffffff');ctx.globalAlpha=1} /* mouse em cima: borda clara e brilho */ctx.textAlign='center';ctx.fillStyle='#0d0d0d';ctx.fillText(txt,bx+w/2,by+6.5);botoes.push({x:bx,y:by,w,h,fn})}
  function interfaceMesa(m){
-  if(!window.MESAS||!MESAS.dados[m.id])return;const d=MESAS.dados[m.id],j=d.jogo,c=centro(m),u=MESAS.eu(),sent=MESAS.sentado&&MESAS.sentado.mesa===m.id,perto=Math.hypot(p.x-c.x,p.y-c.y)<110;
+  if(!window.MESAS||!MESAS.dados[m.id])return;
+  if(window.CONSTRUCOES&&CONSTRUCOES.coberto(m.x,m.y,'taverna'))return; // mesa sob o telhado (herói lá fora): sem botões
+  const d=MESAS.dados[m.id],j=d.jogo,c=centro(m),u=MESAS.eu(),sent=MESAS.sentado&&MESAS.sentado.mesa===m.id,perto=Math.hypot(p.x-c.x,p.y-c.y)<110;
   if(j&&(j.fase==='jogando'||j.fase==='fim')){
    const joga=Array.isArray(j.jog)&&j.jog.includes(u);
    const v=j.fase==='jogando'&&MESAS.infoVez(m.id);

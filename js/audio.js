@@ -114,6 +114,8 @@ function refreshLoops(){
   // na taverna não há ambiente de fundo (conversa): só a música da banda e os sons dos objetos (lareira, fogueira, chafariz...)
   const amb=quer==='tavern'?null:quer==='world'&&window.TEMPO&&TEMPO.ehNoite()?'worldNoite':TRILHAS_DG[trilha]?TRILHAS_DG[trilha].amb:quer;
   trocar('ambiente',quer&&!(config[scene+'.ambient']&&config[scene+'.ambient'].src)?amb:null);
+  // cidade: a música do cassino toca junto com a da taverna; o volume de cada uma vem da distância (abaixo)
+  trocar('cassino',quer==='tavern'?'cassino':null);
  }
  lastScene=scene
 }
@@ -186,7 +188,58 @@ function arpejo(notas,passo,{tipo='triangle',vol=.035,dur=.18,brilho=0,inicio=0}
  notas.forEach((m,i)=>{nota(bus.efeitos,mtof(m),t0+i*passo,dur,{tipo,vol:vol*escala,solta:.25});nota(bus.efeitos,mtof(m+12),t0+i*passo,dur*.6,{tipo:'sine',vol:vol*.35*escala,solta:.2})});
  if(brilho)for(let i=0;i<brilho;i++)nota(bus.efeitos,mtof(notas[notas.length-1]+24+[0,4,7,12][i%4]),t0+notas.length*passo+i*.045,.05,{tipo:'sine',vol:vol*.4*escala,solta:.3});
 }
+/* peças dos sons do cassino */
+// moeda metálica: dois parciais inarmônicos (o "plim") e um clique; t = tempo absoluto
+function plim(t,f,v){nota(bus.efeitos,f,t,.008,{tipo:'sine',vol:v*escala,ataque:.001,solta:.2});nota(bus.efeitos,f*2.76,t,.008,{tipo:'sine',vol:v*.4*escala,ataque:.001,solta:.08});noise(.01,v*.6,7500,Math.max(0,t-agora()),'highpass',7500,.7)}
+// chuva de moedas caindo na bandeja: n moedas em dur segundos, mais juntas no começo
+function chuvaMoedas(ini,n,dur,v){const t0=agora()+ini;for(let i=0;i<n;i++){const q=Math.pow(i/n,1.4)*dur+Math.random()*.03;plim(t0+q,2100+Math.random()*2000,v*(.55+Math.random()*.45))}}
+// sino brilhante (sininho de máquina)
+function sinoCassino(t,m,v){const f=mtof(m);nota(bus.efeitos,f,t,.01,{tipo:'sine',vol:v*escala,ataque:.002,solta:.45});nota(bus.efeitos,f*2,t,.01,{tipo:'sine',vol:v*.35*escala,ataque:.002,solta:.25});nota(bus.efeitos,f*3.01,t,.01,{tipo:'triangle',vol:v*.15*escala,ataque:.002,solta:.12})}
+// fanfarra de metais: acordes curtos (o último segura)
+function fanfarra(t,acordes,tempos,ultimo){acordes.forEach((ac,i)=>{const d=i===acordes.length-1?ultimo:.12;ac.forEach(m=>{nota(bus.efeitos,mtof(m),t+tempos[i],d,{tipo:'sawtooth',vol:.007*escala,ataque:.01,solta:.25,filtro:2600,vibrato:i===acordes.length-1?.006:0});nota(bus.efeitos,mtof(m),t+tempos[i],d,{tipo:'square',vol:.004*escala,ataque:.01,solta:.2,filtro:3400})})})}
+// rolo parando: o baque e um sino que sobe a cada rolo (dó, mi, sol)
+function paraRolo(k){const t=agora();tone(150,70,.1,'sine',.04);noise(.05,.02,1500,0,'bandpass',700,1.2);sinoCassino(t+.02,[79,83,86][k],.016)}
+// ficha de cassino batendo em outra
+function fichaEm(t){const d=Math.max(0,t-agora());noise(.018,.02,3600,d,'bandpass',3600,4);noise(.014,.016,5200,d+.03,'bandpass',5200,5);nota(bus.efeitos,4100,t+.03,.01,{tipo:'sine',vol:.004*escala,ataque:.001,solta:.06})}
 const sounds={
+ /* Cassino Arcano (js/cassino-jogos.js), feitos para dar "dopamina" (2026-11-04, pedido do usuário): a alavanca com
+    catraca e mola, o tique dos rolos, cada rolo parando com um sino mais agudo que o anterior (expectativa), o rufar de
+    suspense, o "quase!", e prêmios crescentes — sininhos, fanfarra de metais, chuva de moedas metálicas de verdade
+    (dois parciais e um clique) e o tilintar contando o prêmio. */
+ slotAlavanca:()=>{for(let i=0;i<7;i++)noise(.012,.02,3200,i*.028*(1-i*.06),'bandpass',3200,4);tone(190,95,.32,'sine',.03,.2);tone(260,130,.2,'triangle',.012,.2);noise(.09,.03,700,.18,'lowpass',200,.8)},
+ slotTique:()=>{tone(1500+Math.random()*700,1300,.016,'square',.0045);noise(.012,.006,6000,0,'highpass',6000,.7)},
+ slotPara:()=>sounds.slotPara0(),
+ slotPara0:()=>{paraRolo(0)},slotPara1:()=>{paraRolo(1)},slotPara2:()=>{paraRolo(2)},
+ slotSuspense:()=>{const t=agora();for(let i=0;i<22;i++){const d=Math.pow(i/22,.7)*1.05;noise(.03,.006+.018*i/22,2200,d,'bandpass',2200,1.5)}
+  nota(bus.efeitos,180,t,1.1,{tipo:'sawtooth',vol:.006*escala,ataque:.9,solta:.1,filtro:900,vibrato:.02});tone(220,880,1.1,'sine',.012)},
+ slotQuase:()=>{const t=agora();[[67,0],[66,.18],[65,.36],[60,.56]].forEach(([m,d],i)=>nota(bus.efeitos,mtof(m),t+d,i===3?.4:.15,{tipo:'sawtooth',vol:.008*escala,ataque:.01,solta:.2,filtro:1400,vibrato:i===3?.02:0}))},
+ slotGanha:()=>{const t=agora();[84,88,91].forEach((m,i)=>sinoCassino(t+i*.09,m,.03));arpejo([72,76,79,84],.06,{tipo:'square',vol:.016,brilho:4,inicio:.3});chuvaMoedas(.25,14,1,.022)},
+ slotGrande:()=>{const t=agora();fanfarra(t,[[60,64,67],[65,69,72],[67,71,74],[72,76,79,84]],[0,.16,.32,.5],.7);for(let i=0;i<10;i++)sinoCassino(t+.5+i*.07,84+[0,4,7,12,16][i%5],.022);chuvaMoedas(.45,45,2,.022);noise(1.2,.008,3000,.4,'highpass',11000,.6)},
+ jackpot:()=>{const t=agora();for(let i=0;i<8;i++)sinoCassino(t+i*.12,i%2?88:84,.03);
+  fanfarra(t+1,[[60,64,67,72],[60,64,67,72],[65,69,72,77],[67,71,74,79],[72,76,79,84]],[0,.14,.3,.46,.7],1.2);
+  tone(60,40,.9,'sine',.06,1);noise(.5,.03,200,1,'lowpass',80,.7);chuvaMoedas(1,100,3.2,.022);noise(2.4,.01,4000,1.1,'highpass',12000,.6);arpejo([84,88,91,96,100],.05,{tipo:'sine',vol:.02,brilho:10,inicio:2.2})},
+ moedaConta:()=>{plim(agora(),2600+Math.random()*900,.02)},
+ slotPerde:()=>{tone(300,260,.09,'triangle',.009);tone(240,200,.12,'triangle',.008,.09)},
+ roletaGanha:()=>{const t=agora();sinoCassino(t,84,.03);sinoCassino(t+.1,91,.03);arpejo([67,72,76,79,84],.06,{tipo:'square',vol:.016,brilho:5,inicio:.2});chuvaMoedas(.3,20,1.3,.02)},
+ bjVence:()=>{const t=agora();arpejo([72,76,79,84],.06,{tipo:'square',vol:.016,brilho:3});for(let i=0;i<4;i++)fichaEm(t+.35+i*.07)},
+ bjBlackjack:()=>{const t=agora();fanfarra(t,[[64,67,72],[65,69,72],[67,71,74,79]],[0,.15,.32],.6);for(let i=0;i<6;i++)sinoCassino(t+.45+i*.06,88+[0,3,7][i%3],.022);chuvaMoedas(.5,30,1.6,.02)},
+ ficha:()=>{fichaEm(agora())},
+ // carta jogada na mesa: o deslizar no feltro e o "tap" ao cair
+ carta:()=>{noise(.11,.016,1800,0,'bandpass',6500,.9);noise(.025,.02,4200,.1,'bandpass',3000,1.8);tone(380,240,.03,'triangle',.008,.1)},
+ // roleta: a bolinha rolando no trilho de madeira (ronco que vai baixando e "tique" nas casas, cada vez mais devagar),
+ // pulando nas casas quando cai, e o clique final parando no número
+ roletaGira:()=>{noise(5,.012,900,0,'bandpass',260,1.6);noise(.3,.01,3000,0,'highpass',3000,.7);let t=.08;for(let i=0;i<46&&t<4.9;i++){tone(2300+(i%3)*90,2100,.01,'square',.0035*(1-t/6),t);t+=.045+Math.pow(i/46,2)*.16}},
+ roletaBola:()=>{const pulos=[0,.2,.34,.46,.55,.62,.68,.72];pulos.forEach((d,i)=>{tone(1800-i*60,900,.035,'triangle',.016*(1-i/10),d);noise(.03,.012*(1-i/10),3200,d,'bandpass',2600,2)})},
+ roletaPara:()=>{tone(1500,1100,.05,'triangle',.016);noise(.05,.01,2500,0,'bandpass',1800,2);tone(2600,2600,.08,'sine',.006,.06)},
+ cartaVira:()=>{noise(.06,.016,3500,0,'bandpass',5500,1.2);tone(700,420,.05,'triangle',.008,.03)},
+ // prêmio de outro jogador no caça-níquel: sininhos e moedas caindo, mais curto e genérico
+ slotOutro:()=>{const t=agora();[84,88,91].forEach((m,i)=>sinoCassino(t+i*.09,m,.026));chuvaMoedas(.25,12,.9,.02)},
+ // Explorador (js/classe-explorador.js): armadilha armando e fechando, corneta de caça, corda do gancho e a mira travando
+ armadilhaArma:()=>{tone(900,1400,.06,'square',.006);noise(.05,.012,3000,0,'bandpass',4000,2);tone(1500,1500,.04,'square',.005,.07)},
+ armadilhaFecha:()=>{noise(.09,.04,4200,0,'bandpass',2500,1.6);tone(2200,900,.08,'square',.012);tone(160,70,.14,'sine',.04,.02);noise(.18,.012,1500,.06,'highpass',3000,.8)},
+ corneta:()=>{const t=agora();for(const [m,d,dur] of [[55,0,.18],[62,.16,.45]])nota(bus.efeitos,mtof(m),t+d,dur,{tipo:'sawtooth',vol:.02*escala,ataque:.04,solta:.25,filtro:1600,vibrato:.006});noise(.4,.006,900,.1,'bandpass',600,1.2)},
+ gancho:()=>{noise(.16,.02,1800,0,'bandpass',3600,2.4);tone(500,900,.12,'triangle',.006)},
+ mira:()=>{tone(1800,1800,.04,'square',.006);tone(2400,2400,.05,'square',.006,.07);tone(3000,3000,.08,'sine',.008,.14)},
  // forja do Ferreiro (js/forja.js): martelo na bigorna, os dois itens girando e o resultado que saiu pior
  bigorna:()=>{tone(1870,1830,.55,'square',.006);tone(2790,2740,.45,'sine',.012);tone(3720,3650,.3,'sine',.006);tone(150,80,.12,'sine',.04);noise(.07,.035,5200,0,'bandpass',2600,2.2)},
  forjaGira:()=>{tone(220,880,.95,'sine',.014);tone(330,1320,.95,'triangle',.006);noise(1,.016,500,0,'bandpass',3200,1.4)},
@@ -276,9 +329,18 @@ window.somQueda=q=>{
  if(r>=5&&audio&&bus){tone(55,35,.5,'sine',.07);noise(.35,.02,200,0,'lowpass',60,.7)}
 };
 // vol: 0 a 1, multiplica o volume (sons de outros jogadores, pela distância)
+/* nivelamento (2026-11-04, pedido do usuário: "alguns parecem mais altos que outros mesmo com 100%"): cada som foi
+   medido (SOM.medirEfeito, ferramenta de teste) e js/niveis-som.js guarda o ganho que deixa todos no mesmo volume
+   percebido. Cada som toca por um nó de ganho próprio (nível × distância), então vale também para as partes do som que
+   não usam a "escala" (osciladores montados à mão). */
+const NIVEL=nome=>{const n=window.NIVEIS_SOM&&NIVEIS_SOM.efeitos&&NIVEIS_SOM.efeitos[nome];return Number.isFinite(n)?n:1};
+function tocarNivelado(nome,play,vol){
+ const g=audio.createGain();g.gain.value=vol*NIVEL(nome);g.connect(bus.efeitos);
+ const real=bus.efeitos;bus.efeitos=g;escala=1;
+ try{play()}finally{bus.efeitos=real;escala=1;setTimeout(()=>{try{g.disconnect()}catch(e){}},8000)}}
 window.playGameSound=function(name,vol=1){
  const config=settings();
- escala=vol;
+ escala=vol*NIVEL(name);
  try{
   if(config[name]&&config[name].src){playClip(config[name]);return}
   if(name=='sword'){playSword();return}
@@ -286,10 +348,24 @@ window.playGameSound=function(name,vol=1){
   const play=sounds[name];
   if(!play)return;
   criarContexto();
-  if(audio.state=='suspended')audio.resume().then(()=>{escala=vol;try{play()}finally{escala=1}}).catch(error=>console.error('Não foi possível iniciar o áudio do jogo:',error));
-  else play()
+  if(audio.state=='suspended')audio.resume().then(()=>tocarNivelado(name,play,vol)).catch(error=>console.error('Não foi possível iniciar o áudio do jogo:',error));
+  else tocarNivelado(name,play,vol)
  }finally{escala=1}
 };
+/* medição para o nivelamento: toca o som num contexto offline (sem som) e devolve o volume percebido = maior RMS em
+   janelas de 120 ms (o "pedaço mais alto" do som) e o pico */
+// ponderação de audição (aproximação da curva K): corta o grave e realça 2–4 kHz, onde o ouvido é mais sensível
+function ouvido(off){const hp=off.createBiquadFilter();hp.type='highpass';hp.frequency.value=150;hp.Q.value=.7;const pk=off.createBiquadFilter();pk.type='peaking';pk.frequency.value=3000;pk.Q.value=.8;pk.gain.value=5;hp.connect(pk);pk.connect(off.destination);return hp}
+SOM.medirEfeito=async(nome,seg=3,sr=32000)=>{const play=sounds[nome];if(!play)return null;const real=audio,busReal=bus,off=new OfflineAudioContext(1,Math.round(sr*seg),sr);
+ audio=off;const d=off.createGain();d.connect(ouvido(off));bus={geral:d,efeitos:d,musica:d,ambiente:d};escala=1;let erro='';
+ try{play()}catch(e){erro=e.message}finally{audio=real;bus=busReal;escala=1}
+ return medirBuffer(await off.startRendering(),erro)};
+SOM.medirArquivo=async src=>{try{const dec=new OfflineAudioContext(1,32000,32000),buf=await dec.decodeAudioData(await (await fetch(src)).arrayBuffer());
+ const off=new OfflineAudioContext(1,Math.ceil(buf.duration*32000)+320,32000),s=off.createBufferSource();s.buffer=buf;s.connect(ouvido(off));s.start(0);return medirBuffer(await off.startRendering(),'')}catch(e){return{erro:e.message}}};
+function medirBuffer(b,erro){const x=b.getChannelData(0),sr=b.sampleRate,J=Math.round(sr*.12);let pk=0,mx=0;
+ for(let a=0;a<x.length;a+=Math.round(J/2)){let q=0;const e=Math.min(x.length,a+J);for(let i=a;i<e;i++){q+=x[i]*x[i];if(Math.abs(x[i])>pk)pk=Math.abs(x[i])}mx=Math.max(mx,Math.sqrt(q/J))}
+ return{rms:+mx.toFixed(4),pico:+pk.toFixed(3),erro}}
+SOM.nomesEfeitos=()=>Object.keys(sounds);
 
 /* bateria da Caverna dos Glooc: bumbo, tambor tribal (tom), caixa/chimbal de ruído e o ruído subindo antes do drop */
 function bumboGlooc(d,t,v,q=1){const o=audio.createOscillator(),g=audio.createGain();o.frequency.setValueAtTime(150*q,t);o.frequency.exponentialRampToValueAtTime(42,t+.12);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.24);o.connect(g);g.connect(d);o.start(t);o.stop(t+.26)}
@@ -497,6 +573,25 @@ const TRILHAS={
   if(s===0)ac.forEach(m=>nota(d,mtof(m+12),t,P*16,{tipo:'sine',vol:.008,ataque:.3,solta:.5,vibrato:.004})); // coro
  }}, // taverna: as 5 músicas de js/musica-taverna.js, no compasso do relógio do jogo (todos os jogadores ouvem igual):
  // baixo, dedilhado de alaúde, melodia (rabeca/flauta), pandeiro e bumbo; aplauso entre as músicas
+ /* Cassino Arcano (2026-11-04, pedido do usuário): jazz de salão com magia, Fá maior, 100 bpm em colcheias com swing.
+    Progressão ii–V–I–vi–IV–V–I–iii com sétimas; baixo andando em semínimas (fundamental, quinta, aproximação cromática
+    para o próximo acorde), piano elétrico em "Charleston" (no 2-e e no 4), prato de condução (ding-dinga) e vassourinha
+    no 2 e 4, melodia de vibrafone em frases com respiro, e a cada 4 compassos um arpejo de sinos mágicos subindo. */
+ cassino:{passo:60/100/2,ganho:.95,toca(d,t,n,est){
+  const P=60/100/2,s=n%8,bar=Math.floor(n/8)%8,tt=t+(s%2?P*.34:0); // swing: a colcheia do contratempo atrasa
+  const AC=[[55,58,62,65],[48,52,55,58],[53,57,60,64],[50,53,57,60],[58,62,65,69],[48,52,55,58],[53,57,60,64],[52,55,59,62]],ac=AC[bar],prox=AC[(bar+1)%8];
+  if(s%2===0){const q=s/2,r=ac[0]-24,alvo=prox[0]-24,linha=[r,r+7,r+(q===2?9:4),alvo+(alvo>r?-1:1)];nota(d,mtof(linha[q]),t,P*1.7,{tipo:'triangle',vol:.055,ataque:.006,solta:.1,filtro:800})}
+  if(s===3||s===6)ac.forEach((m,i)=>{nota(d,mtof(m),tt+i*.014,P*(s===6?2.6:1.1),{tipo:'sine',vol:.013,ataque:.008,solta:.4,vibrato:.004});nota(d,mtof(m+12),tt+i*.014,P*.5,{tipo:'triangle',vol:.003,solta:.25})});
+  if(s!==1&&s!==5){chiadoGlooc(d,tt,s%2?.0045:.007,7200,.22,'highpass',n);nota(d,5100+(s%3)*80,tt,.01,{tipo:'sine',vol:.0018,ataque:.002,solta:.25})}
+  if(s===2||s===6)chiadoGlooc(d,tt,.008,2300,.16,'bandpass',n);
+  if(s===0&&bar%2===0)nota(d,62,t,.12,{tipo:'sine',vol:.035,solta:.12});
+  // vibrafone: notas da escala perto da anterior, puxando para as notas do acorde nos tempos fortes; respira no 4º compasso
+  const ESC=[65,67,69,70,72,74,76,77,79,81];
+  if(bar%4!==3&&(s===0||s===3||s===4||s===7)&&Math.random()<(s===0?.85:.5)){let i=est.vib??4;i=Math.max(0,Math.min(ESC.length-1,i+Math.round((Math.random()-.5)*3.2)));
+   if(s===0){const alvo=ESC.map((m,k)=>[k,Math.min(...ac.map(c=>Math.abs((m-c)%12)))]).filter(([,dd])=>dd===0).map(([k])=>k);if(alvo.length)i=alvo.reduce((a,b)=>Math.abs(b-i)<Math.abs(a-i)?b:a)}
+   est.vib=i;sino(d,tt,ESC[i],.022)}
+  if(bar%4===3&&s===4)[0,1,2,3,4,5,6].forEach(i=>sino(d,t+i*.055,ac[i%4]+24+(i>3?12:0),.009));
+ }},
  tavern:{sincronizada:true,tocaPasso(d,t,info){
   const m=info.m,P=m.passos,k=info.passo,s=k%P,bar=Math.floor(k/P)%m.barras,pl=m.passo,forte=s===0||(P===8?s===4:s===3);
   if(forte)nota(d,mtof(m.baixo[bar]),t,pl*1.3,{tipo:'triangle',vol:.05,solta:.15});
@@ -549,7 +644,7 @@ function fundo(d,tipo,freq,q,vol){
  src.connect(f);f.connect(g);g.connect(d);src.start(0,Math.random()*1.5);
  return {gain:g.gain,parar:()=>{try{src.stop()}catch(e){}}};
 }
-const ativos={musica:null,ambiente:null}; // {cena, saida(gain), ...}
+const ativos={musica:null,ambiente:null,cassino:null}; // {cena, saida(gain), perto(gain), ...}; cassino: 2ª música (cidade)
 /* para testes: toca a trilha num contexto offline (sem som) e mede pico e volume a cada 5 s */
 SOM.medirTrilha=async(nome,seg=40,sr=22050)=>{const tr=TRILHAS[nome];if(!tr||!tr.toca)return null;const real=audio,off=new OfflineAudioContext(1,Math.round(sr*seg),sr);audio=off;let n=0,erro='';
  try{const d=off.createGain();d.connect(off.destination);const est={};for(let t=.05;t<seg-1;t+=tr.passo){tr.toca(d,t,n,est);n++}}catch(e){erro=e.message}finally{audio=real}
@@ -560,11 +655,14 @@ const posMusica={};
 function trocar(canal,cena){
  const a=ativos[canal];if(a&&a.cena===cena)return;
  if(a&&canal==='musica')posMusica[a.cena]={n:a.n,quando:performance.now()};
- if(a){const t=agora();a.saida.gain.cancelScheduledValues(t);a.saida.gain.setValueAtTime(a.saida.gain.value,t);a.saida.gain.linearRampToValueAtTime(0,t+1.4);a.parado=true;setTimeout(()=>{(a.nos||[]).forEach(n=>n.parar());try{a.saida.disconnect()}catch(e){}},1600);ativos[canal]=null}
+ if(a){const t=agora();a.saida.gain.cancelScheduledValues(t);a.saida.gain.setValueAtTime(a.saida.gain.value,t);a.saida.gain.linearRampToValueAtTime(0,t+1.4);a.parado=true;setTimeout(()=>{(a.nos||[]).forEach(n=>n.parar());try{a.saida.disconnect();a.perto.disconnect()}catch(e){}},1600);ativos[canal]=null}
  if(!cena)return;
- const saida=audio.createGain(),t=agora();saida.gain.setValueAtTime(0,t);saida.gain.linearRampToValueAtTime(canal==='musica'&&TRILHAS[cena]&&TRILHAS[cena].ganho||1,t+2); /* ganho: nivela trilhas mais cheias (orquestra) com as outras */saida.connect(bus[canal]);
+ const ehMusica=canal!=='ambiente'; // 'cassino' é um segundo canal de música (toca junto com a da taverna)
+ const saida=audio.createGain(),t=agora();saida.gain.setValueAtTime(0,t);saida.gain.linearRampToValueAtTime(ehMusica&&(window.NIVEIS_SOM&&NIVEIS_SOM.trilhas&&NIVEIS_SOM.trilhas[cena]||TRILHAS[cena]&&TRILHAS[cena].ganho)||1,t+2); // nivelamento (js/niveis-som.js) /* ganho: nivela trilhas mais cheias (orquestra) com as outras */
+ // perto: volume pela distância (música por aproximação na cidade); 1 nas outras cenas
+ const perto=audio.createGain();perto.gain.value=1;saida.connect(perto);perto.connect(bus[canal]||bus.musica);
  const volta=canal==='musica'&&TRILHAS[cena]&&TRILHAS[cena].continua&&posMusica[cena]&&performance.now()-posMusica[cena].quando<120000?posMusica[cena].n:0; /* música de exploração continua de onde parou ao voltar da luta */
- const novo={cena,saida,prox:t+.15,n:volta,est:{}};
+ const novo={cena,saida,perto,prox:t+.15,n:volta,est:{}};
  if(canal==='ambiente'){const amb=AMBIENTES[cena];novo.nos=amb.montar(saida);novo.timers=amb.eventos.map(([a,b])=>t+a+Math.random()*(b-a))}
  ativos[canal]=novo;
 }
@@ -584,6 +682,13 @@ setInterval(()=>{
  const t=agora(),m=ativos.musica;
  if(m&&!m.parado&&TRILHAS[m.cena].sincronizada){if(window.MUSICA_TAVERNA)tocarSincronizada(m,t)}
  else if(m&&!m.parado){const tr=TRILHAS[m.cena];if(m.prox<t-1)m.prox=t+.05;while(m.prox<t+1.2){ /* 1,2 s de antecedência: com o jogo pesado o intervalo atrasa e as notas saíam picotadas */try{tr.toca(m.saida,m.prox,m.n,m.est)}catch(e){console.error('Música:',e)}m.prox+=tr.passo;m.n++}}
+ const mc=ativos.cassino;
+ if(mc&&!mc.parado){const tr=TRILHAS[mc.cena];if(mc.prox<t-1)mc.prox=t+.05;while(mc.prox<t+1.2){try{tr.toca(mc.saida,mc.prox,mc.n,mc.est)}catch(e){console.error('Música:',e)}mc.prox+=tr.passo;mc.n++}}
+ /* música por aproximação (2026-11-04, pedido do usuário): na cidade, a da taverna vale na taverna inteira (com o pátio)
+    e vai sumindo pela rua; a do cassino, dentro do cassino e um pouco na porta. A conversa de fundo segue a taverna. */
+ {const f=window.inTaverna&&window.RUA_TAVERNA&&typeof p!=='undefined'?RUA_TAVERNA.fatoresSom(p.x,p.y):null;
+  const alvo={musica:f?Math.max(.0001,f.taverna):1,ambiente:f?Math.max(.0001,f.taverna*.9+f.cassino*.3):1,cassino:f?Math.max(.0001,f.cassino):1};
+  for(const k of ['musica','ambiente','cassino']){const q=ativos[k];if(q&&q.perto)q.perto.gain.setTargetAtTime(alvo[k],t,.25)}}
  const a=ativos.ambiente;
  if(a&&!a.parado){const ev=AMBIENTES[a.cena].eventos;ev.forEach(([mn,mx,fn],i)=>{if(a.timers[i]<t-2)a.timers[i]=t+mn;while(a.timers[i]<t+.3){try{fn(a.saida,Math.max(t,a.timers[i]))}catch(e){}a.timers[i]+=mn+Math.random()*(mx-mn)}})}
 },150);

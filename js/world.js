@@ -295,7 +295,7 @@ if(Array.isArray(PROJ.map&&PROJ.map.elements)){
 function groundFree(x,y){const i=Math.floor(x/T),j=Math.floor(y/T);if(i<0||j<0||i>=N||j>=N)return false;const ch=CHAO_GRID[j*N+i];if(ch)return !ch.liquido;return V(i,j)<28.5&&!(inRiver(x,y)&&!onBridge(x,y))}
 const walkRaw=(x,y,ig,exclude)=>{if(typeof NPCS!='undefined')for(const n of NPCS)if(Math.abs(n.x-x)<7&&Math.abs(n.y-y)<7&&Math.hypot(n.x-x,n.y-y)<6.5)return false;const i=Math.floor(x/T),j=Math.floor(y/T);if(i<0||j<0||i>=N||j>=N||!groundFree(x,y))return false;for(const t of trees)if(t!==exclude&&Math.abs(t.x-x)<6&&Math.abs(t.y-y)<5&&Math.hypot(t.x-x,(t.y-y)*1.4)<4.5)return false;for(const e of mapElements){if(e===exclude||ig&&e.type==ig)continue;const type=MAP_ELEMENT_TYPES[e.type];if(type&&type.blocks&&Math.hypot(e.x-x,e.y-y)<type.radius+4)return false}return true};
 let WG=null;const GW=W/2;
-const walk=(x,y)=>{if(window.inTutorial&&window.tutorialWalk)return tutorialWalk(x,y);if(window.inArena&&window.arenaWalk)return arenaWalk(x,y);if(window.inTaverna&&window.tavernaWalk)return tavernaWalk(x,y);if(window.inDungeon&&typeof dungeonWalk==='function')return dungeonWalk(x,y);if(campWallBlocks(x,y))return false;if(!WG)return walkRaw(x,y);const i=Math.floor(x/2),j=Math.floor(y/2);return i>=0&&j>=0&&i<GW&&j<GW&&WG[j*GW+i]===1};
+const walk=(x,y)=>{if(window.inTutorial&&window.tutorialWalk)return tutorialWalk(x,y);if(window.inArena&&window.arenaWalk)return arenaWalk(x,y);if(window.inTaverna&&window.tavernaWalk)return tavernaWalk(x,y);if(window.inDungeon&&typeof dungeonWalk==='function')return dungeonWalk(x,y);if(campWallBlocks(x,y))return false;if(window.CONSTRUCOES&&CONSTRUCOES.bloqueia(x,y,'ilha'))return false;if(!WG)return walkRaw(x,y);const i=Math.floor(x/2),j=Math.floor(y/2);return i>=0&&j>=0&&i<GW&&j<GW&&WG[j*GW+i]===1};
 /* paredes bloqueiam golpes e magias: na DG as paredes e portas fechadas; na ilha a paliçada (portão fechado) e muros de pedra.
    Água, árvores e pedras pequenas não bloqueiam. linhaLivre(a,b) confere o caminho em passos de 4 px. */
 const bloqueiaTiro=(x,y)=>{if(window.inTutorial)return false;if(window.inArena)return !!(window.arenaParede&&arenaParede(x,y));if(window.inDungeon)return !!(window.dungeonParede&&dungeonParede(x,y));if(window.inTaverna)return false;if(campWallBlocks(x,y))return true;for(const e of mapElements)if(e.type=='stonewall'&&Math.hypot(e.x-x,e.y-y)<MAP_ELEMENT_TYPES.stonewall.radius)return true;return false};
@@ -404,6 +404,8 @@ function buildPath(from,to,avoidCamp=false){
    maxCellY=Math.max(maxCellY,Math.ceil((box.y+box.h)/T));
   }
  }
+ // cidade: a loja do Viajante e a ponta da rua ficam à esquerda do zero (js/cassino.js RUA_TAVERNA.limites)
+ if(window.inTaverna&&window.RUA_TAVERNA){const b=RUA_TAVERNA.limites();minCellX=Math.min(minCellX,Math.floor(b.x0/T)-1);minCellY=Math.min(minCellY,Math.floor(b.y0/T)-1)}
  const cols=maxCellX-minCellX+1,rows=maxCellY-minCellY+1;
  const cell=(x,y)=>Math.max(0,Math.min(cols-1,Math.floor(x/T)-minCellX))+Math.max(0,Math.min(rows-1,Math.floor(y/T)-minCellY))*cols;
  const worldCell=(i)=>({x:(i%cols+minCellX+.5)*T,y:((Math.floor(i/cols)+minCellY)+.5)*T});

@@ -116,7 +116,7 @@
   const x=E('button','pcX','✕');x.type='button';x.setAttribute('aria-label','Fechar');x.onclick=fechar;topo.append(leg,x);
   box.append(topo);
   if(ficha){box.append(fichaClasse(ficha),E('p','pcAviso'));return}
-  box.append(arvore(),E('p','pcDica','Arraste para mover a árvore · as setas mostram de onde vem cada classe · as que recebem duas setas precisam das duas · clique numa classe sua para ver a ficha e trocar'),E('p','pcAviso'));
+  box.append(arvore(),E('p','pcAviso')); // explicações só no "?" (js/ajuda.js)
  }
 
  /* ---- árvore: botões posicionados na grade e as setas num SVG por baixo ---- */

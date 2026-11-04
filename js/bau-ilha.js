@@ -21,8 +21,8 @@
  let arrasto=null; // {de:'bau'|'mochila', i} enquanto um item do painel é arrastado
  /* filtro (2026-10-31, os mesmos da Mochila: js/ui.js barraFiltros): na coluna da mochila mostra só o que combina; no baú
     os outros itens ficam apagados no lugar (continuam arrastáveis, e os espaços não mudam) */
- let filtro='all';
- const combina=s=>!!s&&(filtro==='all'||typeof itemNaCategoria!='function'||itemNaCategoria(s,filtro));
+ let filtro='all',busca=''; // categoria e busca por nome (campo "Buscar")
+ const combina=s=>!!s&&(filtro==='all'||typeof itemNaCategoria!='function'||itemNaCategoria(s,filtro))&&(!busca||!window.nomeBate||nomeBate(s.id,busca));
  const arte=a=>!window.BAUS||typeof pixelArt!='function'?null:a?arteA||(arteA=pixelArt(BAUS.arte('madeira',true))):arteF||(arteF=pixelArt(BAUS.arte('madeira',false)));
  // aparece em toda ilha, inclusive na de outro jogador (2026-10-28): quem abre vê sempre o PRÓPRIO baú
  const visivel=()=>!window.inDungeon&&!window.inTaverna&&!window.inArena&&!window.inTutorial;
@@ -104,7 +104,7 @@
   const d=E('button','biSlot');d.type='button';
   if(s&&ITEMS[s.id]){const im=E('img');im.src=ITEMS[s.id].ic;im.alt='';d.append(im);if(s.n>1)d.append(E('b','',String(s.n)));if(gearType[s.id]&&s.q!=null)d.style.borderColor=QCOL[qi(s.q)];
    if(s.trava){d.classList.add('travado');d.append(E('i','biCadeado'))}
-   d._tip=()=>itemTip(s.id,s.q)+(k!=null?'<div class=tm>'+(s.trava?'Travado: fica no lugar ao organizar. ':'')+'Botão direito: '+(s.trava?'destravar':'travar')+' · arraste para mover</div>':'');
+   d._tip=()=>itemTip(s.id,s.q)+(k!=null?(s.trava?'<div class=tm>Travado</div>':''):'');
    d.onclick=clique;d.draggable=true;
    d.ondragstart=e=>{arrasto=k!=null?{de:'bau',i:k}:{de:'mochila',i};e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','bau')}catch(err){}if(typeof tipEl!='undefined')tipEl.style.display='none'};
    d.ondragend=()=>{arrasto=null};
@@ -132,16 +132,17 @@
   const org=E('button','biOrg','Organizar aba');org.type='button';org.title='Junta pilhas e ordena a aba aberta por tipo e qualidade. Itens travados (cadeado) ficam no lugar.';org.onclick=organizar;
   const gm=E('div','biGrade');let temItem=false;
   I.forEach((s,i)=>{if(s&&combina(s)){temItem=true;gm.append(vaga(s,{clique:()=>guardar(i),i}))}});
-  if(!temItem)gm.append(E('p','biVazio',filtro==='all'?'Mochila vazia.':'Nada desta categoria na mochila.'));
+  if(!temItem)gm.append(E('p','biVazio',busca?'Nenhum item com esse nome.':filtro==='all'?'Mochila vazia.':'Nada desta categoria na mochila.'));
   // filtros: a contagem soma a mochila e a aba aberta do baú
   const fil=E('div','biFiltros');fil.setAttribute('role','group');fil.setAttribute('aria-label','Filtrar itens por categoria');
   if(typeof barraFiltros=='function'){const k0=aba*POR_ABA;barraFiltros(fil,{ativo:()=>filtro,escolher:id=>{filtro=id;desenhar()},
-   contar:id=>I.filter(s=>s&&itemNaCategoria(s,id)).length+BAU.slice(k0,k0+POR_ABA).filter(s=>s&&itemNaCategoria(s,id)).length})}
+   contar:id=>I.filter(s=>s&&itemNaCategoria(s,id)).length+BAU.slice(k0,k0+POR_ABA).filter(s=>s&&itemNaCategoria(s,id)).length,
+   busca:{chave:'bau',valor:()=>busca,mudar:t=>{busca=t;desenhar()}}})}
   // soltar um item do baú no fundo da mochila: vai para o primeiro espaço livre
   alvoDeSoltar(gm,o=>{if(o.de==='bau')retirar(o.i)});
   const cab=E('div','biCabBau');cab.append(abas,org);
   const cols=E('div','biCols');cols.append(col('Mochila',gm),col('Baú · aba '+(aba+1)+' ('+usadosNaAba(aba)+'/'+POR_ABA+') · total '+usados+'/'+VAGAS,cab,grade));
-  box.append(topo,E('p','biDica','Clique ou arraste para guardar e retirar. Arraste itens do baú para trocar de lugar ou para outra aba. Botão direito trava o item (o cadeado o mantém no lugar ao organizar). O baú é só seu.'),fil,cols,E('p','biMsg'));
+  box.append(topo,fil,cols,E('p','biMsg')); // explicações só no "?" (js/ajuda.js)
   el.append(box);
  }
  function abrir(){aberto=true;alvo=false;desenhar()}

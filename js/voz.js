@@ -144,7 +144,7 @@
   if(!ligado)itens.push(el('p','mpNota','Você está fora da voz. Clique em Voz para entrar.'));
   else{
    const outros=[...new Set([...salas.values()].flatMap(s=>[...s.membros]))].filter(id=>id!==uid);
-   if(!outros.length)itens.push(el('p','mpNota',window.MP&&MP.grupoLider?'Ninguém mais está com a voz ligada aqui nem no seu grupo. Em grupo, a voz conecta quem está no mesmo lugar e os membros do grupo em qualquer lugar.':'Ninguém mais está com a voz ligada aqui. Sem grupo, a voz só conecta quem está no mesmo lugar (mesma ilha, DG ou taverna) e também clicou em Voz.'));
+   if(!outros.length)itens.push(el('p','mpNota',window.MP&&MP.grupoLider?'Ninguém mais está com a voz ligada aqui nem no seu grupo. Em grupo, a voz conecta quem está no mesmo lugar e os membros do grupo em qualquer lugar.':'Ninguém mais está com a voz ligada aqui. Sem grupo, a voz só conecta quem está no mesmo lugar (mesma ilha, DG ou cidade) e também clicou em Voz.'));
    const ul=el('ul');
    for(const id of outros){
     const par=pares.get(id),estado=par?par.estado:'conectando';

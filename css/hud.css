@@ -118,6 +118,9 @@ body.lowHp #lowhp{opacity:1;animation:lowHpPulse 1.6s ease-in-out infinite}
 .invCategory:hover img,.invCategory.active img{filter:none}
 .invCategory:hover img{transform:translateY(-1px)}
 .invCategory.active{background:#262626;outline:1px solid #e7cb88}
+/* busca por nome na barra de filtros (mochila, baú, Viajante) */
+.invBusca{flex:1 1 90px;min-width:70px;max-width:160px;height:36px;box-sizing:border-box;margin:0;padding:0 8px;background:#0d0d0d;border:2px solid #0d0d0d;outline:1px solid #3a3a3a;outline-offset:-3px;color:#e7dcc4;font:12px monospace}
+.invBusca:focus{outline:1px solid #e7cb88}.invBusca::placeholder{color:#7a6650}
 .invCategory.vazia img{opacity:.35}
 .invCategory:focus-visible{outline:2px solid #d9d0c7;outline-offset:-2px}
 .invCategory .invCatN{position:absolute;right:0;bottom:0;padding:1px 1px 0 2px;background:#0d0d0d;font:bold 8px/1 monospace;color:#a69c94!important;pointer-events:none}

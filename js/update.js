@@ -56,6 +56,7 @@ function approach(agent,target,range){
 }
 function moveAlong(agent,speed,dt){
  if(!agent.dest)return false;
+ if(!(dt>0))return false; // quadro sem tempo (volta do segundo plano): não anda, mas também não é "travado" (antes cancelava o destino)
  if(agent.pathI>=agent.path.length&&!walk(agent.dest.x,agent.dest.y)){agent.dest=null;agent.path=[];agent.pathKey='';return false}
  while(agent.pathI<agent.path.length&&dist(agent,agent.path[agent.pathI])<4)agent.pathI++;
  const point=agent.path[agent.pathI]||agent.dest,dx=point.x-agent.x,dy=point.y-agent.y,d=Math.hypot(dx,dy);

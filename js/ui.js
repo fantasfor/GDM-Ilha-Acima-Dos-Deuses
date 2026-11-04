@@ -58,10 +58,21 @@ window.INV_FILTRO_ORIGINAIS={...INV_CATEGORY_ICONS};for(const id in INV_CATEGORY
 function itemNaCategoria(s,cat){const t=gearType[s.id],d=ITEMS[s.id];if(cat=='all')return true;if(!d)return false;if(cat=='consumables')return !!d.use;if(cat=='materials')return !!d.material;if(cat=='sw')return t=='sw'||t=='sh';return t==cat}
 /* barra de filtros (mochila e baú): ícone a 2× no meio do botão e, no canto, quantos itens daquela categoria há;
    categoria sem nenhum item fica apagada. contar(id) → número (opcional) */
-function barraFiltros(caixa,{ativo,escolher,contar}){
+/* busca por nome (2026-11-04, pedido do usuário): campo "Buscar" no fim da barra; busca = {chave, valor(), mudar(t)}.
+   A janela se redesenha a cada letra, então o foco e o cursor voltam para o campo novo da mesma chave. */
+const semAcento=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function nomeBate(id,termo){if(!termo)return true;const d=ITEMS[id];return !!d&&semAcento(d.n).includes(semAcento(termo).trim())}
+window.nomeBate=nomeBate;
+let focoBusca=null;
+function barraFiltros(caixa,{ativo,escolher,contar,busca}){
  const botoes=INV_CATEGORIES.map(([id,label])=>{const b=document.createElement('button');b.type='button';b.className='invCategory';b.dataset.category=id;b.setAttribute('aria-label',label);
   const im=document.createElement('img');im.src=INV_CATEGORY_ICONS[id].toDataURL();im.alt='';im.setAttribute('aria-hidden','true');
   const n=document.createElement('small');n.className='invCatN';b.append(im,n);b.onclick=e=>{e.stopPropagation();escolher(id)};caixa.appendChild(b);return{id,label,b,n}});
+ if(busca){const inp=document.createElement('input');inp.type='search';inp.className='invBusca';inp.placeholder='Buscar';inp.setAttribute('aria-label','Buscar item pelo nome');inp.value=busca.valor()||'';
+  inp.onclick=e=>e.stopPropagation();inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'&&inp.value){inp.value='';focoBusca={chave:busca.chave,pos:0};busca.mudar('');e.preventDefault()}};
+  inp.oninput=()=>{focoBusca={chave:busca.chave,pos:inp.selectionStart};busca.mudar(inp.value)};
+  inp.onblur=()=>{setTimeout(()=>{if(focoBusca&&focoBusca.chave===busca.chave&&document.activeElement!==inp&&!document.activeElement.classList.contains('invBusca'))focoBusca=null},0)};
+  caixa.appendChild(inp);if(focoBusca&&focoBusca.chave===busca.chave){inp.focus();try{inp.setSelectionRange(focoBusca.pos,focoBusca.pos)}catch(e){}}}
  const atualizar=()=>{const a=ativo();for(const{id,label,b,n}of botoes){const on=id===a,q=contar?contar(id):null;
   b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));n.textContent=q?(q>99?'99+':String(q)):'';
   b.classList.toggle('vazia',q===0&&id!=='all');b.title=label+(q!=null?': '+q+(q==1?' item':' itens'):'')}};
@@ -69,7 +80,9 @@ function barraFiltros(caixa,{ativo,escolher,contar}){
 window.barraFiltros=barraFiltros;window.itemNaCategoria=itemNaCategoria;
 let invOpen=false,invCategory='all',invEquipSlot=null;function togInv(){invOpen=!invOpen;$('invp').style.display=invOpen?'flex':'none';if(window.dp)dp.classList.toggle('shift',invOpen)}
 $('bag').onclick=e=>{e.stopPropagation();togInv()};
-const barraMochila=barraFiltros($('invCategories'),{ativo:()=>invCategory,escolher:id=>{invCategory=id;invEquipSlot=null;renderInv()},contar:id=>typeof I=='undefined'?0:I.filter(s=>s&&itemNaCategoria(s,id)).length});
+window.invBusca='';
+const barraMochila=barraFiltros($('invCategories'),{ativo:()=>invCategory,escolher:id=>{invCategory=id;invEquipSlot=null;renderInv()},contar:id=>typeof I=='undefined'?0:I.filter(s=>s&&itemNaCategoria(s,id)).length,
+ busca:{chave:'mochila',valor:()=>invBusca,mudar:t=>{invBusca=t;renderInv()}}});
 const bs=document.createElement('div');bs.className='sk bs';bs.innerHTML='<u></u><span></span>';const basicModeButton=document.createElement('button');basicModeButton.type='button';basicModeButton.className='basicModeButton';basicModeButton.onclick=e=>{e.stopPropagation();cycleBasicMode()};bs.appendChild(basicModeButton);bs._tip=basicTip;$('sks').appendChild(bs);
 let shownBasicMode='',shownBasicIcon='';function refreshBasicMode(){const labels={sw:'M1',sh:'M2',alternate:'REV',distance:'M/R',ambas:'2X'},mode=p.basicMode||'sw';if(mode!=shownBasicMode){basicModeButton.textContent=labels[mode]||'M1';basicModeButton.title='Ataque básico: '+BASIC_MODE_LABEL[mode]+' — clique para alternar';basicModeButton.setAttribute('aria-label',basicModeButton.title);shownBasicMode=mode}const icon='url('+basic().ic+')';if(icon!=shownBasicIcon){bs.style.backgroundImage=icon;shownBasicIcon=icon}}
 window.refreshBasicMode=refreshBasicMode;refreshBasicMode();
@@ -111,7 +124,6 @@ function renderSkillMenu(){
   const icon=document.createElement('img');icon.src=s.ic;icon.alt='';const name=document.createElement('span');name.textContent=s.n;const source=document.createElement('small');source.textContent=CL[s.owner].n;node.append(icon,name,source);crossGrid.appendChild(node)});
  crosses.appendChild(crossGrid);
  skillPanel.appendChild(crosses);
- const hint=document.createElement('div');hint.className='skillHint';hint.textContent='Passe o mouse para ver os detalhes. As habilidades cross desbloqueadas podem ser escolhidas pela seta acima dos slots.';skillPanel.appendChild(hint);
 }
 const skillPicker=document.createElement('div');skillPicker.id='skillPicker';document.body.appendChild(skillPicker);
 let skillPickerSlot=-1;
@@ -167,9 +179,11 @@ function setQuestStage(n){
 /* Ganchos usados pelas ferramentas de teste da Engine (somente no Play da Engine; o jogo normal não tem trapaças). */
 /* trapaças do teste (Engine › Jogar › Ferramentas de teste): vida infinita, dano infinito, mana infinita, sem recarga, super velocidade */
 if(MODO.teste){window.TRAPACA={vida:false,dano:false,mana:false,recarga:false,velocidade:false};
- // upd e move são de js/update.js (carrega depois deste arquivo); super velocidade: o herói anda 3× mais rápido
+ // upd, move e movePlayer são de js/update.js (carrega depois deste arquivo); super velocidade: o herói anda 3× mais rápido
+ // (no clique para andar o passo já vem cortado pela velocidade em moveAlong, por isso multiplica também em movePlayer)
  addEventListener('load',()=>{const updT=upd;upd=function(dt){updT(dt);const t=window.TRAPACA;if(p.dead>0)return;if(t.vida)p.hp=mhp();if(t.mana)p.mp=mmp();if(t.recarga)SK.forEach(s=>s.t=0)};
-  const moveT=move;move=function(e,d,sp,dt){return moveT(e,d,e===p&&window.TRAPACA.velocidade?sp*3:sp,dt)}})}
+  const moveT=move;move=function(e,d,sp,dt){return moveT(e,d,e===p&&window.TRAPACA.velocidade&&!e.__clique?sp*3:sp,dt)};
+  const mpT=movePlayer;movePlayer=function(sp,dt){if(!window.TRAPACA.velocidade)return mpT(sp,dt);p.__clique=true;try{return mpT(sp*3,dt)}finally{p.__clique=false}}})}
 if(MODO.teste)window.TESTE={
  trapacas:o=>{Object.assign(window.TRAPACA,o||{});return window.TRAPACA},
  estado:()=>({classe:p.cls,nivel:p.lvl,rank:(p.classProgress&&p.classProgress[p.cls]||{rank:1}).rank,ouro:p.gold,vida:Math.round(p.hp),missao:questStage(),dg:!!window.inDungeon,x:Math.round(p.x),y:Math.round(p.y)}),
@@ -181,6 +195,11 @@ if(MODO.teste)window.TESTE={
  nivel:()=>{if(p.lvl<CALC.maxLevel)gainPlayerXp(p.lvl*CALC.xpPerLevel-p.xp)},
  rank:()=>{const r=p.classProgress[p.cls]||(p.classProgress[p.cls]={rank:1,xp:0});r.rank=Math.min(10,r.rank+1);if(r.rank>=10)r.xp=0;applySkills();renderSkillMenu()},
  classe:id=>{if(CL[id])setClass(id)},
+ // classes do jogo, também as feitas em código (Explorador, js/classe-explorador.js), que a Engine não tem nos dados
+ classes:()=>Object.keys(CL).filter(id=>id!=='sty'&&CL[id]&&CL[id].n).map(id=>[id,CL[id].n]),
+ // libera todas as classes (como se tivesse vencido os Mestres e feito a caçada da história); trocar fica no painel Classes
+ liberarClasses:()=>{p.classProgress=p.classProgress||{};let n=0;for(const id of Object.keys(CL))if(id!=='sty'&&CL[id]&&CL[id].n&&!p.classProgress[id]){p.classProgress[id]={rank:1,xp:0};n++}
+  if(window.PAINEL_CLASSES&&PAINEL_CLASSES.aberto)PAINEL_CLASSES.abrir();saveGame();return n},
  curar:()=>{p.hp=mhp();p.mp=mmp()},
  // renasce no mesmo lugar (também dentro da DG, onde o jogo normal não deixa); vivo: não faz nada
  renascer:()=>{if(!(p.dead>0))return false;p.dead=0;p.morreuEm=null;p.hp=mhp();p.mp=mmp();p.st=null;p.dest=null;p.path=[];p.tgt=null;ring(p.x,p.y,30,'#fff6b0',.7);if(window.playGameSound)playGameSound('revive');return true},
@@ -256,7 +275,9 @@ function saveGame(){
  data.rapido=RAPIDO; // acesso rápido 1–6 (js/state.js)
  if(window.BAU_ILHA)data.bau=BAU_ILHA.dados(); // baú do acampamento (js/bau-ilha.js)
  if(window.FORJA)data.forja=FORJA.dados(); // nível do ferreiro (js/forja.js)
- try{saveStore().setItem('ilha-rpg-save',JSON.stringify(data))}catch(err){console.error('Não foi possível salvar o jogo:',err)}
+ // assinado (js/seguranca.js): save mexido fora do jogo não confere; a cópia "ok" é a última boa
+ const txt=window.SEGURANCA?SEGURANCA.assinar(JSON.stringify(data)):JSON.stringify(data);
+ try{saveStore().setItem('ilha-rpg-save',txt);try{saveStore().setItem('ilha-rpg-save-ok',txt)}catch(e){}}catch(err){console.error('Não foi possível salvar o jogo:',err)}
 }
 window.saveGame=saveGame;
 /* itens do save cujo tipo não existe mais (apagado ou renomeado na Engine): ficam guardados no save em vez de sumir,
@@ -282,6 +303,10 @@ function loadGame(){
  if(!raw)return false;
  try{
   const d=JSON.parse(raw);if(!d||!d.p||!Array.isArray(d.items))return falhaAoCarregar(raw,'formato inválido');
+  // assinatura (js/seguranca.js): mexido fora do jogo → volta à última cópia boa do MESMO personagem (classe e aparência)
+  if(window.SEGURANCA&&SEGURANCA.conferir(d)===false){SEGURANCA.suspeita('save alterado fora do jogo');
+   if(SEGURANCA.ativo){const bom=saveStore().getItem('ilha-rpg-save-ok');
+    if(bom&&bom!==raw)try{const d2=JSON.parse(bom);if(SEGURANCA.conferir(d2)&&d2.p&&d2.p.cls===d.p.cls&&JSON.stringify(d2.p.look||null)===JSON.stringify(d.p.look||null)){saveStore().setItem('ilha-rpg-save',bom);return loadGame()}}catch(e){}}}
   for(const k of ['x','y','hp','mp','lvl','xp','gold'])if(Number.isFinite(d.p[k]))p[k]=d.p[k];
   if(d.ilhaV!==2){p.x+=CHAO.ILHA_DESLOC;p.y+=CHAO.ILHA_DESLOC} // save da ilha menor: mesmo lugar em relação ao acampamento
   p.lvl=Math.max(1,Math.min(+CALC.maxLevel||10,Math.floor(p.lvl)));if(p.lvl>=CALC.maxLevel)p.xp=0;
@@ -459,7 +484,8 @@ function showDrop(){compactDrops();dp.innerHTML='';dp.style.display=drops.length
   r.innerHTML='<img src="'+ITEMS[o.id].ic+'"><span>'+(missao?'<em class="qm">!</em> ':'')+ITEMS[o.id].n.split(' (')[0]+(o.q==null?'':' <small>'+o.q+'%</small>')+((o.n||1)>1?' <b>×'+(o.n||1)+'</b>':'')+'</span><button class=ya aria-label="Aceitar '+ITEMS[o.id].n.split(' (')[0]+'">✓</button><button class=xa aria-label="Rejeitar '+ITEMS[o.id].n.split(' (')[0]+'">✕</button>';
   r.querySelector('.ya').onclick=()=>acceptDrop(o);r.querySelector('.xa').onclick=()=>rejectDrop(o);dp.appendChild(r)});
  dp.classList.toggle('shift',invOpen)}
-function acceptDrop(o=drops[0]){if(!o)return;if(!addItem(o.id,o.q,o.n||1)){ft(p.x,p.y-24,'Bolsa cheia!','#f66');return}if(o.questReward&&o.id=='saw')sawObtained=true;if(window.playGameSound)playGameSound('item');const missao=ehMissao(o.id,o.questReward);ft(p.x,p.y-16,(missao?'! ':'')+ITEMS[o.id].n.split(' (')[0]+((o.n||1)>1?' ×'+(o.n||1):''),missao?'#ffd84a':'#9f9');drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
+function acceptDrop(o=drops[0]){if(!o)return;if(!addItem(o.id,o.q,o.n||1)){ft(p.x,p.y-24,'Bolsa cheia!','#f66');return}if(o.questReward&&o.id=='saw')sawObtained=true;
+ else if((o.id=='saw'||o.id=='Serrote')&&carpenterHelped&&!sawObtained&&!wallBuilt){ft(p.x,p.y-36,'SERROTE ENCONTRADO! Leve ao carpinteiro.','#ffd84a');if(window.playGameSound)playGameSound('quest')}if(window.playGameSound)playGameSound('item');const missao=ehMissao(o.id,o.questReward);ft(p.x,p.y-16,(missao?'! ':'')+ITEMS[o.id].n.split(' (')[0]+((o.n||1)>1?' ×'+(o.n||1):''),missao?'#ffd84a':'#9f9');drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
 function rejectDrop(o=drops[0]){if(!o)return;drops.splice(drops.indexOf(o),1);tipEl.style.display='none';showDrop();saveGame()}
 function rejectAllDrops(){if(!drops.length)return;drops.length=0;tipEl.style.display='none';showDrop();saveGame()}
 addEventListener('keydown',e=>{if(!drops.length)return;if(TECLAS.acao(e)=='pegar')acceptDrop();else if(e.key=='Escape')rejectDrop()});

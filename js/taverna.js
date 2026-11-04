@@ -45,7 +45,10 @@
  /* ---- colisão ---- */
  window.tavernaWalk=(x,y)=>{
   if(window.BAR){if(BAR.portaEm(x,y))return true;if(BAR.dentro(x,y))return BAR.walk(x,y)} // porta e pátio do bar
-  if(x<OX+12||x>OX+TW-12||y<OY+54||y>OY+TH-12)return Math.abs(x-DOOR.x)<10&&y>=OY+TH-12&&y<=OY+TH-2;
+  if(window.CASSINO&&CASSINO.contem(x,y))return CASSINO.walk(x,y);          // cassino (js/cassino.js)
+  if(window.LOJA_VIAJANTE&&LOJA_VIAJANTE.contem(x,y))return LOJA_VIAJANTE.walk(x,y); // loja do Viajante (js/loja-viajante.js)
+  if(window.RUA_TAVERNA&&RUA_TAVERNA.contem(x,y))return RUA_TAVERNA.walk(x,y); // rua de terra entre a taverna e o cassino
+  if(x<OX+12||x>OX+TW-12||y<OY+54||y>OY+TH-12)return Math.abs(x-DOOR.x)<10&&y>=OY+TH-12&&y<OY+TH; // a porta dá na rua
   if(x<OX+196&&y<OY+92)return false;                       // balcão e área da taverneira
   if(Math.abs(x-LAREIRA.x)<43&&y<LAREIRA.y+22)return false;  // lareira
   if(x>PALCO.x0-4&&x<PALCO.x1+4&&y>PALCO.y0-46&&y<PALCO.y1+8)return false; // palco, cortina e a placa (ninguém fica escondido atrás)
@@ -218,9 +221,15 @@
  const bancos=[];MESAS.forEach(m=>m.cadeiras.forEach((c,i)=>{const q=LAY.cadeiraEm(m,i);bancos.push({x:q.x,y:q.y,lado:c.o===1?1:c.o===3?-1:0})}));
  window.drawTaverna=function(){
   if(!fundo)fundo=desenharFundo();
-  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0806';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=window.RUA_TAVERNA?'#263a3a':'#0b0806';ctx.fillRect(0,0,cv.width,cv.height); // além do chão: o escuro da mata
   ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S));ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(fundo,OX,OY);if(window.BAR)BAR.chao();
+  if(window.RUA_TAVERNA)RUA_TAVERNA.chao(); // gramado e rua de terra em volta
+  ctx.drawImage(fundo,OX,OY);if(window.BAR)BAR.chao();if(window.CASSINO)CASSINO.chao();if(window.LOJA_VIAJANTE)LOJA_VIAJANTE.chao();
+  // tufos de grama ao vento, iguais aos da ilha (js/ilha-viva.js), e o que fica deitado no chão
+  if(window.ILHA_VIVA&&ILHA_VIVA.tufosEm&&window.RUA_TAVERNA)ILHA_VIVA.tufosEm('cidade',RUA_TAVERNA.ehGrama,['#2f6e31','#3c843a','#62ad4f']);
+  if(window.CAMADA_CHAO)CAMADA_CHAO.desenhar();
+  // telhados (js/construcoes.js): de fora se vê o telhado; dentro, ele some. aT = quanto o telhado da taverna cobre
+  const aT=window.CONSTRUCOES?CONSTRUCOES.alfa('taverna'):0,vT=1-aT;
   for(const wx of JANELAS)janela(wx);
   raioDeSol();papeisDoQuadro();
   fogo();
@@ -257,22 +266,28 @@
    R(ctx,bx-t,by-t,barW+2*t,3+3*t,'#3a3a3a');R(ctx,bx,by,barW,2,'#173d1c');ctx.fillStyle='#4cd04f';ctx.fillRect(bx,by,barW*hr,2);ctx.fillStyle='#10203a';ctx.fillRect(bx,by+2+t,barW,1);ctx.fillStyle='#3985ed';ctx.fillRect(bx,by+2+t,barW*mr,1)}]);
   if(window.BAR)BAR.objetos(L);
   if(window.VIAJANTE)VIAJANTE.objetos(L); // o Viajante (js/viajante.js)
+  if(window.RUA_TAVERNA)RUA_TAVERNA.objetos(L);if(window.CASSINO)CASSINO.objetos(L);if(window.LOJA_VIAJANTE)LOJA_VIAJANTE.objetos(L);
+  if(window.CONSTRUCOES)CONSTRUCOES.objetos(L,'taverna');
   if(window.onlineDrawables)onlineDrawables(L);
   L.sort((a,b)=>a[0]-b[0]).forEach(l=>l[1]());
-  notasMusicais();
+  if(vT>.01){ctx.save();ctx.globalAlpha=vT;notasMusicais();ctx.restore()}
   // noite: a taverna fica um pouco mais escura e as velas, a lareira e as lanternas do palco brilham mais
   const nk=window.TEMPO?TEMPO.escuro():0;
-  if(window.desenharNoite){desenharNoite(.4,[{x:LAREIRA.x,y:LAREIRA.y+6,r:120},...MESAS.map(m=>({x:m.x,y:m.y-14,r:55,a:.7})),{x:PALCO.x0+8,y:PALCO.y0-24,r:60,a:.6},{x:PALCO.x1-8,y:PALCO.y0-24,r:60,a:.6},...(window.BAR?BAR.luzes():[])]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))}
-  ctx.save();ctx.globalCompositeOperation='screen';
+  if(window.desenharNoite){desenharNoite(.4,[{x:LAREIRA.x,y:LAREIRA.y+6,r:120},...MESAS.map(m=>({x:m.x,y:m.y-14,r:55,a:.7})),{x:PALCO.x0+8,y:PALCO.y0-24,r:60,a:.6},{x:PALCO.x1-8,y:PALCO.y0-24,r:60,a:.6},...(window.BAR?BAR.luzes():[]),...(window.RUA_TAVERNA?RUA_TAVERNA.luzes():[]),...(window.CASSINO?CASSINO.luzes():[]),...(window.LOJA_VIAJANTE?LOJA_VIAJANTE.luzes():[])]);ctx.setTransform(S,0,0,S,Math.round(cv.width/2-p.x*S),Math.round(cv.height/2-p.y*S))}
+  // as luzes de dentro (velas, palco) só aparecem com o telhado aberto
+  ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=vT;
   for(const m of MESAS){const g=ctx.createRadialGradient(m.x,m.y-16,1,m.x,m.y-16,46+16*nk);g.addColorStop(0,'rgba(255,190,90,'+(.20+.14*nk)+')');g.addColorStop(1,'rgba(255,160,60,0)');ctx.fillStyle=g;ctx.fillRect(m.x-62,m.y-78,124,124)}
   for(const lx of [PALCO.x0+8,PALCO.x1-8]){const g=ctx.createRadialGradient(lx,PALCO.y0-20,1,lx,PALCO.y0-20,70);g.addColorStop(0,'rgba(255,200,120,'+(.16+.12*nk)+')');g.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=g;ctx.fillRect(lx-70,PALCO.y0-90,140,140)}
   ctx.restore();
   if(window.BAR)BAR.brilho(nk);
-  for(const lx of [PALCO.x0+8,PALCO.x1-8]){R(ctx,lx-1,PALCO.y0-24,2,6,'#3e2210');R(ctx,lx-2,PALCO.y0-30,4,6,'#ffb02e');R(ctx,lx-1,PALCO.y0-29,2,3,'#fff3a0')}
+  if(window.CASSINO)CASSINO.brilho(); // luzes de magia do cassino e do letreiro da entrada
+  if(window.LOJA_VIAJANTE)LOJA_VIAJANTE.brilho();
+  if(vT>.01){ctx.globalAlpha=vT;for(const lx of [PALCO.x0+8,PALCO.x1-8]){R(ctx,lx-1,PALCO.y0-24,2,6,'#3e2210');R(ctx,lx-2,PALCO.y0-30,4,6,'#ffb02e');R(ctx,lx-1,PALCO.y0-29,2,3,'#fff3a0')}ctx.globalAlpha=1}
   proj.forEach(q=>{R(ctx,q.x-3,q.y-3,6,6,q.c||'#ff7a1a')});
   fxs.forEach(f=>{const q=Math.max(0,Math.min(1,f.t/f.d));ctx.globalAlpha=1-q;circ(f.x,f.y,f.r*(.35+q),f.c);ctx.globalAlpha=1});
   ctx.font='6px monospace';ctx.textAlign='center';
   if(window.BAR)BAR.interface(); // botões e convites das mesas, por cima de tudo
+  if(window.CASSINO)CASSINO.interface();
   fts.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.fillStyle='#000';ctx.fillText(f.t,Math.round(f.x)+.5,Math.round(f.y)+.5);ctx.fillStyle=corFt(f);ctx.fillText(f.t,Math.round(f.x),Math.round(f.y));if(f.crit)iconeCrit(f);ctx.globalAlpha=1});
   ctx.setTransform(1,0,0,1,0,0);
   const v=ctx.createRadialGradient(cv.width/2,cv.height/2,Math.min(cv.width,cv.height)*.35,cv.width/2,cv.height/2,Math.max(cv.width,cv.height)*.75);
@@ -280,11 +295,14 @@
   minimapa();
  };
  function minimapa(){
-  const mm=$('mm').getContext('2d'),SZ=160,k=(SZ-16)/(TW+(window.BAR?BAR.BW:0)),ox=8,oy=(SZ-TH*k)/2; // a taverna e o pátio do bar
+  // a área toda: taverna, pátio do bar, rua e cassino
+  const B=window.RUA_TAVERNA?RUA_TAVERNA.limites():{x0:OX,y0:OY,x1:OX+TW+(window.BAR?BAR.BW:0),y1:OY+TH};
+  const mm=$('mm').getContext('2d'),SZ=160,k=(SZ-16)/Math.max(B.x1-B.x0,B.y1-B.y0),ox=(SZ-(B.x1-B.x0)*k)/2,oy=(SZ-(B.y1-B.y0)*k)/2;
+  const at=(x,y)=>[ox+(x-B.x0)*k,oy+(y-B.y0)*k];
   mm.setTransform(1,0,0,1,0,0);mm.fillStyle='#0b0806';mm.fillRect(0,0,SZ,SZ);
-  mm.imageSmoothingEnabled=false;if(fundo)mm.drawImage(fundo,ox,oy,TW*k,TH*k);if(window.BAR)BAR.minimapa(mm,ox,oy,k);
-  const at=(x,y)=>[ox+(x-OX)*k,oy+(y-OY)*k];
-  if(window.onlineMinimap)onlineMinimap(mm,OX-ox/k,OY-oy/k,k,SZ);
+  mm.imageSmoothingEnabled=false;if(window.RUA_TAVERNA)RUA_TAVERNA.minimapa(mm,at,k);
+  const [tx,ty]=at(OX,OY);if(fundo)mm.drawImage(fundo,tx,ty,TW*k,TH*k);if(window.BAR)BAR.minimapa(mm,tx,ty,k);if(window.CASSINO)CASSINO.minimapa(mm,at,k);if(window.LOJA_VIAJANTE)LOJA_VIAJANTE.minimapa(mm,at,k);
+  if(window.onlineMinimap)onlineMinimap(mm,B.x0-ox/k,B.y0-oy/k,k,SZ);
   const [px,py]=at(p.x,p.y);mm.fillStyle='#000';mm.fillRect(px-3,py-3,6,6);mm.fillStyle='#fff';mm.fillRect(px-2,py-2,4,4);
  }
 
@@ -293,7 +311,7 @@
   for(const m of MESAS){g.fillStyle='#4a2a14';g.beginPath();g.ellipse(m.x,m.y-6,15,8,0,0,7);g.fill();g.fillStyle='#8f5d31';g.beginPath();g.ellipse(m.x,m.y-7,14,7,0,0,7);g.fill()}
   for(const b of BARRIS){R(g,b.x-6,b.y-14,12,15,'#7a4a24');R(g,b.x-7,b.y-11,14,9,'#865230')}
   {const x0=PALCO.x0,x1=PALCO.x1,y=PALCO.y0;for(let x=x0;x<x1;x+=6)R(g,x,y-31,6,31,(x/6|0)%2?'#8e2f2a':'#7a2622');R(g,x0,y-31,x1-x0,3,'#d9a441')}
-  return{c,x:OX,y:OY,w:TW,h:TH,nome:'Taverna'}};
+  return{c,x:OX,y:OY,w:TW,h:TH,nome:'Cidade'}};
   /* editor da cena Taverna (engine/js/scene-taverna.js): o fundo fixo e cada peça móvel desenhados pelas mesmas funções
      do jogo. Elas pintam no ctx do canvas principal, que fica parado no modo motor: desenha-se nele e copia-se o
      recorte com conteúdo. Cada peça vem com a âncora {ax, ay} (o ponto da posição dela dentro do desenho). */
@@ -309,13 +327,20 @@
   const boneco=(spr,extra)=>pintar(48,60,-24,-50,()=>{dr(spr,0,0,1,1,anim({x:0,y:0,fx:0,fy:1},0));if(extra)extra()});
   window.TAVERNA_MOTOR={
    padrao:()=>LAY.padrao(),OX,OY,TW,TH,PX:LAY.PX,PY:LAY.PY,BW:LAY.BW,BH:LAY.BH,
-   // fundo fixo: piso, paredes, balcão, janelas, taverneira, porta do pátio e o quiosque do bar
-   fundo(){const x0=OX,y0=LAY.PY,w=LAY.PX+LAY.BW-x0,h=Math.max(OY+TH,LAY.PY+LAY.BH)-y0,c=document.createElement('canvas');c.width=w;c.height=h;
-    const f=desenharFundo(true),r=pintar(w,h,x0,y0,()=>{ctx.drawImage(f,OX,OY);for(const wx of JANELAS)janela(wx);if(window.BAR){BAR.chao();BAR.quiosque()}
-     const spr=(HS.sty||HS.war).d;dr(spr,BARKEEP.x,BARKEEP.y,1,1,anim(BARKEEP,0));ctx.drawImage(f,8,66,186,26,OX+8,OY+66,186,26)});
+   // a cena Cidade inteira (2026-11-04): rua e mata, taverna e pátio, cassino e loja do Viajante
+   cidade:LAY.cidadeLimites,
+   // fundo fixo: chão da cidade e a mata; piso, paredes, balcão, janelas, taverneira, porta do pátio, quiosque do bar;
+   // chão e paredes do cassino e da loja, a entrada do cassino e as árvores da borda da mata
+   fundo(){const B=LAY.cidadeLimites,x0=B.x0,y0=B.y0,w=B.x1-B.x0,h=B.y1-B.y0,c=document.createElement('canvas');c.width=w;c.height=h;
+    const f=desenharFundo(true),r=pintar(w,h,x0,y0,()=>{if(window.RUA_TAVERNA)RUA_TAVERNA.chao();ctx.drawImage(f,OX,OY);for(const wx of JANELAS)janela(wx);if(window.BAR){BAR.chao();BAR.quiosque()}
+     const spr=(HS.sty||HS.war).d;dr(spr,BARKEEP.x,BARKEEP.y,1,1,anim(BARKEEP,0));ctx.drawImage(f,8,66,186,26,OX+8,OY+66,186,26);
+     if(window.CASSINO)CASSINO.chao();if(window.LOJA_VIAJANTE)LOJA_VIAJANTE.chao();if(window.CASSINO&&CASSINO.fixosMotor)CASSINO.fixosMotor()});
     if(r)c.getContext('2d').drawImage(r.c,-r.ax-x0,-r.ay-y0);return{c,x:x0,y:y0}},
    /* peça móvel: tipo e, quando precisa, o dado (o lado da cadeira, o tamanho do palco, a classe do mestre) */
    peca(tipo,o){
+    // peças da cidade (cassino e loja): cada arquivo diz o tamanho da caixa e como desenhar em volta de (0,0)
+    const ext=(window.CASSINO&&CASSINO.pecas&&CASSINO.pecas[tipo])||(window.LOJA_VIAJANTE&&LOJA_VIAJANTE.pecas&&LOJA_VIAJANTE.pecas[tipo]);
+    if(ext)return pintar(ext.w,ext.h,ext.ox,ext.oy,()=>ext.fn(o));
     if(tipo==='mesa-redonda')return pintar(48,40,-24,-28,()=>mesa({x:0,y:0}));
     if(tipo==='mesa-jogo')return pintar(48,40,-24,-24,()=>window.BAR&&BAR.desenharMesa({x:0,y:0}));
     if(tipo==='cadeira-redonda')return pintar(24,28,-12,-20,()=>cadeira(0,0,o===1?1:o===3?-1:0));
@@ -338,7 +363,7 @@
  /* ---- entrar e sair ---- */
  function entrar(){
   if(window.inTaverna)return;
-  if(window.inDungeon){ft(p.x,p.y-24,'Saia da masmorra antes de ir à taverna.','#f87171');return}
+  if(window.inDungeon){ft(p.x,p.y-24,'Saia da masmorra antes de ir à cidade.','#f87171');return}
   if(p.dead>0)return;
   if(window.inArena&&window.ARENA)ARENA.sair(true);
   if(window.MP&&MP.antesDeSair)MP.antesDeSair();
@@ -347,8 +372,9 @@
   if(window.CURANDEIRO&&CURANDEIRO.desligar)CURANDEIRO.desligar();
   if(p.st)for(const [k,s] of Object.entries(p.st))if(FX_INFO[k]&&FX_INFO[k].good)delete p.st[k];
   clearMovementInput();window.inTaverna=true;
-  p.x=ENTRADA.x;p.y=ENTRADA.y;p.fx=0;p.fy=-1;proj.length=0;
-  ft(p.x,p.y-30,'Taverna do Javali Dourado','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);
+  // chega na rua, na frente da porta da taverna (o cassino fica do outro lado da rua); entra andando
+  const ch=window.RUA_TAVERNA?RUA_TAVERNA.entrada:ENTRADA;p.x=ch.x;p.y=ch.y;p.fx=0;p.fy=-1;proj.length=0;
+  ft(p.x,p.y-30,window.RUA_TAVERNA?'Cidade':'Taverna do Javali Dourado','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.6);
   atualizarBotao();
  }
  function sair(silencioso){
@@ -359,9 +385,15 @@
   if(!silencioso)ft(p.x,p.y-24,'De volta à ilha','#ffd84a');
   atualizarBotao();if(window.saveGame)saveGame();
  }
- window.entrarTaverna=entrar;window.sairTaverna=sair;window.falarMestreTaverna=cls=>{const m=MESTRES.find(x=>x.cls===cls);if(m)falarMestre(m)}; /* abre o diálogo do Mestre da classe */
+ function perguntarSaida(){
+  const box=$('dialogue');if(box.classList.contains('open'))return;
+  const volta=p.x<OX?1:-1;p.dest=null;p.path=[];p.x+=volta*14; // um passo de volta para a estrada (não repete a pergunta)
+  box.classList.remove('dgModal');
+  box.innerHTML='<b>Estrada para a ilha</b><p>A estrada sai da cidade e atravessa a mata. Quer voltar para a sua ilha?</p><button type="button" data-ir-ilha>Ir para a ilha</button><button type="button" data-close-dialog>Ficar na cidade</button>';
+  box.classList.add('open');box.querySelector('[data-ir-ilha]').onclick=()=>{box.classList.remove('open');sair()}}
+ window.entrarTaverna=entrar;window.sairTaverna=sair;
  const botao=document.createElement('button');botao.type='button';botao.className='ib tavBtn';
- function atualizarBotao(){botao.textContent=window.inTaverna?'Sair da taverna':'Taverna';botao.title=window.inTaverna?'Voltar para a sua ilha':'Ir para a taverna, onde todos os jogadores se encontram'}
+ function atualizarBotao(){botao.textContent=window.inTaverna?'Sair da cidade':'Cidade';botao.title=window.inTaverna?'Voltar para a sua ilha':'Ir para a cidade (taverna e cassino), onde todos os jogadores se encontram'}
  botao.onclick=()=>window.inTaverna?sair():entrar();atualizarBotao();
  (document.getElementById('hbtns')||document.body).append(botao);
 
@@ -370,10 +402,13 @@
  const quadroEm=w=>w.x>OX+QUADRO.x0-4&&w.x<OX+QUADRO.x0+QUADRO.w+4&&w.y>OY+QUADRO.y0-4&&w.y<OY+QUADRO.y0+QUADRO.h+6;
  const pertoDoQuadro=()=>Math.hypot(p.x-QUADRO.x,p.y-(QUADRO.y+22))<36;
  window.tavernaClick=(w,mode)=>{
+  if(window.CASSINO&&CASSINO.click(w,mode))return true;
+  if(window.LOJA_VIAJANTE&&!CONSTRUCOES.coberto(w.x,w.y,'taverna')&&LOJA_VIAJANTE.click(w,mode))return true;
+  // de fora (telhado fechado) não se clica no que está dentro da taverna: o clique vira andar
+  if(window.CONSTRUCOES&&CONSTRUCOES.coberto(w.x,w.y,'taverna'))return false;
   if(window.BAR&&BAR.click(w,mode))return true;
   mestreAlvo=null;lanceiroAlvo=false;quadroAlvo=false;
   if(window.VIAJANTE&&VIAJANTE.click(w,mode))return true;
-  if(Math.hypot(w.x-DOOR.x,w.y-(DOOR.y-4))<16){if(dist(p,DOOR)<34)sair();else setDest(DOOR.x,DOOR.y-12);return true}
   if(taverneiraEm(w)&&mode!=2){chamarTaverneira();return true}
   if(quadroEm(w)&&mode!=2){if(pertoDoQuadro())abrirQuadro();else{quadroAlvo=true;setDest(QUADRO.x,QUADRO.y+24)}return true}
   if(Math.hypot(w.x-LANCEIRO.x,w.y-(LANCEIRO.y-10))<13&&mode!=2){if(dist(p,LANCEIRO)<36)falarLanceiro();else{lanceiroAlvo=true;setDest(LANCEIRO.x,LANCEIRO.y+14)}return true}
@@ -388,7 +423,7 @@
   BARKEEP.chamada={x,y:BALCAO_Y};BARKEEP.alvo=null;BARKEEP.deCostas=false;
   if(Math.hypot(p.x-x,p.y-(OY+100))>20)setDest(x,OY+100);
  }
- window.TAVERNEIRA={npc:BARKEEP,chamar:chamarTaverneira};
+
  function andarTaverneira(dt){
   const B=BARKEEP,vel=30;
   if(!B.chamada&&!B.alvo){B.espera-=dt;
@@ -423,7 +458,7 @@
    (atual?'<p>Você já é '+c.n+'. Continue treinando! Quer medir forças de novo?</p>'+pedirArma+'<button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
     :aprendida?'<p>Você já aprendeu '+c.n+': trocar é grátis.</p>'+ps+'<button type="button" data-tav-classe>Trocar para '+c.n+'</button>'+pedirArma+'<button type="button" data-tav-duelo>Desafiar o Mestre de novo</button>'
     :'<p>Quer seguir o caminho de '+c.n+'? Prove o seu valor: vença-me num duelo na arena. Eu luto no <b>nível 10</b>, com a força de um '+c.n+'.</p>'+ps+
-     '<p class=tm>Perder não custa nada: você volta para a taverna e pode tentar de novo.</p><button type="button" data-tav-duelo>Desafiar o Mestre</button>')+
+     '<button type="button" data-tav-duelo>Desafiar o Mestre</button>')+
    '<button type="button" data-close-dialog>Até mais</button>';
   box.classList.add('open');
   const b=box.querySelector('[data-tav-classe]');if(b)b.onclick=()=>{box.classList.remove('open');setClass(m.cls)};
@@ -442,7 +477,6 @@
   const mu=musicaAgora();
   box.innerHTML='<b>Taverneira Bete</b><p>Bem-vindo ao Javali Dourado! Aqui todo mundo se encontra.'+(mu&&!mu.pausa?' O Bardo Lírio está tocando <b>'+mu.m.nome+'</b>.':'')+'</p>'+
    '<p>Aqui dentro é lugar de descanso: nada de habilidades nem brigas. Ninguém se machuca na taverna.</p>'+
-   '<p class=tm>Procurando trabalho? Veja o quadro de missões na parede.</p>'+
    '<button type="button" data-tav-bebida>Pedir uma bebida ('+moeda(5)+'): vida e mana cheias</button><button type="button" data-tav-vender>Vender itens</button><button type="button" data-close-dialog>Até mais</button>';
   box.classList.add('open');
   box.querySelector('[data-tav-vender]').onclick=abrirVenda;
@@ -503,7 +537,7 @@
   if(of.length)of.forEach((o,i)=>{const b=m?null:B('Aceitar',()=>{const q=of[i];if(!q||p.missao)return;p.missao={...q,feitos:0};of.splice(i,1);
    ft(p.x,p.y-24,'Missão aceita!','#ffd84a');if(window.playGameSound)playGameSound('item');saveGame();abrirQuadro()});lista.append(cartaz(o,b))});
   else lista.append(EL('p','biVazio','Nenhum trabalho hoje.'));
-  box.append(lista,EL('p','biDica','Uma missão por vez. Vale cada monstro do tipo pedido que você ajudar a derrotar, na ilha ou na DG. Novos papéis em '+(60-Math.floor(((window.TEMPO?TEMPO.agora():Date.now())%3600000)/60000))+' min.'));
+  box.append(lista,EL('p','biDica','Novos papéis em '+(60-Math.floor(((window.TEMPO?TEMPO.agora():Date.now())%3600000)/60000))+' min.')); // regras só no "?"
   quadroEl.append(box);
  }
  function entregar(){const q=p.missao;if(!q||q.feitos<q.qtd)return;p.missao=null;p.gold+=q.ouro;gainPlayerXp(q.xp);
@@ -511,7 +545,7 @@
  function fecharQuadro(){if(quadroEl)quadroEl.hidden=true;if(typeof tipEl!='undefined')tipEl.style.display='none'}
  const quadroAberto=()=>!!quadroEl&&!quadroEl.hidden;
  addEventListener('keydown',e=>{if(quadroAberto()&&e.key==='Escape'){fecharQuadro();e.stopImmediatePropagation()}},true);
- window.abrirQuadroTaverna=abrirQuadro;window.fecharQuadroTaverna=fecharQuadro;
+
  // cada monstro do tipo pedido que você ajuda a derrotar conta (na ilha ou na DG)
  const km0=killMonster;killMonster=function(e){const r=km0.apply(this,arguments);
   const m=p.missao;if(m&&e&&e.ty===m.tipo&&!e.duelo&&!e.pvp&&m.feitos<m.qtd){m.feitos++;
@@ -537,13 +571,14 @@
    ft(p.x,p.y-24,'+'+total+' ouro','#ffd84a');if(window.playGameSound)playGameSound('coin');saveGame();abrirVenda();
   });
  }
- window.abrirVendaTaverna=abrirVenda;
+
  // a porta também funciona ao chegar nela andando
  const upd0=upd;upd=function(dt){upd0(dt);
   if(quadroAberto()&&(!window.inTaverna||Math.hypot(p.x-QUADRO.x,p.y-(QUADRO.y+22))>90))fecharQuadro(); // afastou-se ou saiu
   if(window.VIAJANTE)VIAJANTE.atualizar(dt);
   if(!window.inTaverna)return;
   andarTaverneira(dt);if(window.BAR)BAR.atualizar(dt);
+  if(window.CONSTRUCOES)CONSTRUCOES.atualizar(dt,'taverna');if(window.CASSINO)CASSINO.atualizar(dt);
   for(const m of MESTRES){if(dist(p,m)<70){m.fx=p.x-m.x;m.fy=p.y-m.y}else{m.fx=0;m.fy=1}}
   const w=wpos();
   mestreSob=mestreEm(w);quadroSob=quadroEm(w);taverneiraSob=taverneiraEm(w);lanceiroSob=Math.hypot(w.x-LANCEIRO.x,w.y-(LANCEIRO.y-10))<13;
@@ -552,7 +587,9 @@
   if(lanceiroAlvo&&dist(p,LANCEIRO)<36){p.dest=null;p.path=[];falarLanceiro()}
   if(mestreAlvo&&dist(p,mestreAlvo)<34){p.dest=null;p.path=[];falarMestre(mestreAlvo)}
   if(quadroAlvo&&pertoDoQuadro()){p.dest=null;p.path=[];abrirQuadro()}
-  if(p.y>OY+TH-12&&Math.abs(p.x-DOOR.x)<10)sair();
+  // as pontas da rua levam de volta à ilha (a porta da taverna agora dá na rua)
+  // no fim da estrada (dentro da mata), pergunta se quer ir para a ilha (pedido do usuário, 2026-11-04)
+  if(window.RUA_TAVERNA?RUA_TAVERNA.saida(p.x,p.y):p.y>OY+TH-12&&Math.abs(p.x-DOOR.x)<10)perguntarSaida();
  };
 
  /* ---- habilidades que interagem entre jogadores ---- */
@@ -579,7 +616,7 @@
  /* na taverna inteira (e no pátio do bar) nenhuma habilidade funciona (pedido do usuário, 2026-10-28): nem de pé, nem
     sentado. Corta já ao apertar a tecla (antes da mira) e no lançamento. As curas/bênçãos entre jogadores de antes
     (enviar/receber) ficam só para receber de clientes antigos. */
- const AVISO_TAV='Habilidades não funcionam na taverna';let avisoTav=-9;
+ const AVISO_TAV='Habilidades não funcionam na cidade';let avisoTav=-9;
  const avisar=()=>{if(time-avisoTav>1){avisoTav=time;ft(p.x,p.y-24,AVISO_TAV,'#ccc')}};
  const cast0=cast;
  cast=function(s){if(window.inTaverna){avisar();return}return cast0(s)};
