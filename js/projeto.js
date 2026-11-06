@@ -3825,7 +3825,9 @@ window.PROJETO={
     "kind": "weapon",
     "name": "Machado do Chefe Glooc",
     "twoHanded": true,
-    "skills": [],
+    "skills": [
+     "arma_giro_unico"
+    ],
     "effects": [],
     "tags": [
      "glooc"
@@ -5949,6 +5951,38 @@ window.PROJETO={
     "c1": "#a22b4b",
     "c2": "#ddd0a6",
     "color": "#cf4554"
+   },
+   {
+    "id": "arma_giro_unico",
+    "name": "Giro Único",
+    "category": "ability",
+    "kind": "weapon",
+    "effect": "canal",
+    "duracao": 0.5,
+    "intervalo": 0.5,
+    "radius": 35,
+    "vfx": "giro",
+    "mana": 0,
+    "cd": 30,
+    "castTime": 0,
+    "charPercent": 150,
+    "base": 0,
+    "per": 0,
+    "damageType": "physical",
+    "heal": 0,
+    "mpRestore": 0,
+    "scaleStat": "none",
+    "scalePercent": 0,
+    "weaponTypes": [],
+    "effects": [],
+    "tags": [
+     "arma"
+    ],
+    "icon": "spin",
+    "c1": "#8a94a8",
+    "c2": "#ffffff",
+    "color": "#e8eef4",
+    "desc": "Uma volta com o machado: um golpe em volta, na área do Giro."
    }
   ],
   "passives": [
@@ -69093,14 +69127,17 @@ window.PROJETO={
       "danoPct": 22,
       "atordoa": 1,
       "machadoFase": 20,
-      "lentidao": 20
+      "lentidao": 20,
+      "danoMonstroPct": 200
      },
      {
       "tipo": "grito",
       "nome": "Grito Glooc",
       "cadaPct": 20,
       "raio": 260,
-      "duracao": 3
+      "duracao": 3,
+      "parado": 2,
+      "depois": "salto"
      },
      {
       "tipo": "giro",
@@ -69110,7 +69147,15 @@ window.PROJETO={
       "duracao": 5,
       "raio": 35,
       "danoPct": 6,
-      "tick": 0.5
+      "tick": 0.5,
+      "danoMonstroPct": 100
+     },
+     {
+      "tipo": "giroUnico",
+      "nome": "Giro Único",
+      "cd": 30,
+      "raio": 35,
+      "danoMonstroPct": 150
      }
     ],
     "sprite": {

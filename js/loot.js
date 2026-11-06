@@ -23,9 +23,9 @@
   g.drawImage(src,1,1);imgs.set(k,out);return out;
  }
  window.iconeNoChao=iconeNoChao;
- window.soltarItem=(id,x,y,{questReward=false,q}={})=>{
+ window.soltarItem=(id,x,y,{questReward=false,q,qualMult=1}={})=>{
   if(!ITEMS[id])return;
-  if(q===undefined)q=gearType[id]?rollQ():null;
+  if(q===undefined)q=gearType[id]?rollQ(qualMult):null; // elite: qualidade melhor mais provável
   if(itens.length>=MAX_ITENS){entregar({id,q,questReward});return}
   const a=Math.random()*Math.PI*2,d=rnd(12,26);
   itens.push({id,q,questReward,x,y:y-6,sx:x,sy:y-6,tx:x+Math.cos(a)*d,ty:y-2+Math.sin(a)*d*.6,arco:rnd(16,26),fase:'salto',t:-itens.filter(o=>o.fase==='salto').length*.12,lugar:lugar(),bob:Math.random()*6});

@@ -33,8 +33,10 @@ window.nivelDoMonstro=nivelDoMonstro;
 function spawnAt(x,y,type,level=nivelDoMonstro(type)){const B=MB[type]||MB.sl,S=SP[B.base]||SP.sl,e={};Object.assign(e,{img:S.d,sp:S,max:B.max,dmg:B.dmg,spd:B.spd,xp:B.xp,g:B.g,aggro:B.aggro,wu:B.wu,ac:B.ac,boss:false});
  configureMonster(e,type,level);Object.assign(e,{x,y,hx:x,hy:y,hp:e.max,st:null,fx:0,fy:1,aw:0,cd:0,hit:0,rt:0,dest:null,path:[],pathI:0,pathKey:'',roamT:3,roamRadius:rnd(38,70)});return e}
 window.spawnAt=spawnAt;
-/* Elite: +50% de vida, +35% de dano, +25% de defesas e +50% de XP e ouro. */
-function makeElite(e){e.elite=true;e.max=Math.round(e.max*1.5);e.hp=e.max;e.dmg=Math.round(e.dmg*1.35);e.armor=Math.round((e.armor||e.stats.A*CALC.monArmPerA)*1.25);e.magicArmor=Math.round((e.magicArmor||monMagArm(e.stats.F,e.stats.A,e.stats.I))*1.25);e.xp=Math.round(e.xp*1.5);e.g=Math.round(e.g*1.5);return e}
+/* Elite (2026-11-05, pedido do usuário): igual à Elite escolhida na Engine — só +25% de atributos (Fórmulas › Monstros ›
+   Atributos da elite); vida, dano e defesa vêm dos atributos. XP, ouro e chance de drop normais; a qualidade dos itens
+   que caem é melhor (combat.js qualElite). O monstro é montado de novo com o reforço (configureMonster vê e.elite). */
+function makeElite(e){if(e.elite)return e;const B=MB[e.ty]||MB.sl;e.elite=true;Object.assign(e,{max:B.max,dmg:B.dmg,spd:B.spd,ac:B.ac});configureMonster(e,e.ty,e.lvl);e.hp=e.max;return e}
 window.makeElite=makeElite;
 /* áreas: grade 3x3; no máximo 5 inimigos por área (contando os que ainda vão sair dos portais) */
 const PORTAL_BORDA=18.5,PORTAL_REFILL=.7,PORTAL_DURATION=2,PORTAL_OPEN=.3,PORTAL_CLOSE=.35,PORTAL_FIRST_SPAWN=.4,PORTAL_LAST_SPAWN=1.55;

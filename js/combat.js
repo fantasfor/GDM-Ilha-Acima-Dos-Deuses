@@ -195,12 +195,13 @@ function killMonster(e){
    if(cacaMortes>=CACA_ALVO){cacaFeita=true;p.gold+=30;gainPlayerXp(30);ft(e.x,e.y-45,'MISSÃO CONCLUÍDA: 10 MONSTROS!','#ffd84a');if(window.playGameSound)playGameSound('quest')}saveGame()}
   if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GLOOC SAQUEADOR DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
   // os itens caem no chão onde o monstro morreu e depois voam até o jogador (js/loot.js)
-  const largar=(id,quest=false)=>{if(window.anotarDrop)anotarDrop(e.ty,id);return window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest}):offerDrop(id,quest)};
+  const largar=(id,quest=false)=>{if(window.anotarDrop)anotarDrop(e.ty,id);return window.soltarItem?soltarItem(id,e.x,e.y,{questReward:quest,qualMult:quest?1:qualElite}):offerDrop(id,quest,null,quest?1:qualElite)};
   if(gold>0&&window.soltarMoedas)soltarMoedas(e.x,e.y,gold);
   if(e.sawGoblin){sawGoblin=null;ft(e.x,e.y-45,'SERROTE ENCONTRADO!','#ffd84a');largar(ITEMS.saw?'saw':'Serrote',true)} // o item de missão é o 'saw'; sem ele no projeto, cai a arma Serrote
   // cada item da lista do monstro tem a sua chance (%) e é sorteado sozinho; sem lista, não cai nada
-  // elite (tipo Elite ou monstro que nasceu elite): chance de drop × Fórmulas › Drops › Elite (1,5); chefe: só a lista dele, sem bônus
-  const eliteDrop=(e.bossType==='boss'||e.elite)&&e.bossType!=='grandboss'?Math.max(0,+(CALC.eliteDrop??1.5)):1;
+  /* elite (tipo Elite ou que nasceu elite; 2026-11-05, pedido do usuário): chance de drop, XP e ouro normais; o único extra
+     é a qualidade: chance das faixas Boa/Rara/Épica/Perfeita × Fórmulas › Drops › Elite (1,5). Chefe: sem bônus */
+  const qualElite=(e.bossType==='boss'||e.elite)&&e.bossType!=='grandboss'?Math.max(0,+(CALC.eliteDrop??1.5)):1,eliteDrop=1;
   // quantidade: sorteada entre min e max do drop (Engine › Monstro › Drops), só depois de a chance passar
   for(const d of MONSTER_TYPES[e.ty].drops||[])if(ITEMS[d.id]&&!(e.sawGoblin&&(d.id=='saw'||d.id=='Serrote'))&&podeCairDeMissao(d.id)&&Math.random()*100<d.chance*noite*eliteDrop){const mn=d.min||1,n=mn+Math.floor(Math.random()*((d.max||mn)-mn+1));for(let i=0;i<n;i++)largar(d.id)}
   // equipamento do nível do monstro (plano de balanceamento): chance em Fórmulas › Monstros › Chance de equipamento do nível

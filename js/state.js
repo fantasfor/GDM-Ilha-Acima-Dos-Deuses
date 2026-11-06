@@ -25,7 +25,8 @@ const fits=(slot,id)=>!!gearType[id]&&(gearType[id]==slot||(gearType[id]=='ri'&&
 /* raridade (qualidade) de um item novo: sorteia a faixa pelas chances da Engine (Fórmulas › Drops) e depois um valor dentro
    dela. Padrão: Ruim 0-19 35%, Comum 20-44 35%, Boa 45-69 20%, Rara 70-89 8%, Épica 90-99 1,9%, Perfeita 100 0,1% */
 const FAIXAS_Q=[['qualRuim',0,19],['qualComum',20,44],['qualBoa',45,69],['qualRara',70,89],['qualEpica',90,99],['qualPerfeita',100,100]];
-const rollQ=()=>{const w=FAIXAS_Q.map(([k])=>Math.max(0,+CALC[k]||0)),tot=w.reduce((a,b)=>a+b,0);if(!(tot>0))return Math.round(100*Math.pow(Math.random(),CALC.qualExp||2.2));let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<0||i===w.length-1){const [,a,b]=FAIXAS_Q[i];return a+Math.floor(Math.random()*(b-a+1))}}},qMul=q=>CALC.qualBase+(q==null?50:q)/100,
+/* mult (elite, 2026-11-05): as chances das faixas Boa, Rara, Épica e Perfeita × mult (Fórmulas › Drops › Elite) */
+const rollQ=(mult=1)=>{const w=FAIXAS_Q.map(([k],i)=>Math.max(0,+CALC[k]||0)*(i>=2?Math.max(0,+mult||1):1)),tot=w.reduce((a,b)=>a+b,0);if(!(tot>0))return Math.round(100*Math.pow(Math.random(),CALC.qualExp||2.2));let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<0||i===w.length-1){const [,a,b]=FAIXAS_Q[i];return a+Math.floor(Math.random()*(b-a+1))}}},qMul=q=>CALC.qualBase+(q==null?50:q)/100,
 /* atributos de um item numa qualidade: guardados (o bônus do equipamento era recalculado várias vezes por quadro) */
 qCache=new Map(),qStats=(id,q)=>{const ch=id+'|'+q,it=ITEMS[id];let c=qCache.get(ch);if(c&&c.it===it)return c.v;if(qCache.size>800)qCache.clear();c={it,v:qStats0(id,q)};qCache.set(ch,c);return c.v}, /* se o item for trocado, recalcula */
 qStats0=(id,q)=>{const it=ITEMS[id],o={};for(const k of Object.keys(ITEM_STATS))if(it[k])o[k]=ITEM_STATS[k].percent||ITEM_STATS[k].fractional?it[k]*qMul(q):Math.max(1,Math.round(it[k]*qMul(q)));const range=gearType[id]==='sw'&&qualityWeaponRange(it,q);if(range)o.dmg=(range.min+range.max)/2;return o},
@@ -164,7 +165,9 @@ function configureMonster(e,type,level){
  else if(type=='boss'&&SP.boss){e.img=SP.boss.d;e.sp=SP.boss}
  /* reforço (2026-11-05, pedido do usuário): Elite (tipo) continua com +25% de atributos e +50% de vida automáticos; o Chefe
     não ganha mais nada sozinho — o bônus é o "Bônus de atributos (%)" e o "Multiplicador de vida" de cada um na Engine */
- const attrScale=(template.bossType=='boss'?1.25:1)*(1+(+template.bonusAtr||0)/100);
+ const ehElite=template.bossType=='boss'||!!e.elite,escalaChefe=1+(+template.bonusAtr||0)/100;
+ const attrScale=(ehElite?1+(+(CALC.eliteAtr??25))/100:1)*escalaChefe;
+ const premioElite=ehElite?1+(+(CALC.eliteRecompensa??25))/100:1; // elite: +25% de XP e ouro (Fórmulas › Monstros)
  e.stats={F:Math.round((template.stats.F+grow('F'))*attrScale),A:Math.round((template.stats.A+grow('A'))*attrScale),I:Math.round((template.stats.I+grow('I'))*attrScale)};
  e.bossType=template.bossType||'normal';e.skill=template.skill;e.skillCd=0;e.skillWindup=false;e.mp=monMana(e.stats.I);e.armor=e.magicArmor=undefined;
  // fórmulas dos monstros: Engine › Fórmulas › Monstros
@@ -179,7 +182,7 @@ function configureMonster(e,type,level){
   e.stats.A=Math.round((template.stats.A+grow('A')+(stats.A||0))*attrScale);
   e.stats.I=Math.round((template.stats.I+grow('I')+(stats.I||0))*attrScale);
   const maxBase=CALC.monHp0+e.stats.F*CALC.monHpPerF+(stats.hp||0),magica=weapon&&weapon.damageType=='magic',power=magica?(stats.magicDmg||0):(stats.physicalDmg||0),multAtr=1+(magica?e.stats.I*monMagPerI():e.stats.F*monPhysPerF())/100; // Força/Inteligência: +% de dano (como o personagem)
-  e.max=Math.round(maxBase*(e.bossType=='boss'?1.5:1)*(template.hpMult||1));
+  e.max=Math.round(maxBase*(template.hpMult||1));
   e.weaponDamageBase=(stats.dmg||0)+power;e.dmg=Math.round(e.weaponDamageBase*(template.dmgMult||1)*multAtr);e.armor=e.stats.A*CALC.monArmPerA+(stats.arm||0);e.magicArmor=monMagArm(e.stats.F,e.stats.A,e.stats.I)+(stats.magicArm||0);
   e.attackMagic=!!(weapon&&weapon.damageType=='magic');e.weaponBasic=weapon&&weapon.basic;e.weaponFx=weapon&&weapon.effects||[];
   e.weaponRanges=faixas;e.weaponDamageMultiplier=(template.dmgMult||1)*multAtr;
@@ -197,7 +200,9 @@ function configureMonster(e,type,level){
  /* XP (2026-11-05, pedido do usuário): a soma dos atributos do monstro no nível dele (Força + Agilidade + Inteligência,
     já com o ganho por nível e o reforço de Elite/bônus do chefe; equipamento não conta). Ex.: nível 1 com 40 = 40 de XP */
  // sem os atributos do equipamento (2026-11-05): só os do monstro, com o ganho por nível e o reforço
- e.xp=Math.max(1,Math.round(['F','A','I'].reduce((t,k)=>t+((+template.stats[k]||0)+grow(k))*attrScale,0)));
+ // elite: XP do monstro comum (sem os atributos da elite) + o prêmio de elite; ouro também
+ e.xp=Math.max(1,Math.round(['F','A','I'].reduce((t,k)=>t+((+template.stats[k]||0)+grow(k))*escalaChefe,0)*premioElite));
+ if(e.gBase==null)e.gBase=+e.g||0;e.g=Math.round(e.gBase*premioElite);
 }
 // classes de referência do plano de balanceamento (js/balanceamento.js): Guerreiro (físico) e Mago (mágico) do projeto
 const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};

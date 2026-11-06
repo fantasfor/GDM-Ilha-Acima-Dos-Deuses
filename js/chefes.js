@@ -18,7 +18,11 @@
   explosao:{raio:70,aviso:1.8,danoPct:45,cd:16},anel:{raio:150,raioSeguro:44,aviso:2,danoPct:45,cd:20},raios:{largura:22,comprimento:160,aviso:1.5,danoPct:30,cd:15,qtd:6},
   invocar:{qtd:3,cd:25,maxVivos:6},furia:{duracao:8,cd:30,mais:40},
   nuvem:{raio:24,duracao:7,vel:12,danoPct:4,cd:8},trilha:{qtd:9,espaco:18,raio:12,aviso:.8,danoPct:25,cd:9},caveira:{vel:110,danoPct:18,cd:10},espiral:{qtd:24,vel:80,danoPct:12,cd:14,voltas:2},
-  salto:{raio:34,aviso:1,danoPct:22,cd:8,atordoa:1,machadoFase:20,lentidao:20},grito:{raio:260,duracao:3,cadaPct:20,aviso:.6},giro:{raio:35,duracao:5,cd:20,danoPct:6,tick:.5,aviso:.3}};
+  salto:{raio:34,aviso:1,danoPct:22,cd:8,atordoa:1,machadoFase:20,lentidao:20},grito:{raio:260,duracao:3,cadaPct:20,aviso:.6,parado:0},giro:{raio:35,duracao:5,cd:20,danoPct:6,tick:.5,aviso:.3},
+  giroUnico:{raio:35,cd:30,danoPct:10,aviso:.4}};
+ /* dano pelo monstro (2026-11-06, pedido do usuário): danoMonstroPct = % do golpe do próprio monstro (e.dmg: dano da arma com
+    Força e fúria); passa pela defesa de quem leva. Vazio = o % da vida máxima (danoPct) como antes */
+ const danoMonstro=(e,m)=>{const k=+m.danoMonstroPct;return k>0?Math.max(1,Math.round((+e.dmg||0)*k/100)):null};
  /* mecânicas padrão do chefe da DG, o Rei Esqueleto do Covil (também viram o padrão de quem criar um chefe novo na Engine) */
  window.MECANICAS_CHEFE_DG=[
   {tipo:'trilha',nome:'Trilha de Ossos',cd:9,qtd:9,espaco:18,raio:12,aviso:.8,danoPct:25},
@@ -37,7 +41,7 @@
  function alcanceLivre(e,ang,L){const c=Math.cos(ang),s=Math.sin(ang);let d=0;while(d+4<=L&&livre(e,e.x+c*(d+4),e.y+s*(d+4)))d+=4;return d}
  /* ---- executar uma mecânica ---- */
  function executar(e,m,a){
-  const area=areaMultiplier(e),aviso=Math.max(.3,val(m,'aviso')||1.5),pct=Math.max(0,val(m,'danoPct')||0)/100,nome=m.nome||'',base={src:e,t:0,maxT:aviso,pct,label:nome};
+  const area=areaMultiplier(e),aviso=Math.max(.3,val(m,'aviso')||1.5),pct=Math.max(0,val(m,'danoPct')||0)/100,nome=m.nome||'',base={src:e,t:0,maxT:aviso,pct,label:nome,dmg:danoMonstro(e,m)};
   e.dest=null;e.path=[];e.fx=a.x-e.x;e.fy=a.y-e.y;
   if(m.tipo==='impacto')telegrafar({...base,type:'circle',x:a.x,y:a.y,r:val(m,'raio')*area});
   else if(m.tipo==='chuva'){const n=Math.max(1,Math.round(val(m,'qtd'))),sp=val(m,'espalhar');for(let k=0;k<n;k++)telegrafar({...base,type:'circle',x:a.x+(k?(Math.random()-.5)*2*sp:0),y:a.y+(k?(Math.random()-.5)*2*sp:0),r:val(m,'raio')*area,t:-k*.22,label:k?'':nome})}
@@ -69,9 +73,12 @@
    telegrafar({...base,type:'circle',x:a.x,y:a.y,r,t:-atraso,maxT:aviso+VOO,label:comMachado?'':nome,efeitos:[{type:'stun',chance:100,dur:val(m,'atordoa')}],src:e,salto:true});
    e.mec.salto={x0:e.x,y0:e.y,x1:a.x,y1:a.y,t:-atraso,d:aviso,voou:false}}
   else if(m.tipo==='grito'){const R=val(m,'raio');if(window.playGameSound)playGameSound('gloocGrito');for(let k=0;k<4;k++)setTimeout(()=>ring(e.x,e.y,30+k*55,'#c084fc',.7-k*.12),k*90);tremer(.5);
+   // parado gritando (2026-11-06): solta ondas de grito enquanto dura e, no fim, usa a mecânica de 'depois' (o pulo), mesmo em recarga
+   const parado=Math.max(0,val(m,'parado')||0);if(parado>0||m.depois)e.mec.gritando={t:parado,onda:.4,R,depois:m.depois||null};
    // medo: o herói é empurrado para longe do chefe (update.js), mesmo parado
    if(p.dead<=0&&dist(p,e)<=R){applyFx(p,[{type:'medo',chance:100,dur:val(m,'duracao')}]);p.medoFonte=e}}
-  else if(m.tipo==='giro'){e.mec.rodando={t:val(m,'duracao'),tk:.2,r:val(m,'raio')*area,pct,tick:Math.max(.2,val(m,'tick'))};e.canal={visual:{raio:Math.round(val(m,'raio')*area),cor:'#e8eef4'},ang:0,chefe:true}; /* a mesma área do Girar do herói (raio 35 × área) */if(window.playGameSound)playGameSound('giroChefe')} // o mesmo giro do herói (lâmina girando, o desenho segue a lâmina)
+  else if(m.tipo==='giroUnico'){e.mec.rodando={t:.5,tk:.25,r:val(m,'raio')*area,pct,dmg:danoMonstro(e,m),tick:9};e.canal={visual:{raio:Math.round(val(m,'raio')*area),cor:'#e8eef4'},ang:0,chefe:true};if(window.playGameSound)playGameSound('giroChefe')} // uma volta: um golpe só
+  else if(m.tipo==='giro'){e.mec.rodando={t:val(m,'duracao'),tk:.2,r:val(m,'raio')*area,pct,dmg:danoMonstro(e,m),tick:Math.max(.2,val(m,'tick'))};e.canal={visual:{raio:Math.round(val(m,'raio')*area),cor:'#e8eef4'},ang:0,chefe:true}; /* a mesma área do Girar do herói (raio 35 × área) */if(window.playGameSound)playGameSound('giroChefe')} // o mesmo giro do herói (lâmina girando, o desenho segue a lâmina)
   e.aw=Math.min(.9,aviso*.5);e.castOnly=true;e.skillWindup=false;e.mec.conjurando=aviso;
   gritar(e,nome?nome+'!':'!');
  }
@@ -88,6 +95,9 @@
   for(let i=0;i<mecs.length;i++)M.cds[i]-=dt;
   // grito: cada vez que a vida cai mais cadaPct% (sem recarga)
   for(const m of mecs)if(m.tipo==='grito'){const n=Math.floor((1-v)*100/Math.max(1,val(m,'cadaPct'))+1e-6);if(n>(M.gritoN||0)){M.gritoN=n;if(!M.salto&&!(e.aw>0)){executar(e,m,a);return true}}}
+  // gritando parado (ondas saindo); no fim usa a mecânica de 'depois' (ex.: o pulo), mesmo em recarga
+  if(M.gritando){const Gr=M.gritando;e.dest=null;e.path=[];if(Gr.t>0)return true;M.gritando=null;
+   if(Gr.depois&&a.dead<=0){const i=mecs.findIndex(x=>x.tipo===Gr.depois);if(i>=0){executar(e,mecs[i],a);M.cds[i]=Math.max(1,(val(mecs[i],'cd')||10)*cooldownMultiplier(e));return true}}}
   // preparando o pulo (e o machado voando antes dele): fica parado no lugar; o voo é movido pelo próprio pulo
   if(M.salto){e.dest=null;e.path=[];e.fx=M.salto.x1-e.x;e.fy=M.salto.y1-e.y;return true}
   if(e.aw>0||a.dead>0||d>320||M.rodando)return false;
@@ -145,9 +155,11 @@
 // atordoado (ou congelado): o chefe perde o que estava preparando — avisos no chão, pulo, giro e espiral (pedido do usuário)
     const tonto=e.st&&statusSpeed(e)===0;
     if(tonto&&!e.mec.tonto){let n=0;for(let k=TG.length;k--;)if(TG[k].src===e){TG.splice(k,1);n++}
-     if(n||e.mec.salto||e.mec.rodando||e.mec.espiral||e.mec.conjurando>0){ft(e.x,e.y-40,'Interrompido!','#ffd84a');ring(e.x,e.y,26,'#ffd84a',.6)}
-     e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false;e.animExtra=null;e.mec.rodando=null;e.canal=null;e.mec.espiral=null;e.mec.conjurando=0;e.aw=0}
+     if(n||e.mec.salto||e.mec.rodando||e.mec.espiral||e.mec.gritando||e.mec.conjurando>0){ft(e.x,e.y-40,'Interrompido!','#ffd84a');ring(e.x,e.y,26,'#ffd84a',.6)}
+     e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false;e.animExtra=null;e.mec.rodando=null;e.canal=null;e.mec.espiral=null;e.mec.conjurando=0;e.aw=0;e.mec.gritando=null}
     e.mec.tonto=tonto;
+    // grito parado: a cada 0,4 s sai mais uma onda de grito
+    const Gr=e.mec.gritando;if(Gr){Gr.t-=dt;Gr.onda-=dt;if(e.hp<=0)e.mec.gritando=null;else if(Gr.onda<=0&&Gr.t>0){Gr.onda=.4;for(let k=0;k<3;k++)setTimeout(()=>ring(e.x,e.y,30+k*60,'#c084fc',.6-k*.15),k*90);tremer(.2)}}
     // pulo: parado (agachado) durante o aviso, depois voa até o centro da área em VOO s; terra levanta na saída e na queda
     const S=e.mec.salto;if(S){S.t+=dt;if(e.hp<=0){e.mec.salto=null;e.saltoZ=0;e.agachado=false;e.semMachado=false;e.animExtra=null}else{e.dest=null;e.path=[];e.animExtra=S.t<S.d?'agachar':'pulo'} /* quadros próprios do pulo (Engine › Arte e animação: Agachando e Pulando) */if(S&&e.hp>0&&S.t>=0){
      if(S.t<S.d){e.saltoZ=0;e.agachado=S.t>S.d*.6}
@@ -156,7 +168,7 @@
       if(g>=1){e.saltoZ=0;e.mec.salto=null;e.semMachado=false;e.animExtra=null;poeira(e.x,e.y,26,1.3);if(window.playGameSound)playGameSound('saltoQueda');ring(e.x,e.y,30,'#c8a070',.6)}}}}
     // giro: o mesmo do herói (lâmina girando e o desenho seguindo); bate em volta a cada tick
     const G=e.mec.rodando;if(G){G.t-=dt;if(e.canal)e.canal.ang+=dt*14;G.tk-=dt;
-     if(G.tk<=0){G.tk=G.tick;if(window.playGameSound)playGameSound('giroChefe',.6);if(p.dead<=0&&dist(p,e)<=G.r+6)hurtP(Math.max(1,Math.round(mhp()*G.pct)),false,null,null,e);if(Math.random()<.5)poeira(e.x,e.y,4,.4)}
+     if(G.tk<=0){G.tk=G.tick;if(window.playGameSound)playGameSound('giroChefe',.6);if(p.dead<=0&&dist(p,e)<=G.r+6)hurtP(G.dmg!=null?G.dmg:Math.max(1,Math.round(mhp()*G.pct)),false,null,null,e);if(Math.random()<.5)poeira(e.x,e.y,4,.4)}
      if(G.t<=0||e.hp<=0){e.mec.rodando=null;e.canal=null}}}
   }
  }
