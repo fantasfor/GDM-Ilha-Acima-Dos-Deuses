@@ -363,3 +363,49 @@ body.emTutorial .tavBtn{display:none}
 #telaMorte button[hidden]{display:none}
 /* com a barra grande do chefe no topo (DG), o quadro do alvo fica logo abaixo dela */
 #mon.abaixoBarraChefe{top:calc(66px + env(safe-area-inset-top,0px))}
+
+/* ---------- Janela da arena reorganizada (2026-11-05, pedido do usuário) ----------
+   cabeçalho · coluna principal (modos / busca / lobby) · coluna do lado (desempenho e ranking); paleta da interface */
+.arn-wrap{width:min(900px,calc(100vw - 32px));gap:14px;padding:18px 20px 20px;text-align:left}
+.arn-wrap h3{margin:0 0 8px;font:bold 12px monospace;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.arn-cab{display:flex;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:2px solid var(--line2)}
+.arn-cab .arn-titulo{font:bold 22px monospace;letter-spacing:4px;text-transform:uppercase;color:var(--gold)}
+.arn-sub{flex:1;font-size:12px;color:var(--muted)}
+.arn-fechar{min-width:32px;padding:4px 8px!important;font:bold 14px monospace}
+.arn-corpo{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start}
+.arn-main{display:flex;flex-direction:column;gap:12px;min-width:0}
+.arn-lado{display:flex;flex-direction:column;gap:12px}
+.arn-bloco{background:#1a1a1acc;outline:1px solid var(--line2);outline-offset:-1px;padding:10px 12px}
+.arn-pontos{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 8px;margin-bottom:8px;background:var(--ink);outline:1px solid var(--line);outline-offset:-1px}
+.arn-pontos span{font-size:11px;color:var(--muted)}.arn-pontos b{font-size:24px;color:var(--gold)}
+.arn-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.arn-stat{display:flex;flex-direction:column;align-items:center;padding:6px 2px;background:var(--ink)}
+.arn-stat b{font-size:15px;color:var(--gold)}.arn-stat span{font-size:10px;color:var(--muted)}
+.arn-rank{list-style:none;margin:0;padding:0;border:0;background:none;min-width:0}
+.arn-rankLinha{display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:3px 0;border-bottom:1px solid var(--line2);font-size:12px;color:var(--gold)}
+.arn-rankLinha .arn-pos{color:var(--muted)}.arn-rankLinha .arn-nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arn-rankLinha.voce{color:#ffd84a}
+.arn-modos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.arn-modo{min-height:78px;justify-content:flex-start}
+.arn-modo.destaque{outline-color:var(--gold2)!important;background:#262626}
+.arn-modo:disabled{opacity:.45;cursor:not-allowed}
+.arn-modoTopo{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.arn-tag{font-size:10px;padding:2px 6px;background:var(--ink);color:var(--muted);outline:1px solid var(--line);outline-offset:-1px;white-space:nowrap}
+.arn-modo.destaque .arn-tag{color:var(--gold)}
+.arn-modo:focus-visible{outline:2px solid var(--gold)!important}
+.arn-aviso{margin:0;padding:8px 10px;background:#2a1414;outline:1px solid #6e1438;outline-offset:-1px;color:var(--gold);font-size:12px}
+.arn-regras{background:#1a1a1acc;outline:1px solid var(--line2);outline-offset:-1px;padding:6px 12px}
+.arn-regras summary{cursor:pointer;font:bold 12px monospace;letter-spacing:1px;color:var(--muted);padding:4px 0}
+.arn-regras p{margin:6px 0 4px;font-size:12px;line-height:1.5;color:var(--gold)}
+.arn-busca{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px;background:#1a1a1acc;outline:1px solid var(--line2);outline-offset:-1px;text-align:center}
+.arn-relogio{font:bold 32px monospace;color:var(--gold)}
+.arn-acoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.arn-acoes .dgm-enter{margin-right:auto}
+.arn-lobbyTopo{display:flex;align-items:center;justify-content:space-between;gap:10px}.arn-lobbyTopo h3{margin:0}
+.arn-seg{display:flex;gap:4px}
+.arn-time.eqA{border-color:#cf4554}.arn-time.eqA>b{color:#cf4554}
+.arn-time.eqB{border-color:#6e9cc4}.arn-time.eqB>b{color:#6e9cc4}
+.arn-status{margin:0;font-size:12px;color:var(--muted)}
+@media (max-width:720px){.arn-corpo{grid-template-columns:1fr}.arn-modos{grid-template-columns:1fr}.arn-times{grid-template-columns:1fr}.arn-vs{text-align:center}}
+.arn-stats{grid-template-columns:repeat(6,1fr)}.arn-stat{grid-column:span 2}.arn-stat:nth-child(n+4){grid-column:span 3}
+#dialogue.arenaModal>.dialogueClose{display:none!important}

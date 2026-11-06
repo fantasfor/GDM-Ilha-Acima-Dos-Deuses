@@ -30,7 +30,7 @@
  const contorno=(g,cx,cy,rx,ry,cor,a0,a1)=>{const P=PXd();if(P)P.contorno(g,cx,cy,rx,ry,cor,a0,a1)};
  const luz=(g,x,y,r,cor,a)=>{const P=PXd();if(P)P.luz(g,x,y,r,cor,a)};
  const letreiro=(g,t,x,y,cor,e)=>{const P=PXd();if(P)P.texto(g,t,x,y,cor,'#000000',e||1)};
- const tipoEl=e=>window.MAP_ELEMENT_TYPES&&MAP_ELEMENT_TYPES[e.type];
+ const tipoEl=e=>typeof MAP_ELEMENT_TYPES!=='undefined'?MAP_ELEMENT_TYPES[e.type]:null; // global do jogo (não fica em window)
  const desenharElem=(g,e)=>{const a=window.sceneryFor&&sceneryFor(e);if(a&&a.c)g.drawImage(a.c,Math.round(e.x-a.ax),Math.round(e.y-a.ay))};
  const naPaleta=c=>window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(c):c;
  const h2=(x,y)=>typeof hash==='function'?hash(x,y):hsh(x,y); // o mesmo sorteio da ilha (world.js), para o desenho da grama ser igual
@@ -51,20 +51,16 @@
   if(y>RY1-26){const w=30+(y-(RY1-26))*1.6;q=Math.max(q,(w-Math.abs(x-PORTA.x))/2.6)} // a praça do cassino emenda na rua
   return q}
  const X0=-760,Y0=-420,CW=2260,CH=1560;
- /* mata fechada em volta da cidade (2026-11-04, pedido do usuário: não ver o preto do fim do mapa): fora da clareira o
-    chão vira copa de árvore vista de cima (copas redondas sorteadas numa grade, com luz em cima à esquerda e sombra
-    entre elas), e uma fileira de árvores de verdade marca a borda. A estrada atravessa a mata nas duas pontas. */
+ /* mata fechada em volta da cidade (2026-11-04, pedidos do usuário: não ver o preto do fim do mapa, e a mata feita de
+    árvores de verdade, não pintada no chão): fora da clareira o chão é a mesma grama e a mata é um monte de árvores
+    (objetos, com profundidade), bem juntas, de quatro tipos, com arbustos na beirada. A estrada atravessa a mata. */
  const ondula=(a,k)=>Math.sin(a*.05+k)*8+Math.sin(a*.13+k*2)*4;
  function naClareira(x,y){if(y>=RUA0-6&&y<=RY1+6)return true; // a estrada segue pela mata
   return(y>=-22+ondula(x,1)&&y<=446+ondula(x,2)&&x>=-334+ondula(y,3)&&x<=992+ondula(y,4))||(x>=10+ondula(y,5)&&x<=684+ondula(y,6)&&y<=792+ondula(x,7)&&y>=RY1)}
- const COPA=[hx("#263a3a"),hx("#3f6b45"),hx("#79a35a"),hx("#1f1a1a")];
- function copaEm(x,y){const T=15,cx0=Math.floor(x/T),cy0=Math.floor(y/T);let best=null,bd=1e9;
-  for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const cx=cx0+i,cy=cy0+j,px=cx*T+h2(cx*7+1,cy*3+5)*T,py=cy*T+h2(cx*5+9,cy*11+2)*T,r=9+h2(cx,cy*7)*4,d=Math.hypot(x-px,(y-py)*1.15)/r;if(d<bd){bd=d;best=[px,py]}}
-  if(bd>1)return COPA[3];const dx=x-best[0],dy=y-best[1];if(bd>.86)return COPA[0];if(dx+dy<-5&&bd<.7)return COPA[2];return dy>3&&bd>.55?COPA[0]:COPA[1]}
  let chaoRua=null,gramaTile=null;
  function desenharChaoRua(){
   const c=document.createElement('canvas');c.width=CW;c.height=CH;const g=c.getContext('2d'),img=g.createImageData(CW,CH),D=img.data;
-  for(let j=0;j<CH;j++)for(let i=0;i<CW;i++){const x=i+X0,y=j+Y0,o=(j*CW+i)*4;if(!naClareira(x,y)){const cor=copaEm(x,y);D[o]=cor[0];D[o+1]=cor[1];D[o+2]=cor[2];D[o+3]=255;continue}let cor=gramaEm(x,y);
+  for(let j=0;j<CH;j++)for(let i=0;i<CW;i++){const x=i+X0,y=j+Y0,o=(j*CW+i)*4;let cor=gramaEm(x,y);
    const q=qRua(x,y);
    if(q>-1.2){const px=h2(x*3+1,y*7+2);
     if(q>=0){const qa=qRua(x,y-2),qb=qRua(x,y+2);let t=terraEm(q,px,cor);
@@ -75,8 +71,7 @@
   // praça de pedra na frente do cassino (lajes) e o tapete roxo da entrada
   for(let y=RUA0+34;y<RY1;y+=6)for(let x=PORTA.x-64+((y/6)%2)*6;x<PORTA.x+64;x+=12){const d=Math.abs(x+5-PORTA.x)/64+(RY1-y)/70;if(d>1.05)continue;R(g,x,y,11,5,hsh(x,y)<.5?'#5e5668':'#8e8898');R(g,x,y,11,1,'#c4c8d6');R(g,x,y+5,11,1,'#3a3040')}
   R(g,PORTA.x-12,RY1-22,24,22,COR.noite[1]);R(g,PORTA.x-12,RY1-22,2,22,COR.ouro[1]);R(g,PORTA.x+10,RY1-22,2,22,COR.ouro[1]);
-  // jardim do lado do cassino: cerca na beira da rua
-  for(let x=C.x+C.w+4;x<RX1;x+=14){R(g,x,RY1-10,3,14,'#4e2430');R(g,x,RY1-10,1,14,'#a8653f')}R(g,C.x+C.w+4,RY1-7,RX1-C.x-C.w-4,2,'#7d3f34');R(g,C.x+C.w+4,RY1-2,RX1-C.x-C.w-4,2,'#7d3f34');
+  // a cerca do jardim do lado do cassino é objeto (js/bar.js CERCA, postes do layout)
   g.restore();return chaoRua={c:naPaleta(c),x:X0,y:Y0}}
  // ladrilho de grama da ilha (63×63 = 7 × 9 células: emenda sem costura), para o pátio do bar
  function gramaLadrilho(){if(gramaTile)return gramaTile;const c=document.createElement('canvas');c.width=c.height=63;const g=c.getContext('2d'),img=g.createImageData(63,63);
@@ -88,11 +83,17 @@
  // posições editáveis na Engine (cena Cidade): js/taverna-layout.js (TAVERNA_LAYOUT.L.cidade); a mata em volta é gerada (FLORESTA)
  const CID=window.TAVERNA_LAYOUT.L.cidade;
  const DECOR=CID.rua;
- // árvores da borda da mata: pontos fora da clareira com a clareira logo ao lado (a estrada fica livre)
- const FLORESTA=[];
- for(let y=-80;y<=850;y+=20)for(let x=-400;x<=1060;x+=22){const px=x+Math.round((hsh(x,y)-.5)*10),py=y+Math.round((hsh(y,x)-.5)*8);
-  if(naClareira(px,py)||(py>RUA0-30&&py<RY1+40&&(px<-300||px>960)))continue;
-  if(naClareira(px,py+24)||naClareira(px+26,py)||naClareira(px-26,py)||naClareira(px,py-30))FLORESTA.push({type:'px:pk_bar_arvore',x:px,y:py})}
+ // a mata: árvores numa grade apertada com sorteio de lugar e tipo; na beirada da clareira, alguns arbustos.
+ // Guardadas em blocos de 128 px: só as perto da tela entram no desenho.
+ const ARVORES=['px:pk_bar_arvore','px:pk_fn_arvore','px:pk_fn_arvore_alta','px:pk_fn_pinheiro'],ARBUSTOS=['px:pk_fn_arbusto','mata_arbusto'];
+ const FLORESTA=[],BLOCOS_MATA=new Map(),BK=128;
+ for(let y=-380;y<=1100;y+=15)for(let x=-720;x<=1460;x+=19){const px=x+Math.round((hsh(x,y)-.5)*12),py=y+Math.round((hsh(y,x)-.5)*9);
+  if(naClareira(px,py)||naClareira(px,py-4))continue;
+  const beira=naClareira(px,py-16)||naClareira(px+16,py)||naClareira(px-16,py)||naClareira(px,py+18),s=hsh(px*3,py*7);
+  // logo abaixo de uma clareira (a estrada, o fundo do cassino) árvore alta cobriria quem anda: ali só arbusto baixo
+  const sul=naClareira(px,py-54);if(sul&&s>.55)continue;
+  const e={type:sul||beira&&s<.35?ARBUSTOS[(s*10|0)%2]:ARVORES[Math.floor(hsh(px,py*3)*ARVORES.length)],x:px,y:py};
+  FLORESTA.push(e);const k=Math.floor(px/BK)+','+Math.floor(py/BK);if(!BLOCOS_MATA.has(k))BLOCOS_MATA.set(k,[]);BLOCOS_MATA.get(k).push(e)}
  const LAMP_MAGICO=CID.lampMagicos;
  const PLACAS=[{x:RX0+14,y:378,lado:-1},{x:956,y:378,lado:1}];
  function placa(pl){const x=pl.x,y=pl.y;R(ctx,x-1,y-20,3,22,'#000000');R(ctx,x,y-20,1,21,'#a8653f');
@@ -112,7 +113,7 @@
   walk(x,y){if(Math.abs(x-PORTA.x)<PORTA.w/2&&y>=RUA0)return true; // a porta do cassino emenda na rua
    if(x<RX0+2||x>RX1-2||y>RY1-2)return false;if(y<RUA0&&(x<LOJA.x0+6||x>PX0-6))return false; // gramado na frente da loja e da taverna
    for(const l of LAMP_MAGICO)if(Math.hypot(x-l.x,(y-l.y)*1.4)<5)return false;for(const pl of PLACAS)if(Math.abs(x-pl.x)<3&&Math.abs(y-pl.y)<3)return false;
-   for(const e of DECOR){const t=tipoEl(e);if(t&&t.blocks&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(4,t.radius||6))return false}return true},
+   for(const e of DECOR){const t=tipoEl(e);if(t&&t.blocks&&!ehBancoDecor(e)&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(4,t.radius||6))return false}return true},
   saida:(x,y)=>y>=RUA0&&y<RY1&&(x<RX0+6||x>RX1-6),
   entrada:{x:DOOR_TAV.x,y:396},
   // grama (para os tufos ao vento): fora da estrada, das construções e do pátio
@@ -123,7 +124,8 @@
    const vw=cv.width/S,vh=cv.height/S,sx=Math.max(0,Math.floor(p.x-vw/2-ch.x)-4),sy=Math.max(0,Math.floor(p.y-vh/2-ch.y)-4),sw=Math.min(ch.c.width-sx,Math.ceil(vw)+8),sh=Math.min(ch.c.height-sy,Math.ceil(vh)+8);
    if(sw>0&&sh>0)ctx.drawImage(ch.c,sx,sy,sw,sh,ch.x+sx,ch.y+sy,sw,sh)},
   objetos(L){for(const e of DECOR)L.push([e.y,()=>desenharElem(ctx,e)]);
-   const vw=cv.width/S/2+60,vh=cv.height/S/2+80;for(const e of FLORESTA)if(Math.abs(e.x-p.x)<vw&&Math.abs(e.y-p.y)<vh)L.push([e.y,()=>desenharElem(ctx,e)]);for(const l of LAMP_MAGICO)L.push([l.y,()=>lampMagico(l)]);for(const pl of PLACAS)L.push([pl.y,()=>placa(pl)])},
+   const vw=cv.width/S/2+50,vh=cv.height/S/2+70; // árvores da mata perto da tela (pelos blocos)
+   for(let by=Math.floor((p.y-vh)/BK);by<=Math.floor((p.y+vh)/BK);by++)for(let bx=Math.floor((p.x-vw)/BK);bx<=Math.floor((p.x+vw)/BK);bx++){const l=BLOCOS_MATA.get(bx+','+by);if(l)for(const e of l)if(Math.abs(e.x-p.x)<vw&&Math.abs(e.y-p.y)<vh)L.push([e.y,()=>desenharElem(ctx,e)])}for(const l of LAMP_MAGICO)L.push([l.y,()=>lampMagico(l)]);for(const pl of PLACAS)L.push([pl.y,()=>placa(pl)])},
   luzes(){const ls=[];for(const e of DECOR)if(e.type==='px:pk_bar_lampiao')ls.push({x:e.x,y:e.y-34,r:80,a:.8});for(const l of LAMP_MAGICO)ls.push({x:l.x,y:l.y-28,r:60,a:.8});ls.push({x:PORTA.x,y:RY1-30,r:110,a:.9});return ls},
   limites:()=>({x0:RX0,y0:0,x1:RX1,y1:C.y+C.h}),
   // música por aproximação: a da taverna vale na taverna inteira (com o pátio) e some pela rua; a do cassino, no cassino
@@ -271,12 +273,13 @@
  function registrarConstrucoes(){
   if(!window.CONSTRUCOES)return;const T=G();
   const lar=window.TAVERNA_LAYOUT&&TAVERNA_LAYOUT.L.lareira;
-  CONSTRUCOES.registrar({id:'taverna',cena:'taverna',x:T.OX,y:T.OY,w:T.TW,h:T.TH,fachada:36,beiral:18,colisao:false,
+  CONSTRUCOES.registrar({id:'taverna',cena:'taverna',x:T.OX,y:T.OY,w:T.TW,h:T.TH,fachada:36,beiral:18,colisao:false,muro:{alt:22,tijolo:true,pedra:['#4e2430','#7d3f34','#a8653f']},
+   parede:{sombra:'#4e2430',base:'#7d3f34',luz:'#a8653f',tipo:'tijolo'}, // a Taverna do Javali é de tijolos, dentro e fora
    portas:[{lado:'s',x:T.OX+T.TW/2,w:26},{lado:'l',y:T.OY+170,w:28}],janelas:[T.OX+70,T.OX+150,T.OX+330,T.OX+410],chamine:lar?lar.x:T.OX+414,
    placa:{texto:'TAVERNA DO JAVALI DOURADO',cor:'#efc56a'},
    extra(g,a){const x=T.OX+T.TW/2,y=T.OY+T.TH;for(const lx of [x-24,x+24]){R(g,lx-1,y-26,3,6,'#000000');R(g,lx-2,y-20,5,6,'#000000');R(g,lx-1,y-19,3,4,'#f7b84a')}
     const nk=window.TEMPO?TEMPO.escuro():0;if(nk>.05)for(const lx of [x-24,x+24])luz(g,lx,y-17,30,'#f7b84a',a*nk*.6)}});
-  CONSTRUCOES.registrar({id:'cassino',cena:'taverna',x:C.x,y:C.y,w:C.w,h:C.h,fachada:26,beiral:0,colisao:false,
+  CONSTRUCOES.registrar({id:'cassino',cena:'taverna',x:C.x,y:C.y,w:C.w,h:C.h,fachada:26,beiral:0,colisao:false,muro:{alt:20,pedra:['#311339','#4f2052','#74366e']},
    telhado:{sombra:'#311339',base:'#4f2052',luz:'#74366e',cumeeira:'#1f1a1a'},parede:{sombra:'#3a3040',base:'#5e5668',luz:'#8e8898',tipo:'pedra'},
    portas:[{lado:'n',x:PORTA.x,w:PORTA.w}],janelas:[C.x+80,C.x+200,C.x+440,C.x+560],
    extra(g,a){const t=time,cy=C.y+Math.round((C.h-26)*.32);
@@ -347,7 +350,7 @@
    cristal:{w:64,h:72,ox:-32,oy:-58,fn:()=>cristal({x:0,y:0})},
    braseiro:{w:30,h:46,ox:-15,oy:-40,fn:()=>braseiro({x:0,y:0})},
    'lamp-magico':{w:20,h:46,ox:-10,oy:-42,fn:()=>lampMagico({x:0,y:0})}},
-  fixosMotor(){portico();CRISTAIS_PAREDE.forEach((cp,k)=>cristalParede(cp,k));FLORESTA.slice().sort((a,b)=>a.y-b.y).forEach(e=>desenharElem(ctx,e))}
+  fixosMotor(){portico();CRISTAIS_PAREDE.forEach((cp,k)=>cristalParede(cp,k));const B=window.TAVERNA_LAYOUT.cidadeLimites;FLORESTA.filter(e=>e.x>B.x0-30&&e.x<B.x1+30&&e.y>B.y0-10&&e.y<B.y1+70).sort((a,b)=>a.y-b.y).forEach(e=>desenharElem(ctx,e))}
  };
  if(document.readyState==='complete')registrarConstrucoes();else addEventListener('load',registrarConstrucoes);
 })();

@@ -134,7 +134,7 @@
  /* ---------- atualização por quadro ---------- */
  let qsig='',lastLoc='',ready=new Map(),ouroVisto=null,tRotulo=0;
  const hud0=hud;hud=function(){hud0();
-  badge.textContent=p.lvl;$('lv').textContent=p.lvl>=CALC.maxLevel?'XP MÁX':'XP '+p.xp+'/'+p.lvl*CALC.xpPerLevel;
+  badge.textContent=p.lvl;$('lv').textContent=p.lvl>=CALC.maxLevel?'XP MÁX':'XP '+p.xp+'/'+xpParaSubir(p.lvl);
   {const g=p.gold|0;if(g!==ouroVisto){ouroVisto=g;$('invGold').innerHTML=moeda(g);$('qgold').innerHTML=moeda(g)}} // número + símbolo da moeda
   const sig=RAPIDO.map(s=>s?s.id+':'+s.n+':'+s.q:'').join('|');
   if(sig!==qsig){qsig=sig;qslots.forEach((el,i)=>{const s=RAPIDO[i],img=el.querySelector('img'),b=el.querySelector('b');el.className='qslot'+(s?qc(s):' empty');if(s){img.src=ITEMS[s.id].ic;img.hidden=false;b.textContent=s.n>1?s.n:''}else{img.hidden=true;b.textContent=''}})}

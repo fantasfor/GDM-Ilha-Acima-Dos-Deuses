@@ -36,6 +36,15 @@
   // cena Taverna editável: layout padrão, fundo fixo e as peças móveis (js/taverna.js)
   taverna:()=>window.TAVERNA_MOTOR||null,
   infoHabilidade:id=>window.infoHabilidade?infoHabilidade(id):null,
+  // a caixa de informação exatamente como no jogo (HTML), para a prévia no inspetor da Engine
+  caixaHabilidade:id=>{const s=window.habilidadePorId&&habilidadePorId(id);try{return s&&window.caixaHabilidade?caixaHabilidade(s):''}catch(e){return''}},
+  caixaPassiva:id=>{const d=window.passivaPorId&&passivaPorId(id),g=(GAMEDATA.passives||[]).find(x=>x.id===id)||{};try{return d&&window.caixaPassiva?caixaPassiva(d.n,d,g.desc||d.t||''):''}catch(e){return''}},
+  // prévia ao vivo: a caixa montada com os dados que estão sendo editados na Engine (sem recarregar o jogo)
+  caixaHabilidadeDe:s=>{try{const o=window.criarHabilidade&&criarHabilidade(JSON.parse(JSON.stringify(s)));return o&&window.caixaHabilidade?caixaHabilidade({...o,rank:0}):''}catch(e){return'<p>'+e.message+'</p>'}},
+  caixaPassivaDe:s=>{try{const d=JSON.parse(JSON.stringify(s||{}));return window.caixaPassiva?caixaPassiva(d.name||d.id||'Passiva',d,d.desc||''):''}catch(e){return''}},
+  caixaEfeitoDe:(id,dados)=>{const antes=FX_INFO[id];FX_INFO[id]={...(antes||{}),...JSON.parse(JSON.stringify(dados||{}))};try{return MOTOR.caixaEfeito(id)}catch(e){return''}finally{if(antes)FX_INFO[id]=antes;else delete FX_INFO[id]}},
+  // um efeito como aparece na caixa das habilidades (com 3 acúmulos e 3 s de exemplo) e o ícone
+  caixaEfeito:id=>{if(!FX_INFO[id]||!window.linhasEfeitosCaixa)return'';const l=linhasEfeitosCaixa([{type:id,chance:100,acumulos:3,dur:3,pw:10}]);return'<div class=dt><div class=dtNome style="color:'+(FX_INFO[id].c||'#fff')+'">'+FX_INFO[id].n+' <span class=dtR>('+(FX_INFO[id].good?'positivo':'negativo')+')</span></div><div class=dtLin>'+l.map(([r,v])=>'<div><span class=dtR>'+r+':</span> <span class=dtN>'+v+'</span></div>').join('')+'</div></div>'},
   versao:1,
   mundo:()=>({W,T,N,CX,CY,campo:CAMP_SAFE_HALF_SIZE,portalAcampamento:{x:campPortal.x,y:campPortal.y},pontes:RBR.slice()}),
   terreno:()=>map,

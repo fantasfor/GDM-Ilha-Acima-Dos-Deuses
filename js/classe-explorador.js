@@ -3,18 +3,21 @@
    aprendida na caçada do Arqueiro Caçador ao Ladino (js/historia.js): pegar o item com o Ladino ou entregar a
    relíquia ao Arqueiro Caçador ensina Explorador; deixar o item com o Ladino ensina Ladino (classe futura).
    Habilidades (1 por rank):
-    1 Armadilha de Caça — arma uma armadilha no chão (até 3, duram 20 s): prende por 2 s o primeiro inimigo que
-      pisar nela, com dano leve e 3 acúmulos de sangramento;
+    1 Armadilha de Caça — arma uma armadilha no chão (quantas quiser, cada uma dura 30 s; conjuração 0,5 s, recarga
+      10 s): o primeiro inimigo que pisar nela leva 100% do dano da arma, 3 acúmulos de sangramento e fica enraizado
+      por 3 s (não anda, mas ataca e usa habilidades);
     2 Gancho — lança um projétil-gancho com corda na direção do mouse: fisga o que vier primeiro — um inimigo
       (comum: vocês se puxam até o meio, dano leve; chefe/elite: você se puxa até ele) ou um OBSTÁCULO com
-      colisão (árvore, muro, parede de DG: você se puxa até ele). Sem nada para fisgar, devolve mana e recarga;
-    3 Grito de Estratégia — brado verde (mesmo estilo do Grito de Guerra): +25% de velocidade de ataque e de
-      movimento por 10 s (efeito 'estrategia': kind haste = movimento; atkBuff = ataque, js/combat.js statusAtk);
-    4 Instinto de Caça — marca o alvo como presa: -30% de defesa física por 8 s (efeito 'presa', kind armorPct).
+      colisão (árvore, muro, parede de DG: você se puxa até ele). O inimigo fisgado fica atordoado 0,25 s. Recarga 10 s;
+      sem nada para fisgar, devolve mana e recarga;
+    3 Grito de Estratégia — brado verde: +10% de velocidade de ataque e +10% de chance crítica por 10 s (recarga 20 s);
+    4 Instinto de Caça — marca um inimigo: contra ele, +10% de dano, de dano crítico e de chance crítica por 10 s
+      (conjuração 0,25 s, recarga 30 s). A armadilha só vai a até 36 px do herói.
+   (valores pedidos pelo usuário em 2026-11-05)
    Passiva: Passos de Caçador, +20% de velocidade de movimento (CL.pSpd).
    O visual do herói usa o conjunto 'explorador' do js/sprites.js (CLASSE_VISUAL, o arqueiro de verde). */
 (function(){
- if(typeof MODO!=='undefined'&&MODO.motor)return;
+ const MOTOR=typeof MODO!=='undefined'&&MODO.motor; // na Engine: só os dados (ícones, efeitos, criar), sem o laço do jogo
  const VERDE='#79a35a',VERDE_E='#3f6b45',VERDE_C='#c4dc5a'; // rampa Folhagem/Veneno da paleta do jogo
 
  /* ---- ícones próprios (2026-11-04, pedido do usuário: ícones únicos) ----
@@ -24,12 +27,11 @@
  const PI={k:'#0d0d0d',s:'#3e3a52',m:'#7c8098',l:'#c4c8d6',w:'#ffffff',t:'#4e2430',r:'#7d3f34',o:'#a8653f',
   g:'#3f6b45',n:'#79a35a',y:'#c4dc5a',a:'#9a5a2a',b:'#d08a3a',c:'#efc56a',d:'#a22b4b',e:'#cf4554',u:'#7a6650',v:'#b8a47c',i:'#ddd0a6'};
  function icone(desenha){const o=mkCanvas(16,16),g=o.getContext('2d');
-  for(let y=0;y<16;y++){g.fillStyle=shade(COR_CLASSE,.16+.14*(1-y/16));g.fillRect(0,y,16,1)}
-  g.fillStyle=shade(COR_CLASSE,.55);g.fillRect(0,0,16,1);g.fillStyle=shade(COR_CLASSE,.45);g.fillRect(0,0,1,16);g.fillStyle='#05070a';g.fillRect(0,15,16,1);g.fillRect(15,0,1,16);
+  if(window.PALETA_JOGO&&PALETA_JOGO.fundoIcone)PALETA_JOGO.fundoIcone(g,16,16,COR_CLASSE); // fundo: 3 cores (centro, borda clara, borda escura)
   const S=[...Array(16)].map(()=>Array(16).fill(null)),P=(x,y,c)=>{x=Math.round(x);y=Math.round(y);if(x>=1&&y>=1&&x<15&&y<15)S[y][x]=PI[c]||c};
   desenha(P);
   for(let y=0;y<16;y++)for(let x=0;x<16;x++){const c=S[y][x];if(c){g.fillStyle=c;g.fillRect(x,y,1,1)}else if([[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>S[y+b]&&S[y+b][x+a]&&S[y+b][x+a]!==PI.k)&&x>=1&&y>=1&&x<15&&y<15){g.fillStyle=PI.k;g.fillRect(x,y,1,1)}}
-  return o.toDataURL()}
+  return (window.PALETA_JOGO&&PALETA_JOGO.iconeNaPaleta?PALETA_JOGO.iconeNaPaleta(o):o).toDataURL()} // na paleta do jogo
  const ICONE={
   // armadilha de urso aberta: argola de aço com dentes para dentro, prato de ouro no meio e a corrente com a estaca
   armadilha:icone(P=>{for(let y=1;y<15;y++)for(let x=1;x<15;x++){const dx=(x+.5-7.5)/5.6,dy=(y+.5-7.2)/3.9,d=Math.hypot(dx,dy);if(d<=1&&d>.66)P(x,y,dy<-.3?'l':dy>.45?'s':'m')}
@@ -53,6 +55,9 @@
    P(7,7,'n');P(8,7,'g');P(7,8,'g');P(8,8,'n');P(7,7,'w');P(8,7,'k');P(8,8,'k');
    for(const [x,y] of [[7,1],[8,1],[7,2],[8,2],[7,13],[8,13],[7,14],[8,14],[1,7],[1,8],[2,7],[2,8],[13,7],[13,8],[14,7],[14,8]])P(x,y,(x==7||y==7)?'w':'e')})};
  window.ICONE_EXPLORADOR=ICONE;
+ // ícone de cada habilidade do projeto (id em dados.skills): entra no iconeHabilidade de js/icones-habilidades.js
+ const ICONE_POR_ID={exp_armadilha:ICONE.armadilha,exp_gancho:ICONE.gancho,exp_instinto:ICONE.instinto};
+ {const antes=window.iconeHabilidade;window.iconeHabilidade=id=>ICONE_POR_ID[id]||(antes?antes(id):null)}
 
  /* ---- animações próprias (2026-11-04): desenhadas pixel a pixel como as outras (js/vfx-habilidades.js) ---- */
  const U=window.VFX&&VFX.util;
@@ -81,16 +86,18 @@
 
  /* ---- efeitos próprios da classe ---- */
  Object.assign(FX_INFO,{
-  estrategia:{n:'Grito de Estratégia',c:VERDE,kind:'haste',good:true,aura:true,atkBuff:true}, // +movimento (haste) e +velocidade de ataque (atkBuff)
-  presa:{n:'Presa Marcada',c:VERDE,kind:'armorPct'}}); // -% de defesa física do alvo (js/combat.js reducaoPct)
+  // bonuses: atributos em % enquanto o efeito dura (js/combat.js statusAttributeBonus)
+  estrategia:{n:'Grito de Estratégia',c:VERDE,kind:'bonus',good:true,aura:true,bonuses:{attackSpeed:10,critChance:10}},
+  instinto:{n:'Instinto de Caça',c:'#cf4554',kind:'marcaCaca'}, // alvo marcado: o herói causa +pw% de dano, chance e dano crítico nele (js/combat.js marcaCaca)
+  enraizado:{n:'Enraizado',c:'#79a35a',kind:'root'}}); // não anda; ataca e usa habilidades (js/combat.js enraizado)
 
  /* ---- Gancho: projétil-gancho com corda (rápido no voo e no puxão) ----
     Fisga o que vier primeiro na direção do mouse: um inimigo (vocês se puxam; chefe/elite puxa só você) ou um
     OBSTÁCULO com colisão — árvore, muro do acampamento, parede de DG (2026-11-02, pedido do usuário) — e você
     se puxa até ele. Sem nada para fisgar em 140 px, a habilidade não gasta mana nem recarga. */
- const VEL_GANCHO=280,ALCANCE_GANCHO=140; // px/s (voo e puxão; metade da de antes, 2026-11-04) e alcance
+ const VEL_GANCHO=280; // px/s (voo e puxão; metade da de antes, 2026-11-04); alcance, dano e efeitos: da habilidade (cfg)
  let gancho=null; // {e (inimigo) OU o {x,y,gx,gy} (obstáculo), x, y, fase:'ida'|'puxa', d:{x,y} destino do inimigo puxado}
- function lancarGancho(w){
+ function lancarGancho(w,cfg){const ALCANCE_GANCHO=cfg.alcance;
   // 1) inimigo embaixo do mouse ou o alvo selecionado, dentro do alcance e à vista
   let t=typeof pick=='function'?pick(w):null;
   if(!(t&&t.hp>0))t=p.tgt&&p.tgt.hp>0?p.tgt:null;
@@ -102,9 +109,9 @@
     t=en.find(e=>e.hp>0&&!e.pvp&&Math.hypot(e.x-X,e.y-Y)<10);if(t)break;
     if(!walk(X,Y)||!campWallSegmentClear(p,{x:X,y:Y})){let r=Math.max(0,d-10);while(r>0&&!walk(p.x+co*r,p.y+si*r))r-=4;obst={x:p.x+co*r,y:p.y+si*r,gx:X,gy:Y};break}}}
   if(!t&&!obst){ // nada fisgável: devolve a mana e zera a recarga (não tem como "errar" e perder a habilidade)
-   const sk=SK.find(k=>k.n==='Gancho');if(sk){p.mp=Math.min(mmp(),p.mp+(+sk.mana||0));sk.t=0}
+   const sk=SK.find(k=>k.id===cfg.id);if(sk){p.mp=Math.min(mmp(),p.mp+(+sk.mana||0));sk.t=0}
    ft(p.x,p.y-24,'Nada para fisgar por perto','#ccc');return}
-  gancho={e:t||null,o:t?null:obst,x:p.x,y:p.y-8,fase:'ida',lugar:lugar()};if(window.playGameSound)playGameSound('gancho')}
+  gancho={e:t||null,o:t?null:obst,x:p.x,y:p.y-8,fase:'ida',lugar:lugar(),cfg};if(window.playGameSound)playGameSound('gancho')}
  function tickGancho(dt){
   const g=gancho;if(!g)return;
   if(g.lugar!==lugar()||p.dead>0){gancho=null;return}
@@ -119,7 +126,7 @@
    if(!e){ // obstáculo (árvore, muro, parede de DG): você se puxa até o último ponto livre antes dele
     vfx('impacto',{x:g.o.gx,y:g.o.gy,cor:'#c4c8d6'});if(window.playGameSound)playGameSound('gancho');
     g.d=null;puxar(g.o.x,g.o.y);g.fase='puxa';return}
-   hurtE(e,12+p.lvl*2,false);vfx('impacto',{x:e.x,y:e.y-6,cor:VERDE_C});if(window.playGameSound)playGameSound('gancho');
+   hurtE(e,g.cfg.pv(),g.cfg.magic,g.cfg.fx&&g.cfg.fx());vfx('impacto',{x:e.x,y:e.y-6,cor:VERDE_C});if(window.playGameSound)playGameSound('gancho');
    if(e.hp<=0){gancho=null;return}
    const grande=e.boss||e.elite||['boss','grandboss'].includes(e.bossType);
    if(grande){g.d=null;puxar(e.x-co*16,e.y-si*16)} // chefe ou elite não sai do lugar: você vai até ele
@@ -149,17 +156,19 @@
  /* ---- Armadilha de Caça: armadilhas no chão ---- */
  const armadilhas=[];
  const lugar=()=>(window.inTutorial?'u':window.inArena?'a':window.inTaverna?'t':window.inDungeon?'d':'i')+(window.MP&&MP.visitando||'');
- function armar(w){
-  if(armadilhas.length>=3)armadilhas.shift(); // no máximo 3 ao mesmo tempo: a mais antiga some
-  armadilhas.push({x:w.x,y:w.y,t:20,lugar:lugar(),nasceu:performance.now()/1000});vfx('armadilhaArma',{x:w.x,y:w.y,dur:.45});if(window.playGameSound)playGameSound('armadilhaArma')}
+ // a armadilha vai bem perto do herói (2026-11-05): no mouse até cfg.alcance px; mais longe, na beirada desse alcance
+ function armar(w,cfg){const ALC_ARMADILHA=cfg.alcance;
+  const d=Math.hypot(w.x-p.x,w.y-p.y);if(d>ALC_ARMADILHA){const k=ALC_ARMADILHA/d;w={x:p.x+(w.x-p.x)*k,y:p.y+(w.y-p.y)*k}}
+  if(!walk(w.x,w.y))w={x:p.x,y:p.y};
+  armadilhas.push({x:w.x,y:w.y,t:cfg.duracao,cfg,lugar:lugar(),nasceu:performance.now()/1000});vfx('armadilhaArma',{x:w.x,y:w.y,dur:.45});if(window.playGameSound)playGameSound('armadilhaArma')}
  const presos=[]; // inimigos com a armadilha fechada no pé (só o desenho; o atordoamento é o efeito stun)
  function tickArmadilhas(dt){
   if(!armadilhas.length)return;const aqui=lugar();
   for(let i=armadilhas.length;i--;){const a=armadilhas[i];a.t-=dt;
    if(a.t<=0||a.lugar!==aqui){armadilhas.splice(i,1);continue}
-   const e=en.find(e=>e.hp>0&&!e.pvp&&!e.duelo&&Math.hypot(e.x-a.x,e.y-a.y)<12);
-   if(e){armadilhas.splice(i,1);vfx('armadilhaFecha',{x:e.x,y:e.y,dur:.5});ft(a.x,a.y-24,'Armadilha!',VERDE);if(window.playGameSound)playGameSound('armadilhaFecha');presos.push({e,ate:performance.now()/1000+2,lugar:aqui});
-    hurtE(e,10+p.lvl*2,false,resolveFx([{type:'stun',dur:2,chance:100},{type:'bleed',chance:100,acumulos:3}]))}}}
+   const e=en.find(e=>e.hp>0&&!e.pvp&&!e.duelo&&Math.hypot(e.x-a.x,e.y-a.y)<a.cfg.raio);
+   if(e){armadilhas.splice(i,1);vfx('armadilhaFecha',{x:e.x,y:e.y,dur:.5});ft(a.x,a.y-24,'Armadilha!',VERDE);if(window.playGameSound)playGameSound('armadilhaFecha');presos.push({e,ate:performance.now()/1000+a.cfg.preso,lugar:aqui});
+    hurtE(e,a.cfg.pv(),a.cfg.magic,a.cfg.fx&&a.cfg.fx())}}}
  // desenho: junto dos itens no chão (desenharLoot é chamado pela ilha e pela DG com a câmera do mundo)
  function desenharArmadilhas(){
   if(!armadilhas.length)return;const aqui=lugar(),t=performance.now()/1000;
@@ -183,27 +192,41 @@
    R1(x+6,y+1,3,1,'#3e3a52');R1(x+9,y+2,1,1,'#7d3f34')}}
  // mira girando sobre quem está marcado como presa (Instinto de Caça)
  function desenharPresas(){if(typeof en==='undefined')return;const t=performance.now()/1000;
-  for(const e of en){if(e.hp<=0||!e.st||!e.st.presa||!(e.st.presa.t>0))continue;const h=typeof wh=='function'?wh(e.img):20,cx=e.x,cy=e.y-h/2,r=9+Math.sin(t*6)*1,rot=t*1.6;
+  for(const e of en){if(e.hp<=0||!e.st||!e.st.instinto||!(e.st.instinto.t>0))continue;const h=typeof wh=='function'?wh(e.img):20,cx=e.x,cy=e.y-h/2,r=9+Math.sin(t*6)*1,rot=t*1.6;
    for(let i=0;i<32;i++){const a=i/32*Math.PI*2+rot;if(Math.abs(Math.sin(2*(a-rot)))<.3)continue;R1(Math.round(cx+Math.cos(a)*r),Math.round(cy+Math.sin(a)*r*.8),1,1,'#cf4554')}
    for(let q=0;q<4;q++){const a=rot+q*Math.PI/2;for(let j=0;j<3;j++)R1(Math.round(cx+Math.cos(a)*(r+1+j)),Math.round(cy+Math.sin(a)*(r+1+j)*.8),1,1,j==2?'#ffffff':'#cf4554')}}} // piscada para o dono ver onde armou
  // a armadilha fica no chão, atrás dos personagens (camada do chão: render.js e dungeon.js); a corda e o gancho voam por cima
- addEventListener('load',()=>{if(window.CAMADA_CHAO)CAMADA_CHAO.lista.push(desenharArmadilhas);
+ if(!MOTOR)addEventListener('load',()=>{if(window.CAMADA_CHAO)CAMADA_CHAO.lista.push(desenharArmadilhas);
   const des0=window.desenharLoot;if(des0)window.desenharLoot=()=>{des0();if(!window.CAMADA_CHAO)desenharArmadilhas();desenharGancho()};
   if(window.desenharLoot){const d1=window.desenharLoot;window.desenharLoot=()=>{d1();desenharPresos();desenharPresas()}}
   const upd0=upd;upd=function(dt){upd0(dt);try{tickArmadilhas(dt);tickGancho(dt)}catch(e){console.error('Explorador:',e)}}});
 
- /* ---- a classe e as habilidades ---- */
- CL.explorador={n:'Explorador',base:'explorador',historia:true,F:6,A:14,I:4,perLevel:{F:3,A:4,I:2},attackSpeed:1,pSpd:.2,
-  passive:{n:'Passos de Caçador',d:'+20% de velocidade de movimento.'}};
- SKS.explorador=[
-  {n:'Armadilha de Caça',mana:15,cd:8,vfx:'none',ic:ICONE.armadilha,f:Object.assign(w=>armar(w),{mira:1}),
-   d:()=>'Arma uma armadilha de aço no chão, onde está o mouse (até 3 de uma vez, cada uma dura 20 s). O primeiro inimigo que pisar nela fica preso por 2 s, leva '+(10+p.lvl*2)+' de dano e 3 acúmulos de sangramento.'},
-  {n:'Gancho',mana:20,cd:9,vfx:'investida',ic:ICONE.gancho,f:w=>lancarGancho(w), // fisga inimigo OU obstáculo; sem nada para fisgar, devolve a mana e a recarga
-   d:()=>'Lança um projétil-gancho com corda na direção do mouse (alcance 140). Num inimigo: vocês se puxam um para o outro ('+(12+p.lvl*2)+' de dano); chefe ou elite: você se puxa até ele. Em árvore, muro ou parede: você se puxa até o obstáculo. Sem nada para fisgar, não gasta mana.'},
-  {n:'Grito de Estratégia',mana:30,cd:20,vfx:'aura',effect:'aura',ic:ICONE.corneta,
-   f:()=>{applyFx(p,[{caster:p,self:true,type:'estrategia',chance:100,dur:10,pw:25}]);vfx('brado',{x:p.x,y:p.y,dur:.9});if(window.playGameSound)playGameSound('corneta')},
-   d:()=>'Sopra a corneta de caça: três ondas verdes saem de você e, por 10 s, você ganha +25% de velocidade de ataque e de movimento.'},
-  {n:'Instinto de Caça',mana:20,cd:12,vfx:'none',ic:ICONE.instinto,
-   f:Object.assign((w,t)=>{applyFx(t,[{caster:p,type:'presa',chance:100,dur:8,pw:30}]);vfx('mira',{x:t.x,y:t.y-(typeof wh=='function'?wh(t.img)/2:10),dur:.55});if(window.playGameSound)playGameSound('mira')},{tg:1}),
-   d:()=>'Trava a mira no alvo e o marca como presa: por 8 s, uma mira vermelha gira sobre ele e ele fica com -30% de defesa física.'}];
+ /* ---- habilidades (2026-11-05, pedido do usuário: "coloque tudo no mesmo lugar"): a classe Explorador, as 4 habilidades e a
+    passiva ficam no projeto (PROJETO.dados: classes, skills, passives), editáveis na Engine como as outras classes. Aqui só
+    a mecânica de cada efeito próprio, chamada por js/custom.js makeSkill (como o Curandeiro): s = a habilidade do projeto,
+    ctx = {pv (dano), fx (efeitos da habilidade + os da arma), proprios (efeitos da habilidade), magic}.
+      armadilha   alcance (px até onde arma), duracao (s que a armadilha fica), radius (px de quem pisa), dano e efeitos
+      gancho      alcance (px), dano e efeitos de quem for fisgado
+      bradoCaca   efeitos em você (Grito de Estratégia: efeito 'estrategia'); aliados: opção geral de toda habilidade
+      marcaPresa  efeitos no inimigo marcado (Instinto de Caça: efeito 'instinto') */
+ const num=(v,d)=>Number.isFinite(+v)&&v!==''&&v!=null?+v:d;
+ // a caixa de informação (Dano, Alcance, Área, Efeito) sai sozinha dos campos da habilidade (js/custom.js efeitoCurto)
+ function criar(s,ctx){const {pv,fx,proprios,magic}=ctx;
+  switch(s.effect){
+   case 'armadilha':{const cfg={alcance:num(s.alcance,36),duracao:num(s.duracao,30),raio:num(s.radius,12)||12,pv,fx,magic,preso:Math.max(0,...proprios.filter(e=>e&&e.type==='enraizado').map(e=>num(e.dur,3)),0)||1};
+    return{f:Object.assign(w=>armar(w,cfg),{mira:1}),alcance:()=>cfg.alcance,
+     d:()=>'Arma uma armadilha no chão, perto de você.'}}
+   case 'gancho':{const cfg={id:s.id,alcance:num(s.alcance,140),pv,fx,magic};
+    return{f:w=>lancarGancho(w,cfg),
+     d:()=>'Lança um gancho com corda na direção do mouse e puxa.'}}
+   case 'bradoCaca':
+    // os aliados (opção geral "Também vale para os aliados", js/custom.js) ganham os mesmos efeitos
+    return{f:()=>{applyFx(p,proprios.map(e=>({chance:100,...e,caster:p,self:true})));vfx('brado',{x:p.x,y:p.y,dur:.9});if(window.playGameSound)playGameSound('corneta')},
+     d:()=>'Sopra a corneta de caça e fortalece você.'}
+   case 'marcaPresa':
+    return{f:Object.assign((w,t)=>{applyFx(t,proprios.map(e=>({chance:100,...e,caster:p})));vfx('mira',{x:t.x,y:t.y-(typeof wh=='function'?wh(t.img)/2:10),dur:.55});if(window.playGameSound)playGameSound('mira')},{tg:1}),
+     d:()=>'Marca um inimigo como sua presa.'}
+  }
+  return null}
+ window.EXPLORADOR={criar};
 })();

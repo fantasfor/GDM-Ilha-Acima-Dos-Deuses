@@ -132,6 +132,10 @@ function setDest(x,y){
  // clicou num lugar sem passagem: primeiro procura em volta do clique (rápido, e vale também para a cidade, que tem
  // coordenadas negativas); só se não achar varre a grade inteira da ilha
  if(!walk(x,y)){let perto=null;for(let r=4;r<=96&&!perto;r+=4)for(let k=0;k<16;k++){const a=k*Math.PI/8,qx=x+Math.cos(a)*r,qy=y+Math.sin(a)*r;if(walk(qx,qy)){perto={x:qx,y:qy};break}}if(perto){x=perto.x;y=perto.y}}
+ // longe de qualquer passagem (ex.: clique na mata, fora da cidade): o ponto livre mais perto do clique na linha entre o
+ // clique e o herói, para ele andar NA DIREÇÃO do clique (antes a varredura da grade da ilha, que só tem x positivo,
+ // mandava o herói para o lado contrário na cidade; 2026-11-05)
+ if(!walk(x,y)){const L=Math.hypot(x-p.x,y-p.y);for(let d=0;d<=L;d+=4){const k=d/(L||1),qx=x+(p.x-x)*k,qy=y+(p.y-y)*k;if(walk(qx,qy)){x=qx;y=qy;break}}}
  if(!walk(x,y)){
   let best=null,distBest=Infinity;
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const q={x:(i+.5)*T,y:(j+.5)*T};if(!walk(q.x,q.y))continue;const d=(q.x-x)**2+(q.y-y)**2;if(d<distBest){best=q;distBest=d}}
@@ -158,7 +162,9 @@ function configureMonster(e,type,level){
  e.size=Math.max(.25,(+template.size||100)/100);
  if(template.custom&&template.sprite){e.img=template.sprite;e.sp=template.sp}
  else if(type=='boss'&&SP.boss){e.img=SP.boss.d;e.sp=SP.boss}
- const attrScale=template.bossType=='grandboss'?1.5:template.bossType=='boss'?1.25:1;
+ /* reforço (2026-11-05, pedido do usuário): Elite (tipo) continua com +25% de atributos e +50% de vida automáticos; o Chefe
+    não ganha mais nada sozinho — o bônus é o "Bônus de atributos (%)" e o "Multiplicador de vida" de cada um na Engine */
+ const attrScale=(template.bossType=='boss'?1.25:1)*(1+(+template.bonusAtr||0)/100);
  e.stats={F:Math.round((template.stats.F+grow('F'))*attrScale),A:Math.round((template.stats.A+grow('A'))*attrScale),I:Math.round((template.stats.I+grow('I'))*attrScale)};
  e.bossType=template.bossType||'normal';e.skill=template.skill;e.skillCd=0;e.skillWindup=false;e.mp=monMana(e.stats.I);e.armor=e.magicArmor=undefined;
  // fórmulas dos monstros: Engine › Fórmulas › Monstros
@@ -168,13 +174,12 @@ function configureMonster(e,type,level){
  e.weaponRanges=[];e.weaponDamageMultiplier=1;e.weaponDamageBase=null;
  if(template.custom){
   const eq=template.equipment||{},weapon=eq.weapon;let stats=eq.stats||{},faixas=eq.weaponRanges||[];
-  // ataque básico pelo nível (plano de balanceamento, js/balanceamento.js): faixa mín–máx do nível em que o monstro nasce
-  if(template.ataqueDoNivel&&window.BALANCEAMENTO){const r=BALANCEAMENTO.ataqueMonstro(level,CALC,PLANO_CLASSES());stats={...stats,dmg:(stats.dmg||0)+(r.min+r.max)/2};faixas=[...faixas,{min:r.min,max:r.max}]}
+  // (o "ataque do nível" da planilha saiu em 2026-11-05: o jogo não usa mais js/balanceamento.js; cada monstro tem o próprio dano)
   e.stats.F=Math.round((template.stats.F+grow('F')+(stats.F||0))*attrScale);
   e.stats.A=Math.round((template.stats.A+grow('A')+(stats.A||0))*attrScale);
   e.stats.I=Math.round((template.stats.I+grow('I')+(stats.I||0))*attrScale);
   const maxBase=CALC.monHp0+e.stats.F*CALC.monHpPerF+(stats.hp||0),magica=weapon&&weapon.damageType=='magic',power=magica?(stats.magicDmg||0):(stats.physicalDmg||0),multAtr=1+(magica?e.stats.I*monMagPerI():e.stats.F*monPhysPerF())/100; // Força/Inteligência: +% de dano (como o personagem)
-  e.max=Math.round(maxBase*(e.bossType=='grandboss'?2:e.bossType=='boss'?1.5:1)*(template.hpMult||1));
+  e.max=Math.round(maxBase*(e.bossType=='boss'?1.5:1)*(template.hpMult||1));
   e.weaponDamageBase=(stats.dmg||0)+power;e.dmg=Math.round(e.weaponDamageBase*(template.dmgMult||1)*multAtr);e.armor=e.stats.A*CALC.monArmPerA+(stats.arm||0);e.magicArmor=monMagArm(e.stats.F,e.stats.A,e.stats.I)+(stats.magicArm||0);
   e.attackMagic=!!(weapon&&weapon.damageType=='magic');e.weaponBasic=weapon&&weapon.basic;e.weaponFx=weapon&&weapon.effects||[];
   e.weaponRanges=faixas;e.weaponDamageMultiplier=(template.dmgMult||1)*multAtr;
@@ -189,7 +194,10 @@ function configureMonster(e,type,level){
  e.armor=Math.round((e.armor??e.stats.A*CALC.monArmPerA)+(+own.arm||0));e.magicArmor=Math.round((e.magicArmor??monMagArm(e.stats.F,e.stats.A,e.stats.I))+(+own.magicArm||0));
  e.spd*=Math.max(0,1+attributeValue(own,'moveSpeed'));e.ac=Math.max(CALC.monMinInterval,e.ac*(1-Math.min(.9,attributeValue(own,'attackSpeed'))));
  // XP: o do monstro (Engine, se maior que 0) ou a fórmula: XP por nível × nível (chefe e chefão multiplicam)
- const fixo=+((typeof MB!=='undefined'&&MB[type]||{}).xpFixo)||0;e.xp=fixo>0?fixo:Math.round((+CALC.monXpPorNivel||5)*level*(e.bossType=='grandboss'?(+CALC.xpChefao||15):e.bossType=='boss'||e.boss?(+CALC.xpChefe||5):1));
+ /* XP (2026-11-05, pedido do usuário): a soma dos atributos do monstro no nível dele (Força + Agilidade + Inteligência,
+    já com o ganho por nível e o reforço de Elite/bônus do chefe; equipamento não conta). Ex.: nível 1 com 40 = 40 de XP */
+ // sem os atributos do equipamento (2026-11-05): só os do monstro, com o ganho por nível e o reforço
+ e.xp=Math.max(1,Math.round(['F','A','I'].reduce((t,k)=>t+((+template.stats[k]||0)+grow(k))*attrScale,0)));
 }
 // classes de referência do plano de balanceamento (js/balanceamento.js): Guerreiro (físico) e Mago (mágico) do projeto
 const PLANO_CLASSES=()=>{const l=GAMEDATA.classes||[];return{war:l.find(c=>c&&c.id=='war'),mag:l.find(c=>c&&c.id=='mag')}};

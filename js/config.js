@@ -1,7 +1,15 @@
 /* constantes de cálculo (editáveis pelo GM na Enciclopédia > Cálculos) */
-const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:.2,magPerI:.2,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:90,maxLevel:10,atrPorNivel:2,ambasArmasPct:80,critPerA:.1,monCritPerA:.1,rankXp:90,monXpPorNivel:5,xpChefe:5,xpChefao:15,rankXpPorAbate:25,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,qualRuim:35,qualComum:35,qualBoa:20,qualRara:8,qualEpica:1.9,qualPerfeita:.1,eliteDrop:1.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,armorFloor:.3,
+const CALC={hp0:140,hpPerF:5,mp0:35,mpPerI:5,armPerA:5,physPerF:.2,magPerI:.2,atkSpdPerA:.005,minInterval:.25,spdPerA:.005,move:62,regenPerF:.05,regenPerI:.05,camp:14,xpPerLevel:90,maxLevel:10,atrPorNivel:2,ambasArmasPct:80,critPerA:.1,monCritPerA:.1,rankXp:90,monXpPorNivel:5,xpChefe:5,xpChefao:15,rankXpPorAbate:25,xpNivel:100,xpCurvaNivel:6,xpCurva:25,monHp0:40,monHpPerF:5,qualExp:2.2,qualBase:.5,qualRuim:35,qualComum:35,qualBoa:20,qualRara:8,qualEpica:1.9,qualPerfeita:.1,eliteDrop:1.5,portalInterval:5,areaCap:5,portalLevelRange:10,portalLevelBonus:2,loseMul:2.5,loseMin:240,giveUp:10,monsterReset:10,islandMinMonsters:20,armorFloor:.3,
  magArmPerI:1,monMp0:35,monMpPerI:5,monArmPerA:5,monMagArmPerI:1,monPhysPerF:.2,monMagPerI:.2,monRegenPerF:.05,monRegenPerI:.05,monMove0:28,monMovePerA:.005,monMinInterval:.25,monAtkSpdPerA:.005};
 const CALC_DEF={...CALC};
+/* Curva de XP (2026-11-05, pedido do usuário): total para chegar a cada nível = 0, 100, 200, 300, 400, 500, 625, 781, 976,
+   1220… — +XP por nível (100) até o nível da curva (6) e, dali em diante, o total sobe XP da curva (25%) por nível.
+   Vale para o nível do personagem e para o rank da classe (classes tier I: rank 1 a 10). Engine › Fórmulas › Progressão. */
+function xpTotal(n){n=Math.max(1,Math.floor(n));const passo=+CALC.xpNivel||100,ate=Math.max(2,+CALC.xpCurvaNivel||6),k=1+(+CALC.xpCurva||0)/100;
+ if(n<=ate)return passo*(n-1);return Math.floor(passo*(ate-1)*Math.pow(k,n-ate))}
+// XP que falta do nível (ou rank) n para o n+1
+function xpParaSubir(n){return Math.max(1,xpTotal(n+1)-xpTotal(n))}
+window.xpTotal=xpTotal;window.xpParaSubir=xpParaSubir;
 /* fórmulas dos monstros: separadas das do personagem (Engine › Fórmulas › Monstros) */
 const monPhysPerF=()=>CALC.monPhysPerF,monMagPerI=()=>CALC.monMagPerI;
 const monMana=I=>CALC.monMp0+(I-3)*CALC.monMpPerI,monMagArm=(F,A,I)=>I*CALC.monMagArmPerI;

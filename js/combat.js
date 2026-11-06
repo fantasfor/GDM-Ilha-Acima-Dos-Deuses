@@ -30,8 +30,11 @@ const cooldownMultiplier=entity=>1-Math.max(0,Math.min(.9,entity===p?bonus('cool
 const tempoConj=s=>{if(s.conjAtaque>0)return attackInterval()*s.conjAtaque/100; /* conjuração = % do intervalo do ataque básico (ex.: Corte Horizontal, 50%) */const base=+s.castTime||0;return base>0?base/Math.max(.1,1+bonus('castSpeed')):0};
 /* Agilidade: cada ponto dá critPerA % de chance crítica e de dano crítico (0,1 = 10 pontos +1%); monstros: monCritPerA */
 const critAgi=u=>{try{const A=u===p?attributes().A:(typeof monsterAttributes=='function'?monsterAttributes(u).A:(u.stats&&u.stats.A)||0);return(+A||0)*(u===p?+(CALC.critPerA??.1):+(CALC.monCritPerA??.1))/100}catch(e){return 0}};
-function combatRoll(entity,damage){
- const value=k=>(entity===p?bonus(k):monsterAttribute(entity,k))+critAgi(entity),crit=Math.random()<Math.max(0,Math.min(1,value('critChance')));
+/* alvo marcado pelo herói (Instinto de Caça do Explorador, FX 'marcaCaca'): contra ele, +pw% de dano, de chance crítica e
+   de dano crítico (2026-11-05) */
+const marcaCaca=(entity,alvo)=>{if(entity!==p||!alvo||!alvo.st)return 0;let m=0;for(const k in alvo.st)if(FX_INFO[k]&&FX_INFO[k].kind==='marcaCaca'&&alvo.st[k].t>0)m=Math.max(m,+alvo.st[k].pw||0);return m/100};
+function combatRoll(entity,damage,alvo){
+ const mc=marcaCaca(entity,alvo),value=k=>(entity===p?bonus(k):monsterAttribute(entity,k))+critAgi(entity)+(k==='critChance'||k==='critDamage'?mc:0),crit=Math.random()<Math.max(0,Math.min(1,value('critChance')));
  return {damage:damage*(crit?Math.max(1,1.5+value('critDamage')):1),crit,lifeSteal:Math.max(0,Math.min(1,value('lifeSteal'))),magicLifeSteal:Math.max(0,Math.min(1,value('magicLifeSteal')))};
 }
 /* Roubo de vida físico vale para a parte física do dano; o mágico, para a parte mágica. */
@@ -52,7 +55,7 @@ const campB=()=>insideCamp(p.x,p.y)?CALC.camp:0,regenHp=()=>attributes().F*CALC.
 const dmgP=()=>Math.round((danoArma()+weaponPower())*(p.bf>0?1.5:1)*(1+(CL[p.cls].pDmg||0))*multDano((p.attackBasic||basic()).damageType));
 function gainPlayerXp(value){
  p.xp+=Math.max(0,value);
- while(p.lvl<CALC.maxLevel&&p.xp>=p.lvl*CALC.xpPerLevel){p.xp-=p.lvl*CALC.xpPerLevel;p.lvl++;applySkills();p.hp=mhp();p.mp=mmp();ring(p.x,p.y,50,'#ffd84a',.8);if(window.playGameSound)playGameSound('levelUp');ft(p.x,p.y-24,'NÍVEL '+p.lvl+'!','#ffd84a')}
+ while(p.lvl<CALC.maxLevel&&p.xp>=xpParaSubir(p.lvl)){p.xp-=xpParaSubir(p.lvl);p.lvl++;applySkills();p.hp=mhp();p.mp=mmp();ring(p.x,p.y,50,'#ffd84a',.8);if(window.playGameSound)playGameSound('levelUp');ft(p.x,p.y-24,'NÍVEL '+p.lvl+'!','#ffd84a')}
  if(p.lvl>=CALC.maxLevel)p.xp=0
 }
 /* padrões dos embutidos (2026-10-28): os valores que as armas e habilidades do projeto já usavam antes de o dano e a duração
@@ -64,6 +67,8 @@ const FX_INFO={poison:{n:'Veneno',c:'#7d3',kind:'dot',tick:1,dtype:'true',power:
 // redução em % (Fratura: regeneração; Corrosão: defesa física): soma de potência × acúmulos dos efeitos daquele tipo, até 100%
 const reducaoPct=(t,kind)=>{let r=0;for(const k in (t&&t.st)||{})if(FX_INFO[k]&&FX_INFO[k].kind===kind)r+=(+t.st[k].pw||0)*(t.st[k].n||1);return Math.max(0,1-Math.min(100,r)/100)};
 const fxKind=k=>FX_INFO[k]&&FX_INFO[k].kind;
+// enraizado (kind 'root', 2026-11-05): não sai do lugar, mas ataca e usa habilidades normalmente
+const enraizado=t=>{for(const k in (t&&t.st)||{})if(fxKind(k)==='root'&&t.st[k].t>0)return true;return false};
 function vulnMult(t){let m=0;if(t.st)for(const k in t.st)if(fxKind(k)=='vuln')m=Math.max(m,t.st[k].pw*(t.st[k].n||1));return 1+m/100}
 const charDamage=t=>typedPower(t)+danoArma();
 const monsterWeaponDamageDelta=e=>(e.weaponRanges||[]).reduce((sum,range)=>sum+rollWeaponDamage(range)-(range.min+range.max)/2,0);
@@ -154,7 +159,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(
  let roll={damage:1,crit:false,lifeSteal:0,magicLifeSteal:0},share=mg?1:0;const pt=partesDano(d,mg);
  if(dot&&tr)d=pt.f+pt.m;
  else{
-  if(!dot){roll=combatRoll(p,1);const k=roll.damage*vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100);pt.f*=k*(1+stSum(p,'physup')/100);pt.m*=k*(1+stSum(p,'magup')/100)}
+  if(!dot){roll=combatRoll(p,1,e);const k=roll.damage*(1+marcaCaca(p,e))*vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100);pt.f*=k*(1+stSum(p,'physup')/100);pt.m*=k*(1+stSum(p,'magup')/100)}
   if(window.TEMPO){const n=TEMPO.forcaMonstro(e);pt.f/=n;pt.m/=n} /* noite na ilha: o monstro aguenta 5% a mais */
   const pen=k=>Math.max(0,Math.min(1,bonus(k))); /* perfuração: ignora essa parte da defesa do alvo */
   const fi=Math.max(0,pt.f-physicalDefense*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicalDefense*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
@@ -185,7 +190,7 @@ function killMonster(e){
   if(window.anotarMorte)anotarMorte(e.ty);
   const noite=window.TEMPO?TEMPO.premio(e):1; /* noite na ilha: +5% de XP, ouro e chance de drop */
   const xp=e.tutorial?0:Math.max(1,Math.round(e.xp*parte*noite)),gold=Math.round(e.g*parte*noite); /* tutorial: monstro não dá XP (o nível 3 vem do fim das etapas) */
-  if(xp)gainPlayerXp(xp);p.gold+=gold;if(!e.tutorial)gainClassXp(Math.round((+CALC.rankXpPorAbate||25)*parte*(e.boss||e.bossType=='boss'?5:e.bossType=='grandboss'?15:1))); /* rank: XP fixo por abate (~1 h até o rank 10) */ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound&&!window.soltarMoedas)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
+  if(xp)gainPlayerXp(xp);p.gold+=gold;if(xp)gainClassXp(xp); /* rank da classe (2026-11-05): o mesmo XP do abate, na mesma curva do nível (rank 1 a 10) */ft(e.x,e.y-30,'+'+gold+'g'+(parte<1?' (÷'+Math.round(1/parte)+')':''),'#fd4');if(!(window.playEntitySound&&playEntitySound('monsters',e.ty,'death'))&&window.playGameSound)playGameSound('death');if(gold>0&&window.playGameSound&&!window.soltarMoedas)playGameSound('coin');if(p.tgt==e){p.tgt=null;if(window.autoTargetAfterKill){let nearest=120;for(const other of en){if(other===e||other.hp<=0||!canSee(other.x,other.y))continue;const d=dist(other,p);if(d<nearest){nearest=d;p.tgt=other}}}}
   if(typeof cacaFeita!=='undefined'&&!cacaFeita&&!e.tutorial&&!e.pvp&&!e.duelo&&!e.boss&&!window.inTutorial&&!window.inArena&&!(window.MP&&MP.visitando)){cacaMortes++; /* missão inicial: 10 monstros quaisquer */
    if(cacaMortes>=CACA_ALVO){cacaFeita=true;p.gold+=30;gainPlayerXp(30);ft(e.x,e.y-45,'MISSÃO CONCLUÍDA: 10 MONSTROS!','#ffd84a');if(window.playGameSound)playGameSound('quest')}saveGame()}
   if(e.boss&&!window.inDungeon){questDone=true;ft(e.x,e.y-45,'GLOOC SAQUEADOR DERROTADO!','#ffd84a');if(window.playGameSound)playGameSound('quest');saveGame()}
@@ -220,7 +225,7 @@ p.classProgress=p.classProgress||{war:{rank:1,xp:0}};
 function gainClassXp(value){
  p.classProgress=p.classProgress||{};const progress=p.classProgress[p.cls]||(p.classProgress[p.cls]={rank:1,xp:0});
  if(progress.rank>=10)return;progress.xp+=Math.max(0,value);
- while(progress.rank<10&&progress.xp>=progress.rank*CALC.rankXp){progress.xp-=progress.rank*CALC.rankXp;progress.rank++;
+ while(progress.rank<10&&progress.xp>=xpParaSubir(progress.rank)){progress.xp-=xpParaSubir(progress.rank);progress.rank++;
   applySkills();p.hp=Math.min(mhp(),p.hp);p.mp=Math.min(mmp(),p.mp);ring(p.x,p.y,42,'#72d9ff',.65);ft(p.x,p.y-28,'RANK '+progress.rank+'!','#72d9ff');if(window.playGameSound)playGameSound('rankUp')}
  if(progress.rank>=10)progress.xp=0;
  if(window.renderSkillMenu)renderSkillMenu();if(window.saveGame)saveGame()}
@@ -304,10 +309,10 @@ function SKI(k,a,b){const c=mkCanvas(24,24),x=c.getContext('2d'),{R,disc}=kit(x)
   R(11,4,2,16,b);R(5,9,14,2,b);R(6,5,4,3,L);R(11,9,2,2,'#fff')}
  else if(k=='fist'){R(5,8,15,12,D);R(6,9,13,10,a);for(let i=0;i<4;i++){R(6+i*3+0,6,3,4,D);R(7+i*3,7,2,3,L)}R(4,13,4,6,D);R(5,14,2,4,a);R(17,11,2,6,shade(a,.7));R(8,12,8,1,b)}
  const o=mkCanvas(16,16),g=o.getContext('2d');
- for(let y=0;y<16;y++){g.fillStyle=shade(a,.16+.14*(1-y/16));g.fillRect(0,y,16,1)}
- g.fillStyle=shade(a,.55);g.fillRect(0,0,16,1);g.fillStyle=shade(a,.45);g.fillRect(0,0,1,16);g.fillStyle='#05070a';g.fillRect(0,15,16,1);g.fillRect(15,0,1,16);
+ if(window.PALETA_JOGO&&PALETA_JOGO.fundoIcone)PALETA_JOGO.fundoIcone(g,16,16,a); // fundo: 3 cores (centro, borda clara, borda escura)
  g.drawImage(typeof reduzirArte==='function'?reduzirArte(c,16,16):c,0,0,16,16);
- return o.toDataURL()}
+ if(window.PALETA_JOGO&&PALETA_JOGO.fundoIcone)PALETA_JOGO.fundoIcone(g,16,16,a,true); // a borda fica por cima do desenho
+ return (window.PALETA_JOGO&&PALETA_JOGO.iconeNaPaleta?PALETA_JOGO.iconeNaPaleta(o):o).toDataURL()} // ícone na paleta do jogo
 const pw=()=>weaponPower();
 const guard=()=>{applyFx(p,[{caster:p,self:true,type:'ward',chance:100,dur:6,pw:50}]);ring(p.x,p.y,30,'#9cf',.5)}; // Proteção: efeito de status (−50% do golpe antes da defesa)
 const SKS={
@@ -396,6 +401,7 @@ if(SK[index]&&SK[index].t>0){ft(p.x,p.y-24,'Aguarde a habilidade terminar a reca
 const skill=classSlotOptions(index).find(s=>s.id==id);if(!skill)return;
 p.skillSlots=p.skillSlots||{};const row=p.skillSlots[p.cls]||(p.skillSlots[p.cls]=[]);
 const own0=skillEntries(p.cls),prev=row[index]||(own0[index]||{}).id;for(let i=0;i<6;i++){if(i===index)continue;const cur=row[i]||(own0[i]||{}).id;if(cur===skill.id){const back=classSlotOptions(i).find(s=>s.id===prev&&s.id!==skill.id);row[i]=back?prev:(own0[i]||{}).id}}row[index]=skill.id;applySkills();if(window.renderSkillMenu)renderSkillMenu();if(window.saveGame)saveGame()}
+const SK_FIXOS=new Set(['k','el','u','cn','t','id']); // campos do espaço (tecla, botão, recarga), não da habilidade
 function applySkills(){
 // espaços Z e X: as habilidades das armas equipadas (até duas, primeiro as da Mão 1); sem habilidade, o espaço fica vazio
 const weaponSlots=[['sw',EQ.sw],['sh',EQ.sh]].filter(([,item])=>item&&gearType[item.id]=='sw').flatMap(([slot,item])=>(WSK[item.id]||[]).filter(Boolean).map(skill=>({...skill,w:1,weaponSlot:slot}))).slice(0,2);
@@ -404,7 +410,10 @@ const used=new Set(),L=[0,1,2,3,4,5].map(i=>{
  const current=own[i],selected=slots[i],options=classSlotOptions(i);
  const pick=(selected&&options.find(s=>s.id==selected))||current||null;if(pick&&used.has(pick.id))return current&&!used.has(current.id)?(used.add(current.id),current):null;if(pick)used.add(pick.id);return pick
 }).concat([0,1].map(i=>weaponSlots[i]||null));
-L.forEach((d,i)=>{const o=SK[i];if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
+L.forEach((d,i)=>{const o=SK[i];
+ // o espaço é o mesmo objeto: tira o que era só da habilidade anterior (info, manaSeg, …), senão a dica dela continuava (2026-11-05)
+ for(const k of Object.keys(o))if(!SK_FIXOS.has(k)&&!(d&&k in d))delete o[k];
+ if(!d)Object.assign(o,{n:'',mana:0,cd:1,castTime:0,t:0,f:null,w:i>5?1:0,rank:0,lock:0,wt:null,weaponSlot:null,ic:BLANK,d:()=>''});else{const same=o.id===d.id;Object.assign(o,{rank:0,wt:null,weaponSlot:null,castTime:0},d,{t:same?o.t:0})}
  // arma exigida: vale a arma de qualquer mão (escudo na mão 2), a mesma regra do cast
  const maos=o.weaponSlot?[o.weaponSlot]:['sw','sh'];o.lock=o.rank>classRank(o.owner)?o.rank:0;o.bad=!(maos.some(sl=>EQ[sl]&&skillWeaponAllowed(o,ITEMS[EQ[sl].id]))||!maos.some(sl=>EQ[sl])&&skillWeaponAllowed(o,null));
  if(o.el){o.el.style.backgroundImage=o.n?'url('+o.ic+')':'none';o.el.classList.toggle('wk',!!o.w);o.el.classList.toggle('skVazio',!o.n);o.el.style.visibility=''; /* os 6 espaços (Q W E R T Y) aparecem sempre; vazio = escolha uma habilidade no seletor */o.el.querySelector('em').textContent=o.n?(o.manaSeg?o.manaSeg+'/s':o.mana):''}});
@@ -524,7 +533,7 @@ document.addEventListener('click',e=>{
  }
  else if(button.hasAttribute('data-confirm-exit-dg')){
   $('dialogue').classList.remove('open');
-  if(window.exitDungeon)exitDungeon(true);
+  if(window.exitDungeon){if(window.TELA_CARREGANDO)TELA_CARREGANDO.rodar('Ilha','Saindo da masmorra…',()=>exitDungeon(true));else exitDungeon(true)} // tela de carregamento (js/carregamento.js)
  }
  else if(button.hasAttribute('data-close-dialog')){$('dialogue').classList.remove('open');$('dialogue').classList.remove('dgModal')}
 });
@@ -536,7 +545,10 @@ function showDungeonMenu(){
  clearMovementInput();
  window.showProjectDungeonMenu();
 }
-function setClass(c){{const b=trocaBloqueada();if(b){ft(p.x,p.y-24,b,'#e8bd3e');return}}if(c==p.cls){ft(p.x,p.y-24,'Você já é '+CL[c].n,'#fff');return}
+function setClass(c){{const b=trocaBloqueada();if(b){ft(p.x,p.y-24,b,'#e8bd3e');return}}
+ // em combate não troca de classe (2026-11-05, pedido do usuário): nem lutando agora, nem nos 10 s depois do último golpe
+ if(inCombat()||window.emCombate&&emCombate()){ft(p.x,p.y-24,'Não dá para trocar de classe em combate','#e8bd3e');return}
+ if(c==p.cls){ft(p.x,p.y-24,'Você já é '+CL[c].n,'#fff');return}
  const n=CL[c];p.classProgress=p.classProgress||{};if(!p.classProgress[c])p.classProgress[c]={rank:1,xp:0};
  p.cls=c;p.hp=Math.min(p.hp,mhp());p.mp=Math.min(p.mp,mmp());
  applySkills();setPortrait();ring(p.x,p.y,36,'#ffd84a',.6);ft(p.x,p.y-24,'Classe: '+n.n+' · Rank 1','#ffd84a');darKit(c,{salvar:false});if(window.saveGame)saveGame()}

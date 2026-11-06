@@ -111,7 +111,7 @@
   if(!library.dungeons.some(d=>d.id===selected))selected=library.dungeons[0].id;
   const list=E('div','dgm-list'),detail=E('section','dgm-detail'),body=E('div','dgm-body');list.setAttribute('role','listbox');
   body.append(list,detail);root.append(body);box.append(root);
-  const entrar=entry=>{window.currentDungeonId=entry.id;close();window.enterGoblinDungeon()};
+  const entrar=entry=>{window.currentDungeonId=entry.id;close();const ir=()=>window.enterGoblinDungeon();if(window.TELA_CARREGANDO)TELA_CARREGANDO.rodar(entry.name||entry.nome||'Masmorra','Entrando na masmorra…',ir);else ir()}; // tela de carregamento (js/carregamento.js)
   // online: antes de entrar, a tela de montar o grupo; offline: entra direto
   const enter=entry=>{const i=info(entry);if(i.minLevel&&p.lvl<i.minLevel)return;if(window.MP&&MP.grupoDg)montarGrupo(entry);else entrar(entry)};
   function renderList(){

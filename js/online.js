@@ -116,7 +116,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
     const kv=window.VFX?Math.min(2,VFX.total-nv):0;if(kv>0)partes.splice(1,0,...VFX.recentes.slice(-kv).map(v=>'v:'+v.tipo+':'+R(v.x)+':'+R(v.y)+':'+R((v.ang||0)*100)+':'+R(v.raio||0)+':'+R((v.arco||0)*100)+':'+hex(v.cor||'')));
     if(p.canal&&p.canal.visual)partes.splice(1,0,'r:'+R(p.canal.r*10)+':'+p.canal.visual.raio+':'+hex(p.canal.visual.cor));
     // grito/aura: os efeitos chegam aos aliados perto de quem lançou (a:tipo:força:duração×10:raio), logo depois do 'e' para não cair no corte de 200 caracteres
-    if(s.effect==='aura'&&Array.isArray(s.efs))for(const f of s.efs.slice(0,2))partes.splice(1,0,'a:'+nomeLimpo(f.type)+':'+R(+f.power||0)+':'+R((+f.dur||3)*10)+':'+R((+s.radius||40)*(typeof areaMultiplier==='function'?areaMultiplier(p):1)));
+    if((s.effect==='aura'||s.raioAliados>0)&&Array.isArray(s.efs))for(const f of s.efs.slice(0,2))partes.splice(1,0,'a:'+nomeLimpo(f.type)+':'+R(+f.power||+f.pw||0)+':'+R((+f.dur||3)*10)+':'+R((+s.raioAliados||+s.radius||40)*(typeof areaMultiplier==='function'?areaMultiplier(p):1)));
     let tok='k;'+partes.join(';');while(tok.length>200&&tok.includes(';'))tok=tok.slice(0,tok.lastIndexOf(';'));
     if(filaSons.length>=6)filaSons.shift();filaSons.push(tok);
    }

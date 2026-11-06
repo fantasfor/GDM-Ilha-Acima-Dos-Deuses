@@ -204,7 +204,7 @@
   if(id==='habilidade'){soltar(2,false);if(!retomando)falas([{lado:'direita',nome:nomeMestre(),texto:'Agora a sua habilidade: chegue perto de um monstro e aperte Q (ou clique no ícone Q da barra).'}],retratoMestre)}
   if(id==='portal'){
    if(!p.tutorial.premio){p.tutorial.premio=true; // garante o nível 3
-    while(p.lvl<3&&p.lvl<(+CALC.maxLevel||10)){const falta=Math.max(1,CALC.xpPerLevel*p.lvl-p.xp);gainPlayerXp(falta)}
+    while(p.lvl<3&&p.lvl<(+CALC.maxLevel||10)){const falta=Math.max(1,xpParaSubir(p.lvl)-p.xp);gainPlayerXp(falta)}
     p.gold+=25;ft(p.x,p.y-30,'Tutorial concluído!','#ffd84a');if(window.playGameSound)playGameSound('quest')}
    const abrir=()=>{portalAberto=true;if(window.playGameSound)playGameSound('anjo');ring(ALTAR.x,ALTAR.y-20,40,'#ffd84a',.8)};
    if(retomando)abrir();
@@ -214,7 +214,7 @@
    ],retratoMestre,abrir)}
   if(window.saveGame)saveGame()}
  function concluir(){p.tutorial.feito=true;sair();ft(p.x,p.y-30,'Bem-vindo à Ilha Acima dos Deuses','#ffd84a');ring(p.x,p.y,30,'#ffd84a',.7);if(window.playGameSound)playGameSound('revive');if(window.saveGame)saveGame()}
- window.pularTutorial=()=>{if(!p.tutorial||p.tutorial.feito)return;if(window.DIALOGO)DIALOGO.fechar();while(p.lvl<3&&p.lvl<(+CALC.maxLevel||10))gainPlayerXp(Math.max(1,CALC.xpPerLevel*p.lvl-p.xp));p.tutorial.premio=true;concluir();ft(p.x,p.y-44,'Tutorial pulado','#ccc')};
+ window.pularTutorial=()=>{if(!p.tutorial||p.tutorial.feito)return;if(window.DIALOGO)DIALOGO.fechar();while(p.lvl<3&&p.lvl<(+CALC.maxLevel||10))gainPlayerXp(Math.max(1,xpParaSubir(p.lvl)-p.xp));p.tutorial.premio=true;concluir();ft(p.x,p.y-44,'Tutorial pulado','#ccc')};
 
  /* ---- entrar e sair da cena ---- */
  /* o tutorial começa só com o kit básico da classe (mochila e equipamento vazios + Engine › Classes › Kit inicial);

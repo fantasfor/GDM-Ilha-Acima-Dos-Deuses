@@ -91,39 +91,77 @@ SK.forEach((s,i)=>{const d=document.createElement('div');d.className='sk'+(s.w?'
 const NOME_ARMA={espada:'Espada',espada_grande:'Espada grande',adaga:'Adaga',machadinha:'Machadinha',machado_2mao:'Machado',maca:'Maça',martelo_2mao:'Martelo',lanca:'Lança',arco:'Arco',besta:'Besta',manopla:'Manopla',escudo:'Escudo',cajado:'Cajado',cetro:'Cetro',orbe:'Orbe'};
 const nomeArma=k=>NOME_ARMA[k]||k;
 const tl=(rot,val,cls,cor)=>val===''||val==null?'':'<div class=tlin><span class=tl>'+rot+':</span> <span class='+cls+(cor?' style="color:'+cor+'"':'')+'>'+val+'</span></div>';
+/* caixa de informação (2026-11-05, pedido do usuário): só os números, montados dos campos da habilidade (Dano, Cura, Alcance,
+   Área, Efeito, Mana/Recarga/Cast); a descrição fica na aba própria (aba Habilidades) — skDesc */
+const skDesc=s=>{let i;try{i=s.info?s.info():{desc:s.d()}}catch(e){i={}}return i.desc||''};
 const skTip=s=>{if(!s.n)return '<b>Habilidade da arma</b><div class=tm>Vazio: a arma equipada não tem habilidade para este espaço.</div>';
+ /* estilo das imagens do usuário (2026-11-05): nome; HABILIDADE / AFETA / TIPO DE DANO; descrição; uma linha por número em
+    maiúsculas; embaixo recarga, mana e conjuração com ícones. Tudo dos campos da habilidade (custom.js info: cab, linhas) */
+ {let i=null;try{i=s.info?s.info():null}catch(e){}
+  if(i&&i.linhas){const c=i.cab||{},cast=tempoConj(s),nt=v=>String(+(+v).toFixed(2)).replace('.',','),cor=c.tipoDano==='Mágico'?'tmag':c.tipoDano==='Físico'?'tfis':'tmisto';
+   const cab=[['HABILIDADE',c.uso,''],['AFETA',c.afeta,''],['TIPO DE DANO',c.tipoDano,cor]].filter(([,v])=>v).map(([r,v,k])=>'<div><span class=dtR>'+r+':</span> <span class="dtV '+k+'">'+v+'</span></div>').join('');
+   const lin=i.linhas.map(([r,v])=>'<div><span class=dtR>'+r+':</span> <span class=dtN>'+v+'</span></div>').join('');
+   const rod='<div class=dtRod><span title=Recarga><i class="dtI dtCd"></i>'+nt(s.cd)+' s</span>'+(s.manaSeg?'<span title=Mana><i class="dtI dtMp"></i>'+s.manaSeg+'/s</span>':s.mana?'<span title=Mana><i class="dtI dtMp"></i>'+s.mana+'</span>':'')+'<span title=Conjuração><i class="dtI dtCs"></i>'+(cast>0?nt(cast)+' s':'instantânea')+'</span></div>';
+   const extra=(s.wt&&s.wt.length?'<div><span class=dtR>ARMAS:</span> <span class=dtN>'+s.wt.map(nomeArma).join(', ')+'</span></div>':'')+(s.rank?'<div class=dtRank>Libera no rank '+s.rank+' da classe</div>':'');
+   return '<div class=dt><div class=dtNome>'+s.n+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+'</div><div class=dtCab>'+cab+'</div>'+(i.desc?'<div class=dtDesc>'+i.desc+'</div>':'')+'<div class=dtLin>'+lin+'</div>'+rod+extra+'</div>'}}
  let i;try{i=s.info?s.info():{desc:s.d(),dano:'',efeito:''}}catch(e){i={desc:'',dano:'',efeito:''}}const cast=tempoConj(s);
  return '<div class=tlin><span class=tl>Nome:</span> <b class=tnome>'+s.n+'</b>'+(s.k?' <span class=tk>['+s.k.toUpperCase()+']</span>':'')+'</div>'
-  +tl('Descrição',i.desc,'tdesc')+tl('Dano',i.dano,i.dano2!=null?'tdano tmisto':'tdano')+tl('Cura',i.cura,'tcura')+tl('Recupera',i.mana,'tmana')
+  +tl('Dano',i.dano,i.dano2!=null?'tdano tmisto':'tdano')+tl('Cura',i.cura,'tcura')+tl('Recupera',i.mana,'tmana')
   +tl('Alcance',i.alcance,'talc')+tl('Área',i.area,'tarea')+tl('Efeito',i.efeito,'tefeito')
-  +'<div class=tlin><span class=tl>Mana:</span> <span class=tmana>'+(s.manaSeg?s.manaSeg+' por segundo':s.mana)+'</span>  <span class=tl>Recarga:</span> <span class=tcd>'+s.cd+' s</span>  <span class=tl>Cast:</span> <span class=tcast>'+(cast>0?cast.toFixed(1)+' s':'instantâneo')+'</span></div>'
+  +'<div class=tlin><span class=tl>Mana:</span> <span class=tmana>'+(s.manaSeg?s.manaSeg+' por segundo':s.mana)+'</span>  <span class=tl>Recarga:</span> <span class=tcd>'+s.cd+' s</span>  <span class=tl>Cast:</span> <span class=tcast>'+(cast>0?(cast<1?+cast.toFixed(2):+cast.toFixed(1))+' s':'instantâneo')+'</span></div>'
   +(s.wt&&s.wt.length?tl('Armas',s.wt.map(nomeArma).join(', '),'tarma'):'')+(s.rank?'<div class=tm>Libera no rank '+s.rank+' da classe</div>':'')};
+window.caixaHabilidade=skTip; // a Engine mostra a mesma caixa (js/motor.js)
 const skillPanel=$('skillPanel');
 function renderSkillMenu(){
  if(!skillPanel)return;
- const progress=(p.classProgress&&p.classProgress[p.cls])||{rank:0,xp:0},rank=progress.rank||0,need=rank>=10?0:rank*CALC.rankXp;
- skillPanel.innerHTML='';const head=document.createElement('div');head.className='skillHead';
- const title=document.createElement('strong');title.textContent='Habilidades — '+CL[p.cls].n;
- const close=document.createElement('button');close.type='button';close.textContent='×';close.onclick=()=>skillPanel.classList.remove('open');
- const status=document.createElement('div');status.className='skillProgress';status.textContent='Personagem Nv '+p.lvl+'/'+(+CALC.maxLevel||10)+' · Rank da classe '+rank+'/10'+(need?' · XP de classe '+progress.xp+'/'+need:' · Rank máximo');
- head.append(title,close);skillPanel.append(head,status);
- const own=document.createElement('h4');own.textContent='Árvore de habilidades da classe';skillPanel.appendChild(own);
- const entries=skillEntries(p.cls);
- const tree=document.createElement('div');tree.className='skillTree';
- entries.forEach((s,index)=>{const node=document.createElement('button');node.type='button';node.className='skillTreeNode'+(s.rank<=rank?' unlocked':' locked');node._tip=()=>skTip(s)+'<div class=tm>'+(s.rank<=rank?'Desbloqueada':'Libera no rank '+s.rank)+'</div>';
-  const icon=document.createElement('img');icon.src=s.ic;icon.alt='';const name=document.createElement('span');name.textContent=s.n;node.append(icon,name);tree.appendChild(node);
-  if(index<entries.length-1){const link=document.createElement('div');link.className='skillTreeLink';tree.appendChild(link)}
- });
- skillPanel.appendChild(tree);
- const crosses=document.createElement('div');crosses.className='skillCross';
- const ch=document.createElement('h4');ch.textContent='Habilidades cross disponíveis';crosses.appendChild(ch);
- const crossGrid=document.createElement('div');crossGrid.className='crossGrid';
- const known=availableCrossSkills().filter(s=>s.owner!=p.cls);
- if(!known.length){const none=document.createElement('div');none.className='skillEmpty';none.textContent='Nenhuma habilidade cross desbloqueada.';crossGrid.appendChild(none)}
- known.forEach(s=>{const node=document.createElement('div');node.className='crossNode';node._tip=()=>skTip(s)+'<div class=tm>Classe de origem: '+CL[s.owner].n+'</div>';
-  const icon=document.createElement('img');icon.src=s.ic;icon.alt='';const name=document.createElement('span');name.textContent=s.n;const source=document.createElement('small');source.textContent=CL[s.owner].n;node.append(icon,name,source);crossGrid.appendChild(node)});
- crosses.appendChild(crossGrid);
- skillPanel.appendChild(crosses);
+ const progress=(p.classProgress&&p.classProgress[p.cls])||{rank:0,xp:0},rank=progress.rank||0,need=rank>=10?0:xpParaSubir(Math.max(1,rank));
+ /* layout (2026-11-05, pedido do usuário: aba mais bonita): cabeçalho com as barras de nível e de rank; trilha de ranks
+    1–10 com cada habilidade em cima do rank em que libera; à direita, os detalhes da habilidade escolhida (clique);
+    embaixo, as habilidades cross em cartões do mesmo jeito */
+ const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+ skillPanel.innerHTML='';const head=E('div','skillHead');
+ const title=E('strong','','Habilidades — '+CL[p.cls].n);
+ const close=E('button','','×');close.type='button';close.onclick=()=>skillPanel.classList.remove('open');
+ head.append(title,close);skillPanel.append(head);
+ const barra=(rot,val,max,txt,cls)=>{const b=E('div','skBarra '+cls),f=E('i');f.style.width=(max?Math.max(0,Math.min(100,val/max*100)):100)+'%';const fundo=E('div','skBarraFundo');fundo.append(f);b.append(E('span','skBarraRot',rot),fundo,E('span','skBarraVal',txt));return b};
+ const maxLv=+CALC.maxLevel||10,lvNeed=xpParaSubir(p.lvl);
+ const barras=E('div','skBarras');
+ barras.append(barra('Nível '+p.lvl+'/'+maxLv,p.lvl>=maxLv?1:p.xp,p.lvl>=maxLv?1:lvNeed,p.lvl>=maxLv?'máximo':p.xp+' / '+lvNeed+' XP','skNivel'),
+  barra('Rank '+rank+'/10',need?progress.xp:1,need||1,need?progress.xp+' / '+need+' XP de classe':'rank máximo','skRank'));
+ skillPanel.append(barras);
+ const entries=skillEntries(p.cls),known=availableCrossSkills().filter(s=>s.owner!=p.cls);
+ if(!renderSkillMenu.sel||![...entries,...known].some(s=>s.id===renderSkillMenu.sel))renderSkillMenu.sel=(entries[0]||known[0]||{}).id;
+ const corpo=E('div','skCorpo'),esq=E('div','skEsq'),det=E('div','skDet');
+ const card=(s,cls,extra)=>{const n=E('button','skCard '+cls+(s.id===renderSkillMenu.sel?' sel':''));n.type='button';const ic=E('img');ic.src=s.ic;ic.alt='';n.append(ic,E('span','skCardNome',s.n));if(extra)n.append(E('small','',extra));
+  n.onclick=()=>{renderSkillMenu.sel=s.id;renderSkillMenu()};return n};
+ // trilha dos ranks: 10 marcos; as habilidades ficam em cima do rank delas
+ esq.append(E('h4','','Árvore da classe'));
+ const trilha=E('div','skTrilha');
+ for(let r=1;r<=10;r++){const col=E('div','skCol'+(r<=rank?' feito':''));const daqui=entries.filter(s=>(s.rank||1)===r);
+  for(const s of daqui)col.append(card(s,s.rank<=rank?'unlocked':'locked',s.rank<=rank?'':'rank '+s.rank));
+  const pip=E('div','skPip',String(r));col.append(pip);trilha.append(col)}
+ esq.append(trilha);
+ esq.append(E('h4','','Habilidades cross'));
+ const crossGrid=E('div','skCross');
+ if(!known.length)crossGrid.append(E('div','skillEmpty','Nenhuma habilidade cross desbloqueada.'));
+ known.forEach(s=>crossGrid.append(card(s,'cross',CL[s.owner].n)));
+ esq.append(crossGrid);
+ // detalhes da habilidade escolhida
+ const s=[...entries,...known].find(x=>x.id===renderSkillMenu.sel);
+ if(s){const topo=E('div','skDetTopo'),ic=E('img');ic.src=s.ic;ic.alt='';const nm=E('div','skDetNome');nm.append(E('b','',s.n),E('span','',s.owner&&s.owner!==p.cls?'Cross · '+CL[s.owner].n:s.rank<=rank?'Desbloqueada':'Libera no rank '+s.rank));topo.append(ic,nm);
+  // a mesma caixa da dica (estilo das imagens do usuário), sem repetir o nome
+  const corpoDet=E('div','skDetTexto');corpoDet.innerHTML=skTip(s).replace(/<div class=dtNome>.*?<\/div>/,'').replace(/^<div class=tlin><span class=tl>Nome:<\/span>.*?<\/div>/,'');det.append(topo,corpoDet);
+  /* equipar daqui (2026-11-05, pedido do usuário): os 6 espaços Q W E R T Y com a habilidade de agora; clique num espaço
+     que aceita a habilidade escolhida para pôr ela lá (as mesmas regras do seletor: rank, cross, fora de combate) */
+  const eq=E('div','skEquipar');eq.append(E('div','skEquiparRot','Equipar em:'));const slots=E('div','skSlots'),emLuta=inCombat();
+  for(let i=0;i<6;i++){const o=SK[i],b=E('button','skSlot'+(o&&o.id===s.id?' atual':''));b.type='button';
+   const pode=!emLuta&&classSlotOptions(i).some(x=>x.id===s.id);b.disabled=!pode&&!(o&&o.id===s.id);
+   if(o&&o.n){const im=E('img');im.src=o.ic;im.alt='';b.append(im)}b.append(E('b','',String(o&&o.k||'').toUpperCase()));
+   b.title=o&&o.id===s.id?'Já está neste espaço':emLuta?'Troca só fora de combate':pode?'Equipar '+s.n+' aqui (no lugar de '+(o&&o.n||'vazio')+')':'Este espaço não aceita esta habilidade';
+   b.onclick=()=>{if(o&&o.id===s.id)return;selectSkillSlot(i,s.id);renderSkillMenu()};slots.append(b)}
+  eq.append(slots);det.append(eq)}
+ else det.append(E('div','skillEmpty','Sem habilidades.'));
+ corpo.append(esq,det);skillPanel.append(corpo);
 }
 const skillPicker=document.createElement('div');skillPicker.id='skillPicker';document.body.appendChild(skillPicker);
 let skillPickerSlot=-1;
@@ -192,7 +230,7 @@ if(MODO.teste)window.TESTE={
  monstros:()=>Object.keys(MONSTER_TYPES).map(id=>[id,MONSTER_TYPES[id].name||id]),
  missao:n=>{if(n!==questStage())setQuestStage(Math.max(0,Math.min(QUEST_STEPS.length,n)))},
  xp:n=>gainPlayerXp(n),
- nivel:()=>{if(p.lvl<CALC.maxLevel)gainPlayerXp(p.lvl*CALC.xpPerLevel-p.xp)},
+ nivel:()=>{if(p.lvl<CALC.maxLevel)gainPlayerXp(xpParaSubir(p.lvl)-p.xp)},
  rank:()=>{const r=p.classProgress[p.cls]||(p.classProgress[p.cls]={rank:1,xp:0});r.rank=Math.min(10,r.rank+1);if(r.rank>=10)r.xp=0;applySkills();renderSkillMenu()},
  classe:id=>{if(CL[id])setClass(id)},
  // classes do jogo, também as feitas em código (Explorador, js/classe-explorador.js), que a Engine não tem nos dados
@@ -393,7 +431,7 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
   row('Bônus de dano físico','+'+fmt((multDano('physical')-1)*100,1)+'%')+row('Bônus de dano mágico','+'+fmt((multDano('magic')-1)*100,1)+'%')+
   row('Def. física',value(armor(),armorBase))+row('Def. mágica',value(magicArmor(),magicArmorBase))+
   (protection?row('Proteção','<span class="statBonus">'+protection+'%</span>'):'')+
-  row('Int. de ataque',value(attackInterval(),intervalBase,2)+'s')+row('Vel. movimento',value(moveWithEffects,moveBase))+
+  row('Vel. ataque',value(1/attackInterval(),1/intervalBase,2)+'/s')+row('Vel. movimento',value(moveWithEffects,moveBase))+
   row('Aumento de área',fmt(bonus('area')*100,1)+'%')+row('Redução de recarga',fmt((1-cooldownMultiplier(p))*100,1)+'%')+
   row('Chance crítica',fmt(Math.max(0,Math.min(1,bonus('critChance')+critAgi(p)))*100,1)+'%')+
   row('Dano crítico',fmt(Math.max(1,1.5+bonus('critDamage')+critAgi(p))*100,1)+'%')+
@@ -401,7 +439,7 @@ function attrPanel(){if(!invOpen)return;const a=attributes(),c=CL[p.cls],fmt=(v,
  ap.style.display='block'}
 function hud(){attrPanel();const H=mhp(),M=mmp(),a=attributes(),hp=Math.max(0,p.hp),combat=inCombat();if(combat&&skillPicker.classList.contains('open'))closeSkillPicker();$('dock').classList.toggle('inCombat',combat);document.querySelectorAll('.skillSelect').forEach(button=>{const slot=Number(button.dataset.skillSlot),cooldown=SK[slot]&&SK[slot].t>0;button.disabled=combat||cooldown;button.title=combat?'Troca disponível apenas fora de combate':cooldown?'Aguarde a habilidade terminar a recarga':'Escolher habilidade'});$('hpb').style.width=hp/H*100+'%';$('hpt').textContent=Math.ceil(hp)+' / '+H;
  $('mpb').style.width=p.mp/M*100+'%';$('mpt').textContent=Math.floor(p.mp)+' / '+M;
- $('xpb').style.width=(p.lvl>=CALC.maxLevel?100:p.xp/(p.lvl*CALC.xpPerLevel)*100)+'%';$('lv').textContent='Nv '+p.lvl+(p.lvl>=CALC.maxLevel?' · MÁX':' · '+p.xp+'/'+p.lvl*CALC.xpPerLevel);const rankProgress=p.classProgress&&p.classProgress[p.cls]||{rank:1,xp:0},rank=rankProgress.rank||1,rankNeed=rank>=10?0:rank*CALC.rankXp;$('rankxpb').style.width=(rankNeed?Math.max(0,Math.min(100,rankProgress.xp/rankNeed*100)):100)+'%';$('ranklv').textContent='Rank '+rank+(rankNeed?' · '+rankProgress.xp+'/'+rankNeed:' · MÁX');drawPortrait();bs.classList.toggle('on',p.aw>0);{const iv=attackInterval(),c=Math.max(0,p.acd);bs.querySelector('u').style.height=Math.min(1,c/iv)*100+'%';bs.querySelector('span').textContent=c>0?(c>=1?Math.ceil(c):c.toFixed(1)):'';refreshBasicMode()}
+ $('xpb').style.width=(p.lvl>=CALC.maxLevel?100:p.xp/xpParaSubir(p.lvl)*100)+'%';$('lv').textContent='Nv '+p.lvl+(p.lvl>=CALC.maxLevel?' · MÁX':' · '+p.xp+'/'+xpParaSubir(p.lvl));const rankProgress=p.classProgress&&p.classProgress[p.cls]||{rank:1,xp:0},rank=rankProgress.rank||1,rankNeed=rank>=10?0:rank*CALC.rankXp;$('rankxpb').style.width=(rankNeed?Math.max(0,Math.min(100,rankProgress.xp/rankNeed*100)):100)+'%';$('ranklv').textContent='Rank '+rank+(rankNeed?' · '+rankProgress.xp+'/'+rankNeed:' · MÁX');drawPortrait();bs.classList.toggle('on',p.aw>0);{const iv=attackInterval(),c=Math.max(0,p.acd);bs.querySelector('u').style.height=Math.min(1,c/iv)*100+'%';bs.querySelector('span').textContent=c>0?(c>=1?Math.ceil(c):c.toFixed(1)):'';refreshBasicMode()}
  $('pname').textContent=CL[p.cls].n;$('hpr').textContent='+'+regenHp().toFixed(2);$('mpr').textContent='+'+regenMp().toFixed(2);
  $('gold').textContent='● '+p.gold;
  SK.forEach(s=>{s.u.style.height=s.t/s.cd*100+'%';s.cn.textContent=s.lock?'R'+s.lock:s.t>0?Math.ceil(s.t):'';s.el.style.opacity=p.mp<s.mana||s.lock||s.bad?.5:1});

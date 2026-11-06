@@ -158,7 +158,7 @@
 
  /* ---- ficha da classe aprendida ---- */
  function fichaClasse(id){
-  const c=CL[id],pr=prog(id)||{rank:1,xp:0},rk=pr.rank||1,need=rk>=10?0:rk*((typeof CALC!='undefined'&&CALC.rankXp)||100),atual=id===p.cls,R=raw(id);
+  const c=CL[id],pr=prog(id)||{rank:1,xp:0},rk=pr.rank||1,need=rk>=10?0:xpParaSubir(rk),atual=id===p.cls,R=raw(id);
   const f=E('div','pcFicha');
   const voltar=E('button','pcVoltar','◀ Árvore de classes');voltar.type='button';voltar.onclick=()=>{ficha=null;desenhar()};
   const spr=c.sprite||(typeof HS!='undefined'&&HS[id]&&(HS[id].d||HS[id].s));let sprUrl='';try{sprUrl=spr&&spr.toDataURL?spr.toDataURL():''}catch(e){}

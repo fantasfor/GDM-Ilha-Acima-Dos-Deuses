@@ -390,14 +390,12 @@
  const cache={};
  function desenhar(d){
   const [g,a,b,rows]=d,c=document.createElement('canvas');c.width=c.height=16;const x=c.getContext('2d'),bg=FUNDO[g]||FUNDO.mon;
-  x.fillStyle=bg;x.fillRect(0,0,16,16);
-  x.fillStyle=typeof shade=='function'?shade(bg,1.6):'#555';x.fillRect(0,0,16,1);x.fillRect(0,0,1,16);
-  x.fillStyle=typeof shade=='function'?shade(bg,.7):'#222';x.fillRect(0,15,16,1);x.fillRect(15,0,1,16);
+  if(window.PALETA_JOGO&&PALETA_JOGO.fundoIcone)PALETA_JOGO.fundoIcone(x,16,16,bg); // fundo: 3 cores (centro, borda clara, borda escura)
   let x0=99,y0=99,x1=-1,y1=-1;
   rows.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]!='.'){x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j)}});
   const ox=1+Math.floor((14-(x1-x0+1))/2)-x0,oy=1+Math.floor((14-(y1-y0+1))/2)-y0;
   rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const ch=r[i];if(ch=='.')continue;x.fillStyle=ch=='+'?b:a;x.fillRect(i+ox,j+oy,1,1)}});
-  return c.toDataURL()}
+  return (window.PALETA_JOGO&&PALETA_JOGO.iconeNaPaleta?PALETA_JOGO.iconeNaPaleta(c):c).toDataURL()} // na paleta do jogo (js/paleta.js)
  window.ICONES_HABILIDADE=I;
  window.iconeHabilidade=id=>I[id]?cache[id]||(cache[id]=desenhar(I[id])):null;
 })();

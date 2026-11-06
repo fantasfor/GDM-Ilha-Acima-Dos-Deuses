@@ -17,7 +17,7 @@
  const hsh=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296};
  const COR={noite:['#311339','#4f2052','#74366e'],ouro:['#9a5a2a','#d08a3a','#efc56a'],madeira:['#4e2430','#7d3f34','#a8653f'],agua:['#2a2a52','#3d5a8c','#6e9cc4'],aco:['#3e3a52','#7c8098','#c4c8d6'],sangue:['#6e1438','#a22b4b','#cf4554'],osso:['#7a6650','#b8a47c','#ddd0a6'],magia:['#4a1f6e','#7a3ca8','#b07ad8'],folha:['#263a3a','#3f6b45','#79a35a']};
  const PX=()=>window.CASSINO_JOGOS&&CASSINO_JOGOS.PX;
- const tipoEl=e=>window.MAP_ELEMENT_TYPES&&MAP_ELEMENT_TYPES[e.type];
+ const tipoEl=e=>typeof MAP_ELEMENT_TYPES!=='undefined'?MAP_ELEMENT_TYPES[e.type]:null; // global do jogo (não fica em window)
  const desenharElem=(g,e)=>{const a=window.sceneryFor&&sceneryFor(e);if(a&&a.c)g.drawImage(a.c,Math.round(e.x-a.ax),Math.round(e.y-a.ay))};
  const dentro=(x,y)=>x>=L.x&&x<L.x+L.w&&y>=L.y&&y<L.y+L.h;
 
@@ -31,8 +31,9 @@
   // tapete na entrada até o balcão
   const tx=PORTA.x-L.x;R(g,tx-20,BALCAO.y1-L.y+6,40,L.h-(BALCAO.y1-L.y)-16,COR.sangue[0]);R(g,tx-18,BALCAO.y1-L.y+8,36,L.h-(BALCAO.y1-L.y)-20,COR.sangue[1]);
   for(let y=BALCAO.y1-L.y+12;y<L.h-14;y+=6)R(g,tx-12,y,24,1,COR.ouro[0]);
-  // parede do fundo: lambri escuro, viga em cima, prateleiras com potes e rolos de pergaminho
-  R(g,0,0,L.w,PAREDE,'#3a2420');for(let x=0;x<L.w;x+=8){R(g,x,6,1,PAREDE-10,COR.madeira[0]);R(g,x+1,6,1,PAREDE-10,'#4a2c26')}
+  // parede do fundo: as mesmas tábuas de madeira da fachada (dentro e fora do mesmo material, 2026-11-05), viga em cima,
+  // prateleiras com potes e rolos de pergaminho
+  R(g,0,0,L.w,PAREDE,COR.madeira[1]);for(let x=0;x<L.w;x+=7){R(g,x,5,1,PAREDE-9,COR.madeira[0]);if(hsh(x,3)>.5)R(g,x+3,9+(hsh(x,4)*10|0),1,3,COR.madeira[0])}
   R(g,0,0,L.w,5,COR.madeira[0]);R(g,0,4,L.w,1,COR.madeira[2]);R(g,0,PAREDE-4,L.w,4,COR.madeira[0]);R(g,0,PAREDE-4,L.w,1,COR.madeira[2]);R(g,0,PAREDE-1,L.w,1,'#000000');
   for(const [sx,sw] of [[8,44]])for(const sy of [16,30]){R(g,sx,sy,sw,2,COR.madeira[2]);R(g,sx,sy+2,sw,1,COR.madeira[0]);
    for(let k=0;k<5;k++){const bx=sx+3+k*9,tipo=(hsh(sx+k,sy)*3)|0,cor=[COR.agua[2],COR.folha[2],COR.sangue[2],COR.osso[2],COR.magia[2]][(k+sy)%5];
@@ -85,13 +86,13 @@
  function bloqueia(x,y){
   if(x>BALCAO.x0-4&&x<BALCAO.x1+4&&y<BALCAO.y1+3)return true; // balcão e a área de trás (do Viajante)
   for(const v of VITRINES)if(Math.abs(x-v.x)<13&&y>v.y-14&&y<v.y+3)return true;
-  for(const e of DECOR){const t=tipoEl(e);if(t&&t.blocks&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(5,t.radius||6))return true}
+  for(const e of DECOR){const t=tipoEl(e);if(t&&t.blocks&&!ehBancoDecor(e)&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(5,t.radius||6))return true}
   return false}
 
  // o Viajante mora aqui agora (antes ficava no pátio do bar)
  if(window.VIAJANTE&&VIAJANTE.npc){Object.assign(VIAJANTE.npc,{x:NPC.x,y:NPC.y,vaga:VAGA,fx:0,fy:1})}
  function registrar(){if(!window.CONSTRUCOES)return;
-  CONSTRUCOES.registrar({id:'loja',cena:'taverna',x:L.x,y:L.y,w:L.w,h:L.h,fachada:32,beiral:14,colisao:false,
+  CONSTRUCOES.registrar({id:'loja',cena:'taverna',x:L.x,y:L.y,w:L.w,h:L.h,fachada:32,beiral:14,colisao:false,muro:{alt:20,tabuas:true},
    telhado:{sombra:'#2a2a52',base:'#3d5a8c',luz:'#6e9cc4',cumeeira:'#1f1a1a'},
    portas:[{lado:'s',x:PORTA.x,w:PORTA.w}],janelas:[L.x+34,L.x+L.w-34],placa:{texto:'LOJA DO VIAJANTE',cor:'#efc56a'},
    extra(g,a){const P=PX();// tabuleta pendurada com a mochila do Viajante, balançando

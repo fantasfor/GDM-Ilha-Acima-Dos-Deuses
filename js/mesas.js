@@ -13,8 +13,8 @@
  // 4 mesas no pátio do bar e as 5 mesas redondas de dentro da taverna
  // as mesas vêm do layout editável da taverna (js/taverna-layout.js; padrão: bar1..bar4 no pátio e tav1..tav5 dentro);
  // o nome segue a ordem de cada área
- const LAY=window.TAVERNA_LAYOUT,IDS=LAY?LAY.L.mesas.map(m=>m.id):['bar1','bar2','bar3','bar4','tav1','tav2','tav3','tav4','tav5'],NOME_MESA={};
- {const n={p:0,t:0};for(const m of LAY?LAY.L.mesas:IDS.map(id=>({id,x:id.startsWith('bar')?600:100,y:100}))){const pat=LAY?LAY.noPatio(m.x,m.y):m.id.startsWith('bar');NOME_MESA[m.id]='Mesa '+(pat?++n.p:++n.t)+(pat?' do pátio':' da taverna')}}
+ const LAY=window.TAVERNA_LAYOUT,IDS=LAY?LAY.L.mesas.filter(m=>!m.mestres).map(m=>m.id):['bar1','bar2','bar3','bar4','tav1','tav2','tav3','tav4','tav5'],NOME_MESA={};
+ {const n={p:0,t:0};for(const m of LAY?LAY.L.mesas.filter(m=>!m.mestres):IDS.map(id=>({id,x:id.startsWith('bar')?600:100,y:100}))){const pat=LAY?LAY.noPatio(m.x,m.y):m.id.startsWith('bar');NOME_MESA[m.id]='Mesa '+(pat?++n.p:++n.t)+(pat?' do pátio':' da taverna')}}
  const J=()=>window.JOGOS_MESA;
  const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
  const dados={};IDS.forEach(id=>dados[id]={assentos:{},jogo:null});

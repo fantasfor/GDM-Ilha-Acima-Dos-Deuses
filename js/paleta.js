@@ -19,7 +19,11 @@
   // osso velho (amarelado, gasto); a sombra puxa para o marrom-vinho para combinar com o resto
   {id:'osso',nome:'Osso velho',cores:['#7a6650','#b8a47c','#ddd0a6']},
   {id:'pele',nome:'Pele',cores:['#9c4a4a','#cf7a6a','#e8b096']},
-  {id:'madeira',nome:'Madeira e couro',cores:['#4e2430','#7d3f34','#a8653f']},
+  /* madeira (2026-11-05, pedido do usuário): os mesmos tons dos troncos das árvores da ilha como aparecem no jogo
+     (sombra #5a4038, base #9a5a2a, luz #d08a3a — medidos nos troncos já convertidos). A madeira antiga (vinho) virou
+     "Madeira escura" e continua na conversão, então nada muda de cor sozinho no mapa */
+  {id:'madeira',nome:'Madeira',cores:['#5a4038','#9a5a2a','#d08a3a']},
+  {id:'madeiraEscura',nome:'Madeira escura',cores:['#4e2430','#7d3f34','#a8653f']},
   {id:'ouro',nome:'Ouro',cores:['#9a5a2a','#d08a3a','#efc56a']},
   {id:'fogo',nome:'Fogo e brasa',cores:['#b8402a','#e8743a','#f7b84a']},
   {id:'folha',nome:'Folhagem',cores:['#263a3a','#3f6b45','#79a35a']},
@@ -36,7 +40,18 @@
   {id:'gelo',nome:'Gelo e neve',cores:['#4a5a7a','#8fb4cc','#e4f0f2'],extra:true}, // neve, gelo, cristais frios, magia de gelo
   {id:'veneno',nome:'Veneno',cores:['#2f3a1c','#6f8f2a','#c4dc5a'],extra:true},    // poções, gosmas, efeitos de veneno
   {id:'areia',nome:'Areia e palha',cores:['#7a5a3e','#bf9a62','#e8d39c'],extra:true}, // praia, deserto, palha, pergaminho
-  {id:'pele2',nome:'Pele morena',cores:['#4a2a26','#7a4a36','#a8704e'],extra:true} // tons de pele mais escuros (personagens)
+  {id:'pele2',nome:'Pele morena',cores:['#4a2a26','#7a4a36','#a8704e'],extra:true}, // tons de pele mais escuros (personagens)
+  /* couro (2026-11-05, pedido do usuário): os 3 tons da Túnica de Couro (ícone). Para cintos, botas, luvas, bolsas,
+     alças, selas, armaduras leves; a Engine pinta qualquer armadura com ela (inspetor do item › Material) */
+  {id:'couro',nome:'Couro',cores:['#613f22','#8a5a30','#c88346'],extra:true},
+  /* sombras (2026-11-05, pedido do usuário: ícones na paleta do jogo): fundos escuros com cor, para os ícones de
+     habilidade, efeito e passiva não virarem cinza/preto; a sombra puxa para o roxo/vinho como as outras rampas */
+  {id:'sombraQuente',nome:'Sombra quente (fundos)',cores:['#1f0d12','#331620','#4a1f2a'],extra:true},
+  {id:'sombraFria',nome:'Sombra fria (fundos)',cores:['#10142a','#1a2240','#253256'],extra:true},
+  {id:'sombraVerde',nome:'Sombra verde (fundos)',cores:['#101c16','#1a2c20','#243c2a'],extra:true},
+  {id:'sombraOuro',nome:'Sombra dourada (fundos)',cores:['#24160c','#3a2412','#523418'],extra:true},
+  {id:'sombraRoxa',nome:'Sombra roxa (fundos)',cores:['#1a0f26','#2a1840','#3d2258'],extra:true},
+  {id:'sombraCinza',nome:'Sombra cinza (fundos)',cores:['#121218','#1f1f28','#2e2e3a'],extra:true}
  ];
  const CONTORNO='#000000',OLHO='#ff4040'; // OLHO: só para olhos (brilho vermelho)
  /* rastro do golpe (2026-10-30, pedido do usuário): fica FORA da paleta, sempre na cor do ataque (em geral branco).
@@ -71,6 +86,21 @@
   if(Array.isArray(d.camadas))o.camadas=d.camadas.map(dadosNaPaleta);
   if(d.anim&&typeof d.anim=='object'){o.anim={...d.anim};for(const k in d.anim)if(Array.isArray(d.anim[k]))o.anim[k]=d.anim[k].map(dadosNaPaleta)}
   return o}
+ /* ícones na paleta (2026-11-05): cada cor vira a mais parecida de TODAS as rampas (com as extra e as sombras), pela
+    distância de percepção; transparência fica. Ícones de habilidade, efeito e passiva desenhados por código */
+ const cacheIc=new Map(),PAL_IC=[CONTORNO,...RAMPAS.flatMap(r=>r.cores)];
+ function iconeNaPaleta(c){
+  if(!c||!c.getContext||!c.width||!c.height)return c;
+  try{const g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),D=im.data;
+   for(let i=0;i<D.length;i+=4){if(!D[i+3])continue;const k=(D[i]<<16)|(D[i+1]<<8)|D[i+2];let v=cacheIc.get(k);
+    if(v===undefined){const[a,b,cc]=[D[i],D[i+1],D[i+2]];let best=PAL_IC[0],d=Infinity;for(const p of PAL_IC){const[x,y,z]=rgb(p),r=(a+x)/2,e=(2+r/256)*(a-x)**2+4*(b-y)**2+(2+(255-r)/256)*(cc-z)**2;if(e<d){d=e;best=p}}v=parseInt(best.slice(1),16);cacheIc.set(k,v)}
+    D[i]=v>>16;D[i+1]=(v>>8)&255;D[i+2]=v&255;D[i+3]=D[i+3]<128?0:255}
+   g.putImageData(im,0,0)}catch(e){}
+  return c}
+ /* fundo dos ícones (2026-11-05, regra do usuário: o fundo tem 3 cores — o centro, uma borda mais escura e uma mais
+    clara): a rampa de sombra da cor do ícone; centro = tom do meio, borda de cima/esquerda = clara, de baixo/direita = escura */
+ function rampaFundo(cor){const[h,s]=hsl(String(cor||'#555555').slice(0,7));const id=s<.15?'sombraCinza':h<20||h>=330?'sombraQuente':h<70?'sombraOuro':h<170?'sombraVerde':h<250?'sombraFria':'sombraRoxa';return RAMPAS.find(r=>r.id===id).cores}
+ function fundoIcone(g,w,h,cor,soBorda){const[e,m,c]=rampaFundo(cor);if(!soBorda){g.fillStyle=m;g.fillRect(0,0,w,h)}g.fillStyle=c;g.fillRect(0,0,w,1);g.fillRect(0,0,1,h);g.fillStyle=e;g.fillRect(0,h-1,w,1);g.fillRect(w-1,0,1,h)}
  function canvasNaPaleta(c){
   if(!c||!c.getContext||!c.width||!c.height)return c;
   try{const g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),D=im.data,m=new Map();
@@ -80,7 +110,7 @@
    g.putImageData(im,0,0)}catch(e){}
   return c}
  const g=typeof window!='undefined'?window:globalThis;
- g.PALETA_JOGO={base:'Monstro de Sangue',CONTORNO,OLHO,OLHO_TONS,RASTRO,RAMPAS,todas,maisPerto,corNaPaleta,dadosNaPaleta,canvasNaPaleta,
+ g.PALETA_JOGO={base:'Monstro de Sangue',CONTORNO,OLHO,OLHO_TONS,RASTRO,RAMPAS,todas,maisPerto,corNaPaleta,dadosNaPaleta,canvasNaPaleta,iconeNaPaleta,fundoIcone,rampaFundo,
   regras:{tonsPorCor:3,contorno:1},
   texto:'Cada parte do desenho usa no máximo 3 tons, da rampa dela (ex.: lâmina 3 de aço, punho 3 de madeira, ossos 3 de osso velho, capa 3 de sangue, coroa 3 de ouro). Olho em 3 tons próprios ('+OLHO_TONS.join(', ')+'), só para olhos. Contorno '+CONTORNO+'.',
   // rampa de uma cor da paleta (null = contorno ou fora da paleta)

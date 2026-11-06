@@ -1,8 +1,9 @@
 /* ---------- Bar ao ar livre: pátio da Taverna do Javali Dourado (2026-10-24, pedido do usuário) ----------
    Área externa ao lado da taverna (porta na parede da direita), na mesma sala online: todos os jogadores se veem.
-   Calçamento, deck de madeira com as 4 mesas de jogo (js/mesas.js), quiosque do bar com o Barman, churrasqueira com
-   fumaça, chafariz, fogueira com bancos, lampiões, bandeirinhas balançando, árvores, guarda-sóis e flores (elementos
-   do tema "Bar ao ar livre" do pacote de mapa, alguns animados); de noite, vaga-lumes e luzes quentes; de dia, folhas.
+   Chão todo de pedra, mesas iguais às de dentro (js/taverna.js; as de feltro "jogo" ainda são desenhadas aqui), o palco
+   com a banda, um arco de pedra na cerca de baixo que sai para a rua, plantas e decorações (elementos do pacote de mapa);
+   de noite, vaga-lumes e luzes quentes; de dia, folhas. O quiosque e o Barman saíram (2026-11-04: as bebidas são da
+   Taverneira, no balcão de dentro).
    A taverna chama BAR.walk/chao/objetos/luzes/click/atualizar (js/taverna.js). */
 (function(){
  const G=()=>window.TAVERNA_GEO||{OX:24,OY:24,TW:480,TH:320};
@@ -12,23 +13,24 @@
  const PORTA={y0:168,y1:196};                                 // porta na parede da direita da taverna (relativo ao pátio)
  const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
  const hsh=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296};
- /* mesas, cadeiras, decorações e o barman vêm do layout editável (js/taverna-layout.js, Engine › cena Taverna), em
+ /* mesas, cadeiras e decorações vêm do layout editável (js/taverna-layout.js, Engine › cena Taverna), em
     coordenadas do mundo. Mesas "jogo" (quadradas, feltro verde) são desenhadas aqui; as "redonda", em js/taverna.js. */
  const LAY=window.TAVERNA_LAYOUT,LL=LAY.L;
  const centro=m=>({x:m.x,y:m.y});
  const lugar=(m,i)=>LAY.lugarEm(m,i);
- const TODAS=()=>LL.mesas;
+ const TODAS=()=>LL.mesas.filter(m=>!m.mestres); // a mesa dos mestres de classe não se senta
  const MESAS_JOGO=LL.mesas.filter(m=>m.estilo==='jogo');
- const naMesa=(m,w)=>m.estilo==='jogo'?Math.abs(w.x-m.x)<22&&w.y>m.y-16&&w.y<m.y+18:Math.hypot(w.x-m.x,(w.y-m.y+6)*1.2)<19;
+ const naMesa=(m,w)=>m.estilo==='jogo'?Math.abs(w.x-m.x)<22&&w.y>m.y-16&&w.y<m.y+18:m.estilo==='quadrada'?Math.abs(w.x-m.x)<17&&w.y>m.y-18&&w.y<m.y+6:Math.hypot(w.x-m.x,(w.y-m.y+6)*1.2)<19;
  // cadeira livre sob o mouse (clique direto na cadeira senta nela)
  const sobreCadeira=(m,w)=>{for(let i=0;i<4;i++){const b=LAY.caixaCadeira(m,i);if(w.x>=b.x-1&&w.x<=b.x+b.w+1&&w.y>=b.y-1&&w.y<=b.y+b.h+1)return i}return -1};
- const DECK={x0:34,y0:206,x1:250,y1:350},QUIOSQUE={x0:294,x1:426,y0:24,y1:84},CASA_BARMAN=LL.npcs.barman,BARMAN={x:CASA_BARMAN.x,y:CASA_BARMAN.y,fx:0,fy:1,alvo:null,espera:2,nm:'Barman Tonho'};
- const tipoEl=e=>window.MAP_ELEMENT_TYPES&&MAP_ELEMENT_TYPES[e.type];
+ // saída do pátio para a rua: arco de pedra na cerca de baixo (x = centro do vão, relativo ao pátio)
+ const ARCO={x:(LL.arco?LL.arco.x:LAY.PX+220)-LAY.PX,w:30}; // posição editável na Engine (layout: arco)
+ const tipoEl=e=>typeof MAP_ELEMENT_TYPES!=='undefined'?MAP_ELEMENT_TYPES[e.type]:null; // global do jogo (não fica em window)
  // decorações: mesma arte dos elementos de mapa da ilha (animados quadro a quadro), âncora no pé
  function desenharElem(g,e){const a=window.sceneryFor&&sceneryFor(e);if(a&&a.c)g.drawImage(a.c,Math.round(e.x-a.ax),Math.round(e.y-a.ay))}
  const ehDecor=(e,id)=>e.type==='px:'+id;
 
- /* ---- chão: calçamento, grama nas beiradas, deck das mesas, caminho de terra da porta, cerca ---- */
+ /* ---- chão: calçamento de pedra e a cerca (com o vão do arco) ---- */
  let fundo=null;
  function textura(id){const t=window.PACOTE_MAPA&&PACOTE_MAPA.texturas[id];return t?pixelArt(t.data):null}
   /* fundo da cena na paleta do jogo (2026-10-30) */
@@ -36,42 +38,41 @@
  function desenharFundoBruto(){
   const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const pat=id=>{const t=textura(id);return t?g.createPattern(t,'repeat'):'#555'};
+  // chão todo de pedra (2026-11-04, pedido do usuário): calçamento de ponta a ponta, sem grama, deck, terra nem a praça
   g.fillStyle=pat('pk_bar_calcada');g.fillRect(0,0,BW,BH);
-  // grama igual à da ilha (ladrilho de js/cassino.js); sem ele, a do pacote
-  g.fillStyle=window.RUA_TAVERNA?g.createPattern(RUA_TAVERNA.gramaLadrilho(),'repeat'):pat('pk_bar_grama');g.fillRect(0,0,BW,18);g.fillRect(BW-18,0,18,BH);g.fillRect(0,BH-14,BW,14);g.fillRect(0,BH-60,24,60);g.fillRect(0,0,22,140);
-  g.fillStyle=pat('pk_bar_terra');for(let x=0;x<70;x+=2){const w=2+Math.round(Math.sin(x*.2)*2);g.fillRect(x,PORTA.y0+2-w,2,PORTA.y1-PORTA.y0-4+2*w)}
-  // deck das mesas, com borda e degrau
-  g.fillStyle='#24140a';g.fillRect(DECK.x0-3,DECK.y0-3,DECK.x1-DECK.x0+6,DECK.y1-DECK.y0+6);g.fillStyle=pat('pk_bar_deck');g.fillRect(DECK.x0,DECK.y0,DECK.x1-DECK.x0,DECK.y1-DECK.y0);
-  R(g,DECK.x0,DECK.y0,DECK.x1-DECK.x0,1,'#c08a52');R(g,DECK.x0-3,DECK.y1+3,DECK.x1-DECK.x0+6,2,'#1a0e06');
-  // praça do chafariz: calçamento claro em círculo
-  g.lineWidth=3;g.strokeStyle='#6e6658';g.beginPath();g.ellipse(338,208,60,34,0,0,7);g.stroke();g.lineWidth=1;g.strokeStyle='#a69a86';g.beginPath();g.ellipse(338,207,60,34,0,0,7);g.stroke(); // anel de pedras da praça
-  // quiosque: piso de tábuas atrás do balcão
-  g.fillStyle=pat('pk_bar_deck');g.fillRect(QUIOSQUE.x0,QUIOSQUE.y0,QUIOSQUE.x1-QUIOSQUE.x0,QUIOSQUE.y1-QUIOSQUE.y0);
-  // cerca em volta (em cima, à direita e embaixo): postes e duas travessas
-  const cerca=(x0,y0,x1,y1)=>{const n=Math.max(1,Math.round(Math.hypot(x1-x0,y1-y0)/14));for(let k=0;k<=n;k++){const x=x0+(x1-x0)*k/n,y=y0+(y1-y0)*k/n;R(g,x-1,y-12,3,14,'#5c3a20');R(g,x-1,y-12,1,14,'#7c5230');R(g,x-1,y-13,3,1,'#a06c3e')}
-   if(y0===y1){R(g,x0,y0-9,x1-x0,2,'#8a5a32');R(g,x0,y0-9,x1-x0,1,'#a06c3e');R(g,x0,y0-4,x1-x0,2,'#8a5a32')}else{R(g,x0,y0,2,y1-y0,'#8a5a32');R(g,x0+2,y0,1,y1-y0,'#5c3a20')}};
-  cerca(4,14,BW-4,14);cerca(BW-6,14,BW-6,BH-4);cerca(4,BH-2,BW-4,BH-2);
+  // a cerca não é mais pintada no chão (2026-11-05, pedido do usuário): é objeto, na ordem de profundidade (CERCA abaixo)
   return c;
  }
- /* quiosque do bar: balcão com toldo listrado, prateleira de garrafas e o barman (o toldo vai por cima, depois do barman) */
- function prateleira(){
-  const a=at(QUIOSQUE.x0,QUIOSQUE.y0),w=QUIOSQUE.x1-QUIOSQUE.x0;
-  R(ctx,a.x,a.y+4,w,4,'#3a2414');for(let k=0;k<11;k++){const bx=a.x+6+k*11,cor=['#3f7a3a','#7a2a2a','#2f4f8a','#a8862f','#5a3a7a'][k%5];R(ctx,bx,a.y-2,4,6,cor);R(ctx,bx+1,a.y-4,2,2,'#2a1a0c');R(ctx,bx+1,a.y-1,1,3,'#ffffff40')}
- }
- function balcao(){
-  const a=at(QUIOSQUE.x0,QUIOSQUE.y0),w=QUIOSQUE.x1-QUIOSQUE.x0,by=a.y+44;R(ctx,a.x,by,w,16,'#3e2210');R(ctx,a.x,by-2,w,5,'#9a6636');R(ctx,a.x,by-2,w,1,'#c08a52');for(let x=a.x+6;x<a.x+w-10;x+=22){R(ctx,x,by+5,16,9,'#5a3418');R(ctx,x+1,by+6,14,1,'#7a4a24')}R(ctx,a.x,by+14,w,2,'#24140a');
-  for(const [dx,cor] of [[20,'#d9a441'],[46,'#c8c8c8'],[84,'#d9a441'],[108,'#7a2a2a']]){R(ctx,a.x+dx,by-8,4,6,cor);R(ctx,a.x+dx+4,by-6,2,3,cor);R(ctx,a.x+dx,by-9,4,2,'#fff6e0')}
- }
- function toldo(){
-  const a=at(QUIOSQUE.x0-6,QUIOSQUE.y0-22),w=QUIOSQUE.x1-QUIOSQUE.x0+12;
-  for(let x=0;x<w;x+=8){const o=Math.round(Math.sin(time*2+x*.2)*.6);R(ctx,a.x+x,a.y,8,14+o,(x/8|0)%2?'#f2eee6':'#d8432f');R(ctx,a.x+x,a.y+14+o,8,2,(x/8|0)%2?'#d8d2c6':'#a8322a')}
-  R(ctx,a.x,a.y-2,w,3,'#5c3a20');R(ctx,a.x-2,a.y,3,40,'#5c3a20');R(ctx,a.x+w-1,a.y,3,40,'#5c3a20');
-  ctx.font='bold 6px monospace';ctx.textAlign='center';ctx.fillStyle='#24140a';ctx.fillText('BAR DO JAVALI',a.x+w/2+.5,a.y+9.5);ctx.fillStyle='#fff6e0';ctx.fillText('BAR DO JAVALI',a.x+w/2,a.y+9);
- }
+ /* cerca de madeira (2026-11-05, pedido do usuário: objeto que se move na Engine e se encaixa): a lista de postes do
+    layout (cidade.cercas, js/taverna-layout.js). Dois postes a PASSO px (lado a lado ou um embaixo do outro) ligam com as
+    travessas. Cada poste e cada travessa entram na ordem de profundidade na linha deles (quem passa atrás fica atrás). A
+    cerca bloqueia a passagem (postes e travessas): CERCA.bloqueia, usado em js/taverna.js tavernaWalk. */
+ const MAD=['#4e2430','#7d3f34','#a8653f'],PASSO=LAY.PASSO_CERCA||14;
+ const postes=()=>(LL.cidade&&LL.cidade.cercas)||[];
+ function poste(x,y){x=Math.round(x);y=Math.round(y);R(ctx,x-2,y-14,5,16,'#000000');R(ctx,x-1,y-13,3,14,MAD[1]);R(ctx,x-1,y-13,1,14,MAD[2]);R(ctx,x+1,y-13,1,14,MAD[0]);R(ctx,x-1,y+1,3,1,'#0006')}
+ function travessaH(x,y){x=Math.round(x);y=Math.round(y);for(const t of [-10,-5]){R(ctx,x,y+t-1,PASSO,4,'#000000');R(ctx,x,y+t,PASSO,2,MAD[1]);R(ctx,x,y+t,PASSO,1,MAD[2])}}
+ function travessaV(x,y){x=Math.round(x);y=Math.round(y);R(ctx,x-2,y-12,5,PASSO+2,'#000000');R(ctx,x-1,y-12,3,PASSO,MAD[1]);R(ctx,x-1,y-12,1,PASSO,MAD[2])}
+ const chave=(x,y)=>x+','+y;
+ function ligacoes(){const tem=new Set(postes().map(q=>chave(q.x,q.y)));return q=>({dir:tem.has(chave(q.x+PASSO,q.y)),baixo:tem.has(chave(q.x,q.y+PASSO))})}
+ function cercas(L){const lig=ligacoes();
+  for(const q of postes()){const l=lig(q);if(l.dir)L.push([q.y,()=>travessaH(q.x,q.y)]);if(l.baixo)L.push([q.y+PASSO,()=>travessaV(q.x,q.y)]);L.push([q.y+.1,()=>poste(q.x,q.y)])}}
+ // um poste com as travessas dele (para a peça da Engine): mask 1 = liga à direita, 2 = liga embaixo
+ function desenharPoste(x,y,mask){if(mask&2)travessaV(x,y);if(mask&1)travessaH(x,y);poste(x,y)}
+ // colisão: grade de 16 px com os pedaços (postes e travessas), montada uma vez
+ let grade=null;
+ function montarGrade(){grade=new Map();const lig=ligacoes(),add=(x0,y0,x1,y1)=>{for(let gy=Math.floor(y0/16);gy<=Math.floor(y1/16);gy++)for(let gx=Math.floor(x0/16);gx<=Math.floor(x1/16);gx++){const k=gx+','+gy;if(!grade.has(k))grade.set(k,[]);grade.get(k).push([x0,y0,x1,y1])}};
+  for(const q of postes()){const l=lig(q);add(q.x-3,q.y-3,q.x+3,q.y+2);if(l.dir)add(q.x,q.y-3,q.x+PASSO,q.y+2);if(l.baixo)add(q.x-3,q.y,q.x+3,q.y+PASSO)}}
+ function bloqueiaCerca(x,y){if(!grade)montarGrade();const l=grade.get(Math.floor(x/16)+','+Math.floor(y/16));if(!l)return false;for(const [x0,y0,x1,y1] of l)if(x>=x0&&x<=x1&&y>=y0&&y<=y1)return true;return false}
+ window.CERCA={cercas,bloqueia:bloqueiaCerca,desenharPoste,PASSO};
+ /* arco de pedra da saída para a rua: dois pilares de blocos e o arco por cima, com a pedra-chave */
+ function arco(px,py){const a=px!=null?{x:px,y:py}:at(ARCO.x,BH),x=a.x,y=a.y,hw=ARCO.w/2,P=['#3a3040','#5e5668','#8e8898'];
+  for(const px of [x-hw-6,x+hw]){R(ctx,px-1,y-36,8,37,'#000000');for(let yy=y-35,k=0;yy<y;yy+=5,k++){R(ctx,px,yy,6,4,k%2?P[1]:P[2]);R(ctx,px,yy+4,6,1,P[0])}R(ctx,px-2,y-2,10,3,P[0])}
+  for(let k=0;k<=12;k++){const ang=Math.PI*k/12,ax=Math.round(x-Math.cos(ang)*(hw+3)),ay=Math.round(y-36-Math.sin(ang)*12);R(ctx,ax-3,ay-3,6,6,'#000000');R(ctx,ax-2,ay-2,4,4,k===6?P[2]:k%2?P[1]:P[0]);R(ctx,ax-2,ay-2,4,1,P[2])}
+  R(ctx,x-3,y-53,7,7,'#000000');R(ctx,x-2,y-52,5,5,'#d9a441');R(ctx,x-1,y-51,3,1,'#efc56a')}
  /* mesa de jogo quadrada com feltro verde e 4 banquinhos; com jogo, cartas ou pedras no feltro */
  function mesaJogo(m){
   const x=Math.round(m.x),y=Math.round(m.y),d=window.MESAS&&MESAS.dados[m.id],j=d&&d.jogo;
-  ctx.fillStyle='#0006';ctx.beginPath();ctx.ellipse(x,y+6,22,5,0,0,7);ctx.fill();
+  for(let dy=-2;dy<=2;dy++){const w=Math.round(22*Math.sqrt(1-(dy/2.5)**2));R(ctx,x-w,y+6+dy,w*2+1,1,'#0006')} // sombra em pixels
   R(ctx,x-15,y-2,2,9,'#3a2414');R(ctx,x+13,y-2,2,9,'#3a2414');
   R(ctx,x-18,y-12,36,14,'#3a2414');R(ctx,x-17,y-12,34,12,'#7c5230');R(ctx,x-17,y-12,34,1,'#c08a52');R(ctx,x-14,y-10,28,8,'#2c6a3a');R(ctx,x-14,y-10,28,1,'#3f8a4c');R(ctx,x-17,y,34,2,'#5c3a20');
   if(j&&j.fase==='jogando'){const tipo=j.tipo;for(let k=0;k<3;k++){const px=x-9+k*7,py=y-8+(k%2);
@@ -137,16 +138,6 @@
   if(nk<.6){if(arvs.length&&folhas.length<10&&Math.random()<dt*1.2){const a=arvs[Math.random()*arvs.length|0];folhas.push({x:a.x+(Math.random()-.5)*30,y:a.y-36,t:0,c:['#4b9a44','#78c260','#c8a040'][Math.random()*3|0]})}
    for(let i=folhas.length;i--;){const f=folhas[i];f.t+=dt;f.y+=dt*12;f.x+=Math.sin(f.t*2.4)*dt*10;if(f.t>3.2){folhas.splice(i,1);continue}ctx.globalAlpha=Math.min(1,(3.2-f.t));R(ctx,f.x,f.y,2,1,f.c);ctx.globalAlpha=1}}
  }
- /* barman: anda atrás do balcão; clicado, oferece bebida (igual à taverneira) */
- function andarBarman(dt){const B=BARMAN;if(!B.alvo){B.espera-=dt;if(B.espera<=0)B.alvo={x:CASA_BARMAN.x-56+Math.random()*112,y:CASA_BARMAN.y-10+Math.random()*12}}
-  if(B.alvo){const dx=B.alvo.x-B.x,dy=B.alvo.y-B.y,d=Math.hypot(dx,dy);if(d>1){const k=Math.min(d,26*dt)/d;B.x+=dx*k;B.y+=dy*k;B.fx=dx;B.fy=dy}else{B.alvo=null;B.espera=2+Math.random()*5;B.fx=0;B.fy=1}}}
- function falarBarman(){
-  const box=$('dialogue');box.classList.remove('dgModal');
-  box.innerHTML='<b>Barman Tonho</b><p>Bem-vindo ao pátio! Sente numa das mesas do deck para jogar <b>Truco</b>, <b>Uno</b> ou <b>Dominó</b> com quem estiver por lá. Dá para apostar ouro: o vencedor leva o pote.</p><button type="button" data-bar-bebida>Pedir um chope ('+moeda(5)+'): vida e mana cheias</button><button type="button" data-close-dialog>Até mais</button>';
-  box.classList.add('open');
-  box.querySelector('[data-bar-bebida]').onclick=()=>{if(p.gold<5){ft(p.x,p.y-24,'Ouro insuficiente','#f87171');return}p.gold-=5;p.hp=mhp();p.mp=mmp();ring(p.x,p.y,24,'#ffd84a',.5);ft(p.x,p.y-24,'Saúde!','#ffd84a');box.classList.remove('open');if(window.playGameSound)playGameSound('coin')};
- }
-
  let alvoMesa=null,avisoPreso=-9; // {mesa, i}: indo sentar
  // cadeira para o mouse em w: a cadeira livre sob o mouse; senão, com o mouse na mesa, a livre mais perto; -1 = nenhuma
  function escolherCadeira(m,w){
@@ -169,14 +160,14 @@
   portaEm:(x,y)=>{const yy=y-Y0();return yy>PORTA.y0+3&&yy<PORTA.y1-3&&x>X0()-14&&x<X0()+12},
   walk(x,y){const rx=x-X0(),ry=y-Y0();
    if(rx<10)return ry>PORTA.y0+3&&ry<PORTA.y1-3;
-   if(rx>BW-14||ry<22||ry>BH-10)return false;
-   if(rx>QUIOSQUE.x0-4&&rx<QUIOSQUE.x1+4&&ry<QUIOSQUE.y1+6)return false;
+   // as bordas do pátio são as cercas (objetos móveis: CERCA.bloqueia, em js/taverna.js); sem cerca, passa
    return !BAR.bloqueia(x,y)},
   /* mesas (dos dois estilos), barris e decorações sólidas: valem na taverna e no pátio */
   bloqueia(x,y){
-   for(const m of LL.mesas)if(m.estilo==='jogo'?Math.abs(x-m.x)<20&&y>m.y-14&&y<m.y+6:Math.hypot(x-m.x,(y-m.y)*1.3)<15)return true;
+   for(const m of LL.mesas)if(m.estilo==='jogo'?Math.abs(x-m.x)<20&&y>m.y-14&&y<m.y+6:m.estilo==='quadrada'?Math.abs(x-m.x)<15&&y>m.y-12&&y<m.y+4:Math.hypot(x-m.x,(y-m.y)*1.3)<15)return true;
+   if(window.TAVERNA_PALCO_EM&&TAVERNA_PALCO_EM(x,y))return true; // o palco da banda (no pátio)
    for(const b of LL.barris)if(Math.hypot(x-b.x,y-b.y)<8)return true;
-   for(const e of LL.decor){const t=tipoEl(e);if(t&&t.blocks&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(4,t.radius||6))return true}
+   for(const e of LL.decor){const t=tipoEl(e);if(t&&t.blocks&&!ehBancoDecor(e)&&Math.hypot(x-e.x,(y-e.y)*1.3)<Math.max(4,t.radius||6))return true}
    return false},
   chao(){if(!fundo)fundo=desenharFundo();
    ctx.drawImage(fundo,X0(),Y0());
@@ -184,17 +175,15 @@
    const px=X0()-12,py=Y0()+PORTA.y0;R(ctx,px,py,14,PORTA.y1-PORTA.y0,'#5a3a20');R(ctx,px+2,py+2,10,PORTA.y1-PORTA.y0-2,'#7a5230');R(ctx,px,py-3,14,3,'#3f2816');R(ctx,px,py+PORTA.y1-PORTA.y0,14,2,'#2a1a0e')},
   objetos(L){
    botoes=[];
-   L.push([Y0()+QUIOSQUE.y0+4,prateleira]);L.push([Y0()+QUIOSQUE.y0+60,balcao]); // o balcão fica na frente do barman
-   L.push([BARMAN.y,()=>{const B=BARMAN,f=face(B),spr=(HS.sty||HS.war)[f.d];dr(spr,B.x,B.y,f.fl,1,anim(B,0));
-    ctx.font='6px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(B.nm,B.x+.5,B.y-21.5-ACIMA_HEROI());ctx.fillStyle='#ffe28a';ctx.fillText(B.nm,B.x,B.y-22-ACIMA_HEROI());ctx.fillStyle='#ffd84a';ctx.fillText('!',B.x,B.y-28+Math.round(Math.sin(time*4)*1.5))}]);
-   L.push([Y0()+QUIOSQUE.y0-30,toldo]);
+   L.push([Y0()+BH-1,arco]); // arco de pedra da saída para a rua
+   cercas(L);
    for(const e of LL.decor)L.push([e.y-(ehDecor(e,'pk_bar_bandeirinhas')?400:0),()=>desenharElem(ctx,e)]);
    for(const m of MESAS_JOGO){for(let i=0;i<4;i++){const c=LAY.cadeiraEm(m,i),o=m.cadeiras[i].o;L.push([c.y+(o===2?-1:-3),()=>cadeira(c.x,c.y,o)])}L.push([m.y,()=>mesaJogo(m)])}
   },
   // por cima de tudo: botões e convites das mesas (fora da ordem de profundidade, para não ficarem atrás de ninguém)
   interface(){for(const m of TODAS())interfaceMesa(m)},
   luzes(){const ls=[];for(const e of LL.decor){const w=e;if(ehDecor(e,'pk_bar_lampiao'))ls.push({x:w.x,y:w.y-34,r:70,a:.75});if(ehDecor(e,'pk_bar_fogueira'))ls.push({x:w.x,y:w.y-10,r:95});if(ehDecor(e,'pk_bar_churrasqueira'))ls.push({x:w.x,y:w.y-16,r:40,a:.5})}
-   for(const m of MESAS_JOGO)ls.push({x:m.x,y:m.y-12,r:40,a:.4});const k=at(360,60);ls.push({x:k.x,y:k.y,r:80,a:.6});return ls},
+   for(const m of MESAS_JOGO)ls.push({x:m.x,y:m.y-12,r:40,a:.4});return ls},
   brilho(nk){ctx.save();ctx.globalCompositeOperation='screen';
    for(const e of LL.decor){const lamp=ehDecor(e,'pk_bar_lampiao');if(!lamp&&!ehDecor(e,'pk_bar_fogueira'))continue;const w=e,x=e.x,yy=lamp?w.y-34:w.y-10,r=lamp?40:60,a=(lamp?.14:.22)+.14*nk+.03*Math.sin(time*9+x);
     const g=ctx.createRadialGradient(w.x,yy,1,w.x,yy,r);g.addColorStop(0,'rgba(255,190,90,'+a+')');g.addColorStop(1,'rgba(255,160,60,0)');ctx.fillStyle=g;ctx.fillRect(w.x-r,yy-r,2*r,2*r)}
@@ -205,10 +194,8 @@
    for(const b of botoes)if(w.x>=b.x&&w.x<=b.x+b.w&&w.y>=b.y&&w.y<=b.y+b.h){b.fn();return true}
    if(mode!=2){const m=mesaSob(w);if(m)return clicarMesa(m,w)}
    if(mode==2)return false;
-   const bw=BARMAN;if(Math.hypot(w.x-bw.x,w.y-(bw.y-8))<14){if(Math.hypot(p.x-bw.x,p.y-bw.y)<60)falarBarman();else setDest(bw.x,bw.y+38);return true}
    return false},
   atualizar(dt){
-   andarBarman(dt);
    if(alvoMesa){const m=TODAS().find(x=>x.id===alvoMesa.mesa),s=lugar(m,alvoMesa.i);
     if(Math.hypot(p.x-s.x,p.y-s.y)<9){const alvo=alvoMesa;alvoMesa=null;p.dest=null;p.path=[];
      if(window.MESAS)MESAS.sentar(alvo.mesa,alvo.i).then(ok=>{if(ok){p.x=s.x;p.y=s.y;const c=centro(m);p.fx=c.x-s.x;p.fy=c.y-s.y;ft(p.x,p.y-30,'Sentou na '+MESAS.NOME_MESA[alvo.mesa],'#ffe28a')}})}
@@ -223,9 +210,9 @@
     else{p.x=s.x;p.y=s.y}}
   },
   // mouse em cima de algo clicável do pátio ou das mesas (botões, mesas, barman): o cursor vira a mãozinha
-  hover(w){if(botoes.some(b=>sobre(w,b)))return true;if(mesaSob(w))return true;return Math.hypot(w.x-BARMAN.x,w.y-(BARMAN.y-8))<14},
+  hover(w){if(botoes.some(b=>sobre(w,b)))return true;return !!mesaSob(w)},
   // usados pela Engine (prévia da cena Taverna, js/taverna.js TAVERNA_MOTOR)
-  quiosque(){prateleira();balcao();toldo()},desenharMesa:mesaJogo,desenharCadeira:cadeira,
+  quiosque(){},arco,cercas,desenharMesa:mesaJogo,desenharCadeira:cadeira,
   minimapa(mm,ox,oy,k){if(fundo)mm.drawImage(fundo,ox+(X0()-G().OX)*k,oy+(Y0()-G().OY)*k,BW*k,BH*k)}
  };
 })();

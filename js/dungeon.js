@@ -335,7 +335,7 @@
      showExitConfirmation();
     } else {
      ft(p.x, p.y - 20, 'SAINDO DA MASMORRA!', '#ffd84a');
-     exitDungeon(true);
+     if(window.TELA_CARREGANDO) TELA_CARREGANDO.rodar('Ilha', 'Saindo da masmorra…', () => exitDungeon(true)); else exitDungeon(true);
     }
    }
    return true;

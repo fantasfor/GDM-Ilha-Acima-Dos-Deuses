@@ -27,19 +27,19 @@ window.CURANDEIRO=(()=>{
       if(a&&Math.hypot(a.x-p.x,a.y-p.y)<=220&&!window.inArena){aliados(a.x,a.y,14,[{tipo:'cura',pw,limpa}]);brilho(a.x,a.y,col);ft(a.x,a.y-30,s.name||'Curar','#6fe36f')}
       else{curarEu('cura',pw,limpa);brilho(p.x,p.y,col)}},
      d:()=>'Cura '+pct+'% da vida máxima do alvo (você ou o aliado sob o mouse) e limpa '+limpa+' acúmulos de veneno e sangramento.',
-     info:()=>({cura:+(pct*amp()).toFixed(1)+'% da vida máxima do alvo',alcance:'você, ou o aliado sob o mouse (até 220 px)',area:'',efeito:'Limpa '+limpa+' acúmulos de Veneno e Sangramento'})}}
+     info:()=>({cura:+(pct*amp()).toFixed(1)+'% da vida máx.',efeito:'Limpa '+limpa+' acúmulos de Veneno e Sangramento'})}}
    case 'zonaCura':{const pct=n(s.curaPct,1),dur=n(s.duracao,5),dano=n(s.danoVidaPct,20);
     return{f:()=>{zonas.push({id:s.id,segue:true,x:p.x,y:p.y,r:r*areaMultiplier(p),t:dur,dur,prox:0,cor:col,pct,danoTick:mhp()*dano/100})}, // a área acompanha o herói
      d:()=>'Ilumina a área em volta de você por '+dur+' s (ela acompanha você): a cada segundo quem está nela cura '+pct+'% da vida máxima e os inimigos da área levam '+dano+'% da sua vida máxima em dano mágico.',
-     info:()=>({cura:+(pct*amp()).toFixed(1)+'% da vida máxima por segundo, por '+dur+' s',dano:Math.round(mhp()*dano/100*buffDano('magic'))+' mágico por segundo ('+dano+'% da sua vida máxima), por '+dur+' s',alcance:'em você (acompanha você)',area:r+' px'})}}
+     info:()=>({cura:+(pct*amp()).toFixed(1)+'% da vida máx./s ('+dur+' s)',dano:Math.round(mhp()*dano/100*buffDano('magic'))+' mágico/s ('+dur+' s)'})}}
    case 'auraContinua':{const mana=n(s.manaPorSeg,2),dpct=n(s.danoPct,2),reg=n(s.regen,2);
     return{f:()=>{if(presenca){desligarPresenca((s.name||'Presença')+' desligada');return}presenca={id:s.id,r,mana,dpct,reg,prox:0,cor:col};ft(p.x,p.y-30,s.name||'Presença','#7fe8a0')},
      d:()=>'Liga/desliga: você e os aliados a até '+r+' px ganham +'+dpct+'% de dano físico e mágico e '+reg+' de vida por segundo. Gasta '+mana+' de mana por segundo enquanto estiver ligada.',
-     info:()=>({cura:reg+' de vida por segundo (você e aliados)',alcance:'em você',area:r+' px (você e aliados)',efeito:'+'+dpct+'% de dano físico e mágico · -'+mana+' de mana por segundo · aperte de novo para desligar'})}}
+     info:()=>({cura:reg+' vida/s',efeito:'+'+dpct+'% dano físico e mágico; -'+mana+' mana/s'})}}
    case 'pulso':{const pct=n(s.curaPct,3),dano=n(s.danoVidaPct,20),k=Math.max(1,n(s.pulsos,3)),emp=n(s.empurra,14);
     return{f:()=>{for(let i=0;i<k;i++)agenda.push({id:s.id,t:i,fn:()=>pulso(r*areaMultiplier(p),pct,dano,emp,col)})}, // 1 pulso por segundo, em volta de onde você está
      d:()=>'Libera '+k+' pulsos de luz em volta de você, 1 por segundo: cada um cura '+pct+'% da sua vida máxima em você e nos aliados e causa '+dano+'% da sua vida máxima em dano mágico nos inimigos, empurrando-os um pouco.',
-     info:()=>({cura:Math.round(mhp()*pct/100*amp())+' por pulso ('+pct+'% da sua vida máxima), '+k+' pulsos',dano:Math.round(mhp()*dano/100*buffDano('magic'))+' mágico por pulso ('+dano+'% da sua vida máxima)',alcance:'em você',area:r+' px',efeito:'Empurra os inimigos'})}}
+     info:()=>({cura:Math.round(mhp()*pct/100*amp())+' ×'+k+' pulsos',dano:Math.round(mhp()*dano/100*buffDano('magic'))+' mágico ×'+k+' pulsos',efeito:'Empurra '+emp+' px'})}}
   }
   return null}
  function pulso(raio,pct,dano,emp,cor){

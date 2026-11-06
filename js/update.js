@@ -256,7 +256,7 @@ function upd(dt){conversando=emConversa();if(p.dead<=0&&!p.dash)desencalhar(p);d
    }
    }
   }
-  moveAlong(e,e.spd*statusSpeed(e)*Math.max(0,1+statusAttributeBonus(e,'moveSpeed')+statusAttributeBonus(e,'A')*.005),dt)}
+  moveAlong(e,(enraizado(e)?0:e.spd)*statusSpeed(e)*Math.max(0,1+statusAttributeBonus(e,'moveSpeed')+statusAttributeBonus(e,'A')*.005),dt)}
  for(let i=proj.length;i--;){const q=proj[i];if(q.tg){if(q.tg.hp<=0){proj.splice(i,1);continue}const tx=q.tg.x,ty=q.tg.y-wh(q.tg.img)/2,a=Math.atan2(ty-q.y,tx-q.x);q.vx=Math.cos(a)*190;q.vy=Math.sin(a)*190;if(dist(q,{x:tx,y:ty})<10){acertoProjetil(q,q.tg);proj.splice(i,1);continue}}q.x+=q.vx*dt;q.y+=q.vy*dt;q.t-=dt;if(q.tg){if(q.t<=0||bloqueiaTiro(q.x,q.y+8))proj.splice(i,1);continue}
   const h=en.find(e=>e.hp>0&&(dist(e,q)<14||dist({x:e.x,y:e.y-wh(e.img)/2},q)<14));if(h){acertoProjetil(q,h);proj.splice(i,1)}else if(q.t<=0||!walk(q.x,q.y))proj.splice(i,1)}
  for(let i=mets.length;i--;){const m=mets[i];m.t-=dt;if(m.t<=0){const radius=m.radius||36*areaMultiplier(p);ring(m.x,m.y,radius,'#f60',.5);en.forEach(e=>{if(e.hp>0&&dist(e,m)<radius&&linhaLivre(m,e))hurtE(e,m.dmg||120+p.lvl*12,m.magic!==false,m.fx)});mets.splice(i,1)}}

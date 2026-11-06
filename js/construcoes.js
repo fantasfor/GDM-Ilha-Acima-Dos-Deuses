@@ -9,7 +9,7 @@
      x, y, w, h  planta (o chão de dentro, com as paredes);
      fachada     altura da parede da frente vista de fora (px; 0 = só telhado);
      beiral      quanto o telhado sobe acima da parede do fundo (px);
-     telhado     cores {sombra, base, luz, cumeeira}; parede {sombra, base, luz, tipo:'tabuas'|'pedra'};
+     telhado     cores {sombra, base, luz, cumeeira}; parede {sombra, base, luz, tipo:'tabuas'|'pedra'|'tijolo'};
      portas      [{lado:'s'|'n'|'l'|'o', x (lados n/s) ou y (l/o), w}]: vãos nas paredes (colisão e desenho);
      janelas     [x...] na fachada (acendem de noite); placa {texto, cor}; chamine: x da chaminé (ou null);
      paredeEsp   espessura das paredes para a colisão genérica (padrão 8);
@@ -56,6 +56,7 @@
   if(c.fachada>0){const fy=ty1,fh=c.fachada;
    R(g,pad,fy,c.w,fh,P.base);
    if(P.tipo==='pedra'){for(let y=fy,row=0;y<fy+fh-4;y+=6,row++)for(let x=pad+(row%2)*7;x<pad+c.w;x+=14){R(g,x,y,13,5,hsh(x,y)<.5?P.base:P.sombra);R(g,x,y,13,1,P.luz)}}
+   else if(P.tipo==='tijolo')tijolos(g,pad,fy,c.w,fh-4,P,c.x);
    else{for(let x=pad;x<pad+c.w;x+=7){R(g,x,fy,1,fh,P.sombra);if(hsh(x,3)>.5)R(g,x+3,fy+4+(hsh(x,4)*10|0),1,3,P.sombra)}R(g,pad,fy,c.w,1,P.luz)}
    R(g,pad,fy+fh-4,c.w,4,'#3a3040');R(g,pad,fy+fh-4,c.w,1,'#5e5668');R(g,pad-1,fy,1,fh,'#000000');R(g,pad+c.w,fy,1,fh,'#000000');R(g,pad,fy+fh-1,c.w,1,'#000000');
    // vigas nos cantos
@@ -82,13 +83,35 @@
   if(c.extra)try{c.extra(g,a,c)}catch(e){}
   g.restore()}
 
+ /* muro da frente visto de dentro (2026-11-04, a partir da imagem do usuário): com o telhado aberto, a parede da frente
+    continua ali, baixa — pedra com viga de madeira em cima, colunas de madeira, janelas de vidro com parapeito e o vão
+    da porta. Fica na frente de quem está encostado nela (profundidade da linha da parede). c.muro = {alt, pedra:[3 tons], tijolo?, tabuas?} */
+ const muroArte=new Map();
+ /* parede de tijolos (fachada tipo 'tijolo' e muro com tijolo:true): fiadas de 4 px (3 de tijolo + 1 de argamassa),
+    tijolos de 8 px desencontrados, tons variando entre base, sombra e luz */
+ function tijolos(g,x0,y0,w,h,P,sx){const arg=P.argamassa||'#5e5668';R(g,x0,y0,w,h,arg);
+  for(let y=y0,row=0;y<y0+h;y+=4,row++)for(let x=x0-(row%2)*4;x<x0+w;x+=8){const n=hsh(x+sx,y),bx=Math.max(x0,x),bw=Math.min(x+7,x0+w)-bx;if(bw<=0)continue;
+   R(g,bx,y,bw,Math.min(3,y0+h-y),n<.6?P.base:n<.85?P.sombra:P.luz);if(n<.6)R(g,bx,y,bw,1,P.luz)}}
+ function arteMuro(c){if(muroArte.has(c.id))return muroArte.get(c.id);
+  const M=c.muro,alt=M.alt||22,P=M.pedra||['#3a3040','#5e5668','#8e8898'],W=c.w,cv=document.createElement('canvas');cv.width=W;cv.height=alt+4;const g=cv.getContext('2d');
+  if(M.tijolo)tijolos(g,0,4,W,alt,{sombra:P[0],base:P[1],luz:P[2]},c.x);
+  // tábuas: o mesmo material da fachada de tábuas (c.parede), visto de dentro
+  else if(M.tabuas){const Q=c.parede;R(g,0,4,W,alt,Q.base);for(let x=0;x<W;x+=7){R(g,x,4,1,alt,Q.sombra);if(hsh(x+c.x,3)>.5)R(g,x+3,6+(hsh(x,4)*(alt-6)|0),1,3,Q.sombra)}}
+  else for(let y=4,row=0;y<alt+4;y+=6,row++)for(let x=-((row%2)*7);x<W;x+=14){R(g,x,y,13,5,hsh(x+c.x,y)<.5?P[1]:P[0]);R(g,x,y,13,1,P[2]);R(g,x+13,y,1,6,'#000000')}
+  R(g,0,0,W,4,'#4e2430');R(g,0,0,W,1,'#a8653f');R(g,0,3,W,1,'#2a1a10');R(g,0,alt+3,W,1,'#000000');
+  for(let x=0;x<W;x+=96){R(g,x,0,5,alt+4,'#4e2430');R(g,x+1,0,1,alt+4,'#a8653f')}R(g,W-5,0,5,alt+4,'#4e2430');R(g,W-4,0,1,alt+4,'#a8653f');
+  for(const jx of c.janelas){const x=jx-c.x-8;R(g,x-1,5,18,12,'#000000');R(g,x,6,16,10,'#4e2430');R(g,x+1,7,14,8,'#3d5a8c');R(g,x+7,7,2,8,'#4e2430');R(g,x+1,10,14,1,'#4e2430');R(g,x+2,8,2,2,'#6e9cc4');R(g,x-2,16,20,2,'#a8653f')}
+  // vão da porta: aberto, com os batentes
+  for(const po of c.portas)if(po.lado==='s'){const x=po.x-c.x-po.w/2;g.clearRect(x,0,po.w,alt+4);R(g,x-3,0,3,alt+4,'#2a1a10');R(g,x-2,0,1,alt+4,'#a8653f');R(g,x+po.w,0,3,alt+4,'#2a1a10');R(g,x+po.w+1,0,1,alt+4,'#a8653f')}
+  const r=window.PALETA_JOGO?PALETA_JOGO.canvasNaPaleta(cv):cv;muroArte.set(c.id,r);return r}
+ function desenharMuro(c,g){const a=1-c.a;if(!c.muro||a<=.01)return;const A=arteMuro(c),alt=c.muro.alt||22;g.save();g.globalAlpha=a;g.drawImage(A,c.x,c.y+c.h-alt-4);g.restore()}
  /* esmaecer: some quando o herói está dentro (ou passando pela porta), volta quando sai */
  function atualizar(dt,cena){if(typeof p==='undefined')return;
   for(const c of LISTA){if(cena&&c.cena!==cena)continue;const alvo=dentroDe(c,p.x,p.y)?0:1;c.a+=(alvo-c.a)*Math.min(1,dt*7);if(Math.abs(alvo-c.a)<.005)c.a=alvo}}
  const naCena=cena=>LISTA.filter(c=>c.cena===cena);
  window.CONSTRUCOES={
   registrar,lista:()=>LISTA.slice(),
-  objetos(L,cena){for(const c of naCena(cena))L.push([c.y+c.h-.5,()=>desenhar(c,ctx)])},
+  objetos(L,cena){for(const c of naCena(cena)){L.push([c.y+c.h-.5,()=>desenhar(c,ctx)]);if(c.muro)L.push([c.y+c.h-.4,()=>desenharMuro(c,ctx)])}},
   atualizar,
   // opacidade do telhado (0 = herói dentro), quem está dentro, e se um ponto está escondido sob um telhado
   alfa:id=>{const c=LISTA.find(o=>o.id===id);return c?c.a:1},

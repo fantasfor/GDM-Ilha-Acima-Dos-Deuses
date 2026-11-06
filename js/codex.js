@@ -103,8 +103,9 @@ function tItem(){const src={};mons().forEach(m=>{const ch=chances(m);for(const i
 function cardSkill(s,dono,extra){const k=E('div','cx-card cx-skill');k.dataset.ref='skill:'+(s.id||s.n);let ds='';try{ds=typeof s.d=='function'?s.d():s.d||''}catch(e){}
  const conj=typeof tempoConj=='function'?tempoConj(s):0,fx=(s.fxs||s.effects||[]);
  k.innerHTML='<div class="cx-head"><img src="'+s.ic+'"><div><b>'+esc(s.n)+'</b>'+(s.rank?'<span class="cx-badge">Rank '+s.rank+'</span>':'')+(s.cross?'<span class="cx-badge boss">Cross</span>':'')+(extra||'')+'</div></div>'
-  +'<div class="cx-nums"><span><i>Mana</i>'+(s.mana||0)+'</span><span><i>Recarga</i>'+s.cd+' s</span><span><i>Conjuração</i>'+(conj>0?(+conj).toFixed(1)+' s':'instantânea')+'</span></div>'
-  +'<div class="cx-desc">'+linkar(ds)+'</div>'+efeitos(fx,false);return k}
+  // a mesma caixa das dicas (estilo das imagens do usuário, js/ui.js skTip), sem repetir o nome; antiga como reserva
+  +(window.caixaHabilidade&&s.info?'<div class="cx-caixa">'+caixaHabilidade({...s,k:''}).replace(/<div class=dtNome>.*?<\/div>/,'')+'</div>':
+   '<div class="cx-nums"><span><i>Mana</i>'+(s.mana||0)+'</span><span><i>Recarga</i>'+s.cd+' s</span><span><i>Conjuração</i>'+(conj>0?(+conj).toFixed(1)+' s':'instantânea')+'</span></div>'+'<div class="cx-desc">'+linkar(ds)+'</div>'+efeitos(fx,false));return k}
 function tSkill(){const w=E('div');NOMES=null;
  Object.keys(CL).forEach(id=>{const c=CL[id];let ents=[];try{ents=skillEntries(id)}catch(e){}if(!ents.length)return;const rk=rankDe(id);
   w.appendChild(E('h4','',(iconeClasse(id)?'<img class="cx-hico" src="'+iconeClasse(id)+'">':'')+link('class',id,esc(c.n))+' <small>'+(rk?'rank '+rk+' · '+ents.filter(liberada).length+'/'+ents.length+' liberadas':'classe não aprendida')+'</small>'));

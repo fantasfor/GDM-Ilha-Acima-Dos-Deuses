@@ -233,6 +233,77 @@ canvas#g{filter:brightness(.88) saturate(.82) contrast(1.04)}
 .crossNode small{color:#a69c94;font-size:9px}
 .crossNode:hover{border-color:#a69c94;box-shadow:none}
 .skillEmpty{grid-column:1/-1;padding:8px;color:#a69c94;text-align:center;font-size:11px}
+/* aba Habilidades (2026-11-05): barras de nível e rank, trilha de ranks 1–10, detalhes da habilidade e cartões */
+#skillPanel{width:min(900px,calc(100vw - 24px))}
+.skBarras{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 4px}
+.skBarra{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;font:11px monospace;color:#a69c94}
+.skBarraRot{color:#f0e6dc;font-weight:bold}
+.skBarraVal{grid-column:2;text-align:right}
+.skBarraFundo{grid-column:1/-1;grid-row:2;height:8px;background:#1a1a1a;border:1px solid #000;box-shadow:inset 0 0 0 1px #3a3a3a;margin-top:3px;image-rendering:pixelated}
+.skBarraFundo i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--c1) 0 6px,var(--c2) 6px 7px);box-shadow:inset 0 2px #ffffff30,inset 0 -2px #00000040}
+.skNivel{--c1:#d08a3a;--c2:#9a5a2a}.skRank{--c1:#7a3ca8;--c2:#4a1f6e}
+.skNivel .skBarraRot{color:#efc56a}.skRank .skBarraRot{color:#b07ad8}
+.skCorpo{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;margin-top:6px}
+.skEsq{min-width:0}
+.skTrilha{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));align-items:end;gap:2px;padding:8px 2px 0;position:relative;background:linear-gradient(#0000 calc(100% - 13px),#3a3a3a calc(100% - 13px),#3a3a3a calc(100% - 11px),#0000 calc(100% - 11px))}
+.skCol{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:96px;justify-content:flex-end}
+.skPip{width:20px;height:20px;display:grid;place-items:center;font:bold 10px monospace;color:#6a6460;background:#1a1a1a;border:2px solid #3a3a3a;position:relative;z-index:1}
+.skCol.feito .skPip{color:#1a0e06;background:#d08a3a;border-color:#efc56a;box-shadow:inset 0 -2px #9a5a2a}
+.skCard{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;max-width:84px;padding:5px 2px;border:2px solid #3a3a3a;background:#141414;color:#d9d0c7;font:10px monospace;line-height:1.2;text-align:center;cursor:pointer;box-shadow:inset 0 1px #ffffff12}
+.skCard{min-height:74px;justify-content:flex-start}
+.skCard img{width:36px!important;height:36px!important;image-rendering:pixelated;border:1px solid #000;box-shadow:0 0 0 1px #595959}
+.skCard small{color:#a69c94;font-size:9px}
+.skCard.locked{opacity:.5;filter:saturate(.4)}
+.skCard.unlocked{border-color:#595959}
+.skCard:hover{opacity:1;filter:none;border-color:#a69c94}
+.skCard.sel{border-color:#efc56a;background:#211a10;opacity:1;filter:none;box-shadow:inset 0 1px #efc56a40,0 0 0 1px #9a5a2a}
+.skCross{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+.skCross .skCard{max-width:none}
+.skDet{border:2px solid #3a3a3a;background:#111;padding:10px;font:11px monospace;color:#d9d0c7;align-self:start;position:sticky;top:0}
+.skDetTopo{display:flex;gap:10px;align-items:center;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid #3a3a3a}
+.skDetTopo img{width:48px;height:48px;image-rendering:pixelated;border:1px solid #000;box-shadow:0 0 0 2px #595959}
+.skDetNome b{display:block;color:#f0e6dc;font-size:13px}
+.skDetNome span{color:#a69c94;font-size:10px}
+.skDetTexto .tlin{margin:4px 0;line-height:1.45}.skDetTexto .tl{color:#8a8580}.skDetTexto .tdesc{color:#d9d0c7}.skDetTexto .tdano{color:#ff8f5a;font-weight:bold}.skDetTexto .tefeito{color:#c79bff}.skDetTexto .tmana{color:#6fb7ff;font-weight:bold}.skDetTexto .tcd{color:#ffd84a;font-weight:bold}.skDetTexto .tcast{color:#8fe38a;font-weight:bold}.skDetTexto .tarma{color:#a69c94}.skDetTexto .tcura{color:#6fe36f;font-weight:bold}.skDetTexto .talc{color:#e8d07a}.skDetTexto .tarea{color:#e8a87a}.skDetTexto .tm{color:#a69c94;margin-top:6px}
+/* tela cheia (2026-11-05, pedido do usuário), como o painel Classes */
+body #skillPanel.open{left:0!important;top:0!important;right:0;bottom:0;width:100vw!important;height:100vh;max-height:none!important;transform:none!important;border-radius:0;z-index:40;padding:16px 24px;box-sizing:border-box;overflow:auto}
+#skillPanel .skCorpo{grid-template-columns:minmax(0,1fr) 340px}
+#skillPanel .skTrilha{min-height:150px}
+#skillPanel .skCard{max-width:110px;min-height:92px;font-size:11px}
+#skillPanel .skCard img{width:48px!important;height:48px!important}
+#skillPanel .skDet{font-size:12px}
+/* caixa de habilidade no estilo das imagens do usuário (2026-11-05) */
+.dt{font:12px monospace;line-height:1.45;max-width:340px;color:#d9d0c7}
+.dtNome{color:#f0e6dc;font-weight:bold;font-size:13px;margin-bottom:4px}
+.dtCab{padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid #3a3a3a}
+.dtR{color:#8a95a5}
+.dtV{color:#c4ccd8}
+.dt .tfis{color:#ff9a3c}.dt .tmag{color:#6fb7ff}.dt .tmisto{color:#c79bff}
+.dtDesc{color:#f0f0f0;margin:6px 0 8px;line-height:1.5}
+.dtLin{margin:6px 0}
+.dtN{color:#c4ccd8;font-weight:bold}
+.dtRod{display:flex;gap:14px;margin-top:6px;color:#a9b2c0}
+.dtRod span{display:flex;align-items:center;gap:5px}
+.dtI{display:inline-block;width:10px;height:10px;border:1px solid #000;image-rendering:pixelated}
+.dtCd{background:linear-gradient(135deg,#c4c8d6 50%,#5e5668 50%)}
+.dtMp{background:#3d8cd8;box-shadow:inset 1px 1px #8ec8ff}
+.dtCs{background:#4cae4c;box-shadow:inset 1px 1px #9fe08f}
+.dtRank{color:#8a8580;margin-top:4px;font-size:11px}
+#tip .dt{max-width:340px}
+.skAbas{display:flex;gap:2px;margin-bottom:8px;border-bottom:1px solid #3a3a3a}
+.skAba{padding:4px 10px;background:#141414;border:1px solid #3a3a3a;border-bottom:none;color:#a69c94;font:11px monospace;cursor:pointer}
+.skAba.on{background:#211a10;border-color:#9a5a2a;color:#efc56a}
+.skDescTxt{margin:4px 0;line-height:1.5;color:#d9d0c7}
+.skEquipar{margin-top:10px;padding-top:8px;border-top:1px solid #3a3a3a}
+.skEquiparRot{color:#a69c94;margin-bottom:6px}
+.skSlots{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.skSlot{position:relative;aspect-ratio:1;display:grid;place-items:center;padding:0;background:#141414;border:2px solid #595959;cursor:pointer}
+.skSlot img{width:80%;height:80%;image-rendering:pixelated}
+.skSlot b{position:absolute;left:2px;top:0;font:bold 10px monospace;color:#f0e6dc;text-shadow:0 1px #000}
+.skSlot:hover:not(:disabled){border-color:#efc56a;background:#211a10}
+.skSlot.atual{border-color:#efc56a;box-shadow:inset 0 0 0 1px #9a5a2a}
+.skSlot:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:720px){#skillPanel .skCorpo{grid-template-columns:1fr}.skBarras{grid-template-columns:1fr}.skTrilha{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:8px}}
 
 @media(max-width:520px){#skillPicker{grid-template-columns:repeat(4,42px);gap:4px;padding:6px}.pickerOption{width:42px;height:42px}.pickerOption img{width:33px;height:33px}.skillTreeNode{flex-basis:82px;min-height:76px}.skillTreeNode img{width:34px;height:34px}.skillTreeLink{flex-basis:14px}}
 

@@ -61,7 +61,7 @@
    H('Como funciona',['O que os monstros deixam cair aparece aqui. ✓ pega o item para a mochila; ✗ rejeita.','<b>Coleta</b>: escolha pegar sozinho tudo, ou só a partir de uma qualidade (Boa, Rara, Épica, Perfeita). "Manual" deixa você decidir.','<b>Rejeitar tudo</b> limpa a lista. Item com "!" é de missão.','Passe o mouse para ver os detalhes e comparar.']),},
   {sel:'#dialogue.dgModal:not(.arenaModal)',cab:'.dgm-head',t:'Masmorras',h:
    H('Portal',['Cada masmorra mostra o chefe, o nível recomendado e o que pode cair.','Entre sozinho ou monte um grupo de até 5 jogadores (clique em + para convidar).','Dentro da masmorra, derrote o chefe para terminar e ver as estatísticas.']),},
-  {sel:'#dialogue.arenaModal',cab:'.arn-wrap>b:first-child',t:'Arena',h:
+  {sel:'#dialogue.arenaModal',cab:'.arn-cab .arn-titulo',t:'Arena',h:
    H('Partidas',['1 contra 1 ou 2 contra 2. Cada um usa o próprio equipamento; quem cai fica assistindo.','A partida acaba quando uma equipe perde todos ou em 5 minutos (ganha quem tem mais gente viva, depois mais vida). Cair não custa ouro.','<b>Ranqueada</b>: busca um oponente com pontos parecidos; vitória soma e derrota tira pontos.','Sem conexão, treine com o boneco.']),},
  ];
  const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.innerHTML=x;return e};

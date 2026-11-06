@@ -115,8 +115,8 @@
  let duelo=null;
  function criarMestre(cls){
   const id='mestre_'+cls,c=(window.GAMEDATA&&GAMEDATA.classes||[]).find(x=>x.id===cls)||{},a=c.attrs||{F:5,A:5,I:5},kit=(CL[cls]&&CL[cls].kit)||[],magica=kit.some(r=>BASIC[r.id]&&BASIC[r.id].damageType==='magic'||ITEMS[r.id]&&ITEMS[r.id].damageType==='magic')||(+a.I||0)>(+a.F||0); // mágico pela arma do kit da classe (ou mais Inteligência que Força)
-  MONSTER_TYPES[id]={name:'Mestre '+(CL[cls]?CL[cls].n:cls),stats:{F:+a.F||5,A:+a.A||5,I:+a.I||5},attributeStats:{},custom:true,ataqueDoNivel:true,bossType:'normal',sprite:HS[cls]&&HS[cls].d,sp:HS[cls],size:100,tags:[],drops:[],
-   equipment:{stats:{},weaponRanges:[],weapon:magica?{damageType:'magic',basic:{rng:110,proj:'#b07bff'},effects:[]}:{damageType:'physical',basic:{rng:24},effects:[]}},skills:[],attackSpeed:CL[cls]&&CL[cls].attackSpeed||1};
+  MONSTER_TYPES[id]={name:'Mestre '+(CL[cls]?CL[cls].n:cls),stats:{F:+a.F||5,A:+a.A||5,I:+a.I||5},attributeStats:{},custom:true,bossType:'normal',sprite:HS[cls]&&HS[cls].d,sp:HS[cls],size:100,tags:[],drops:[],
+   equipment:{stats:{dmg:36},weaponRanges:[{min:24,max:48}] /* golpe do nível 10 (fixo desde 2026-11-05, sem a planilha) */,weapon:magica?{damageType:'magic',basic:{rng:110,proj:'#b07bff'},effects:[]}:{damageType:'physical',basic:{rng:24},effects:[]}},skills:[],attackSpeed:CL[cls]&&CL[cls].attackSpeed||1};
   MB[id]={max:100,dmg:10,spd:58,xp:0,xpFixo:0,g:0,aggro:500,wu:.35,ac:1,base:'goblin'};
   const e={boss:false,img:HS[cls]&&HS[cls].d,sp:HS[cls],max:100,dmg:10,spd:58,xp:0,g:0,aggro:900,wu:.35,ac:1};
   configureMonster(e,id,10);
@@ -449,53 +449,80 @@
  function fecharPainel(){painelAberto=false;const box=$('dialogue');if(box.classList.contains('arenaModal')){box.classList.remove('open','arenaModal','dgModal')}}
  let marca=null; // primeiro elemento do painel: se sumiu da caixa, outro diálogo tomou o lugar e o painel não volta sozinho
  function abrirPainel(){painelAberto=true;marca=null;painel()}
+ /* Janela da arena (2026-11-05, pedido do usuário: mais intuitiva, organizada e no design do jogo). Cabeçalho com título e
+    fechar; coluna principal = o que fazer agora (modos em cartões, busca da ranqueada ou o lobby das equipes); coluna do
+    lado = seu desempenho e o ranking. As regras ficam recolhidas em "Como funciona". */
  function painel(){
   const box=$('dialogue');if(!painelAberto)return;
   if(marca&&!(box.contains(marca)&&box.classList.contains('open'))){painelAberto=false;return}
   if(document.activeElement&&box.contains(document.activeElement)&&document.activeElement.closest('.dgm-cand'))return;
-  box.classList.add('dgModal','arenaModal');box.replaceChildren();const fcv=E('canvas','arn-fundo'),wrap=E('div','arn-wrap');box.append(fcv,wrap);animarFundoPainel(fcv); /* tela cheia: o coliseu passando ao fundo e tudo numa coluna no centro */
-  const pv=p.pvp;marca=E('b','','Lanceiro Aldric · Arena');
-  wrap.append(marca,E('p','','Partidas de equipe: 1 contra 1 ou 2 contra 2. Cada um usa as próprias defesas; quem cai fica assistindo. A partida acaba quando uma equipe perde todos ou em 5 minutos (ganha quem tiver mais gente viva, depois mais vida). Cair não custa ouro.'));
-  const placar=E('div','lobPlacar');const jogos=(pv.vitorias||0)+(pv.derrotas||0)+(pv.empates||0);placar.innerHTML='<span>Pontos ranqueada <b>'+pontosRank()+'</b></span><span>Vitórias <b>'+(pv.vitorias||0)+'</b></span><span>Derrotas <b>'+(pv.derrotas||0)+'</b></span><span>Empates <b>'+(pv.empates||0)+'</b></span><span>Abates <b>'+(pv.abates||0)+'</b></span><span>Aproveitamento <b>'+(jogos?Math.round((pv.vitorias||0)/jogos*100)+'%':'—')+'</b></span>';wrap.append(placar);
-  if(!nuvemOk()){wrap.append(E('p','dgm-muted','Sem conexão online não há partidas: treine sozinho com o Boneco de treino.'),B('Treinar com o boneco',()=>{fecharPainel();entrar()}),B('Até mais',fecharPainel));box.classList.add('open');return}
+  const regrasAbertas=!!box.querySelector('.arn-regras[open]');
+  box.classList.add('dgModal','arenaModal');box.replaceChildren();const fcv=E('canvas','arn-fundo'),wrap=E('div','arn-wrap');box.append(fcv,wrap);animarFundoPainel(fcv); /* o coliseu passando ao fundo */
+  const pv=p.pvp,online=nuvemOk();
+  // cabeçalho
+  marca=E('b','arn-titulo','Arena');
+  const cab=E('div','arn-cab');cab.append(marca,E('span','arn-sub','Lanceiro Aldric · partidas entre jogadores'),B('✕',fecharPainel,'arn-fechar'));
+  cab.lastChild.setAttribute('aria-label','Fechar a janela da arena');wrap.append(cab);
+  const corpo=E('div','arn-corpo'),main=E('div','arn-main'),lado=E('aside','arn-lado');corpo.append(main,lado);wrap.append(corpo);
+  // lado: desempenho + ranking
+  const jogos=(pv.vitorias||0)+(pv.derrotas||0)+(pv.empates||0);
+  const des=E('section','arn-bloco');des.append(E('h3','','Seu desempenho'));
+  const pts=E('div','arn-pontos');pts.append(E('span','','Pontos ranqueada'),E('b','',String(pontosRank())));des.append(pts);
+  const g=E('div','arn-stats');for(const [n,v] of [['Vitórias',pv.vitorias||0],['Derrotas',pv.derrotas||0],['Empates',pv.empates||0],['Abates',pv.abates||0],['Aproveit.',jogos?Math.round((pv.vitorias||0)/jogos*100)+'%':'—']]){const s=E('div','arn-stat');s.append(E('b','',String(v)),E('span','',n));g.append(s)}
+  des.append(g);lado.append(des);
+  if(online)carregarRanking();
+  const rk=E('section','arn-bloco');rk.append(E('h3','','Melhores da ranqueada'));
+  if(rankingTop&&rankingTop.length){const ol=E('ol','arn-rank');rankingTop.forEach((x,i)=>{const l=E('li','arn-rankLinha'+(x.id===eu()?' voce':''));l.append(E('span','arn-pos',String(i+1)),E('span','arn-nome',x.nome),E('span','arn-pts',x.pontos+' pts'));ol.append(l)});rk.append(ol)}
+  else rk.append(E('p','dgm-muted',online?'Ninguém no ranking ainda.':'O ranking aparece quando você está online.'));
+  lado.append(rk);
+  const regras=()=>{const d=E('details','arn-regras');d.open=regrasAbertas;d.append(E('summary','','Como funciona'),E('p','','Partidas de equipe: 1 contra 1 ou 2 contra 2. Cada um usa as próprias defesas; quem cai fica assistindo. A partida acaba quando uma equipe perde todos ou em 5 minutos (ganha quem tiver mais gente viva, depois mais vida). Cair não custa ouro. Ranqueada: vitória +'+PONTOS_RANK+' pontos, derrota −'+PONTOS_RANK+'.'));return d};
+  const cartao=(nome,desc,tag,fn,opt={})=>{const b=E('button','arn-modo'+(opt.destaque?' destaque':''));b.type='button';const t=E('div','arn-modoTopo');t.append(E('b','',nome));if(tag)t.append(E('span','arn-tag',tag));b.append(t,E('small','',desc));b.onclick=fn;if(opt.off){b.disabled=true;b.title='Precisa estar online'}return b};
+  const treino=()=>{fecharPainel();entrar()};
   if(!lobby||(busca&&lobby&&lobby.ranqueada&&lobby.estado==='espera')){
-   carregarRanking();
-   if(busca){ // procurando oponente na ranqueada
+   if(!online){
+    main.append(E('p','arn-aviso','Sem conexão online: as partidas contra jogadores ficam bloqueadas. Dá para treinar sozinho com o boneco.'));
+    const ms=E('div','arn-modos');ms.append(cartao('Treino','Boneco de treino e boneco aliado: teste dano, curas e auras.','Sozinho',treino,{destaque:true}),cartao('Ranqueada 1 x 1','Oponente com pontos parecidos.','Online',null,{off:true}),cartao('1 x 1','Duelo contra um jogador.','Online',null,{off:true}),cartao('2 x 2','Equipes de dois.','Online',null,{off:true}));
+    main.append(E('h3','','Escolha o modo'),ms,regras());
+   }else if(busca){ // procurando oponente na ranqueada
     const s=Math.floor((agora()-busca.desde)/1000),fila=Object.keys(busca.fila||{}).length;
-    wrap.append(E('p','arn-busca','Procurando oponente na ranqueada… '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')),E('p','dgm-muted',busca.par?'Oponente encontrado! Preparando a partida…':'Na fila: '+fila+' jogador(es). Oponentes com pontos parecidos primeiro; a busca alarga com o tempo.'),B('Cancelar busca',()=>pararBusca()),B('Fechar (continua buscando)',fecharPainel));
+    const bx=E('section','arn-busca');bx.append(E('h3','','Procurando oponente…'),E('div','arn-relogio',Math.floor(s/60)+':'+String(s%60).padStart(2,'0')),E('p','dgm-muted',busca.par?'Oponente encontrado! Preparando a partida…':'Na fila: '+fila+' jogador(es). Oponentes com pontos parecidos primeiro; a busca alarga com o tempo.'));
+    const ac=E('div','arn-acoes');ac.append(B('Cancelar busca',()=>pararBusca()),B('Fechar (continua buscando)',fecharPainel));bx.append(ac);main.append(bx,regras());
    }else{
-    const modos=E('div','arn-modos');const modo=(n,d,fn)=>{const b=E('button','arn-modo');b.type='button';b.append(E('b','',n),E('small','',d));b.onclick=fn;return b};
-    modos.append(modo('Ranqueada 1 x 1','Busca um oponente com pontos parecidos. Vitória +'+PONTOS_RANK+', derrota −'+PONTOS_RANK+'.',buscarRanqueada),modo('1 x 1','Duelo: você contra um jogador.',()=>criarLobby(1)),modo('2 x 2','Equipes de dois: chame um amigo para o seu lado.',()=>criarLobby(2)));
-    wrap.append(E('p','','Escolha o modo para montar a partida:'),modos,B('Treinar com o boneco',()=>{fecharPainel();entrar()}),B('Até mais',fecharPainel));
+    const ms=E('div','arn-modos');
+    ms.append(cartao('Ranqueada 1 x 1','Busca um oponente com pontos parecidos.','+'+PONTOS_RANK+' / −'+PONTOS_RANK,buscarRanqueada,{destaque:true}),cartao('1 x 1','Duelo: você contra um jogador que você convidar.','Amistoso',()=>criarLobby(1)),cartao('2 x 2','Equipes de dois: chame um amigo para o seu lado.','Amistoso',()=>criarLobby(2)),cartao('Treino','Boneco de treino e boneco aliado: teste dano, curas e auras.','Sozinho',treino));
+    main.append(E('h3','','Escolha o modo'),ms,regras());
    }
-   if(rankingTop&&rankingTop.length){const t=E('div','arn-rank');t.append(E('b','','Melhores da ranqueada'));rankingTop.forEach((x,i)=>{const l=E('div','arn-rankLinha'+(x.id===eu()?' voce':''));l.append(E('span','',(i+1)+'. '+x.nome),E('span','',x.pontos+' pts'));t.append(l)});wrap.append(t)}
    box.classList.add('open');return;
   }
+  // lobby: equipes
   const souLider=lobbyLider===eu(),modo=lobby.modo||1,membros=Object.entries(lobby.membros||{});
   for(const [id] of membros)enviados.delete(id);
-  if(souLider){const modos=E('div','lobModos');for(const m of [1,2]){const b=B(m+' x '+m,()=>trocarModo(m),m===modo?'on':'');modos.append(b)}wrap.append(modos)}
-  // cartas: equipe A (P1, P2) × equipe B (P3, P4), desencontradas como no esboço
-  const da=e=>membros.filter(([,m])=>m.equipe===e),cartas=[],slotsA=da('a'),slotsB=da('b');
+  const topo=E('div','arn-lobbyTopo');topo.append(E('h3','',lobby.ranqueada?'Partida ranqueada':'Montar a partida'));
+  if(souLider&&!lobby.ranqueada){const modos=E('div','lobModos arn-seg');modos.setAttribute('role','group');modos.setAttribute('aria-label','Modo da partida');for(const m of [1,2]){const b=B(m+' x '+m,()=>trocarModo(m),m===modo?'on':'');b.setAttribute('aria-pressed',m===modo?'true':'false');modos.append(b)}topo.append(modos)}
+  main.append(topo);
+  // cartas: equipe A × equipe B
+  const da=e=>membros.filter(([,m])=>m.equipe===e),slotsA=da('a'),slotsB=da('b');
   const espera=e=>[...enviados.entries()].filter(([,x])=>x.equipe===e);
   const carta=(lista,e,k,num,alto)=>{const m=lista[k];
    if(m){const [id,x]=m;return LOBBY.carta({rotulo:x.nome,sprite:id===eu()?heroImg('d'):window.spriteDeJogador&&spriteDeJogador(id),sub:(id===eu()?'Você · ':'')+'Nv '+(x.nivel||1),lider:id===lobbyLider,voce:id===eu(),alto})}
    const esp=espera(e)[k-lista.length];
    return LOBBY.carta({rotulo:'Jogador '+num,vazio:true,esperando:esp&&esp[1].nome,podeClicar:souLider,alto,onClick:()=>{convidarEquipe=convidarEquipe===e?null:e;painel()}})};
- const lado=(titulo,cor,lista)=>{const c=E('div','arn-time');c.style.borderColor=cor;const h=E('b','',titulo);h.style.color=cor;c.append(h,...lista);return c};
- const timeA=modo===2?[carta(slotsA,'a',0,1,false),carta(slotsA,'a',1,2,false)]:[carta(slotsA,'a',0,1,false)],timeB=modo===2?[carta(slotsB,'b',0,3,false),carta(slotsB,'b',1,4,false)]:[carta(slotsB,'b',0,2,false)];
- const times=E('div','arn-times');times.append(lado('Equipe A','#ff9a8a',timeA),E('div','arn-vs','VS'),lado('Equipe B','#9ac0ff',timeB));wrap.append(times); // um time de cada lado do coliseu
+  const ladoT=(titulo,cls,lista)=>{const c=E('div','arn-time '+cls);c.append(E('b','',titulo),...lista);return c};
+  const timeA=modo===2?[carta(slotsA,'a',0,1,false),carta(slotsA,'a',1,2,false)]:[carta(slotsA,'a',0,1,false)],timeB=modo===2?[carta(slotsB,'b',0,3,false),carta(slotsB,'b',1,4,false)]:[carta(slotsB,'b',0,2,false)];
+  const times=E('div','arn-times');times.append(ladoT('Equipe A','eqA',timeA),E('div','arn-vs','VS'),ladoT('Equipe B','eqB',timeB));main.append(times);
   if(souLider&&convidarEquipe){
-   const conv=E('div','dgp-convidar');conv.append(E('span','dgm-label','Convidar para a Equipe '+convidarEquipe.toUpperCase()));
+   const conv=E('div','dgp-convidar arn-convidar');conv.append(E('span','dgm-label','Convidar para a Equipe '+convidarEquipe.toUpperCase()));
    const cand=window.MP&&MP.candidatosDg?MP.candidatosDg().filter(c=>!lobby.membros[c.id]).slice(0,10):[];
    if(!cand.length)conv.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
    for(const c of cand){const li=E('div','dgm-cand');li.append(E('span','',c.nome+' · Nv '+c.nivel+(c.amigo?' · amigo':'')),E('small','',c.onde));
     const b=B(enviados.has(c.id)?'Enviado':'Convidar',async()=>{b.disabled=true;if(await MP.convidar(c.id,'arena',{modo,equipe:convidarEquipe}))enviados.set(c.id,{nome:c.nome,equipe:convidarEquipe});convidarEquipe=null;painel()},'dgm-convite');b.disabled=enviados.has(c.id);li.append(b);conv.append(li)}
-   wrap.append(conv);
+   main.append(conv);
   }
   const cheio=slotsA.length>=modo&&slotsB.length>=modo;
-  wrap.append(E('p','dgm-muted',souLider?(cheio?'Equipes completas: pode começar!':'Clique em + para convidar. O convite chega no Correio de quem você chamar.'):'Esperando o líder começar a partida.'));
-  if(souLider){const go=B('Começar a partida',comecar,'dgm-enter');go.disabled=!cheio;wrap.append(go)}
-  wrap.append(B(souLider?'Cancelar partida':'Sair do lobby',sairDoLobby),B('Fechar',fecharPainel));
+  main.append(E('p','arn-status',souLider?(cheio?'Equipes completas: pode começar!':'Clique num espaço vazio (+) para convidar. O convite chega no Correio de quem você chamar.'):'Esperando o líder começar a partida.'));
+  const ac=E('div','arn-acoes');
+  if(souLider){const go=B('Começar a partida',comecar,'dgm-enter');go.disabled=!cheio;ac.append(go)}
+  ac.append(B(souLider?'Cancelar partida':'Sair do lobby',sairDoLobby),B('Fechar',fecharPainel));main.append(ac,regras());
   box.classList.add('open');
  }
 
