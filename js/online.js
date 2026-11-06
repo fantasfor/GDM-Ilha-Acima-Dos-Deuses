@@ -175,6 +175,8 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
  // eventos de combate de outro jogador: a.x.y = golpe (animação), v.estilo.cor.raio.x.y = efeito de habilidade; o resto é som
  if(nuvem&&window.ONLINE_NUVEM)ONLINE_NUVEM.aoSom=(id,tokens,r)=>{
   const o=others.get(id);
+  // só quem está no mesmo lugar (ilha, cidade, DG): as coordenadas de outro mapa batiam com as daqui e o som vazava (2026-11-06)
+  if(!o||!visivel(o)||(nuvem&&o.salaReal&&o.salaReal!==minhaSala()))return; // salaReal: o lugar que o próprio jogador informou
   const d=Math.hypot(r.x-p.x,r.y-p.y),vol=.75*Math.max(.15,1-d/SOM_ALCANCE);
   let atraso=0;
   for(const t of tokens.slice(0,6)){
@@ -229,7 +231,7 @@ const visivel=o=>(nuvem?!!o.sala&&o.sala===minhaSala():!o.dg&&!window.inDungeon)
    if(!o){o={x:j.x,y:j.y,fx:0,fy:1};others.set(j.id,o)}
    // trocou de lugar (ilha, DG, taverna): as coordenadas são de outro mapa
    if(o.sala!==j.sala){o.x=j.x;o.y=j.y}
-   Object.assign(o,{id:j.id,name:j.name,cls:j.cls,sex:j.sex,ap:j.ap||'',lvl:j.lvl,tx:j.x,ty:j.y,hp:j.hp,mp:j.mp,dead:j.dead,dg:j.dg,sala:j.sala,eq:j.eq||{},ping:j.ping||0,left:false,at:now});
+   Object.assign(o,{id:j.id,name:j.name,cls:j.cls,sex:j.sex,ap:j.ap||'',lvl:j.lvl,tx:j.x,ty:j.y,hp:j.hp,mp:j.mp,dead:j.dead,dg:j.dg,sala:j.sala,salaReal:j.sala,eq:j.eq||{},ping:j.ping||0,left:false,at:now});
    if(Math.hypot(o.x-j.x,o.y-j.y)>140){o.x=j.x;o.y=j.y}
    if(j.fx||j.fy){o.fx=j.fx;o.fy=j.fy}
    const agora=visivel(o);

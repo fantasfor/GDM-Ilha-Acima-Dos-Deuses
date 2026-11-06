@@ -260,7 +260,9 @@
     },
     "cassinoFeed": {
       ".read": "auth != null",
-      ".indexOn": ["t"],
+      ".indexOn": [
+        "t"
+      ],
       "$id": {
         ".write": "auth != null && ((!data.exists() && newData.child('u').val() === auth.uid) || (!newData.exists() && data.child('t').val() < now - 3600000))",
         ".validate": "!newData.exists() || (newData.hasChildren(['u', 'm', 'v', 't']) && newData.child('v').isNumber() && newData.child('v').val() > 0 && newData.child('v').val() <= 500000 && newData.child('t').val() <= now + 60000)"
@@ -307,6 +309,26 @@
         },
         "dg": {
           ".validate": "newData.hasChildren(['id', 'sala', 'n']) && newData.child('sala').val().beginsWith('dg:' + $lider + ':') && newData.child('n').val() <= 5"
+        },
+        "lobby": {
+          "dg": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "membros": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && root.child('grupos').child($lider).child('membros').child($uid).exists()",
+              ".validate": "newData.hasChildren(['pronto']) && newData.child('pronto').isBoolean()",
+              "pronto": {
+                ".validate": "newData.isBoolean()"
+              },
+              "$outro": {
+                ".validate": false
+              }
+            }
+          },
+          "$outro": {
+            ".validate": false
+          }
         },
         "$outro": {
           ".validate": false

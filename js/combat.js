@@ -157,7 +157,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(
  /* dano recebido = (físico − defesa física) + (mágico − defesa mágica), cada parte nunca abaixo de 0; nada além disso.
     Antes da defesa entram só o crítico e os efeitos (Grito, Inspiração, vulnerável…). Dano contínuo dos efeitos é verdadeiro. */
  let roll={damage:1,crit:false,lifeSteal:0,magicLifeSteal:0},share=mg?1:0;const pt=partesDano(d,mg);
- if(dot&&tr)d=pt.f+pt.m;
+ if(dot&&tr){d=pt.f+pt.m;share=pt.m/(d||1)} // dano contínuo verdadeiro: físico ou mágico pela parte dele (estatísticas: total = físico + mágico)
  else{
   if(!dot){roll=combatRoll(p,1,e);const k=roll.damage*(1+marcaCaca(p,e))*vulnMult(e)*(1+stSum(p,'dmgup')/100)*Math.max(.2,1-stSum(p,'dmgdown')/100);pt.f*=k*(1+stSum(p,'physup')/100);pt.m*=k*(1+stSum(p,'magup')/100)}
   if(window.TEMPO){const n=TEMPO.forcaMonstro(e);pt.f/=n;pt.m/=n} /* noite na ilha: o monstro aguenta 5% a mais */
@@ -165,7 +165,7 @@ function hurtE(e,d,magic=false,fx=null,dot=null){if(e.hp<=0)return;if(e.pvp){if(
   const fi=Math.max(0,pt.f-physicalDefense*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicalDefense*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
  if(window.TRAPACA&&TRAPACA.dano&&!e.mpProxy)d=Math.max(d,Math.ceil(e.hp)); // teste da Engine: dano infinito (mata no golpe)
  d=Math.round(d);if(!dot)drainLife(p,Math.min(e.hp,d),stealRatio(roll,share));
- if(window.STATS_DG&&window.inDungeon){const ef=Math.min(d,Math.max(0,e.hp)),v=dot&&tr;STATS_DG.dano(v?0:ef*(1-share),v?0:ef*share,ef)} // estatística da DG: sem o excesso do golpe que mata (js/estatisticas-dg.js)
+ if(window.STATS_DG&&window.inDungeon){const ef=Math.min(d,Math.max(0,e.hp));STATS_DG.dano(ef*(1-share),ef*share,ef)} // estatística da DG: sem o excesso do golpe que mata (js/estatisticas-dg.js)
  // monstro de outro jogador (multijogador): o dano vai para o dono da sala, que decide a morte
  if(!e.mpProxy&&!dot&&window.MP&&MP.participou)MP.participou(e);
  if(!dot&&window.somDoJogador)somDoJogador('h.'+e.ty+'.'+(magic?1:0)); // os outros jogadores da sala ouvem o golpe
@@ -211,7 +211,7 @@ function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window
  if(window.marcarCombate)marcarCombate();const di=dot&&FX_INFO[dot],tr=di&&(di.dtype||'true')=='true',mg=di&&!tr?di.dtype=='magic':magic;
  // mesma regra dos monstros (hurtE): (físico − defesa física) + (mágico − defesa mágica), sem piso nem mínimo
  let share=mg?1:0,roll=null;const pt=partesDano(d,mg);
- if(dot&&tr)d=pt.f+pt.m;
+ if(dot&&tr){d=pt.f+pt.m;share=pt.m/(d||1)} // dano contínuo verdadeiro: físico ou mágico pela parte dele (estatísticas: total = físico + mágico)
  else{
   if(!dot){roll=attacker?combatRoll(attacker,1):null;const k=(roll?roll.damage:1)*vulnMult(p)*Math.max(.2,1-stSum(p,'guard')/100)*(attacker&&window.TEMPO?TEMPO.forcaMonstro(attacker):1)*multNivelMonstro(attacker); /* noite na ilha: monstros 5% mais fortes; nível acima do mínimo: +8% por nível */pt.f*=k;pt.m*=k}
   // perfuração do atacante (monstro: atributo dele; jogador na arena: vem junto do golpe em perf {f,m})
@@ -219,7 +219,7 @@ function hurtP(d,magic=false,fx=null,dot=null,attacker=null,perf=null){if(window
   const fi=Math.max(0,pt.f-armor()*reducaoPct(p,'armorPct')*(1-pen('physicalPen'))),ma=Math.max(0,pt.m-magicArmor()*(1-pen('magicPen')));d=fi+ma;share=ma/((fi+ma)||1)}
  if(window.TRAPACA&&TRAPACA.vida)d=0; // teste da Engine: vida infinita (não perde vida)
  d=Math.round(d);if(roll&&attacker)drainLife(attacker,Math.min(p.hp,d),stealRatio(roll,share));
- if(window.STATS_DG&&window.inDungeon){const ef=Math.min(d,Math.max(0,p.hp)),v=dot&&tr;STATS_DG.recebido(v?0:ef*(1-share),v?0:ef*share,ef)} // estatística da DG: só a vida perdida de fato (js/estatisticas-dg.js)
+ if(window.STATS_DG&&window.inDungeon){const ef=Math.min(d,Math.max(0,p.hp));STATS_DG.recebido(ef*(1-share),ef*share,ef)} // estatística da DG: só a vida perdida de fato (js/estatisticas-dg.js)
  p.hp-=d;if(!dot){p.hit=.15;if(window.playGameSound)playGameSound('hurt')}ftDano(p.x,p.y-24,Math.round(d)+(roll&&roll.crit?'!':''),dot,roll&&roll.crit,share,true);if(fx&&p.hp>0)applyFx(p,fx);if(p.hp<=0){if(window.playGameSound)playGameSound('defeat');p.st=null;p.attributeBuffs=[];p.dead=4;p.morreuEm=typeof time=='number'?time:0;p.canal=null;p.dash=null;p.conj=null;p.beber=null;/* morreu: canal, investida, conjuração e poção param na hora (os outros veem pelo 'dead' da posição) *//* morrer não custa nada (nem ouro, nem itens, nem XP) */p.dest=p.tgt=null;p.aw=0;p.wt=null;p.attackBasic=null;saveGame()}}
 const CL={war:{n:'Guerreiro',F:17,A:7,I:2,perLevel:{F:6,A:3,I:1},attackSpeed:1.25},mag:{n:'Mago',F:2,A:2,I:12,perLevel:{F:1,A:2,I:5},attackSpeed:1},hea:{n:'Curandeiro',F:4,A:4,I:10,perLevel:{F:2,A:2,I:4},attackSpeed:1.1}};
 p.classProgress=p.classProgress||{war:{rank:1,xp:0}};

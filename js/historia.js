@@ -97,7 +97,7 @@
   if(!MONSTER_TYPES.ladino_historia){const base=MONSTER_TYPES.sk||Object.values(MONSTER_TYPES)[0];MONSTER_TYPES.ladino_historia={...base,name:'Ladino',animation:null,direcoes:null,semArma:null,custom:false}}
   const lvl=Math.max(4,p.lvl)+1,e=spawnAt(pos.x,pos.y,'sk',lvl);e.ty='ladino_historia';e.name='Ladino';
   const conj=conjunto('ladino');if(conj){e.sp=conj;e.img=conj.d}
-  e.max=Math.round(e.max*2.4);e.hp=e.max;e.delayedHp=e.max;e.dmg=Math.round(e.dmg*1.25);e.spd*=1.25;e.isDungeonMob=true;e.roamRadius=20;e.roamT=3;e.historia='ladino';
+  e.max=Math.round(e.max*2.4);e.hp=e.max;e.delayedHp=e.max;e.dmg=Math.round(e.dmg*1.25);e.spd*=1.25;e.isDungeonMob=true;e.roamRadius=20;e.roamT=3;e.historia='ladino';e.soLocal=true; /* só quem tem a missão vê (não vai para o grupo; 2026-11-06) */
   en.push(e);ladino={e,x:pos.x,y:pos.y}}
  // a cada instante: o Ladino se rende antes de morrer (vira NPC e conversa); chegar perto de um objeto clicado abre a conversa
  function passo(){if(!window.inDungeon){aoSair();return}

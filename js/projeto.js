@@ -3825,9 +3825,7 @@ window.PROJETO={
     "kind": "weapon",
     "name": "Machado do Chefe Glooc",
     "twoHanded": true,
-    "skills": [
-     "arma_giro_unico"
-    ],
+    "skills": [],
     "effects": [],
     "tags": [
      "glooc"
@@ -5858,7 +5856,6 @@ window.PROJETO={
     "scalePercent": 25,
     "weaponTypes": [],
     "radius": 0,
-    "cross": true,
     "id": "exp_gancho",
     "name": "Gancho",
     "desc": "Lança um gancho com corda na direção do mouse. Num inimigo, vocês se puxam um para o outro (chefe ou elite: você vai até ele); em árvore, muro ou parede, você se puxa até lá. Sem nada para fisgar, não gasta mana nem recarga.",
@@ -5880,7 +5877,8 @@ window.PROJETO={
     "color": "#c4dc5a",
     "vfx": "investida",
     "base": 0,
-    "per": 0
+    "per": 0,
+    "aliados": true
    },
    {
     "kind": "class",
@@ -5951,38 +5949,6 @@ window.PROJETO={
     "c1": "#a22b4b",
     "c2": "#ddd0a6",
     "color": "#cf4554"
-   },
-   {
-    "id": "arma_giro_unico",
-    "name": "Giro Único",
-    "category": "ability",
-    "kind": "weapon",
-    "effect": "canal",
-    "duracao": 0.5,
-    "intervalo": 0.5,
-    "radius": 35,
-    "vfx": "giro",
-    "mana": 0,
-    "cd": 30,
-    "castTime": 0,
-    "charPercent": 150,
-    "base": 0,
-    "per": 0,
-    "damageType": "physical",
-    "heal": 0,
-    "mpRestore": 0,
-    "scaleStat": "none",
-    "scalePercent": 0,
-    "weaponTypes": [],
-    "effects": [],
-    "tags": [
-     "arma"
-    ],
-    "icon": "spin",
-    "c1": "#8a94a8",
-    "c2": "#ffffff",
-    "color": "#e8eef4",
-    "desc": "Uma volta com o machado: um golpe em volta, na área do Giro."
    }
   ],
   "passives": [
@@ -69123,21 +69089,18 @@ window.PROJETO={
       "nome": "Pulo Glooc",
       "cd": 8,
       "aviso": 1,
-      "raio": 34,
+      "raio": 40,
       "danoPct": 22,
       "atordoa": 1,
-      "machadoFase": 20,
-      "lentidao": 20,
-      "danoMonstroPct": 200
+      "machadoFase": 30,
+      "lentidao": 30
      },
      {
       "tipo": "grito",
       "nome": "Grito Glooc",
       "cadaPct": 20,
       "raio": 260,
-      "duracao": 3,
-      "parado": 2,
-      "depois": "salto"
+      "duracao": 3
      },
      {
       "tipo": "giro",
@@ -69147,15 +69110,7 @@ window.PROJETO={
       "duracao": 5,
       "raio": 35,
       "danoPct": 6,
-      "tick": 0.5,
-      "danoMonstroPct": 100
-     },
-     {
-      "tipo": "giroUnico",
-      "nome": "Giro Único",
-      "cd": 30,
-      "raio": 35,
-      "danoMonstroPct": 150
+      "tick": 0.5
      }
     ],
     "sprite": {

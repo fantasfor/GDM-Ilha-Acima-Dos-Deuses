@@ -481,6 +481,20 @@
 
  const viu={}; // quando cada carta apareceu (para a animação de distribuir)
  function quandoApareceu(k,atraso){if(viu[k]==null)viu[k]=performance.now()+(atraso||0);return viu[k]}
+ /* cabeça e nome de quem está sentado (2026-11-06, pedido do usuário): recorte da cabeça do personagem de frente */
+ const cabecas=new Map();
+ function cabecaDe(uid){const c=cabecas.get(uid),t=performance.now();if(c&&t-c.t<4000)return c.img;let img=null;
+  try{const s=uid===eu()?(typeof heroImg=='function'?heroImg('d',{}):null):(window.spriteDeJogador?spriteDeJogador(uid):null);
+   if(s&&s.width){const t2=document.createElement('canvas');t2.width=s.width;t2.height=s.height;const q=t2.getContext('2d');q.drawImage(s,0,0);const d=q.getImageData(0,0,t2.width,t2.height).data;let x0=t2.width,y0=t2.height,x1=-1,y1=-1;
+    for(let y=0;y<t2.height;y++)for(let x=0;x<t2.width;x++)if(d[(y*t2.width+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1>=0){const h=Math.max(1,Math.round((y1-y0+1)*.46));
+     // centro da cabeça = meio dos pixels das 4 linhas de cima (a arma do lado fica de fora do recorte)
+     let sx=0,n=0;for(let y=y0;y<Math.min(y0+4,y1);y++)for(let x=x0;x<=x1;x++)if(d[(y*t2.width+x)*4+3]>8){sx+=x;n++}
+     const cx=n?sx/n:(x0+x1)/2,w=Math.min(x1-x0+1,Math.round(h*1.05)),ax=Math.max(0,Math.round(cx-w/2));
+     const o=document.createElement('canvas');o.width=w;o.height=h;const og=o.getContext('2d');og.drawImage(t2,ax,y0,w,h,0,0,w,h);img=o}}}catch(er){}
+  cabecas.set(uid,{img,t});return img}
+ function nomeDe(uid){if(uid===eu())return meuNome();const o=window.ONLINE_NUVEM&&ONLINE_NUVEM.outros&&ONLINE_NUVEM.outros.get(uid);return o&&o.name||'Jogador'}
+ function desenharCabeca(g,uid,cx,cy,alt){const img=cabecaDe(uid);if(!img)return;const k=alt/img.height,w=Math.round(img.width*k);g.imageSmoothingEnabled=false;g.drawImage(img,Math.round(cx-w/2),Math.round(cy),w,Math.round(alt))}
  function desenharBJ(g,now,T,W,H){
   const id=painel.id,e=dados[id].estado;
   // mesa: feltro verde em meia-lua com borda de couro e o letreiro
@@ -502,10 +516,11 @@
   for(let i=0;i<4;i++){const [x,y]=pos[i],m=e.maos&&e.maos[LUGARES[i]],ocup=dados[id].assentos[i],vez=e.fase==='jogando'&&e.vez===i;
    {const c=vez?COR.ouro[2]:COR.folha[2];g.globalAlpha=vez?.6+.4*Math.sin(now/150):.5;R(g,x-22,y-30,45,1,c);R(g,x-22,y+15,45,1,c);R(g,x-22,y-30,1,46,c);R(g,x+22,y-30,1,46,c);g.globalAlpha=1}
    if(vez){brilho(g,x,y-8,30,'#efc56a',.25);const s=Math.max(0,Math.ceil((e.ate-agora())/1000));texto(g,s+'s',x,y+28,s<=5?COR.sangue[2]:COR.ouro[2])}
-   if(!m){texto(g,ocup?(ocup===u?'Você':'Ocupado'):'Livre',x,y-6,ocup===u?COR.ouro[2]:COR.folha[2],'center','5px');continue}
+   if(!m){if(ocup){desenharCabeca(g,ocup,x,y-26,20);texto(g,nomeDe(ocup).slice(0,12),x,y+2,ocup===u?COR.ouro[2]:COR.osso[2],'center','5px')}else texto(g,'Livre',x,y-6,COR.folha[2],'center','5px');continue}
+   if(m.u)desenharCabeca(g,m.u,x-14,y+4,9); // com mão na mesa: a cabeça pequena ao lado do nome
    cartas(m.c).forEach((c,k)=>{const atraso=k<2?(k===0?i*250:(4+1+i)*250):0;const q=mov(id+e.n+'l'+i+'k'+k,atraso,x-14+k*9,y-26+(k>1?-2:0));if(q.vis)desenharCarta(g,c,q.x,q.y)});
    pilha(g,x+14,y+10,m.ap);texto(g,String(m.ap),x+14,y+20,COR.ouro[2],'center','5px');
-   texto(g,(m.u===u?'Você':m.nome||'Jogador').slice(0,10),x-6,y+12,m.u===u?COR.ouro[2]:COR.osso[2],'center','5px');
+   texto(g,(m.u===u?meuNome():m.nome||nomeDe(m.u)).slice(0,10),x-2,y+12,m.u===u?COR.ouro[2]:COR.osso[2],'center','5px');
    if(cartas(m.c).length){const v=valor(m.c);texto(g,m.st==='bj'?'BJ!':String(v),x-6,y+4,v>21?COR.sangue[2]:'#ffffff','center','bold 6px')}
    if(e.fase==='fim'&&cartas(m.c).length&&now-quandoApareceu(id+e.n+'fim',0)>cartas(e.banca).length*650+600){const r=resultadoBJ(m,e.banca);texto(g,r.r,x,y-34,r.x>=2?COR.ouro[2]:r.x===1?COR.osso[2]:COR.sangue[2],'center','bold 6px');if(r.x>=2)brilho(g,x,y-34,18,'#efc56a',.4)}}
   if(e.fase==='fim')quandoApareceu(id+e.n+'fim',0);

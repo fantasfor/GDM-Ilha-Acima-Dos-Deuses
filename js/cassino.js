@@ -257,12 +257,25 @@
   if(((x-CRISTAL.x)/18)**2+((y-CRISTAL.y+3)/9)**2<1)return true;
   for(const b of BRASEIROS)if(Math.hypot(x-b.x,(y-b.y)*1.3)<7)return true;
   return false}
+ /* indicadores (2026-11-06, pedido do usuário: como a cadeira livre das mesas de Uno/Truco): o banco do Blackjack sob o
+    mouse (ou, com o mouse na mesa, o livre mais perto) ganha contorno e "Sentar"; máquina "Jogar"; roleta "Apostar" */
+ const caixaBanco=(m,i)=>{const s=lugarBJ(m,i);return{x:s.x-6,y:s.y-14,w:13,h:12}};
+ const ocupadoBJ=(m,i)=>{const j=J();return!!(j&&j.dados[m.id]&&(j.dados[m.id].assentos||{})[i])};
+ function bancoPara(m,w){for(let i=0;i<4;i++){const b=caixaBanco(m,i);if(w.x>=b.x&&w.x<=b.x+b.w&&w.y>=b.y&&w.y<=b.y+b.h)return ocupadoBJ(m,i)?-1:i}
+  const livres=[0,1,2,3].filter(i=>!ocupadoBJ(m,i));if(!livres.length)return -1;const d=i=>{const s=lugarBJ(m,i);return Math.hypot(s.x-w.x,s.y-w.y)};return livres.sort((a,b)=>d(a)-d(b))[0]}
  function sobMouse(w){
+  for(const m of MESAS)if(m.tipo==='bj')for(let i=0;i<4;i++){const b=caixaBanco(m,i);if(w.x>=b.x-1&&w.x<=b.x+b.w+1&&w.y>=b.y-1&&w.y<=b.y+b.h+1)return{tipo:'mesa',m,banco:ocupadoBJ(m,i)?-1:i}}
   for(const m of MAQUINAS)if(Math.abs(w.x-m.x)<12&&w.y>m.y-46&&w.y<m.y+2)return{tipo:'slot',m};
   for(const m of MESAS){if(Math.hypot(w.x-m.cr.x,w.y-(m.cr.y-10))<11)return{tipo:'mesa',m};if(Math.abs(w.x-m.x)<44&&w.y>m.y-24&&w.y<m.y+14)return{tipo:'mesa',m}}
   return null}
  function irPara(o){const v=o.tipo==='slot'?vagaMaquina(o.m):vagaMesa(o.m);if(Math.hypot(p.x-v.x,p.y-v.y)<20){abrirObj(o);return}alvo=o;setDest(v.x,v.y)}
- function abrirObj(o){alvo=null;p.dest=null;p.path=[];if(!J())return;if(o.tipo==='slot'){p.fx=0;p.fy=-1;J().abrir('slot',o.m.k)}else{p.fx=o.m.x-p.x;p.fy=o.m.y-p.y;J().abrir(o.m.id)}}
+ function abrirObj(o){alvo=null;p.dest=null;p.path=[];if(!J())return;if(o.tipo==='slot'){p.fx=0;p.fy=-1;J().abrir('slot',o.m.k)}else{p.fx=o.m.x-p.x;p.fy=o.m.y-p.y;J().abrir(o.m.id);if(o.m.tipo==='bj'&&o.banco>=0&&!sentado&&J().sentarBJ)J().sentarBJ(o.m.id,o.banco)}}
+ function texto5(t,x,y,cor){ctx.font='5px monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(t,x+.4,y+.4);ctx.fillStyle=cor;ctx.fillText(t,x,y)}
+ function indicadores(){const w=typeof wpos=='function'?wpos():null;if(!w||!dentroCassino(p.x,p.y)||(J()&&J().aberto))return;const o=sobMouse(w);if(!o)return;
+  if(o.tipo==='slot'){const m=o.m;ctx.strokeStyle='#ddd0a6';ctx.lineWidth=1;ctx.strokeRect(Math.round(m.x)-12.5,Math.round(m.y)-46.5,25,48);texto5('Jogar',m.x,m.y-49,'#ddd0a6');return}
+  const m=o.m;if(m.tipo==='rol'){texto5('Apostar',m.x,m.y+26,'#ddd0a6');return}
+  if(sentado&&sentado.id===m.id)return;const i=o.banco!=null?o.banco:bancoPara(m,w);if(i<0){texto5('Mesa cheia',m.x,m.y+30,'#cf4554');return}
+  const b=caixaBanco(m,i);ctx.strokeStyle='#ddd0a6';ctx.lineWidth=1;ctx.strokeRect(Math.round(b.x)-.5,Math.round(b.y)-.5,b.w+1,b.h+1);texto5('Sentar',b.x+b.w/2,b.y-2,'#ddd0a6')}
  function interfaceMesa(m){const j=J();if(!j)return;const e=j.estado(m.id),perto=Math.hypot(p.x-m.x,p.y-m.y)<170;if(!perto)return;
   let txt=j.NOME[m.id],sub='';
   if(e&&m.tipo==='rol'){if(e.fase==='apostas')sub='Apostas: '+Math.max(0,Math.ceil((e.ate-Date.now())/1000))+'s';else sub=Date.now()>=e.ini+8000?'Saiu '+e.num+'!':'Girando…'}
@@ -322,9 +335,9 @@
    // faíscas subindo do cristal
    for(let k=0;k<14;k++){const s=(t*.35+k/14)%1,x=Math.round(CRISTAL.x+Math.sin(k*2.3+t)*16*(1-s)),y=Math.round(CRISTAL.y-24-s*70);ctx.globalAlpha=a*(1-s);R(ctx,x,y,1,1,TONS[k%TONS.length])}
    ctx.restore()},
-  interface(){if(window.CONSTRUCOES&&CONSTRUCOES.alfa('cassino')>.5)return;for(const m of MESAS)interfaceMesa(m)},
+  interface(){if(window.CONSTRUCOES&&CONSTRUCOES.alfa('cassino')>.5)return;for(const m of MESAS)interfaceMesa(m);indicadores()},
   hover(w){return!!sobMouse(w)},
-  click(w,mode){if(mode==2||!window.CONSTRUCOES||CONSTRUCOES.alfa('cassino')>.5&&!dentroCassino(p.x,p.y))return false;const o=sobMouse(w);if(!o)return false;irPara(o);return true},
+  click(w,mode){if(mode==2||!window.CONSTRUCOES||CONSTRUCOES.alfa('cassino')>.5&&!dentroCassino(p.x,p.y))return false;const o=sobMouse(w);if(!o)return false;if(o.tipo==='mesa'&&o.m.tipo==='bj'&&o.banco==null){const i=bancoPara(o.m,w);if(i>=0)o.banco=i}irPara(o);return true},
   // o painel fecha quando o herói se afasta
   pertoDe(id,k){if(id==='slot'){const m=MAQUINAS[k|0];return!!m&&Math.hypot(p.x-m.x,p.y-m.y-14)<44}const m=MESAS.find(o=>o.id===id);return!!m&&Math.hypot(p.x-m.x,p.y-m.y)<90},
   sentarHeroi(id,i){const m=MESAS.find(o=>o.id===id);if(!m)return;const s=lugarBJ(m,i);p.dest=null;p.path=[];p.x=s.x;p.y=s.y;p.fx=m.x-s.x;p.fy=m.y-s.y;sentado={id,i}},

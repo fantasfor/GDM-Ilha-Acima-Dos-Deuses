@@ -76,7 +76,7 @@
  let seq=0,enviadoMon=new Map(),ultimoPub=0,publicando=false,portasEnviadas='';
  function prepararMonstros(){
   for(const e of en){
-   if(e.mpId)continue;
+   if(e.mpId||e.soLocal)continue; // inimigo de missão (soLocal): só quem tem a missão vê
    e.mpId=(window.inDungeon?'w':'i')+(++seq).toString(36);
    escalar(e);
   }
@@ -346,7 +346,7 @@
    if(MP.grupoLider===uid&&MP.grupo)publicarDgDoGrupo();
   }
   // ids iguais para os monstros fixos da DG (mesma ordem em todos os jogadores)
-  en.forEach((e,i)=>{e.mpId='m'+i;escalar(e)});
+  en.forEach((e,i)=>{if(e.soLocal)return;e.mpId='m'+i;escalar(e)}); // soLocal (ex.: Ladino da missão) não vai para o grupo
   tick();
  });
  window.addEventListener('ilha-dg-saiu',()=>{
@@ -357,7 +357,7 @@
  // o líder avisa o grupo da DG em que está (os membros recebem o convite para entrar)
  function publicarDgDoGrupo(){
   if(!window.inDungeon||!MP.dgSala||hostDe(MP.dgSala)!==uid)return;
-  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.lerDungeonConfig&&lerDungeonConfig().name)||'Masmorra'}).catch(e=>falhou(e,'chamar o grupo para a masmorra'));
+  ref('grupos/'+uid+'/dg').set({id:String(window.currentDungeonId||''),sala:MP.dgSala,n:MP.tamanhoGrupo,nome:(window.lerDungeonConfig&&lerDungeonConfig().name)||'Masmorra'}).then(()=>setTimeout(()=>ref('grupos/'+uid+'/lobby').remove().catch(()=>{}),4000)).catch(e=>falhou(e,'chamar o grupo para a masmorra')); // a montagem acaba quando todos já foram chamados
  }
  function entrarDgDoGrupo(){
   const g=MP.grupo;if(!g||!g.dg)return;
@@ -372,18 +372,29 @@
  }
  MP.entrarDgDoGrupo=entrarDgDoGrupo;
  /* para o menu do portal (dungeon-library.js): o grupo atual e quem dá para chamar */
+ /* montar grupo da DG (2026-11-06, pedido do usuário): os lugares da DG são só de quem está nesta montagem (grupos/{líder}/lobby),
+    não do grupo inteiro. O líder convida (até quem já é do grupo); quem aceita abre a mesma tela e marca "Pronto";
+    com todos prontos o líder começa. lobby = {dg, membros:{uid:{pronto}}} */
+ const lobbyDg=()=>MP.grupo&&MP.grupo.lobby||null;
  MP.grupoDg=()=>{
   const nivel=id=>id===uid?p.lvl:((outros().get(id)||{}).lvl||1),online=id=>id===uid||!!(outros().get(id)||{}).sala;
-  const g=MP.grupo,membros=g&&g.membros?Object.entries(g.membros).map(([id,nome])=>({id,nome:typeof nome==='string'?nome:MP.nomeDe(id),lider:id===MP.grupoLider,voce:id===uid,nivel:nivel(id),online:online(id)})):[{id:uid,nome:N?N.nome():'Você',lider:true,voce:true,nivel:p.lvl,online:true}];
-  // o líder (ou você, sem grupo) primeiro
+  const g=MP.grupo,lob=lobbyDg(),souLider=!MP.grupoLider||MP.grupoLider===uid;
+  const nome=id=>id===uid?(N?N.nome():'Você'):(g&&g.membros&&typeof g.membros[id]==='string'?g.membros[id]:MP.nomeDe(id));
+  const ids=lob&&lob.membros?Object.keys(lob.membros).filter(id=>!g||!g.membros||g.membros[id]):[uid];
+  if(souLider&&!ids.includes(uid))ids.unshift(uid);
+  const membros=ids.map(id=>({id,nome:nome(id),lider:id===(MP.grupoLider||uid),voce:id===uid,nivel:nivel(id),online:online(id),pronto:id===(MP.grupoLider||uid)||!!(lob&&lob.membros&&lob.membros[id]&&lob.membros[id].pronto)}));
   membros.sort((a,b)=>b.lider-a.lider||b.voce-a.voce);
-  return{membros,max:MAX_GRUPO,podeConvidar:!MP.grupoLider||MP.grupoLider===uid,cheio:membros.length>=MAX_GRUPO};
+  return{membros,max:MAX_GRUPO,podeConvidar:souLider,cheio:membros.length>=MAX_GRUPO,todosProntos:membros.every(m=>m.pronto),lobby:!!lob,dg:lob&&lob.dg};
  };
  MP.candidatosDg=()=>{
-  const g=MP.grupo,lista=[];
-  for(const [id,o] of outros()){if(id===uid||o.x==null||!o.sala||(g&&g.membros&&g.membros[id]))continue;lista.push({id,nome:o.name||MP.nomeDe(id),nivel:o.lvl||1,amigo:!!MP.amigos[id],onde:onde(Object.assign({id},o))})}
-  return lista.sort((a,b)=>b.amigo-a.amigo||a.nome.localeCompare(b.nome));
+  const g=MP.grupo,lob=lobbyDg(),lista=[];
+  for(const [id,o] of outros()){if(id===uid||o.x==null||!o.sala||(lob&&lob.membros&&lob.membros[id]))continue;const doGrupo=!!(g&&g.membros&&g.membros[id]);lista.push({id,nome:o.name||MP.nomeDe(id),nivel:o.lvl||1,amigo:!!MP.amigos[id],doGrupo,onde:doGrupo?'no seu grupo · '+onde(Object.assign({id},o)):onde(Object.assign({id},o))})}
+  return lista.sort((a,b)=>b.doGrupo-a.doGrupo||b.amigo-a.amigo||a.nome.localeCompare(b.nome));
  };
+ // líder abre a montagem (cria o grupo se precisar); fechar: o líder apaga a montagem, o membro sai dela
+ MP.abrirLobbyDg=async dgId=>{if(MP.grupoLider&&MP.grupoLider!==uid)return;try{await criarGrupo();await ref('grupos/'+uid+'/lobby').set({dg:String(dgId),membros:{[uid]:{pronto:true}}})}catch(e){falhou(e,'abrir a montagem do grupo')}};
+ MP.fecharLobbyDg=()=>{const l=MP.grupoLider;if(!l)return;if(l===uid)ref('grupos/'+uid+'/lobby').remove().catch(()=>{});else ref('grupos/'+l+'/lobby/membros/'+uid).remove().catch(()=>{})};
+ MP.prontoDg=v=>{const l=MP.grupoLider;if(!l||l===uid)return;ref('grupos/'+l+'/lobby/membros/'+uid).set({pronto:!!v}).catch(e=>falhou(e,'marcar pronto'))};
 
  /* ---------- grupo ---------- */
  let grupoOff=null;
@@ -458,7 +469,8 @@
   if(tipo==='grupo'){
    if(MP.grupoLider&&MP.grupoLider!==uid){aviso('Só o líder do grupo convida.','#f87171');return false}
    try{await criarGrupo()}catch(e){falhou(e,'criar o grupo');return false}
-   if(Object.keys((MP.grupo&&MP.grupo.membros)||{}).length>=MAX_GRUPO){aviso('O grupo já tem '+MAX_GRUPO+' jogadores.','#f87171');return false}
+   const jaDoGrupo=!!(MP.grupo&&MP.grupo.membros&&MP.grupo.membros[para]);
+   if(!jaDoGrupo&&Object.keys((MP.grupo&&MP.grupo.membros)||{}).length>=MAX_GRUPO){aviso('O grupo já tem '+MAX_GRUPO+' jogadores.','#f87171');return false}
   }
   try{await ref('convites/'+para+'/'+uid).set({...extra,tipo,nome:N.nome(),t:firebase.database.ServerValue.TIMESTAMP})}
   catch(e){falhou(e,'enviar o convite');return false}
@@ -494,9 +506,9 @@
    catch(e){aviso('Não foi possível aceitar a amizade.','#f87171')}
   }else if(c.tipo==='grupo'){
    if(MP.grupoLider&&MP.grupoLider!==de)sairDoGrupo();
-   try{await ref('grupos/'+de+'/membros/'+uid).set(N.nome());seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff');
-    // convite feito na tela de montar grupo da DG: abre a mesma tela, na mesma masmorra, esperando o líder começar
-    if(c.dg&&window.showProjectDungeonMenu&&!window.inDungeon)showProjectDungeonMenu({grupoDg:c.dg})}
+   try{const jaEra=MP.grupoLider===de;await ref('grupos/'+de+'/membros/'+uid).set(N.nome());if(!jaEra){seguirGrupo(de);aviso('Você entrou no grupo de '+c.nome+'.','#9fe3ff')}
+    // convite feito na tela de montar grupo da DG: entra na montagem (ainda não pronto) e abre a mesma tela, na mesma masmorra
+    if(c.dg){await ref('grupos/'+de+'/lobby/membros/'+uid).set({pronto:false}).catch(()=>{});if(window.showProjectDungeonMenu&&!window.inDungeon)showProjectDungeonMenu({grupoDg:c.dg})}}
    catch(e){if(/permission[_ ]denied/i.test(String(e&&(e.code||e.message))))falhou(e,'a entrada no grupo');else aviso('Não foi possível entrar: o grupo está cheio ou acabou.','#f87171')}
   }else if(c.tipo==='arena'&&window.ARENA)await ARENA.aceitarConvite(de,c);
  }

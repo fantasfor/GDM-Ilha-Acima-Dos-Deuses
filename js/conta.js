@@ -199,7 +199,8 @@
    if(!this.conectado)throw new Error('sem conexão');
    const agora=Date.now(),eu=db.ref('online/'+user.uid),sala=me.sala||'ilha:'+user.uid;
    // rápido: posição, vida, ping e sons de ataque vão para pos/{sala}/{uid}, só para quem está no mesmo lugar
-   if(sala!==this.posSala)trocarPos(sala);
+   // trocou de lugar: os sons que estavam na fila eram do lugar anterior e não vão para o novo (2026-11-06)
+   if(sala!==this.posSala){trocarPos(sala);this.sons='';me.sons=[]}
    if(me.sons&&me.sons.length){this.somSeq=(this.somSeq+1)%1000;this.sons=me.sons.slice(-6).map(t=>String(t).replace(/[|,]/g,'').slice(0,200)).join(',').slice(0,700)}
    // posição em inteiros, direção com 2 casas e ping em passos de 10 ms: parado, a linha quase não muda e não é reenviada
    const rapido=[Math.round(me.x),Math.round(me.y),Math.round(me.fx*100)/100,Math.round(me.fy*100)/100,Math.round(me.hp*100)/100,Math.round((me.mp||0)*100)/100,me.dead?1:0,Math.round((me.ping||0)/10)*10,this.somSeq,this.sons,String(me.efs||'').slice(0,90)].join('|');

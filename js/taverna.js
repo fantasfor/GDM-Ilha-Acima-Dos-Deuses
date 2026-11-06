@@ -538,6 +538,9 @@
  window.tavernaClick=(w,mode)=>{
   if(window.CASSINO&&CASSINO.click(w,mode))return true;
   if(window.LOJA_VIAJANTE&&!CONSTRUCOES.coberto(w.x,w.y,'taverna')&&LOJA_VIAJANTE.click(w,mode))return true;
+  /* quadro de missões (fica do lado de fora, mas a área do telhado da taverna o cobria e o clique era ignorado;
+     2026-11-06, pedido do usuário): vem antes da regra do telhado */
+  if(quadroEm(w)&&mode!=2){quadroAlvo=false;if(pertoDoQuadro())abrirQuadro();else{quadroAlvo=true;setDest(QUADRO.x,QUADRO.y+24)}return true}
   // de fora (telhado fechado) não se clica no que está dentro da taverna: o clique vira andar
   if(window.CONSTRUCOES&&CONSTRUCOES.coberto(w.x,w.y,'taverna'))return false;
   if(window.BAR&&BAR.click(w,mode))return true;

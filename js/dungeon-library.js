@@ -173,9 +173,13 @@
    const head=E('header','dgm-head');head.append(E('b','dgm-title','Montar grupo · '+(c.name||'Masmorra')),E('small','dgm-sub','Até 5 jogadores. Clique em + para convidar ou comece sozinho.'));
    const slots=E('div',''),conv=E('div','dgp-convidar'),dif=E('p','dgp-dif'),nota=E('p','dgm-muted');
    const foot=E('div','dgm-foot'),voltar=E('button','dgp-voltar','Voltar'),comecar=E('button','dgm-enter','Começar');voltar.type=comecar.type='button';
-   voltar.onclick=()=>{root.replaceChildren(cvPrevia,veu,head0,body);renderList();renderDetail()};
+   const pronto=E('button','dgm-enter dgp-pronto','Estou pronto');pronto.type='button';let euPronto=false;
+   /* montagem do grupo (2026-11-06): o líder abre; os lugares são de quem aceitou o convite desta tela; membro marca Pronto */
+   const lider=MP.grupoDg().podeConvidar;if(lider&&MP.abrirLobbyDg)MP.abrirLobbyDg(entry.id);
+   voltar.onclick=()=>{if(MP.fecharLobbyDg)MP.fecharLobbyDg();root.replaceChildren(cvPrevia,veu,head0,body);renderList();renderDetail()};
    comecar.onclick=()=>entrar(entry);
-   foot.append(voltar,comecar);conv.hidden=true;
+   pronto.onclick=()=>{euPronto=!euPronto;if(MP.prontoDg)MP.prontoDg(euPronto);render()};
+   foot.append(voltar,lider?comecar:pronto);conv.hidden=true;
    root.append(head,slots,dif,conv,nota,foot);
    function render(){
     const g=MP.grupoDg(),n=g.membros.length;
@@ -184,14 +188,16 @@
     const cartas=[];
     for(let k=0;k<g.max;k++){
      const m=g.membros[k],alto=k%2===1;
-     if(m){cartas.push(LOBBY.carta({rotulo:m.nome,sprite:m.voce?heroImg('d'):window.spriteDeJogador&&spriteDeJogador(m.id),sub:(m.voce?'Você · ':'')+'Nv '+m.nivel,lider:m.lider,voce:m.voce,alto}));continue}
+     if(m){cartas.push(LOBBY.carta({rotulo:m.nome,sprite:m.voce?heroImg('d'):window.spriteDeJogador&&spriteDeJogador(m.id),sub:(m.voce?'Você · ':'')+'Nv '+m.nivel+(m.lider?'':m.pronto?' · ✓ Pronto':' · esperando…'),lider:m.lider,voce:m.voce,alto}));continue}
      const esperando=[...enviados.values()][k-n];
      cartas.push(LOBBY.carta({rotulo:'Jogador '+(k+1),vazio:true,esperando,podeClicar:g.podeConvidar&&!g.cheio,alto,onClick:()=>{abertoConvite=!abertoConvite;renderConvite()}}));
     }
     slots.replaceChildren(LOBBY.linha(cartas));
     dif.replaceChildren(E('b','',n>1?'Dificuldade com '+n+': ':'Sozinho: '),document.createTextNode(n>1?'inimigos com '+MP.escalaTexto(n)+'.':'dificuldade normal. Cada jogador a mais: '+MP.escalaTexto(2)+'.'));
-    nota.textContent=g.podeConvidar?'O convite chega no Correio de quem você chamar. Ao começar, o grupo recebe o chamado para esta masmorra; a dificuldade sobe a cada um que entra.':'Só o líder do grupo convida e começa. Quando o líder entrar, você recebe o chamado.';
-    comecar.disabled=!g.podeConvidar;
+    const faltam=g.membros.filter(m=>!m.pronto).length;
+    nota.textContent=g.podeConvidar?(faltam?'Esperando '+faltam+' jogador(es) marcar Pronto. ':'Todos prontos! ')+'Clique em + para convidar (até quem já é do seu grupo); o convite chega no Correio. A dificuldade sobe a cada um que entra.':(g.lobby?'Marque Pronto. O líder começa quando todos estiverem prontos e você entra junto.':'O líder fechou a montagem do grupo.');
+    comecar.disabled=!g.podeConvidar||!g.todosProntos;comecar.title=g.todosProntos?'':'Todos precisam marcar Pronto';
+    pronto.textContent=euPronto?'✓ Pronto (desmarcar)':'Estou pronto';pronto.classList.toggle('on',euPronto);pronto.disabled=!g.lobby;
     if(abertoConvite)renderConvite();
    }
    function renderConvite(){
@@ -199,7 +205,7 @@
     conv.replaceChildren(E('span','dgm-label','Convidar jogador'));
     const cand=MP.candidatosDg().slice(0,10);
     if(!cand.length)conv.append(E('span','dgm-muted','Ninguém online para convidar agora.'));
-    for(const cnd of cand){const li=E('div','dgm-cand');li.append(E('span','',cnd.nome+' · Nv '+cnd.nivel+(cnd.amigo?' · amigo':'')),E('small','',cnd.onde));
+    for(const cnd of cand){const li=E('div','dgm-cand');li.append(E('span','',cnd.nome+' · Nv '+cnd.nivel+(cnd.doGrupo?' · do grupo':cnd.amigo?' · amigo':'')),E('small','',cnd.onde));
      const b=E('button','dgm-convite',enviados.has(cnd.id)?'Enviado':'Convidar');b.type='button';b.disabled=enviados.has(cnd.id);
      // o convite leva a masmorra: quem aceitar abre esta mesma tela de montar grupo (js/multiplayer.js)
      b.onclick=async()=>{b.disabled=true;b.textContent='Enviando…';if(await MP.convidar(cnd.id,'grupo',{dg:entry.id,dgNome:c.name||'Masmorra'}))enviados.set(cnd.id,cnd.nome);abertoConvite=false;render();conv.hidden=true};

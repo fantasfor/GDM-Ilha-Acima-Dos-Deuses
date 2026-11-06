@@ -409,3 +409,6 @@ body.emTutorial .tavBtn{display:none}
 @media (max-width:720px){.arn-corpo{grid-template-columns:1fr}.arn-modos{grid-template-columns:1fr}.arn-times{grid-template-columns:1fr}.arn-vs{text-align:center}}
 .arn-stats{grid-template-columns:repeat(6,1fr)}.arn-stat{grid-column:span 2}.arn-stat:nth-child(n+4){grid-column:span 3}
 #dialogue.arenaModal>.dialogueClose{display:none!important}
+
+/* montar grupo da DG: botão Pronto marcado (2026-11-06) */
+.dgp-pronto.on{background:#3f6b45!important;color:#d9d0c7!important}

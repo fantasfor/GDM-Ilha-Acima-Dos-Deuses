@@ -13,9 +13,10 @@
  const meuId=()=>window.NUVEM&&NUVEM.uid||'eu';
  const meuNome=()=>window.NUVEM&&NUVEM.nome?NUVEM.nome():'Você';
  const pos=v=>Number.isFinite(v)&&v>0;
- const serial=s=>({n:String(meuNome()).slice(0,18),d:[s.ff,s.fm,s.ft,s.rf,s.rm,s.rt].map(v=>Math.round(v)),c:Object.fromEntries(Object.entries(s.cura).map(([k,v])=>[k,Math.round(v)]))});
+ /* total = físico + mágico já arredondados (antes o total tinha o dano contínuo verdadeiro à parte e não batia com a soma) */
+ const serial=s=>{const d=[s.ff,s.fm,0,s.rf,s.rm,0].map(v=>Math.round(v));d[2]=d[0]+d[1];d[5]=d[3]+d[4];return{n:String(meuNome()).slice(0,18),d,c:Object.fromEntries(Object.entries(s.cura).map(([k,v])=>[k,Math.round(v)]))}};
  window.STATS_DG={
-  zerar(){eu=vazio();ativo=true;sujo=true},
+  zerar(){eu=vazio();ativo=true;sujo=true;setTimeout(enviar,1500)}, // já entra na lista do grupo (mesmo sem dano)
   dano(f,m,t){if(!ativo||!window.inDungeon||!pos(t))return;eu.ff+=f||0;eu.fm+=m||0;eu.ft+=t;sujo=true},
   recebido(f,m,t){if(!ativo||!window.inDungeon||!pos(t))return;eu.rf+=f||0;eu.rm+=m||0;eu.rt+=t;sujo=true},
   cura(v,de){if(!ativo||!window.inDungeon||!pos(v))return;const k=de||meuId();eu.cura[k]=(eu.cura[k]||0)+v;sujo=true},
@@ -29,21 +30,27 @@
    const ref=db.ref('salas/'+sala+'/stats');
    const espera=new Promise(r=>setTimeout(()=>r(null),2500));
    const leitura=ref.child(meuId()).set({n:meu.n,d:meu.d,c:meu.c}).catch(()=>{}).then(()=>ref.once('value')).then(s=>s.val()).catch(()=>null);
-   Promise.race([leitura,espera]).then(v=>{const lista=v?Object.entries(v).map(([id,o])=>({id,n:o&&o.n||'?',d:Array.isArray(o&&o.d)?o.d:[0,0,0,0,0,0],c:o&&o.c||{}})):[];if(!lista.some(x=>x.id===meu.id))lista.push(meu);mostrar(lista)});
+   const montar=v=>{const lista=v?Object.entries(v).map(([id,o])=>({id,n:o&&o.n||'?',d:Array.isArray(o&&o.d)?o.d:[0,0,0,0,0,0],c:o&&o.c||{}})):[];if(!lista.some(x=>x.id===meu.id))lista.push(meu);return lista};
+   /* todos que participaram (2026-11-06): quem sai junto grava um pouco depois; o painel fica escutando a sala por 10 s e
+      se atualiza quando chega mais alguém ou um número muda */
+   Promise.race([leitura,espera]).then(v=>{mostrar(montar(v));let ult=JSON.stringify(v||{});
+    const fn=s=>{const nv=s.val();const k=JSON.stringify(nv||{});if(k===ult||!document.getElementById('statsDG'))return;ult=k;mostrar(montar(nv),true)};
+    ref.on('value',fn);setTimeout(()=>ref.off('value',fn),10000)});
   }
  };
  // envio dos meus números para a sala da DG do grupo (no máximo a cada 2 s, só quando mudaram)
- setInterval(()=>{if(!sujo||!ativo||!window.NUVEM||!NUVEM.db||!window.MP||!MP.dgSala)return;sujo=false;const s=serial(eu);NUVEM.db.ref('salas/'+MP.dgSala+'/stats/'+NUVEM.uid).set(s).catch(()=>{})},2000);
+ function enviar(){if(!ativo||!window.NUVEM||!NUVEM.db||!window.MP||!MP.dgSala)return;sujo=false;NUVEM.db.ref('salas/'+MP.dgSala+'/stats/'+NUVEM.uid).set(serial(eu)).catch(()=>{})}
+ setInterval(()=>{if(sujo)enviar()},2000);
 
  /* ---- painel do fim ---- */
  const CATEGORIAS=[['Mais dano físico causado',x=>x.d[0]],['Mais dano mágico causado',x=>x.d[1]],['Mais dano total causado',x=>x.d[2]],
   ['Mais dano físico recebido',x=>x.d[3]],['Mais dano mágico recebido',x=>x.d[4]],['Mais dano total recebido',x=>x.d[5]],['Mais cura efetiva',x=>x.curaFeita]];
  // destaque de uma categoria: maior valor; empatados aparecem todos ("A e B (empate)"); tudo zero = ninguém
  function destaque(lista,val){const max=Math.max(0,...lista.map(val));if(max<=0)return['—',0];const top=lista.filter(x=>val(x)===max).map(x=>x.n);return[top.join(' e ')+(top.length>1?' (empate)':''),max]}
- function mostrar(lista){
+ function mostrar(lista,atualizacao){
   for(const x of lista)x.curaFeita=lista.reduce((s,o)=>s+(+(o.c&&o.c[x.id])||0),0);
   const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  let box=document.getElementById('statsDG');if(box)box.remove();
+  let box=document.getElementById('statsDG');if(atualizacao&&!box)return;if(box)box.remove();
   box=E('div');box.id='statsDG';box.setAttribute('role','dialog');box.setAttribute('aria-label','Estatísticas da masmorra');
   const p0=E('div','sdgBox');p0.append(E('h3','','Estatísticas da masmorra'));
   const dest=E('div','sdgDestaques');for(const [rot,val] of CATEGORIAS){const [quem,v]=destaque(lista,val);const l=E('div','sdgLinha');l.append(E('span','',rot),E('b','',quem),E('i','',v?String(v):''));dest.append(l)}p0.append(dest);
